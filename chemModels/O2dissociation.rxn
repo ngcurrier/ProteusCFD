@@ -1,0 +1,26 @@
+# Reaction file... comments start with a symbol
+# comments start with a #
+# Element M refers to a third body (catalyst) in reaction
+# e+, e- are symbolized via ELECTRON+ and ELECTRON- for the parser
+# reaction types: 0 - Arrhenius, 1 - ModArrhenius
+# catalyst present 0 - none, 1 - yes (must define TB_eff for each species)
+# Format should have no spaces in rxn definition (grimech type standard)
+# Useful source for this data is http://www.me.berkeley.edu/gri_mech
+# Make sure units are in K, m, J, kg and mol
+# Arrhenius k = A exp(-Ea/RT)
+# ModArrhenius k = A T^n exp(-Ea/RT)
+# Species must follow camelCase convention, i.e. Li ..NOT.. LI
+
+#Must list number of reactions in the file to expect
+rxnInModel = 1
+
+# The following reaction is oxygen dissociation in the presence of a catalyst
+REACTION 1
+rxnType = 1
+catPresent = 0
+reactantsAsCat = 0
+2O + M <==> O2 + M 
+# The following line was converted to m^6 from cm^6 => 1.20e+17 * 1.00e-12
+A = 1.200E+5
+EA = 0.000
+n = -1.000

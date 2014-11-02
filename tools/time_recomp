@@ -1,0 +1,22 @@
+#!/bin/sh
+#recomposes a time series separated by X steps 
+
+NO_ARGS=0
+
+if [ $# -eq "$NO_ARGS" ]  #script invoked with command line args?
+then
+    echo "Usage: $0 Casename Size_of_print_interval Max_time_step"
+fi
+
+CASE=$1
+STRIDE=$2
+MAX_TIME=$3
+COUNTER=$2
+PRE="-#"
+POST="-"
+
+until [ $COUNTER -gt $MAX_TIME ]; do
+    TEMP=${CASE}${PRE}${COUNTER}${POST}
+    let COUNTER+=STRIDE
+    ./recomp "$TEMP"
+done

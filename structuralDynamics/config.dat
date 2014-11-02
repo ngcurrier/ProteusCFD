@@ -1,0 +1,9 @@
+#This file contains the following things ndof, m, c, k, fo, omega, x, xdot - one line each
+1
+2.0
+0.00000001
+8.0
+0.0
+0.0
+1.0
+-0.5

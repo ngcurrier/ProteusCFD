@@ -1,0 +1,107 @@
+TOOLCHAIN = INTEL
+
+ifndef TARGET
+       $(warning TARGET must be defined on command line. Try make TARGET=local)
+       $(warning Setting TARGET=local because I'm a nice guy)
+       TARGET = local
+endif
+
+#This overrides the compiler setting if we are on a home machine
+ifeq ($(TARGET),home)
+     TOOLCHAIN = GNU
+endif
+
+#intel
+ifeq ($(TOOLCHAIN),INTEL)
+	CXX = icc
+	CXX_OPTS = -O3
+	#CXX_OPTS = -O0 -g -D_DEBUG -guide 
+	#CXX_OPTS += -opt-report[3] -march=core2
+	LINK_OPTS = 
+	FXX = ifort
+	FXX_OPTS = -O3
+	FXX_LINK_OPTS = -r8 -nofor_main
+	HDF5INSTALLDIR = /usr/local/hdf5-1.8.11/
+endif
+
+#GNU
+ifeq ($(TOOLCHAIN),GNU)
+	CXX = g++
+	CXX_OPTS = -O3 -g 
+	#CXX_OPTS = -fopenmp 
+	LINK_OPTS = 
+	FXX = gfortran
+	FXX_OPTS = -O3
+	FXX_LINK_OPTS = -fdefault-real-8
+	HDF5DIR = /TPLs/hdf5/hdf5-1.8.10-patch1
+	HDF5INSTALLDIR = $(HDF5DIR)/build
+endif
+
+#IBM XLC
+ifeq ($(TOOLCHAIN),IBM)
+	CXX = xlc++
+	CXX_OPTS = -q64 -O5 -Wall
+	#may use up to level 7 here for vectorizer reports
+	#CXX_OPTS += -Wall -ftree-vectorizer-verbose=5 -fdump-tree-vect -std=c++0x
+	LINK_OPTS = -q64
+	FXX = ifort
+	FXX = xlf
+	FXX_OPTS = -O2
+	FXX_LINK_OPTS = 
+endif
+
+TINYXMLDIR = /TPLs/tinyxml/tinyxml-2.6.2
+TINYXML_INCLUDES = ../TPLs/tinyxml/tinyxml-2.6.2
+TINYXML_LIB = ../TPLs/tinyxml/tinyxml-2.6.2
+
+METISDIR = /TPLs/metis/metis-5.0.2
+METISINSTALLDIR = $(METISDIR)/build/Linux-x86_64/libmetis
+
+METIS_LIB = ..$(METISINSTALLDIR)
+METIS_INCLUDES = ..$(METISDIR)/include
+
+HDF5_LIB = $(HDF5INSTALLDIR)/lib
+HDF5_INCLUDES = $(HDF5INSTALLDIR)/include
+
+ifeq ($(TARGET),local)
+     #this is local mpi install
+     ifeq ($(TOOLCHAIN),INTEL)
+          MPI_PATH = /usr/local/openmpi-1.6.1-intel13
+	  #MPI_PATH = /usr/local/openmpi
+     endif
+     ifeq ($(TOOLCHAIN),GNU)
+     	  MPI_PATH = /usr/local/openmpi-1.6.1-gcc
+	  #MPI_PATH = /usr/loca/openmpi-gcc64
+     endif
+endif
+
+ifeq ($(TARGET),papertape)
+     #this is for infiniband support on papertape
+     MPI_PATH = /usr/local/openmpi-1.6.1-intel-tm-openib
+     CXX_OPTS += -xAVX
+endif
+
+ifeq ($(TARGET),bluetick)
+     MPI_PATH = /usr/local/openmpi-1.4.1-xl
+endif
+
+MPI_INCLUDES = $(MPI_PATH)/include
+MPI_LIBS = $(MPI_PATH)/lib
+
+ifeq ($(TARGET),home)
+    MPI_INCLUDES = /usr/include/openmpi
+    MPI_LIBS = /usr/lib/openmpi/lib    
+endif
+
+
+MPICXX = $(MPI_PATH)/bin/mpiCC
+
+INCLUDES = -I$(METIS_INCLUDES) -I$(HDF5_INCLUDES) -I$(TINYXML_INCLUDES) -I../common -I../structuralDynamics
+LCXXFLAGS = -L$(HDF5_LIB) -L../structuralDynamics -L../common  -L$(TINYXML_LIB)
+LFXXFLAGS = 
+
+#LIBS = -lmetis -lgomp -lmpi_cxx -lmpi -lefence
+CXXLIBS = -lhdf5 -lcommon -lz 
+#more mpi stuff from running mpiCC --showme
+CXXLIBS += -lstdc++ 
+FXXLIBS = -lstdc++

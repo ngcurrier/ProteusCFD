@@ -1,0 +1,12 @@
+#!/bin/tcsh
+
+foreach i ( *.l *.y *.F *.f *.C *.H *.c *.h *.cpp *.HPP *.tcc Mak* *.ui *.py *.rst )
+
+  rcsdiff $i >& /dev/null
+
+  if ( ${status} == "1" ) then 
+    echo $i
+  endif
+
+end
+

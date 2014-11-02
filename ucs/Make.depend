@@ -1,0 +1,199 @@
+main.o: main.cpp ../common/general.h ../common/exceptions.h \
+ ../common/general.h bc.h kernel.h bcobj.h bcobj.tcc bc.tcc driver.h \
+ uns_base.h threaded.h driver.tcc solutionSpace.h \
+ ../common/solutionSpaceBase.h ../common/timer.h \
+ ../common/temporalControl.h ../common/parameterParser.h \
+ ../common/parameterParser.tcc ../common/strings_util.h \
+ ../common/temporalControl.tcc ../common/exceptions.h ../common/timer.h \
+ dataInfo.h ../common/h5layer.h ../common/h5layer.tcc gradient.h \
+ gradient.tcc bc_defines.h mesh.h io.h ../common/elementClass.h \
+ ../common/etypes.h ../common/mem_util.h mesh.tcc ../common/geometry.h \
+ ../common/macros.h ../common/mem_util.h ../common/etypes.h \
+ ../common/macros.h parallel.h parallel.tcc crsmatrix.h crsmatrix.tcc \
+ ../common/matrix.h oddsNends.h meshAdapt.tcc eqnset.h eqnset_defines.h \
+ param.h ../common/parameterParser.h param.tcc ../common/strings_util.h \
+ vars_id.h eqnset.tcc ../common/temporalControl.h solutionSpace.tcc \
+ create_functions.h compressible.h compressible.tcc solutionField.h \
+ solutionField.tcc incompressible.h incompressible.tcc compressibleFR.h \
+ compressibleFR.tcc chem.h species.h elements.h chem_constants.h \
+ species.tcc reaction.h reaction.tcc EOS.h EOS.tcc chem.tcc \
+ heatTransfer.h heatTransfer.tcc jacobian.h jacobian.tcc residual.h \
+ residual.tcc limiters.h limiters.tcc solve.h solutionOperations.h \
+ ../common/transfer.h ../common/solutionSpaceBase.h \
+ ../common/transfer.tcc solutionOperations.tcc fieldTransfer.h \
+ fieldTransfer.tcc ../ucs/parallel.h ../common/interpolation.h \
+ ../common/geometry.h ../common/octree.h ../common/octree.tcc solve.tcc \
+ forces.h forces.tcc composite.h composite.tcc timestep.h timestep.tcc \
+ sensors.h sensors.tcc crs.h crs.tcc walldist.h walldist.tcc turb.h \
+ spalart.h spalart.tcc laminar.h laminar.tcc turb.tcc customics.h \
+ customics.tcc derivatives.h derivatives.tcc portFileio.h move.h move.tcc \
+ parametric.h parametric.tcc ../structuralDynamics/fluid_structure.h \
+ ../structuralDynamics/bc.h ../structuralDynamics/implicit.h \
+ ../structuralDynamics/forces.h ../structuralDynamics/utility.h \
+ ../structuralDynamics/element_lib.h ../structuralDynamics/structparam.h \
+ ../structuralDynamics/../ucs/bc.h ../structuralDynamics/../ucs/param.h
+eqnset.o: eqnset.cpp
+threaded.o: threaded.cpp threaded.h ../common/general.h
+parallel.o: parallel.cpp parallel.h ../common/general.h ../common/timer.h \
+ ../common/general.h parallel.tcc ../common/etypes.h mesh.h io.h \
+ uns_base.h ../common/elementClass.h ../common/etypes.h \
+ ../common/mem_util.h mesh.tcc ../common/geometry.h ../common/macros.h \
+ ../common/mem_util.h ../common/macros.h oddsNends.h ../common/h5layer.h \
+ ../common/strings_util.h ../common/h5layer.tcc ../common/exceptions.h \
+ meshAdapt.tcc crsmatrix.h crsmatrix.tcc ../common/matrix.h threaded.h
+customics.o: customics.cpp
+oddsNends.o: oddsNends.cpp oddsNends.h ../common/general.h
+portFileio.o: portFileio.cpp portFileio.h
+elements.o: elements.cpp elements.h
+dataInfo.o: dataInfo.cpp dataInfo.h ../common/general.h \
+ ../common/h5layer.h ../common/general.h ../common/strings_util.h \
+ ../common/h5layer.tcc
+derivatives.o: derivatives.cpp derivatives.h ../common/general.h solve.h \
+ ../common/solutionSpaceBase.h ../common/general.h ../common/timer.h \
+ ../common/temporalControl.h ../common/parameterParser.h \
+ ../common/parameterParser.tcc ../common/strings_util.h \
+ ../common/temporalControl.tcc ../common/exceptions.h solutionSpace.h \
+ bc.h kernel.h bcobj.h bcobj.tcc bc.tcc driver.h uns_base.h threaded.h \
+ driver.tcc ../common/strings_util.h ../common/macros.h composite.h \
+ composite.tcc bc_defines.h mesh.h io.h ../common/elementClass.h \
+ ../common/etypes.h ../common/mem_util.h mesh.tcc ../common/geometry.h \
+ ../common/macros.h ../common/mem_util.h ../common/etypes.h parallel.h \
+ ../common/timer.h parallel.tcc crsmatrix.h crsmatrix.tcc \
+ ../common/matrix.h ../common/exceptions.h oddsNends.h \
+ ../common/h5layer.h ../common/h5layer.tcc meshAdapt.tcc param.h \
+ ../common/parameterParser.h param.tcc eqnset_defines.h vars_id.h \
+ eqnset.h eqnset.tcc dataInfo.h gradient.h gradient.tcc \
+ ../common/temporalControl.h solutionSpace.tcc create_functions.h \
+ compressible.h compressible.tcc solutionField.h solutionField.tcc \
+ incompressible.h incompressible.tcc compressibleFR.h compressibleFR.tcc \
+ chem.h species.h elements.h chem_constants.h species.tcc reaction.h \
+ reaction.tcc EOS.h EOS.tcc chem.tcc heatTransfer.h heatTransfer.tcc \
+ jacobian.h jacobian.tcc residual.h residual.tcc limiters.h limiters.tcc \
+ sensors.h ../common/interpolation.h ../common/geometry.h sensors.tcc \
+ forces.h forces.tcc turb.h crs.h crs.tcc spalart.h spalart.tcc laminar.h \
+ laminar.tcc turb.tcc customics.h customics.tcc solutionOperations.h \
+ ../common/transfer.h ../common/solutionSpaceBase.h \
+ ../common/transfer.tcc solutionOperations.tcc fieldTransfer.h \
+ fieldTransfer.tcc ../ucs/parallel.h ../common/octree.h \
+ ../common/octree.tcc solve.tcc timestep.h timestep.tcc walldist.h \
+ walldist.tcc derivatives.tcc portFileio.h move.h move.tcc parametric.h \
+ parametric.tcc
+decomp.o: decomp.cpp mesh.h ../common/general.h io.h uns_base.h \
+ ../common/elementClass.h ../common/general.h ../common/etypes.h \
+ ../common/mem_util.h mesh.tcc ../common/geometry.h ../common/macros.h \
+ ../common/mem_util.h ../common/etypes.h ../common/macros.h parallel.h \
+ ../common/timer.h parallel.tcc crsmatrix.h crsmatrix.tcc \
+ ../common/matrix.h threaded.h ../common/exceptions.h oddsNends.h \
+ ../common/h5layer.h ../common/strings_util.h ../common/h5layer.tcc \
+ meshAdapt.tcc ../TPLs/metis/metis-5.0.2/include/metis.h
+io.o: io.cpp io.h ../common/general.h ../common/etypes.h \
+ ../common/endian_util.h ../common/general.h ../common/strings_util.h \
+ ../TPLs/tinyxml/tinyxml-2.6.2/tinyxml.h \
+ ../TPLs/tinyxml/tinyxml-2.6.2/tinystr.h parallel.h ../common/timer.h \
+ parallel.tcc mesh.h uns_base.h ../common/elementClass.h \
+ ../common/etypes.h ../common/mem_util.h mesh.tcc ../common/geometry.h \
+ ../common/macros.h ../common/mem_util.h ../common/macros.h oddsNends.h \
+ ../common/h5layer.h ../common/strings_util.h ../common/h5layer.tcc \
+ ../common/exceptions.h meshAdapt.tcc crsmatrix.h crsmatrix.tcc \
+ ../common/matrix.h threaded.h dataInfo.h solutionField.h \
+ solutionField.tcc
+parallel.o: parallel.cpp parallel.h ../common/general.h ../common/timer.h \
+ ../common/general.h parallel.tcc ../common/etypes.h mesh.h io.h \
+ uns_base.h ../common/elementClass.h ../common/etypes.h \
+ ../common/mem_util.h mesh.tcc ../common/geometry.h ../common/macros.h \
+ ../common/mem_util.h ../common/macros.h oddsNends.h ../common/h5layer.h \
+ ../common/strings_util.h ../common/h5layer.tcc ../common/exceptions.h \
+ meshAdapt.tcc crsmatrix.h crsmatrix.tcc ../common/matrix.h threaded.h
+oddsNends.o: oddsNends.cpp oddsNends.h ../common/general.h
+dataInfo.o: dataInfo.cpp dataInfo.h ../common/general.h \
+ ../common/h5layer.h ../common/general.h ../common/strings_util.h \
+ ../common/h5layer.tcc
+recomp.o: recomp.cpp mesh.h ../common/general.h io.h uns_base.h \
+ ../common/elementClass.h ../common/general.h ../common/etypes.h \
+ ../common/mem_util.h mesh.tcc ../common/geometry.h ../common/macros.h \
+ ../common/mem_util.h ../common/etypes.h ../common/macros.h parallel.h \
+ ../common/timer.h parallel.tcc crsmatrix.h crsmatrix.tcc \
+ ../common/matrix.h threaded.h ../common/exceptions.h oddsNends.h \
+ ../common/h5layer.h ../common/strings_util.h ../common/h5layer.tcc \
+ meshAdapt.tcc ../common/strings_util.h solutionField.h dataInfo.h \
+ solutionField.tcc
+io.o: io.cpp io.h ../common/general.h ../common/etypes.h \
+ ../common/endian_util.h ../common/general.h ../common/strings_util.h \
+ ../TPLs/tinyxml/tinyxml-2.6.2/tinyxml.h \
+ ../TPLs/tinyxml/tinyxml-2.6.2/tinystr.h parallel.h ../common/timer.h \
+ parallel.tcc mesh.h uns_base.h ../common/elementClass.h \
+ ../common/etypes.h ../common/mem_util.h mesh.tcc ../common/geometry.h \
+ ../common/macros.h ../common/mem_util.h ../common/macros.h oddsNends.h \
+ ../common/h5layer.h ../common/strings_util.h ../common/h5layer.tcc \
+ ../common/exceptions.h meshAdapt.tcc crsmatrix.h crsmatrix.tcc \
+ ../common/matrix.h threaded.h dataInfo.h solutionField.h \
+ solutionField.tcc
+parallel.o: parallel.cpp parallel.h ../common/general.h ../common/timer.h \
+ ../common/general.h parallel.tcc ../common/etypes.h mesh.h io.h \
+ uns_base.h ../common/elementClass.h ../common/etypes.h \
+ ../common/mem_util.h mesh.tcc ../common/geometry.h ../common/macros.h \
+ ../common/mem_util.h ../common/macros.h oddsNends.h ../common/h5layer.h \
+ ../common/strings_util.h ../common/h5layer.tcc ../common/exceptions.h \
+ meshAdapt.tcc crsmatrix.h crsmatrix.tcc ../common/matrix.h threaded.h
+oddsNends.o: oddsNends.cpp oddsNends.h ../common/general.h
+dataInfo.o: dataInfo.cpp dataInfo.h ../common/general.h \
+ ../common/h5layer.h ../common/general.h ../common/strings_util.h \
+ ../common/h5layer.tcc
+find_point.o: find_point.cpp mesh.h ../common/general.h io.h uns_base.h \
+ ../common/elementClass.h ../common/general.h ../common/etypes.h \
+ ../common/mem_util.h mesh.tcc ../common/geometry.h ../common/macros.h \
+ ../common/mem_util.h ../common/etypes.h ../common/macros.h parallel.h \
+ ../common/timer.h parallel.tcc crsmatrix.h crsmatrix.tcc \
+ ../common/matrix.h threaded.h ../common/exceptions.h oddsNends.h \
+ ../common/h5layer.h ../common/strings_util.h ../common/h5layer.tcc \
+ meshAdapt.tcc
+io.o: io.cpp io.h ../common/general.h ../common/etypes.h \
+ ../common/endian_util.h ../common/general.h ../common/strings_util.h \
+ ../TPLs/tinyxml/tinyxml-2.6.2/tinyxml.h \
+ ../TPLs/tinyxml/tinyxml-2.6.2/tinystr.h parallel.h ../common/timer.h \
+ parallel.tcc mesh.h uns_base.h ../common/elementClass.h \
+ ../common/etypes.h ../common/mem_util.h mesh.tcc ../common/geometry.h \
+ ../common/macros.h ../common/mem_util.h ../common/macros.h oddsNends.h \
+ ../common/h5layer.h ../common/strings_util.h ../common/h5layer.tcc \
+ ../common/exceptions.h meshAdapt.tcc crsmatrix.h crsmatrix.tcc \
+ ../common/matrix.h threaded.h dataInfo.h solutionField.h \
+ solutionField.tcc
+parallel.o: parallel.cpp parallel.h ../common/general.h ../common/timer.h \
+ ../common/general.h parallel.tcc ../common/etypes.h mesh.h io.h \
+ uns_base.h ../common/elementClass.h ../common/etypes.h \
+ ../common/mem_util.h mesh.tcc ../common/geometry.h ../common/macros.h \
+ ../common/mem_util.h ../common/macros.h oddsNends.h ../common/h5layer.h \
+ ../common/strings_util.h ../common/h5layer.tcc ../common/exceptions.h \
+ meshAdapt.tcc crsmatrix.h crsmatrix.tcc ../common/matrix.h threaded.h
+oddsNends.o: oddsNends.cpp oddsNends.h ../common/general.h
+dataInfo.o: dataInfo.cpp dataInfo.h ../common/general.h \
+ ../common/h5layer.h ../common/general.h ../common/strings_util.h \
+ ../common/h5layer.tcc
+chemprops.o: chemprops.cpp chem.h ../common/general.h species.h \
+ elements.h chem_constants.h ../common/h5layer.h ../common/general.h \
+ ../common/strings_util.h ../common/h5layer.tcc ../common/macros.h \
+ species.tcc ../common/exceptions.h reaction.h ../common/strings_util.h \
+ reaction.tcc EOS.h EOS.tcc chem.tcc param.h ../common/parameterParser.h \
+ ../common/parameterParser.tcc param.tcc eqnset_defines.h vars_id.h \
+ ../common/temporalControl.h ../common/parameterParser.h \
+ ../common/temporalControl.tcc ../common/exceptions.h \
+ solutionOperations.h ../common/transfer.h ../common/solutionSpaceBase.h \
+ ../common/timer.h ../common/temporalControl.h ../common/transfer.tcc \
+ ../common/solutionSpaceBase.h solutionOperations.tcc solutionSpace.h \
+ bc.h kernel.h bcobj.h bcobj.tcc bc.tcc driver.h uns_base.h threaded.h \
+ driver.tcc composite.h composite.tcc bc_defines.h mesh.h io.h \
+ ../common/elementClass.h ../common/etypes.h ../common/mem_util.h \
+ mesh.tcc ../common/geometry.h ../common/macros.h ../common/mem_util.h \
+ ../common/etypes.h parallel.h ../common/timer.h parallel.tcc crsmatrix.h \
+ crsmatrix.tcc ../common/matrix.h oddsNends.h meshAdapt.tcc eqnset.h \
+ eqnset.tcc dataInfo.h gradient.h gradient.tcc solutionSpace.tcc \
+ create_functions.h compressible.h compressible.tcc solutionField.h \
+ solutionField.tcc incompressible.h incompressible.tcc compressibleFR.h \
+ compressibleFR.tcc heatTransfer.h heatTransfer.tcc jacobian.h \
+ jacobian.tcc residual.h residual.tcc limiters.h limiters.tcc solve.h \
+ solve.tcc forces.h forces.tcc timestep.h timestep.tcc sensors.h \
+ ../common/interpolation.h ../common/geometry.h sensors.tcc crs.h crs.tcc \
+ walldist.h walldist.tcc ../common/octree.h ../common/octree.tcc turb.h \
+ spalart.h spalart.tcc laminar.h laminar.tcc turb.tcc customics.h \
+ customics.tcc fieldTransfer.h fieldTransfer.tcc ../ucs/parallel.h
+elements.o: elements.cpp elements.h

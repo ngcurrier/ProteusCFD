@@ -1,0 +1,287 @@
+The system is: Linux - 3.0.6-gentoo - x86_64
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler: /usr/bin/cc 
+Build flags: 
+Id flags: 
+
+The output was:
+0
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
+
+The C compiler identification is GNU, found in "/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/2.8.10.2/CompilerIdC/a.out"
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+Compiler: /usr/bin/c++ 
+Build flags: 
+Id flags: 
+
+The output was:
+0
+
+
+Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.out"
+
+The CXX compiler identification is GNU, found in "/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/2.8.10.2/CompilerIdCXX/a.out"
+
+Determining if the C compiler works passed with the following output:
+Change Dir: /home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/gmake "cmTryCompileExec391578813/fast"
+gmake[2]: Entering directory `/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp'
+/usr/bin/gmake -f CMakeFiles/cmTryCompileExec391578813.dir/build.make CMakeFiles/cmTryCompileExec391578813.dir/build
+gmake[3]: Entering directory `/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec391578813.dir/testCCompiler.c.o
+/usr/bin/cc    -o CMakeFiles/cmTryCompileExec391578813.dir/testCCompiler.c.o   -c /home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp/testCCompiler.c
+Linking C executable cmTryCompileExec391578813
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec391578813.dir/link.txt --verbose=1
+/usr/bin/cc         CMakeFiles/cmTryCompileExec391578813.dir/testCCompiler.c.o  -o cmTryCompileExec391578813 -rdynamic 
+gmake[3]: Leaving directory `/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp'
+gmake[2]: Leaving directory `/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp'
+
+
+Detecting C compiler ABI info compiled with the following output:
+Change Dir: /home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/gmake "cmTryCompileExec4181306884/fast"
+gmake[2]: Entering directory `/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp'
+/usr/bin/gmake -f CMakeFiles/cmTryCompileExec4181306884.dir/build.make CMakeFiles/cmTryCompileExec4181306884.dir/build
+gmake[3]: Entering directory `/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec4181306884.dir/CMakeCCompilerABI.c.o
+/usr/bin/cc    -o CMakeFiles/cmTryCompileExec4181306884.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake/Modules/CMakeCCompilerABI.c
+Linking C executable cmTryCompileExec4181306884
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec4181306884.dir/link.txt --verbose=1
+/usr/bin/cc       -v CMakeFiles/cmTryCompileExec4181306884.dir/CMakeCCompilerABI.c.o  -o cmTryCompileExec4181306884 -rdynamic  
+Using built-in specs.
+COLLECT_GCC=/usr/x86_64-pc-linux-gnu/gcc-bin/4.5.4/gcc
+COLLECT_LTO_WRAPPER=/usr/libexec/gcc/x86_64-pc-linux-gnu/4.5.4/lto-wrapper
+Target: x86_64-pc-linux-gnu
+Configured with: /var/tmp/portage/sys-devel/gcc-4.5.4/work/gcc-4.5.4/configure --prefix=/usr --bindir=/usr/x86_64-pc-linux-gnu/gcc-bin/4.5.4 --includedir=/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/include --datadir=/usr/share/gcc-data/x86_64-pc-linux-gnu/4.5.4 --mandir=/usr/share/gcc-data/x86_64-pc-linux-gnu/4.5.4/man --infodir=/usr/share/gcc-data/x86_64-pc-linux-gnu/4.5.4/info --with-gxx-include-dir=/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/include/g++-v4 --host=x86_64-pc-linux-gnu --build=x86_64-pc-linux-gnu --disable-altivec --disable-fixed-point --without-ppl --without-cloog --disable-lto --enable-nls --without-included-gettext --with-system-zlib --enable-obsolete --disable-werror --enable-secureplt --enable-multilib --enable-libmudflap --disable-libssp --enable-libgomp --with-python-dir=/share/gcc-data/x86_64-pc-linux-gnu/4.5.4/python --enable-checking=release --enable-java-awt=gtk --enable-languages=c,c++,java,fortran --enable-shared --enable-threads=posix --enable-__cxa_atexit --enable-clocale=gnu --enable-targets=all --with-bugurl=http://bugs.gentoo.org/ --with-pkgversion='Gentoo 4.5.4 p1.0, pie-0.4.7'
+Thread model: posix
+gcc version 4.5.4 (Gentoo 4.5.4 p1.0, pie-0.4.7) 
+COMPILER_PATH=/usr/libexec/gcc/x86_64-pc-linux-gnu/4.5.4/:/usr/libexec/gcc/x86_64-pc-linux-gnu/4.5.4/:/usr/libexec/gcc/x86_64-pc-linux-gnu/:/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/:/usr/lib/gcc/x86_64-pc-linux-gnu/:/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../x86_64-pc-linux-gnu/bin/
+LIBRARY_PATH=/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/:/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../x86_64-pc-linux-gnu/lib/:/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../:/lib/:/usr/lib/
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTryCompileExec4181306884' '-rdynamic' '-mtune=generic' '-march=x86-64'
+ /usr/libexec/gcc/x86_64-pc-linux-gnu/4.5.4/collect2 --eh-frame-hdr -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTryCompileExec4181306884 /usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64/crt1.o /usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64/crti.o /usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/crtbegin.o -L/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4 -L/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../x86_64-pc-linux-gnu/lib -L/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../.. CMakeFiles/cmTryCompileExec4181306884.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/crtend.o /usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64/crtn.o
+gmake[3]: Leaving directory `/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp'
+gmake[2]: Leaving directory `/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp'
+
+
+Parsed C implicit link information from above output:
+  link line regex: [^( *|.*[/\])(ld|ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: /home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp]
+  ignore line: []
+  ignore line: [Run Build Command:/usr/bin/gmake "cmTryCompileExec4181306884/fast"]
+  ignore line: [gmake[2]: Entering directory `/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp']
+  ignore line: [/usr/bin/gmake -f CMakeFiles/cmTryCompileExec4181306884.dir/build.make CMakeFiles/cmTryCompileExec4181306884.dir/build]
+  ignore line: [gmake[3]: Entering directory `/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp']
+  ignore line: [/usr/bin/cmake -E cmake_progress_report /home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp/CMakeFiles 1]
+  ignore line: [Building C object CMakeFiles/cmTryCompileExec4181306884.dir/CMakeCCompilerABI.c.o]
+  ignore line: [/usr/bin/cc    -o CMakeFiles/cmTryCompileExec4181306884.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake/Modules/CMakeCCompilerABI.c]
+  ignore line: [Linking C executable cmTryCompileExec4181306884]
+  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec4181306884.dir/link.txt --verbose=1]
+  ignore line: [/usr/bin/cc       -v CMakeFiles/cmTryCompileExec4181306884.dir/CMakeCCompilerABI.c.o  -o cmTryCompileExec4181306884 -rdynamic  ]
+  ignore line: [Using built-in specs.]
+  ignore line: [COLLECT_GCC=/usr/x86_64-pc-linux-gnu/gcc-bin/4.5.4/gcc]
+  ignore line: [COLLECT_LTO_WRAPPER=/usr/libexec/gcc/x86_64-pc-linux-gnu/4.5.4/lto-wrapper]
+  ignore line: [Target: x86_64-pc-linux-gnu]
+  ignore line: [Configured with: /var/tmp/portage/sys-devel/gcc-4.5.4/work/gcc-4.5.4/configure --prefix=/usr --bindir=/usr/x86_64-pc-linux-gnu/gcc-bin/4.5.4 --includedir=/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/include --datadir=/usr/share/gcc-data/x86_64-pc-linux-gnu/4.5.4 --mandir=/usr/share/gcc-data/x86_64-pc-linux-gnu/4.5.4/man --infodir=/usr/share/gcc-data/x86_64-pc-linux-gnu/4.5.4/info --with-gxx-include-dir=/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/include/g++-v4 --host=x86_64-pc-linux-gnu --build=x86_64-pc-linux-gnu --disable-altivec --disable-fixed-point --without-ppl --without-cloog --disable-lto --enable-nls --without-included-gettext --with-system-zlib --enable-obsolete --disable-werror --enable-secureplt --enable-multilib --enable-libmudflap --disable-libssp --enable-libgomp --with-python-dir=/share/gcc-data/x86_64-pc-linux-gnu/4.5.4/python --enable-checking=release --enable-java-awt=gtk --enable-languages=c,c++,java,fortran --enable-shared --enable-threads=posix --enable-__cxa_atexit --enable-clocale=gnu --enable-targets=all --with-bugurl=http://bugs.gentoo.org/ --with-pkgversion='Gentoo 4.5.4 p1.0, pie-0.4.7']
+  ignore line: [Thread model: posix]
+  ignore line: [gcc version 4.5.4 (Gentoo 4.5.4 p1.0, pie-0.4.7) ]
+  ignore line: [COMPILER_PATH=/usr/libexec/gcc/x86_64-pc-linux-gnu/4.5.4/:/usr/libexec/gcc/x86_64-pc-linux-gnu/4.5.4/:/usr/libexec/gcc/x86_64-pc-linux-gnu/:/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/:/usr/lib/gcc/x86_64-pc-linux-gnu/:/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../x86_64-pc-linux-gnu/bin/]
+  ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/:/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../x86_64-pc-linux-gnu/lib/:/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../:/lib/:/usr/lib/]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTryCompileExec4181306884' '-rdynamic' '-mtune=generic' '-march=x86-64']
+  link line: [ /usr/libexec/gcc/x86_64-pc-linux-gnu/4.5.4/collect2 --eh-frame-hdr -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTryCompileExec4181306884 /usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64/crt1.o /usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64/crti.o /usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/crtbegin.o -L/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4 -L/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../x86_64-pc-linux-gnu/lib -L/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../.. CMakeFiles/cmTryCompileExec4181306884.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/crtend.o /usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64/crtn.o]
+    arg [/usr/libexec/gcc/x86_64-pc-linux-gnu/4.5.4/collect2] ==> ignore
+    arg [--eh-frame-hdr] ==> ignore
+    arg [-m] ==> ignore
+    arg [elf_x86_64] ==> ignore
+    arg [-export-dynamic] ==> ignore
+    arg [-dynamic-linker] ==> ignore
+    arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+    arg [-o] ==> ignore
+    arg [cmTryCompileExec4181306884] ==> ignore
+    arg [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64/crt1.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64/crti.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/crtbegin.o] ==> ignore
+    arg [-L/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4] ==> dir [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4]
+    arg [-L/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64] ==> dir [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64]
+    arg [-L/lib/../lib64] ==> dir [/lib/../lib64]
+    arg [-L/usr/lib/../lib64] ==> dir [/usr/lib/../lib64]
+    arg [-L/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../x86_64-pc-linux-gnu/lib] ==> dir [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../x86_64-pc-linux-gnu/lib]
+    arg [-L/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../..] ==> dir [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../..]
+    arg [CMakeFiles/cmTryCompileExec4181306884.dir/CMakeCCompilerABI.c.o] ==> ignore
+    arg [-lgcc] ==> lib [gcc]
+    arg [--as-needed] ==> ignore
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [--no-as-needed] ==> ignore
+    arg [-lc] ==> lib [c]
+    arg [-lgcc] ==> lib [gcc]
+    arg [--as-needed] ==> ignore
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [--no-as-needed] ==> ignore
+    arg [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/crtend.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64/crtn.o] ==> ignore
+  remove lib [gcc]
+  remove lib [gcc_s]
+  remove lib [gcc]
+  remove lib [gcc_s]
+  collapse dir [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4] ==> [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4]
+  collapse dir [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64] ==> [/usr/lib64]
+  collapse dir [/lib/../lib64] ==> [/lib64]
+  collapse dir [/usr/lib/../lib64] ==> [/usr/lib64]
+  collapse dir [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../x86_64-pc-linux-gnu/lib] ==> [/usr/x86_64-pc-linux-gnu/lib]
+  collapse dir [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../..] ==> [/usr/lib]
+  implicit libs: [c]
+  implicit dirs: [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4;/usr/lib64;/lib64;/usr/x86_64-pc-linux-gnu/lib;/usr/lib]
+
+
+Determining if the CXX compiler works passed with the following output:
+Change Dir: /home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/gmake "cmTryCompileExec204427067/fast"
+gmake[2]: Entering directory `/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp'
+/usr/bin/gmake -f CMakeFiles/cmTryCompileExec204427067.dir/build.make CMakeFiles/cmTryCompileExec204427067.dir/build
+gmake[3]: Entering directory `/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building CXX object CMakeFiles/cmTryCompileExec204427067.dir/testCXXCompiler.cxx.o
+/usr/bin/c++     -o CMakeFiles/cmTryCompileExec204427067.dir/testCXXCompiler.cxx.o -c /home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp/testCXXCompiler.cxx
+Linking CXX executable cmTryCompileExec204427067
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec204427067.dir/link.txt --verbose=1
+/usr/bin/c++          CMakeFiles/cmTryCompileExec204427067.dir/testCXXCompiler.cxx.o  -o cmTryCompileExec204427067 -rdynamic 
+gmake[3]: Leaving directory `/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp'
+gmake[2]: Leaving directory `/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp'
+
+
+Detecting CXX compiler ABI info compiled with the following output:
+Change Dir: /home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/gmake "cmTryCompileExec87636987/fast"
+gmake[2]: Entering directory `/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp'
+/usr/bin/gmake -f CMakeFiles/cmTryCompileExec87636987.dir/build.make CMakeFiles/cmTryCompileExec87636987.dir/build
+gmake[3]: Entering directory `/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building CXX object CMakeFiles/cmTryCompileExec87636987.dir/CMakeCXXCompilerABI.cpp.o
+/usr/bin/c++     -o CMakeFiles/cmTryCompileExec87636987.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake/Modules/CMakeCXXCompilerABI.cpp
+Linking CXX executable cmTryCompileExec87636987
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec87636987.dir/link.txt --verbose=1
+/usr/bin/c++        -v CMakeFiles/cmTryCompileExec87636987.dir/CMakeCXXCompilerABI.cpp.o  -o cmTryCompileExec87636987 -rdynamic  
+Using built-in specs.
+COLLECT_GCC=/usr/x86_64-pc-linux-gnu/gcc-bin/4.5.4/c++
+COLLECT_LTO_WRAPPER=/usr/libexec/gcc/x86_64-pc-linux-gnu/4.5.4/lto-wrapper
+Target: x86_64-pc-linux-gnu
+Configured with: /var/tmp/portage/sys-devel/gcc-4.5.4/work/gcc-4.5.4/configure --prefix=/usr --bindir=/usr/x86_64-pc-linux-gnu/gcc-bin/4.5.4 --includedir=/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/include --datadir=/usr/share/gcc-data/x86_64-pc-linux-gnu/4.5.4 --mandir=/usr/share/gcc-data/x86_64-pc-linux-gnu/4.5.4/man --infodir=/usr/share/gcc-data/x86_64-pc-linux-gnu/4.5.4/info --with-gxx-include-dir=/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/include/g++-v4 --host=x86_64-pc-linux-gnu --build=x86_64-pc-linux-gnu --disable-altivec --disable-fixed-point --without-ppl --without-cloog --disable-lto --enable-nls --without-included-gettext --with-system-zlib --enable-obsolete --disable-werror --enable-secureplt --enable-multilib --enable-libmudflap --disable-libssp --enable-libgomp --with-python-dir=/share/gcc-data/x86_64-pc-linux-gnu/4.5.4/python --enable-checking=release --enable-java-awt=gtk --enable-languages=c,c++,java,fortran --enable-shared --enable-threads=posix --enable-__cxa_atexit --enable-clocale=gnu --enable-targets=all --with-bugurl=http://bugs.gentoo.org/ --with-pkgversion='Gentoo 4.5.4 p1.0, pie-0.4.7'
+Thread model: posix
+gcc version 4.5.4 (Gentoo 4.5.4 p1.0, pie-0.4.7) 
+COMPILER_PATH=/usr/libexec/gcc/x86_64-pc-linux-gnu/4.5.4/:/usr/libexec/gcc/x86_64-pc-linux-gnu/4.5.4/:/usr/libexec/gcc/x86_64-pc-linux-gnu/:/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/:/usr/lib/gcc/x86_64-pc-linux-gnu/:/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../x86_64-pc-linux-gnu/bin/
+LIBRARY_PATH=/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/:/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../x86_64-pc-linux-gnu/lib/:/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../:/lib/:/usr/lib/
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTryCompileExec87636987' '-rdynamic' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+ /usr/libexec/gcc/x86_64-pc-linux-gnu/4.5.4/collect2 --eh-frame-hdr -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTryCompileExec87636987 /usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64/crt1.o /usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64/crti.o /usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/crtbegin.o -L/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4 -L/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../x86_64-pc-linux-gnu/lib -L/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../.. CMakeFiles/cmTryCompileExec87636987.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/crtend.o /usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64/crtn.o
+gmake[3]: Leaving directory `/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp'
+gmake[2]: Leaving directory `/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp'
+
+
+Parsed CXX implicit link information from above output:
+  link line regex: [^( *|.*[/\])(ld|ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: /home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp]
+  ignore line: []
+  ignore line: [Run Build Command:/usr/bin/gmake "cmTryCompileExec87636987/fast"]
+  ignore line: [gmake[2]: Entering directory `/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp']
+  ignore line: [/usr/bin/gmake -f CMakeFiles/cmTryCompileExec87636987.dir/build.make CMakeFiles/cmTryCompileExec87636987.dir/build]
+  ignore line: [gmake[3]: Entering directory `/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp']
+  ignore line: [/usr/bin/cmake -E cmake_progress_report /home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp/CMakeFiles 1]
+  ignore line: [Building CXX object CMakeFiles/cmTryCompileExec87636987.dir/CMakeCXXCompilerABI.cpp.o]
+  ignore line: [/usr/bin/c++     -o CMakeFiles/cmTryCompileExec87636987.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake/Modules/CMakeCXXCompilerABI.cpp]
+  ignore line: [Linking CXX executable cmTryCompileExec87636987]
+  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec87636987.dir/link.txt --verbose=1]
+  ignore line: [/usr/bin/c++        -v CMakeFiles/cmTryCompileExec87636987.dir/CMakeCXXCompilerABI.cpp.o  -o cmTryCompileExec87636987 -rdynamic  ]
+  ignore line: [Using built-in specs.]
+  ignore line: [COLLECT_GCC=/usr/x86_64-pc-linux-gnu/gcc-bin/4.5.4/c++]
+  ignore line: [COLLECT_LTO_WRAPPER=/usr/libexec/gcc/x86_64-pc-linux-gnu/4.5.4/lto-wrapper]
+  ignore line: [Target: x86_64-pc-linux-gnu]
+  ignore line: [Configured with: /var/tmp/portage/sys-devel/gcc-4.5.4/work/gcc-4.5.4/configure --prefix=/usr --bindir=/usr/x86_64-pc-linux-gnu/gcc-bin/4.5.4 --includedir=/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/include --datadir=/usr/share/gcc-data/x86_64-pc-linux-gnu/4.5.4 --mandir=/usr/share/gcc-data/x86_64-pc-linux-gnu/4.5.4/man --infodir=/usr/share/gcc-data/x86_64-pc-linux-gnu/4.5.4/info --with-gxx-include-dir=/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/include/g++-v4 --host=x86_64-pc-linux-gnu --build=x86_64-pc-linux-gnu --disable-altivec --disable-fixed-point --without-ppl --without-cloog --disable-lto --enable-nls --without-included-gettext --with-system-zlib --enable-obsolete --disable-werror --enable-secureplt --enable-multilib --enable-libmudflap --disable-libssp --enable-libgomp --with-python-dir=/share/gcc-data/x86_64-pc-linux-gnu/4.5.4/python --enable-checking=release --enable-java-awt=gtk --enable-languages=c,c++,java,fortran --enable-shared --enable-threads=posix --enable-__cxa_atexit --enable-clocale=gnu --enable-targets=all --with-bugurl=http://bugs.gentoo.org/ --with-pkgversion='Gentoo 4.5.4 p1.0, pie-0.4.7']
+  ignore line: [Thread model: posix]
+  ignore line: [gcc version 4.5.4 (Gentoo 4.5.4 p1.0, pie-0.4.7) ]
+  ignore line: [COMPILER_PATH=/usr/libexec/gcc/x86_64-pc-linux-gnu/4.5.4/:/usr/libexec/gcc/x86_64-pc-linux-gnu/4.5.4/:/usr/libexec/gcc/x86_64-pc-linux-gnu/:/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/:/usr/lib/gcc/x86_64-pc-linux-gnu/:/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../x86_64-pc-linux-gnu/bin/]
+  ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/:/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../x86_64-pc-linux-gnu/lib/:/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../:/lib/:/usr/lib/]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTryCompileExec87636987' '-rdynamic' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
+  link line: [ /usr/libexec/gcc/x86_64-pc-linux-gnu/4.5.4/collect2 --eh-frame-hdr -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTryCompileExec87636987 /usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64/crt1.o /usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64/crti.o /usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/crtbegin.o -L/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4 -L/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../x86_64-pc-linux-gnu/lib -L/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../.. CMakeFiles/cmTryCompileExec87636987.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/crtend.o /usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64/crtn.o]
+    arg [/usr/libexec/gcc/x86_64-pc-linux-gnu/4.5.4/collect2] ==> ignore
+    arg [--eh-frame-hdr] ==> ignore
+    arg [-m] ==> ignore
+    arg [elf_x86_64] ==> ignore
+    arg [-export-dynamic] ==> ignore
+    arg [-dynamic-linker] ==> ignore
+    arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+    arg [-o] ==> ignore
+    arg [cmTryCompileExec87636987] ==> ignore
+    arg [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64/crt1.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64/crti.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/crtbegin.o] ==> ignore
+    arg [-L/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4] ==> dir [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4]
+    arg [-L/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64] ==> dir [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64]
+    arg [-L/lib/../lib64] ==> dir [/lib/../lib64]
+    arg [-L/usr/lib/../lib64] ==> dir [/usr/lib/../lib64]
+    arg [-L/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../x86_64-pc-linux-gnu/lib] ==> dir [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../x86_64-pc-linux-gnu/lib]
+    arg [-L/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../..] ==> dir [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../..]
+    arg [CMakeFiles/cmTryCompileExec87636987.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+    arg [-lstdc++] ==> lib [stdc++]
+    arg [-lm] ==> lib [m]
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [-lgcc] ==> lib [gcc]
+    arg [-lc] ==> lib [c]
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [-lgcc] ==> lib [gcc]
+    arg [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/crtend.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64/crtn.o] ==> ignore
+  remove lib [gcc_s]
+  remove lib [gcc]
+  remove lib [gcc_s]
+  remove lib [gcc]
+  collapse dir [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4] ==> [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4]
+  collapse dir [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../lib64] ==> [/usr/lib64]
+  collapse dir [/lib/../lib64] ==> [/lib64]
+  collapse dir [/usr/lib/../lib64] ==> [/usr/lib64]
+  collapse dir [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../../../x86_64-pc-linux-gnu/lib] ==> [/usr/x86_64-pc-linux-gnu/lib]
+  collapse dir [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4/../../..] ==> [/usr/lib]
+  implicit libs: [stdc++;m;c]
+  implicit dirs: [/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.4;/usr/lib64;/lib64;/usr/x86_64-pc-linux-gnu/lib;/usr/lib]
+
+
+Determining if the include file execinfo.h exists passed with the following output:
+Change Dir: /home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/gmake "cmTryCompileExec1570593040/fast"
+gmake[2]: Entering directory `/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp'
+/usr/bin/gmake -f CMakeFiles/cmTryCompileExec1570593040.dir/build.make CMakeFiles/cmTryCompileExec1570593040.dir/build
+gmake[3]: Entering directory `/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec1570593040.dir/CheckIncludeFile.c.o
+/usr/bin/cc    -o CMakeFiles/cmTryCompileExec1570593040.dir/CheckIncludeFile.c.o   -c /home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTryCompileExec1570593040
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec1570593040.dir/link.txt --verbose=1
+/usr/bin/cc         CMakeFiles/cmTryCompileExec1570593040.dir/CheckIncludeFile.c.o  -o cmTryCompileExec1570593040 -rdynamic 
+gmake[3]: Leaving directory `/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp'
+gmake[2]: Leaving directory `/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp'
+
+
+Determining if the function getline exists passed with the following output:
+Change Dir: /home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/gmake "cmTryCompileExec623644919/fast"
+gmake[2]: Entering directory `/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp'
+/usr/bin/gmake -f CMakeFiles/cmTryCompileExec623644919.dir/build.make CMakeFiles/cmTryCompileExec623644919.dir/build
+gmake[3]: Entering directory `/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec623644919.dir/CheckFunctionExists.c.o
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=getline   -o CMakeFiles/cmTryCompileExec623644919.dir/CheckFunctionExists.c.o   -c /usr/share/cmake/Modules/CheckFunctionExists.c
+Linking C executable cmTryCompileExec623644919
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec623644919.dir/link.txt --verbose=1
+/usr/bin/cc     -DCHECK_FUNCTION_EXISTS=getline    CMakeFiles/cmTryCompileExec623644919.dir/CheckFunctionExists.c.o  -o cmTryCompileExec623644919 -rdynamic 
+gmake[3]: Leaving directory `/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp'
+gmake[2]: Leaving directory `/home/nick/Solver/TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/CMakeTmp'
+
+
