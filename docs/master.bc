@@ -1,0 +1,17 @@
+#BC file... comments start with a # symbol
+#
+surface #1 = symmetry "dual_walls"
+surface #2 = farField "outlet"
+surface #3 = impermeableWall "ramp"
+#surface #3 = farField "ramp"
+surface #4 = farField "top" flowDirection = [0.5 0.5 0.5] backPressure = [44.5] velocity = [199.2] density = [1.0]
+surface #5 = farField "inflow" flowDirection = [0.0 1.5 3.2]
+surface #6 = internalInflow "inflow"
+surface #7 = internalOutflow "ouflow" backPressure = [10.0]
+#note massfractions must be equal to the number of species in the model and be comma-separated
+surface #8 = internalInflow "inflowChemical" density = [1.0] massFractions = [0.2, 0.3, 0.4, 0.1] velocity = [1.2] flowDirection = [1.0 0.0 0.0]
+surface #9 noSlip "staticWall"
+surface #10 noSlip "slidingViscousWall" slipDirection = [0.0 1.0 0.0] slipSpeed = [1.2]
+surface #11 noSlip "spinningViscousWall" axis = [1.0 0.0 0.0] point = [0.0 0.0 0.0] omega = [12.0]
+surface #12 pitchingFarField "field"
+surface #13 impermeableWall "airfoil" isMoving = [1]

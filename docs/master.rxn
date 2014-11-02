@@ -1,0 +1,50 @@
+# Reaction file... comments start with a symbol
+# comments start with a #
+# Element M refers to a third body (catalyst) in reaction
+# e+, e- are symbolized via ELECTRON+ and ELECTRON- for the parser
+# reaction types: 0 - Arrhenius, 1 - ModArrhenius, 2 - GuptaModArrhenius, 3 - power
+# catalyst present 0 - none, 1 - yes (must define TB_eff for each species)
+# Format should have no spaces in rxn definition (grimech type standard)
+# Useful source for this data is http://www.me.berkeley.edu/gri_mech
+# Make sure units are in K, m, J, kg and mol
+# Arrhenius k = A exp(-Ea/RT)
+# ModArrhenius k = A T^n exp(-Ea/RT)
+# GuptaModArrhenius  k = A T^n exp(-Ea/T)
+# Power k = A T^n
+# Species must follow camelCase convention, i.e. Li ..NOT.. LI
+
+#Must list number of reactions in the file to expect
+rxnInModel = 1
+
+# The following reaction is oxygen dissociation in the presence of a catalyst
+REACTION 1
+rxnType = 1
+catPresent = 1
+reactantsAsCat = 1
+#NOTE: reactions are space delimited
+2O + M <==> O2 + M
+# The following line was converted to m^6 from cm^6 => 1.20e+17 * 1.00e-12
+A = 1.200E+5
+EA = 0.000
+n = -1.000
+#we can also have a specified backwards rate for each reaction
+#each of the coefficients is postfixed we a "b" for "backward"
+rxnTypeBackward = 0
+Ab = 0.0
+nb = 0.0
+EAb = 0.0
+
+M = O[1.0], O2[1.0], H2[2.400], H2O[15.4], CH4[2.0], CO[1.75], CO2[3.6], C2H6[3.0], Ar[0.83]
+
+REACTION 2
+#NOTE: we denote ionized species like this, still space delimited
+NO(+) + E(-) <==> NO
+...
+...
+...
+
+REACTION 3
+...
+...
+...
+

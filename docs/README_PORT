@@ -1,0 +1,24 @@
+FILE USAGE:
+base.crunch -> used to make all perturbations
+moved.crunch -> always the grid that is being run
+moved.bc -> bc file being used
+moved.param -> param file being used
+base.design -> design file being used to control the process
+points.dat -> point movement routine file to feed point moving code
+
+LIST OF DESIGN TYPES FOR base.design FILE:
+
+0 - direct specification of point movement x-dir, must also be in points.dat
+1 - direct specification of point movement y-dir, must also be in points.dat
+2 - direct specification of point movement z-dir, must also be in points.dat
+
+ The Hicks-Henne bump functions will only work in the y-direction, these
+ are mostly used for airfoils anyway so that's okay for the time being
+
+3 - Hicks-Henne bump magnitude (y-dir)
+4 - Hicks-Henne max point location (y-dir)
+5 - Hicks-Henne bump width (y-dir)
+
+6 - Move whole boundary by certain deflection x-dir
+7 - Move whole boundary by certain deflection y-dir
+8 - Move whole boundary by certain deflection z-dir
