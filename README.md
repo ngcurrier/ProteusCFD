@@ -50,12 +50,16 @@ Usage:
      This tool currently expect .ugrid (MSU) and .crunch mesh files. Others may be
      added in the future if there is a request and possibly user support (testers)
      for them.
+  
   2) Defining <casename>.bc and <casename>.param files (see ProteusTestSuite for examples)
      This sets up boundary conditions and the solver runtime parameters for relevant physics.
+  
   3) Running the solver with mpiexec -np <number of processors> ./ucs <casename>
      There is also a run script in the ./tools directory to modify should you need 
      parallel job scripts.
-  3) Using ./recomp tool to recompose the parallel geometry and solution to .vtk binary files.
+  
+  4) Using ./recomp tool to recompose the parallel geometry and solution to .vtk binary files.
      VTK legacy files are the only supported output at this time.
-  4) Using paraview or visit (or any other VTK capable visualization tool) to view and query results.
+  
+  5) Using paraview or visit (or any other VTK capable visualization tool) to view and query results.
 
