@@ -75,16 +75,16 @@ clean:
 cleanall:
 	@orig=$$PWD;\
 	$(MAKE) clean;\
-	cd $(HDF5DIR);\
+	cd $$orig/$(HDF5DIR);\
 	$(MAKE) clean;\
 	$(MAKE) distclean-am;\
-	cd $$orig;\
-	cd $(METISDIR);\
+	cd $$orig/$(METISDIR);\
 	$(MAKE) clean;\
 	$(MAKE) distclean;\
-	cd $(TINYXMLDIR);\
+	cd $$orig/$(TINYXMLDIR);\
 	$(MAKE) clean;\
-	cd $$orig
+	rm $$orig/$(METISINSTALLDIR)/configRun;\
+	rm $$orig/$(HDF5INSTALLDIR)/configRun
 
 todo: 
 	@orig=$$PWD;\
