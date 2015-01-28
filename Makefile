@@ -4,7 +4,8 @@ SRCDIRS = common structuralDynamics ucs
 
 ROOT = $$PWD
 
-all: ucs/ucs tools
+all: ucs/ucs ucs/decomp ucs/chemprops.x ucs/urecomp
+
 
 tools: ucs/udecomp ucs/urecomp ucs/chemprops.x
 	$(MAKE) ucs/udecomp
@@ -19,7 +20,7 @@ ucs/udecomp: common/libcommon.a $(METISINSTALLDIR)/libmetis.a $(HDF5INSTALLDIR)/
 	@cd ucs;\
 	$(MAKE) udecomp
 
-ucs/urecomp: common/libcommon.a $(HDF5INSTALLDIR)/libhdf5.a
+ucs/urecomp: common/libcommon.a $(HDF5INSTALLDIR)/libhdf5.a $(TINYXMLDIR)/libtinyxml.a
 	@cd ucs;\
 	$(MAKE) urecomp
 
@@ -35,18 +36,26 @@ structuralDynamics/libstructdyn.a:
 	@cd structuralDynamics;\
 	$(MAKE)
 
-$(HDF5INSTALLDIR)/libhdf5.a:
+$(HDF5INSTALLDIR)/configRun:
+	cd $$PWD/$(HDF5INSTALLDIR);\
+	env CC=mpicc ./configure --prefix=$(HDF5INSTALLDIR);\
+	touch configRun
+
+$(HDF5INSTALLDIR)/libhdf5.a: $(HDF5INSTALLDIR)/configRun
 	@orig=$$PWD;\
 	cd $$PWD/$(HDF5DIR);\
-	env CC=mpicc ./configure --prefix=$(HDF5INSTALLDIR);\
 	$(MAKE);\
 	$(MAKE) install;\
 	$(MAKE) lib
 
-$(METISINSTALLDIR)/libmetis.a:
+$(METISINSTALLDIR)/configRun:
+	cd $$PWD/$(METISINSTALLDIR);\
+	$(MAKE) config;\
+	touch configRun
+
+$(METISINSTALLDIR)/libmetis.a: $(METISINSTALLDIR)/configRun
 	@orig=$$PWD;\
 	cd $$PWD/$(METISDIR);\
-	$(MAKE) config;\
 	$(MAKE)
 
 $(TINYXMLDIR)/libtinyxml.a:
