@@ -15,11 +15,11 @@ ucs/ucs: common/libcommon.a structuralDynamics/libstructdyn.a
 	@cd ucs;\
 	$(MAKE) ucs
 
-ucs/udecomp: common/libcommon.a
+ucs/udecomp: common/libcommon.a $(METISINSTALLDIR)/libmetis.a $(HDF5INSTALLDIR)/libhdf5.a 
 	@cd ucs;\
 	$(MAKE) udecomp
 
-ucs/urecomp: common/libcommon.a
+ucs/urecomp: common/libcommon.a $(HDF5INSTALLDIR)/libhdf5.a
 	@cd ucs;\
 	$(MAKE) urecomp
 
@@ -27,43 +27,32 @@ ucs/chemprops.x: common/libcommon.a
 	@cd ucs;\
 	$(MAKE) chemprops.x
 
-config:
-	@orig=$$PWD;\
-	cd $$PWD/$(HDF5DIR);\
-	env CC=mpicc ./configure --prefix=$(HDF5INSTALLDIR);\
-	cd $$PWD/$(METISDIR);\
-	$(MAKE) config;\
-	cd $$orig
-
-common/libcommon.a: force_look
+common/libcommon.a: 
 	@cd common;\
 	$(MAKE)
 
-structuralDynamics/libstructdyn.a: force_look
+structuralDynamics/libstructdyn.a: 
 	@cd structuralDynamics;\
 	$(MAKE)
 
-libhdf5.a:
+$(HDF5INSTALLDIR)/libhdf5.a:
 	@orig=$$PWD;\
 	cd $$PWD/$(HDF5DIR);\
+	env CC=mpicc ./configure --prefix=$(HDF5INSTALLDIR);\
 	$(MAKE);\
 	$(MAKE) install;\
 	$(MAKE) lib
 
-libmetis.a:
+$(METISINSTALLDIR)/libmetis.a:
 	@orig=$$PWD;\
 	cd $$PWD/$(METISDIR);\
+	$(MAKE) config;\
 	$(MAKE)
 
-libtinyxml.a:
+$(TINYXMLDIR)/libtinyxml.a:
 	@orig=$$PWD;\
 	cd $$PWD/$(TINYXMLDIR);\
 	$(MAKE)
-
-tpls:
-	$(MAKE) libhdf5.a;\
-	$(MAKE) libmetis.a;\
-	$(MAKE) libtinyxml.a
 
 clean:
 	@orig=$$PWD;\
@@ -87,9 +76,6 @@ cleanall:
 	cd $(TINYXMLDIR);\
 	$(MAKE) clean;\
 	cd $$orig
-
-force_look:
-	true
 
 todo: 
 	@orig=$$PWD;\
