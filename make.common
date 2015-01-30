@@ -1,0 +1,10 @@
+SRCS_COMMON = timer.cpp endian_util.cpp strings_util.cpp h5layer.cpp parameterParser.cpp
+OBJS_COMMON = $(SRCS_SOLVER:.cpp=.o)
+
+all: libcommon.a 
+
+libcommon.a: $(OBJS_COMMON)
+		ar rvs libcommon.a $(OBJS_SOLVER) 
+
+cleancommon: 
+	rm $(OBJS_SOLVER) libcommon.a

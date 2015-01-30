@@ -71,8 +71,8 @@ endif
 
 MPICXX = mpiCC
 
-INCLUDES = -I$(METIS_INCLUDES) -I$(HDF5_INCLUDES) -I$(TINYXML_INCLUDES) -I../common -I../structuralDynamics
-LCXXFLAGS = -L$(HDF5_LIB) -L../structuralDynamics -L../common  -L$(TINYXML_LIB)
+INCLUDES = -I$(METIS_INCLUDES) -I$(HDF5_INCLUDES) -I$(TINYXML_INCLUDES) -I./structuralDynamics
+LCXXFLAGS = -L$(HDF5_LIB) -L../structuralDynamics -L$(TINYXML_LIB)
 LFXXFLAGS = 
 
 #LIBS = -lmetis -lgomp -lmpi_cxx -lmpi -lefence

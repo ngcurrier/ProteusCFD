@@ -1,4 +1,6 @@
 include $(MAKE).opts
+include $(MAKE).ucs
+include $(MAKE).common
 
 SRCDIRS = common structuralDynamics ucs
 
@@ -11,26 +13,6 @@ tools: ucs/udecomp ucs/urecomp ucs/chemprops.x
 	$(MAKE) ucs/udecomp
 	$(MAKE) ucs/chemprops.x
 	$(MAKE) ucs/urecomp
-
-ucs/ucs: common/libcommon.a structuralDynamics/libstructdyn.a
-	@cd ucs;\
-	$(MAKE) ucs
-
-ucs/udecomp: common/libcommon.a $(METISINSTALLDIR)/libmetis.a $(HDF5INSTALLDIR)/libhdf5.a 
-	@cd ucs;\
-	$(MAKE) udecomp
-
-ucs/urecomp: common/libcommon.a $(HDF5INSTALLDIR)/libhdf5.a $(TINYXMLDIR)/libtinyxml.a
-	@cd ucs;\
-	$(MAKE) urecomp
-
-ucs/chemprops.x: common/libcommon.a
-	@cd ucs;\
-	$(MAKE) chemprops.x
-
-common/libcommon.a: 
-	@cd common;\
-	$(MAKE)
 
 structuralDynamics/libstructdyn.a: 
 	@cd structuralDynamics;\
@@ -63,6 +45,13 @@ $(TINYXMLDIR)/libtinyxml.a:
 	cd $$PWD/$(TINYXMLDIR);\
 	$(MAKE)
 
+.cpp.o:
+	$(MPICXX) -c $< $(CXX_OPTS) $(INCLUDES)
+
+.f.o: 
+	$(FXX) -c $< $(FXX_OPTS) $(INCLUDES)
+
+
 clean:
 	@orig=$$PWD;\
 	for dir in $(SRCDIRS);  do\
@@ -70,7 +59,9 @@ clean:
 	  pwd;\
 	  $(MAKE) clean;\
 	  cd $$orig ;\
-	done	
+	done;\
+	cleancommon;\
+	cleanucs
 
 cleanall:
 	@orig=$$PWD;\
