@@ -1,4 +1,6 @@
 # Compiled Object files
+bin/*
+Make.depend
 *.slo
 *.lo
 *.o

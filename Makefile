@@ -79,7 +79,7 @@ $(EXE_CHEMPROPS): $(OBJS_CHEMPROPS)
 $(EXE_STRUCT_SOLVER): $(OBJS_STRUCT_SOLVER) ./ucs/libcommon.a
 	$(MPICXX) -o $(EXE_STRUCT_SOLVER) $(LCXXFLAGS) $(OBJS_STRUCT_SOLVER) $(CXXLIBS)
 
-$(EXE_STRUCT_ERROR): ./structuralDynamics/error.o
+$(EXE_STRUCT_ERROR): ./structuralDynamics/error.o ./ucs/libcommon.a
 	$(MPICXX) -o $(EXE_STRUCT_ERROR) $(LCXXFLAGS) ./structuralDynamics/error.o $(CXXLIBS)
 
 SRCDIRS = ./structuralDynamics ./ucs
