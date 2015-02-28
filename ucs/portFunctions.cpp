@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 #include <stdio.h>
+#include <unistd.h>
 
 #include "portFileio.h"
 #include "portFunctions.h"

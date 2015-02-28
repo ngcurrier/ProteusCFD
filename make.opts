@@ -34,8 +34,6 @@ ifeq ($(TOOLCHAIN),GNU)
 	FXX = gfortran
 	FXX_OPTS = -O3
 	FXX_LINK_OPTS = -fdefault-real-8
-	HDF5DIR = /TPLs/hdf5/hdf5-1.8.10-patch1
-	HDF5INSTALLDIR = $(HDF5DIR)/build
 endif
 
 #IBM XLC
@@ -51,16 +49,17 @@ ifeq ($(TOOLCHAIN),IBM)
 	FXX_LINK_OPTS = 
 endif
 
-TINYXMLDIR = /TPLs/tinyxml/tinyxml-2.6.2
-TINYXML_INCLUDES = ../TPLs/tinyxml/tinyxml-2.6.2
-TINYXML_LIB = ../TPLs/tinyxml/tinyxml-2.6.2
+TINYXMLDIR = ./TPLs/tinyxml/tinyxml-2.6.2
+TINYXML_INCLUDES = ./TPLs/tinyxml/tinyxml-2.6.2
+TINYXML_LIB = ./TPLs/tinyxml/tinyxml-2.6.2
 
-METISDIR = /TPLs/metis/metis-5.0.2
+METISDIR = ./TPLs/metis/metis-5.0.2
 METISINSTALLDIR = $(METISDIR)/build/Linux-x86_64/libmetis
+METIS_LIB = $(METISINSTALLDIR)
+METIS_INCLUDES = $(METISDIR)/include
 
-METIS_LIB = ..$(METISINSTALLDIR)
-METIS_INCLUDES = ..$(METISDIR)/include
-
+HDF5DIR = ./TPLs/hdf5/hdf5-1.8.10-patch1
+HDF5INSTALLDIR = $(HDF5DIR)/build
 HDF5_LIB = $(HDF5INSTALLDIR)/lib
 HDF5_INCLUDES = $(HDF5INSTALLDIR)/include
 
@@ -69,10 +68,10 @@ ifeq ($(TARGET),papertape)
      CXX_OPTS += -xAVX
 endif
 
-MPICXX = mpiCC
+MPICXX = mpicxx
 
-INCLUDES = -I$(METIS_INCLUDES) -I$(HDF5_INCLUDES) -I$(TINYXML_INCLUDES) -I./structuralDynamics
-LCXXFLAGS = -L$(HDF5_LIB) -L../structuralDynamics -L$(TINYXML_LIB)
+INCLUDES = -I$(METIS_INCLUDES) -I$(HDF5_INCLUDES) -I$(TINYXML_INCLUDES) -I./structuralDynamics -I./ucs
+LCXXFLAGS = -L$(HDF5_LIB) -L./structuralDynamics -L$(TINYXML_LIB) -L./ucs
 LFXXFLAGS = 
 
 #LIBS = -lmetis -lgomp -lmpi_cxx -lmpi -lefence

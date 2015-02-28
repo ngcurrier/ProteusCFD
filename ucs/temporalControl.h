@@ -3,6 +3,7 @@
 
 #include "general.h"
 #include "parameterParser.h"
+#include "exceptions.h"
 #include <string>
 #include <fstream>
 #include <vector>

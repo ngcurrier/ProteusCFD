@@ -863,11 +863,11 @@ std::string Reaction<Type>::GetFormattedReaction()
   first = 1;
   for(i = 0; i < nspecies; i++){
     indx = globalIndx[i];
-    if(Nup[i] != 0){
+    if(Nup[i] != (Type)0){
       if(!first){
 	ss << "+ ";
       }
-      if(Nup[i] == 1){
+      if(Nup[i] == (Type)1){
 	ss << species[indx].symbol << " ";
       }
       else{
@@ -883,11 +883,11 @@ std::string Reaction<Type>::GetFormattedReaction()
   first = 1;
   for(i = 0; i < nspecies; i++){
     indx = globalIndx[i];
-    if(Nupp[i] != 0){
+    if(Nupp[i] != (Type)0){
       if(!first){
 	ss << "+ ";
       }
-      if(Nupp[i] == 1){
+      if(Nupp[i] == (Type)1){
 	ss << species[indx].symbol << " ";
       }
       else{
