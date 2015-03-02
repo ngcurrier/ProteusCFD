@@ -28,11 +28,6 @@ Gradient Based Design Methodologies", Ph.D. dissertation,
 University of Tennessee at Chattanooga, Chattanooga, Tennessee, August 2014.
 
 
-Dependencies:
-  This solver toolchain has dependencies on MPI, HDF5, METIS, and TINYXML
-  They are all included here and their location must be correct in 
-  make.opts for compilation to succeed.
-
 Compilation instructions:
   In the root directory type - "make TARGET=local"
   This should work for most installs as long as the above libraries are
@@ -44,6 +39,7 @@ Compilation instructions:
 Usage:
   Proteus (like most CFD solvers) requires a volume grid of a geometry. The grid in this
   case must not contain hanging nodes but is fully unstructured in the typical sense.
+  We recommend Salome or GMSH as an opensource alternative to commercial gridding tools.
   Using Proteus with a given mesh involves:
   
   1) Using ./decomp tool to decompose the geometry into multiple parallel partitions.
@@ -62,4 +58,17 @@ Usage:
      VTK legacy files are the only supported output at this time.
   
   5) Using paraview or visit (or any other VTK capable visualization tool) to view and query results.
+
+Dependencies
+============
+
+Proteus CFD has several depencies. An effort has been made to rely only on the smallest subset
+of required packages in order to make the compilation of this software simple for new users.
+The following packages are required for core functionality:
+
+* MPI (version dependent on local machine infrastructure, we suggest openMPI if you get a choice)
+* HDF5 (all output files are stored in this format, included in TPLs directory)
+* METIS (mesh partitioning for parallel runs, included in TPLs directory)
+* TINYXML (used for I/O in some places)
+* GTest (used for unit testing framework, included in TPLs directory)
 

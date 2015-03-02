@@ -9,6 +9,8 @@ EXE_CHEMPROPS = ./bin/chemprops.x
 EXE_STRUCT_SOLVER = ./bin/csd.x
 EXE_STRUCT_ERROR = ./bin/esd.x
 
+EXE_TESTS = ./bin/tests.x
+
 # --------- BEGIN COMMON LIBRARY SECTION
 
 SRCS_COMMON = ./ucs/timer.cpp ./ucs/endian_util.cpp ./ucs/strings_util.cpp \
@@ -81,6 +83,9 @@ $(EXE_STRUCT_SOLVER): $(OBJS_STRUCT_SOLVER) ./ucs/libcommon.a
 
 $(EXE_STRUCT_ERROR): ./structuralDynamics/error.o ./ucs/libcommon.a
 	$(MPICXX) -o $(EXE_STRUCT_ERROR) $(LCXXFLAGS) ./structuralDynamics/error.o $(CXXLIBS)
+
+$(EXE_TESTS): ./unitTest/main.o
+	$(MPICXX) -o $(EXE_TESTS) $(LCXXFLAGS) ./unitTest/main.o $(CXXLIBS) -lgtest
 
 SRCDIRS = ./structuralDynamics ./ucs
 ROOT = $$PWD
