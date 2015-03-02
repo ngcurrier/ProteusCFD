@@ -63,6 +63,10 @@ HDF5INSTALLDIR = $(HDF5DIR)/build
 HDF5_LIB = $(HDF5INSTALLDIR)/lib
 HDF5_INCLUDES = $(HDF5INSTALLDIR)/include
 
+GTESTDIR = ./TPLs/gtest/gtest-1.7.0/
+GTEST_LIB = $(GTESTDIR)/lib
+GTEST_INCLUDES = $(GTESTDIR)/include
+
 ifeq ($(TARGET),papertape)
      #this is for infiniband support on papertape
      CXX_OPTS += -xAVX
@@ -70,8 +74,9 @@ endif
 
 MPICXX = mpicxx
 
-INCLUDES = -I$(METIS_INCLUDES) -I$(HDF5_INCLUDES) -I$(TINYXML_INCLUDES) -I./structuralDynamics -I./ucs
-LCXXFLAGS = -L$(HDF5_LIB) -L./structuralDynamics -L$(TINYXML_LIB) -L./ucs
+INCLUDES = -I$(METIS_INCLUDES) -I$(HDF5_INCLUDES) -I$(TINYXML_INCLUDES) -I$(GTEST_INCLUDES)\
+	  -I./structuralDynamics -I./ucs
+LCXXFLAGS = -L$(HDF5_LIB) -L./structuralDynamics -L$(TINYXML_LIB) -L$(GTEST_LIB) -L./ucs
 LFXXFLAGS = 
 
 #LIBS = -lmetis -lgomp -lmpi_cxx -lmpi -lefence

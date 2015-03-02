@@ -84,7 +84,7 @@ $(EXE_STRUCT_SOLVER): $(OBJS_STRUCT_SOLVER) ./ucs/libcommon.a
 $(EXE_STRUCT_ERROR): ./structuralDynamics/error.o ./ucs/libcommon.a
 	$(MPICXX) -o $(EXE_STRUCT_ERROR) $(LCXXFLAGS) ./structuralDynamics/error.o $(CXXLIBS)
 
-$(EXE_TESTS): ./unitTest/main.o
+$(EXE_TESTS): ./unitTest/main.o $(GTEST_LIB)/libgtest.la
 	$(MPICXX) -o $(EXE_TESTS) $(LCXXFLAGS) ./unitTest/main.o $(CXXLIBS) -lgtest
 
 SRCDIRS = ./structuralDynamics ./ucs
@@ -101,7 +101,7 @@ tools: $(EXE_DECOMP) $(EXE_RECOMP) $(EXE_CHEMPROPS) $(EXE_FINDPOINT)
 ./ucs/libcommon.a: $(OBJS_COMMON)
 	ar rvs ./ucs/libcommon.a $(OBJS_COMMON) 
 
-$(HDF5INSTALLDIR)/libhdf5.a: 
+$(HDF5_LIB)/libhdf5.a: 
 	@orig=$$PWD;\
 	cd $$PWD/$(HDF5DIR);\
 	env CC=$(MPICXX) ./configure --prefix=$(HDF5INSTALLDIR);\
@@ -109,15 +109,21 @@ $(HDF5INSTALLDIR)/libhdf5.a:
 	$(MAKE) install;\
 	$(MAKE) lib
 
-$(METISINSTALLDIR)/libmetis.a: 
+$(METIS_LIB)/libmetis.a: 
 	@orig=$$PWD;\
 	cd $$PWD/$(METISDIR);\
 	$(MAKE) config;\
 	$(MAKE)
 
-$(TINYXMLDIR)/libtinyxml.a:
+$(TINYXML_LIB)/libtinyxml.a:
 	@orig=$$PWD;\
 	cd $$PWD/$(TINYXMLDIR);\
+	$(MAKE)
+
+$(GTEST_LIB)/libgtest.la:
+	@orig=$$PWD;\
+	cd $$PWD/$(GTESTDIR);\
+	./configure;\
 	$(MAKE)
 
 .cpp.o:
