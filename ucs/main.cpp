@@ -169,7 +169,7 @@ int main(int argc, char* argv[]){
     }
   }
   //print out params after we have modified them as necessary
-  for(typename std::vector<Param<Real>*>::iterator it = paramList.begin(); it != paramList.end(); ++it){
+  for(std::vector<Param<Real>*>::iterator it = paramList.begin(); it != paramList.end(); ++it){
     (*it)->PrintSolverParams();
   }
   //setup solution space container
