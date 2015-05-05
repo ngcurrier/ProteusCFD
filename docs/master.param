@@ -1,124 +1,116 @@
 # This section controls solution procedure
 # For solution spaces that are defined in the parameter file
 <<<BEGIN SOLUTION ORDERING>>>
-  Iterate FlowSolutionSpace
-  Transfer Pressure FlowSolutionSpace BC#1 To SolidDynamicsSpace BC#2
-  Iterate SolidDynamicsSpace
-  Transfer MeshDisplacements SolidDynamicsSpace BC#2 To FlowSolutionSpace BC#1
+numTimeSteps = 100
+newtonIterations = 1
+
+Iterate FlowSolutionSpace
+Transfer Pressure FlowSolutionSpace BC#1 To SolidDynamicsSpace BC#2
+Iterate SolidDynamicsSpace
+Transfer MeshDisplacements SolidDynamicsSpace BC#2 To FlowSolutionSpace BC#1
+
 <<<END SOLUTION ORDERING>>>
 
 # This defines a solution space and solution parameters on it
 <<<BEGIN SPACE FlowSolutionSpace>>>
-  numTimeSteps = 100
-  timeStep = .04
-  timeOrder = 1
-  newtonIterations = 1
 
-  # zeros here indicate one write after run
-  solutionWrite = 0
-  solutionTagStep = 0
-  useRestart = 0
-  restartWrite = 0
-
-  #Parameter file for flow solver
-  #Commenting supported as are blank lines in file
-  #values are space delimited
-  equationSet = compressibleEuler
-  fluxType = roeFlux
-
-  # reoder mesh to reduce bandwidth... should almost always be on
-  # 1- does physical reordering, 2- does loop order scheduling, 0- off
-  # Option 2 performs best for cases on a single machine
-  reorderMesh = 2
-
-  localTimestepping = 1
-  startingCFL = 5
-  rampCFL = 100
-  CFL = 25
-
-  # Note: pseudoTimeStep only needs to be set if pseudotimestepping is enabled
-  #       and local timestepping is disabled, otherwise the pseudoTimeStep
-  #       is determined from the CFL condition
-  pseudoTimeStepping = 0
-  pseudoTimeStep = 0
-
-  spatialOrder = 1
-  firstOrderSteps = 75
-  limiter = 0  #0 - OFF, 1 - Barth, 2 - Venkat, 3 - mod Venkat
-  limiterRefresh = 1 # how many timesteps to wait before recalculating limiter, 1 - every step
-
-  jacobianUpdateFrequency = 2
-  jacobianFieldType = 0     #0 - upwind, 1 - central, 2 - complex		  
-  jacobianBoundaryType = 0  #0 - upwind, 1 - central, 2 - complex		  
-  # setting this line to 1 will evaluate boundary jacobians
-  # in an approximate way, sometimes helps with stability
-  jacobianBoundaryEval = 0		     		 
-  # note: negative number of sgs cycles engages explicit solve
-  numberSGS = 8
-
-  beta = 15.0
-  gamma = 1.4
-
-  mach = 2.0
-  startingMach = 0.5
-  rampMach = 100
-
-  flowDirection = 1.0 0.0 0.0
-  liftDirection = 0.0 1.0 0.0
-
-  # 0 - laminar (none)
-  # 1 - Spalart Allmaras
-  turbulenceModel = 0
-
-  #reference values must be given in K, m, s, kg (metric)
-  refDensity = 1.22501E+00
-  refVelocity = 1.0
-  refLength = 1.0
-  refTemperature = 300
-  refViscosity = 1.790178E-05	       
-
-  # nondimensional numbers
-  prandtlNumber = 0.8
-
-  # mass fraction must defined for each species in model
-  massFractions = [0.0, 1.0]
-  reactionsOn = 1
-  noCVBC = 0
-
-  # do not use custom ICs
-  customIcId = 0
+timeStep = .04
+timeOrder = 1
 
 
-  # movement routines
-  # 0 - none
-  # 1 - solid body, sinusoidal oscillation about origin
-  movement = 0
-  # geometric conservation law for changing grids
-  gcl = 0
+# zeros here indicate one write after run
+solutionWrite = 0
+solutionTagStep = 0
+useRestart = 0
+restartWrite = 0
+
+#Parameter file for flow solver
+#Commenting supported as are blank lines in file
+#values are space delimited
+equationSet = compressibleEuler
+fluxType = roeFlux
+
+# reoder mesh to reduce bandwidth... should almost always be on
+# 1- does physical reordering, 2- does loop order scheduling, 0- off
+# Option 2 performs best for cases on a single machine
+reorderMesh = 2
+localTimestepping = 1
+startingCFL = 5
+rampCFL = 100
+CFL = 25
+# Note: pseudoTimeStep only needs to be set if pseudotimestepping is enabled
+#       and local timestepping is disabled, otherwise the pseudoTimeStep
+#       is determined from the CFL condition
+pseudoTimeStepping = 0
+pseudoTimeStep = 0
+spatialOrder = 1
+firstOrderSteps = 75
+limiter = 0  #0 - OFF, 1 - Barth, 2 - Venkat, 3 - mod Venkat
+limiterRefresh = 1 # how many timesteps to wait before recalculating limiter, 1 - every step
+jacobianUpdateFrequency = 2
+jacobianFieldType = 0     #0 - upwind, 1 - central, 2 - complex		  
+jacobianBoundaryType = 0  #0 - upwind, 1 - central, 2 - complex		  
+# setting this line to 1 will evaluate boundary jacobians
+# in an approximate way, sometimes helps with stability
+jacobianBoundaryEval = 0		     		 
+# note: negative number of sgs cycles engages explicit solve
+numberSGS = 8
+beta = 15.0
+gamma = 1.4
+
+mach = 2.0
+startingMach = 0.5
+rampMach = 100
+flowDirection = 1.0 0.0 0.0
+liftDirection = 0.0 1.0 0.0
+# 0 - laminar (none)
+# 1 - Spalart Allmaras
+turbulenceModel = 0
+#reference values must be given in K, m, s, kg (metric)
+refDensity = 1.22501E+00
+refVelocity = 1.0
+refLength = 1.0
+refTemperature = 300
+refViscosity = 1.790178E-05	       
+# nondimensional numbers
+prandtlNumber = 0.8
+# mass fraction must defined for each species in model
+massFractions = [0.0, 1.0]
+reactionsOn = 1
+noCVBC = 0
+# do not use custom ICs
+customIcId = 0
+
+# movement routines
+# 0 - none
+# 1 - solid body, sinusoidal oscillation about origin
+movement = 0
+# geometric conservation law for changing grids
+gcl = 0
 <<<END SPACE FlowSolutionSpace>>>
 
 # This defines a solution space and the parameters on it
 <<<BEGIN SPACE SolidMechanicsSpace>>>
-  #solid mechanics solution parameters would go here
+#solid mechanics solution parameters would go here
 <<<END SPACE SolidMechanicsSpace>>>
 
 # This defines the design parameters for a sensitivity analysis, etc.
 <<<BEGIN DESIGN PARAMETERS>>>
-  # Design parameters, if solver is running sensitivity case
-  # ========================================================
-  # Pick solver used to solver adjoint, etc. 0 - SGS, 1 - GMRES
-  designSolver = 0
-  # Pick preconditioner (GMRES only)
-  # 0 - none
-  # 1 - diagonal (strict)
-  # 2 - block diagonal
-  # 3 - ILU0 local
-  # 4 - SGS
-  preconditioner = 0
-  # number of iterations if using SGS
-  designSGSIterations = 1500
-  # number of search directions for GMRES
-  designSearchDirections = 100
-  # number of restarts
-  designRestarts = 0
+# Design parameters, if solver is running sensitivity case
+# ========================================================
+# Pick solver used to solver adjoint, etc. 0 - SGS, 1 - GMRES
+designSolver = 0
+# Pick preconditioner (GMRES only)
+# 0 - none
+# 1 - diagonal (strict)
+# 2 - block diagonal
+# 3 - ILU0 local
+# 4 - SGS
+preconditioner = 0
+# number of iterations if using SGS
+designSGSIterations = 1500
+# number of search directions for GMRES
+designSearchDirections = 100
+# number of restarts
+designRestarts = 0
 <<<END DESIGN PARAMETERS>>>
