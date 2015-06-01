@@ -16,6 +16,7 @@ template <class Type> class SolutionField;
 
 Int ReadUGRID_Ascii(Mesh<Real> &m, std::string filename);
 Int ReadCRUNCH_Ascii(Mesh<Real> &m, std::string filename);
+Int ReadSU2_Ascii(Mesh<Real> &m, std::string filename);
 
 Int WriteCRUNCH_Ascii(Mesh<Real> &m, std::string casename);
 Int WriteVTK_Ascii(Mesh<Real> &m, std::string casename, std::vector<SolutionField<Real>*>& fields);
@@ -26,5 +27,14 @@ void TranslateWinding(Int* nodes, Int translation[6][8], Int num_nodes, Int etyp
 //filebase is the name minus the extensions... extensions are handled internally
 //this file format can be written in parallel and requires a parllel object handle
 Int WriteGridXDMF(Mesh<Real> &m, PObj<Real> & p, std::string filebase, std::string meshname="mesh");
+
+//define the element types for the .su2 mesh format
+#define SU2_LINE 3
+#define SU2_TRI 5
+#define SU2_QUAD 9
+#define SU2_TET 10
+#define SU2_HEX 12
+#define SU2_PRISM 13
+#define SU2_PYRAMID 14
 
 #endif

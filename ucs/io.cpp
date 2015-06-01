@@ -568,6 +568,342 @@ Int ReadCRUNCH_Ascii(Mesh<Real> &m, std::string filename)
   return(0);
 }
 
+Int ReadSU2_Ascii(Mesh<Real>& m, std::string filename)
+{
+  Element<Real>* tempe = NULL;
+  std::ifstream fin;
+  std::string line;
+  Int ndim = 0;   //number of dimensions
+  Int nelem = 0;  //number of elements
+  Int nnodes = 0; //number of points
+  Int nbound = 0; //number of boundaries
+    
+  Int elemCounter = 0; //counts number of elements read
+  Int nodeCount = 0; //counts number of nodes read
+  Int boundElemCounter = 0; // counts boundary elements read
+  Int boundCounter = 0; // counts boundary sections read
+  Int elemType;
+  Int nbelemTmp = 0; // temporary counter for each boundary section
+
+  //initialize element type counters
+  m.nelem[TRI] = m.nelem[QUAD] = m.nelem[TET] = m.nelem[PYRAMID] = m.nelem[PRISM] = m.nelem[HEX] = 0;
+
+  //states for our state machine reader
+  enum{
+    stateReadNdim,
+    stateReadNelem,
+    stateReadElem,
+    stateReadNpoints,
+    stateReadPoints,
+    stateReadNmark,
+    stateReadMarkerTag,
+    stateReadMarkerNelem,
+    stateReadMarkerElem,
+    stateExit,
+    NSTATES
+  };
+
+  Int state = stateReadNdim;
+
+  //the mesh is structured in the following order
+  // 1) number of dimensions "NDIME=" -- we only accept 3d grids
+  // 2) number of elements "NELEM="
+  // 3) all elements (elemType, nodeIds, elementIndx)
+  // 4) number of points "NPOIN="
+  // 5) all point coordinates (x, y, z, id)
+  // 6) number of defined boundaries "NMARK="
+  // 7) defined boundaries (many sets defined as follows)
+  //    * "MARKER_TAG= name"
+  //    * number of elements on boundary "MARKER_ELEMS="
+  //    * list of 2D boundary elements
+
+  std::string ndimKey = "NDIME=";
+  std::string nelemKey = "NELEM=";
+  std::string npoinKey = "NPOIN=";
+  std::string nmarkKey = "NMARK=";
+  std::string markTagKey = "MARKER_TAG=";
+  std::string markElemKey = "MARKER_ELEMS=";
+
+  //NOTE: SU2 allows for comments with the % symbol
+  fin.open(filename.c_str());
+  if(!fin.is_open()){
+    return(-1);
+  }
+
+  std::cout << "SU2 ASCII I/O: Reading file --> " << filename << std::endl;
+
+  //read each line one at a time, use a state machine to process data
+  std::size_t loc;
+  while(std::getline(fin, line)){
+    if(line.size() == 0) continue; //skip blank lines
+    if(line[0] == '%') continue; //skip comment lines
+    std::stringstream ss;
+    //use our state machine to do cool stuff with the datas...
+    switch(state)
+      {
+      case stateReadNdim:
+	loc = line.find(ndimKey);
+	if(loc == std::string::npos){
+	  std::cerr << "SU2 ASCII I/O: File read did not find \"NDIME=\" marker where expected";
+	  return(1);
+	}
+	else{
+	  ss.str(line.substr(loc+ndimKey.size()));
+	  ss >> ndim;
+	  std::cout << "SU2 ASCII I/O: Reading " << ndim << " dimensional mesh" << std::endl;
+	  if(ndim != 3){
+	    std::cerr << "SU2 ASCII I/O: File read only recognizes 3d meshes" << std::endl;
+	    return(1);
+	  }
+	  else{
+	    state = stateReadNelem;
+	  }
+	}
+	break;
+      case stateReadNelem:
+	loc = line.find(nelemKey);
+	if(loc == std::string::npos){
+	  std::cerr << "SU2 ASCII I/O: File read did not find \"NELEM=\" marker where expected";
+	  return(1);
+	}
+	else{
+	  ss << line.substr(loc+nelemKey.size());
+	  ss >> nelem;
+	  std::cout << "SU2 ASCII I/O: Reading " << nelem << " elements" << std::endl;
+	  state = stateReadElem;
+	}
+      	break;
+      case stateReadElem:
+	ss.str(line);
+	ss >> elemType;
+	if(elemType == SU2_LINE){
+	  std::cerr << "SU2 ASCII I/O: Only 3d elements expected, found line";
+	  return (-1);
+	}
+	else if(elemType == SU2_TRI){
+	  std::cerr << "SU2 ASCII I/O: Only 3d elements expected, found triangle";
+	  return (-1);
+	}
+	else if(elemType == SU2_QUAD){
+	  std::cerr << "SU2 ASCII I/O: Only 3d elements expected, found quad";
+	  return (-1);
+	}
+	else if(elemType == SU2_TET){
+	  Int nodes[4];
+	  ss >> nodes[0];
+	  ss >> nodes[1];
+	  ss >> nodes[2];
+	  ss >> nodes[3];
+	  Int id;
+	  ss >> id;
+	  tempe = new Quadrilateral<Real>;
+	  tempe->Init(nodes);
+	  m.elementList.push_back(tempe);
+	  m.nelem[TET]++;
+	}
+	else if(elemType == SU2_HEX){
+	  Int nodes[8];
+	  ss >> nodes[0];
+	  ss >> nodes[1];
+	  ss >> nodes[2];
+	  ss >> nodes[3];
+	  ss >> nodes[4];
+	  ss >> nodes[5];
+	  ss >> nodes[6];
+	  ss >> nodes[7];
+	  Int id;
+	  ss >> id;
+	  tempe = new Hexahedron<Real>;
+	  tempe->Init(nodes);
+	  m.elementList.push_back(tempe);
+	  m.nelem[HEX]++;
+	}
+	else if(elemType == SU2_PRISM){
+	  Int nodes[6];
+	  ss >> nodes[0];
+	  ss >> nodes[1];
+	  ss >> nodes[2];
+	  ss >> nodes[3];
+	  ss >> nodes[4];
+	  ss >> nodes[5];
+	  Int id;
+	  ss >> id;
+	  tempe = new Prism<Real>;
+	  tempe->Init(nodes);
+	  m.elementList.push_back(tempe);
+	  m.nelem[PRISM]++;
+	}
+	else if(elemType == SU2_PYRAMID){
+	  Int nodes[5];
+	  ss >> nodes[0];
+	  ss >> nodes[1];
+	  ss >> nodes[2];
+	  ss >> nodes[3];
+	  ss >> nodes[4];
+	  Int id;
+	  ss >> id;
+	  tempe = new Pyramid<Real>;
+	  tempe->Init(nodes);
+	  m.elementList.push_back(tempe);
+	  m.nelem[PYRAMID]++;
+	}
+	else{
+	  std::cerr << "SU2 ASCII I/O: Cannot find element of type " << elemType << std::endl;
+	  return(-1);
+	}
+	elemCounter++;
+	if(elemCounter >= nelem){
+	  state = stateReadNpoints;
+	}
+	break;
+      case stateReadNpoints:
+	loc = line.find(npoinKey);
+	if(loc == std::string::npos){
+	  std::cerr << "SU2 ASCII I/O: File read did not find \"NPOIN=\" marker where expected";
+	  return(1);
+	}
+	else{
+	  ss.str(line.substr(loc+npoinKey.size()));
+	  ss >> nnodes;
+	  std::cout << "SU2 ASCII I/O: Reading " << nnodes << " nodes" << std::endl;
+	  state = stateReadPoints;
+	  m.nnode = nnodes;
+	  m.MemInitMesh();
+	  std::cout << "SU2 ASCII I/O: Memory initialized" << std::endl;
+	}
+	break;
+      case stateReadPoints:
+	ss.str(line);
+	{
+	  Real xyz[3];
+	  ss >> xyz[0];
+	  ss >> xyz[1];
+	  ss >> xyz[2];
+	  Int id;
+	  ss >> id;
+	  m.xyz[nodeCount*3 + 0] = xyz[0];
+	  m.xyz[nodeCount*3 + 1] = xyz[1];
+	  m.xyz[nodeCount*3 + 2] = xyz[2];
+	  nodeCount++;
+	}
+	if(nodeCount >= nnodes){
+	  state = stateReadNmark;
+	}
+	break;
+      case stateReadNmark:
+	loc = line.find(nmarkKey);
+	if(loc == std::string::npos){
+	  std::cerr << "SU2 ASCII I/O: File read did not find \"NMARK=\" marker where expected";
+	  return(1);
+	}
+	else{
+	  ss.str(line.substr(loc+nmarkKey.size()));
+	  ss >> nbound;
+	  std::cout << "SU2 ASCII I/O: Reading " << nbound << " boundaries" << std::endl;
+	  state = stateReadMarkerTag;
+	}
+	break;
+      case stateReadMarkerTag:
+	loc = line.find(markTagKey);
+	if(loc == std::string::npos){
+	  std::cerr << "SU2 ASCII I/O: File read did not find \"MARKER_TAG=\" where expected";
+	  return(1);
+	}
+	else{
+	  std::string name;
+	  ss.str(line.substr(loc+markTagKey.size()));
+	  ss >> name;
+	  std::cout << "SU2 ASCII I/O: Reading boundary " << name << std::endl;
+	  state = stateReadMarkerNelem;
+	}
+	break;
+      case stateReadMarkerNelem:
+	loc = line.find(markElemKey);
+	if(loc == std::string::npos){
+	  std::cerr << "SU2 ASCII I/O: File read did not find \"MARKER_ELEMS=\" where expected";
+	  return(1);
+	}
+	else{
+	  nbelemTmp = 0;
+	  ss.str(line.substr(loc+markElemKey.size()));
+	  ss >> nbelemTmp;
+	  std::cout << "SU2 ASCII I/O: Reading " << nbelemTmp << " boundary elements " << std::endl;
+	  state = stateReadMarkerElem;
+	  boundElemCounter = 0;
+	}
+	break;
+      case stateReadMarkerElem:
+	ss.str(line);
+	ss >> elemType;
+	if(elemType == SU2_LINE){
+	  std::cerr << "SU2 ASCII I/O: Only 3d elements expected, found line";
+	  return (-1);
+	}
+	else if(elemType == SU2_TRI){
+	  Int nodes[3];
+	  ss >> nodes[0];
+	  ss >> nodes[1];
+	  ss >> nodes[2];
+	  Int id;
+	  ss >> id;
+	  tempe = new Triangle<Real>;
+	  tempe->Init(nodes);
+	  tempe->SetFactag(boundCounter+1);
+	  m.elementList.push_back(tempe);
+	  m.nelem[TRI]++;
+	}
+	else if(elemType == SU2_QUAD){
+	  Int nodes[4];
+	  ss >> nodes[0];
+	  ss >> nodes[1];
+	  ss >> nodes[2];
+	  ss >> nodes[3];
+	  Int id;
+	  ss >> id;
+	  tempe = new Quadrilateral<Real>;
+	  tempe->Init(nodes);
+	  tempe->SetFactag(boundCounter+1);
+	  m.elementList.push_back(tempe);
+	  m.nelem[QUAD]++;
+	}
+	else{
+	  std::cerr << "SU2 ASCII I/O: Cannot find boundary element of type " << elemType << std::endl;
+	  return(-1);
+  	}
+	boundElemCounter++;
+	if(boundElemCounter >= nbelemTmp){
+	  state = stateReadMarkerTag;
+	  boundCounter++;
+	  if(boundCounter >= nbound){
+	    state = stateExit;
+	  }
+	}
+	break;
+      default:
+	break;
+      }
+    
+  }
+
+  m.nfactags = nbound;
+  m.lnelem = 0;
+  for(Int e = TRI; e <= HEX; e++){
+    m.lnelem += m.nelem[e];
+  }
+  std::cout << "SU2 ASCII I/O: Number of nodes " << m.nnode << std::endl;
+  std::cout << "SU2 ASCII I/O: Number of elements " << m.lnelem << std::endl;
+  std::cout << "SU2 ASCII I/O: Number of Tris " << m.nelem[TRI] << std::endl;
+  std::cout << "SU2 ASCII I/O: Number of Quads " << m.nelem[QUAD] << std::endl;
+  std::cout << "SU2 ASCII I/O: Number of Tets " << m.nelem[TET] << std::endl;
+  std::cout << "SU2 ASCII I/O: Number of Pyramids " << m.nelem[PYRAMID] << std::endl;
+  std::cout << "SU2 ASCII I/O: Number of Prisms " << m.nelem[PRISM] << std::endl;
+  std::cout << "SU2 ASCII I/O: Number of Hexes " << m.nelem[HEX] << std::endl;
+  std::cout << "SU2 ASCII I/O: Number of tagged boundaries " << m.nfactags << std::endl;
+
+  fin.close();
+  return(0);
+}
+
 Int WriteCRUNCH_Ascii(Mesh<Real> &m, std::string casename)
 {
   Int i,j;

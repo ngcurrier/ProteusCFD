@@ -62,6 +62,9 @@ int main(int argc, char* argv[]){
   else if(fileextension == "ugrid"){
     ierr = ReadUGRID_Ascii(m, filename);
   }
+  else if(fileextension == "su2"){
+    ierr = ReadSU2_Ascii(m, filename);
+  }
   else{
     cerr << "File extension " << fileextension << " not recognized" << endl;
     return(0);
