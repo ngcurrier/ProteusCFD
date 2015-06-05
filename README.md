@@ -35,6 +35,11 @@ Compilation instructions:
   
   make TARGET=bluetick (must also switch toolchain to XLC)
   make TARGET=papertape (with infiniband support)
+  
+  Also, you must build the decomposition/recomposition tools to write files Proteus understands.
+  "make tools"  will build these for you
+  All executable code will be built in the ProteusCFD/bin directory. All executables are meant to 
+  be run via command line and will output usage information if you run the executable with no arguments.
 
 Usage:
   Proteus (like most CFD solvers) requires a volume grid of a geometry. The grid in this
@@ -42,19 +47,19 @@ Usage:
   We recommend Salome or GMSH as an opensource alternative to commercial gridding tools.
   Using Proteus with a given mesh involves:
   
-  1) Using ./decomp tool to decompose the geometry into multiple parallel partitions.
-     This tool currently expect .ugrid (MSU) and .crunch mesh files. Others may be
-     added in the future if there is a request and possibly user support (testers)
+  1) Using ./decomp.x tool to decompose the geometry into multiple parallel partitions.
+     This tool currently expect .ugrid (MSU), .su2 (Stanford SU2) and .crunch mesh files. 
+     Others may be added in the future if there is a request and possibly user support (testers)
      for them.
   
   2) Defining <casename>.bc and <casename>.param files (see ProteusTestSuite for examples)
      This sets up boundary conditions and the solver runtime parameters for relevant physics.
   
-  3) Running the solver with mpiexec -np <number of processors> ./ucs <casename>
+  3) Run the solver with mpiexec -np <number of processors> ./ucs.x <casename>
      There is also a run script in the ./tools directory to modify should you need 
      parallel job scripts.
   
-  4) Using ./recomp tool to recompose the parallel geometry and solution to .vtk binary files.
+  4) Using ./recomp.x tool to recompose the parallel geometry and solution to .vtk binary files.
      VTK legacy files are the only supported output at this time.
   
   5) Using paraview or visit (or any other VTK capable visualization tool) to view and query results.
