@@ -356,8 +356,11 @@ void Param<Type>::PostCompute()
   else if(ref_density != REF_DENSITY_DEFAULT && ref_pressure == REF_PRESSURE_DEFAULT){
     ref_pressure = ref_density*ref_velocity*ref_velocity;
   }
-  else{
+  else if(ref_density != REF_DENSITY_DEFAULT && ref_pressure != REF_PRESSURE_DEFAULT){
     Abort << "Must specify either reference density or reference pressure. NOT both.";
+  }
+  else{
+    std::cerr << "WARNING: if running fluids case must specify either reference density or pressure";
   }
 
   //Reynolds number is now set in eqnset object initialization

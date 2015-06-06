@@ -94,9 +94,7 @@ void CompressibleEqnSet<Type>::RoeFlux(Type QL[], Type QR[], Type avec[], Type v
   
   RoeVariables(QL, QR, gamma, Qroe);
   Eigensystem(Qroe, avec, vdotn, gamma, eigenvalues, T, Tinv, beta);
-  
-  
-#if 1
+    
   //ENTROPY FIX
   /////////////////////////////////////////////////////////////////////////////
   // adjust the eigenvalues according to Harten and Hyman, 1983 (Hirsch,p. 469)
@@ -157,7 +155,6 @@ void CompressibleEqnSet<Type>::RoeFlux(Type QL[], Type QR[], Type avec[], Type v
   if (real(CAbs(eigenvalues[4])) < real(eps)){
     eigenvalues[4] = 0.5*(eigenvalues[4]*eigenvalues[4]/eps + eps);
   }
-#endif  
   
   //compute difference
   for(i = 0; i < 5; i++){
