@@ -728,6 +728,27 @@ void SolutionSpace<Type>::NewtonIterate()
     this->timers.StartAccumulate("SolutionUpdateTimer");
   }
 
+  //check for infinite updates and if found zero the node's update
+  for(Int j = 0; j < m->nnode; j++){
+    bool zero = false;
+    for(Int k = 0; k < neqn; k++){
+      if(isnan(real(crs->x[j*neqn +k])) || isinf(real(crs->x[j*neqn+k]))){
+	crs->x[j*neqn + k] = 0.0;
+	std::stringstream ss;
+	ss << "Update dQ[" << k << "] isnan OR isinf at " <<
+	  m->xyz[j*3 + 0] << "  " << m->xyz[j*3 + 1] << " " << m->xyz[j*3 + 2] <<
+	  " Zeroing dQ update for node\n";
+	std::cerr << ss.str();
+	zero = true;
+      }
+    }
+    if(zero){
+      for(Int k = 0; k < neqn; k++){
+	crs->x[j*neqn + k] = 0.0;
+      }
+    }
+  }
+
   for(Int j = 0; j < m->nnode; j++){
     eqnset->ApplyDQ(&crs->x[j*neqn], &q[j*nvars], &m->xyz[j*3]);
   }  
@@ -736,7 +757,7 @@ void SolutionSpace<Type>::NewtonIterate()
     for(Int k = 0; k < neqn; k++){
       if(isnan(real(q[j*nvars + k])) || isinf(real(q[j*nvars+k]))){
 	std::stringstream ss;
-	ss << "Update Q[" << k << "] isnan OR isinf at " <<
+	ss << "Updated Q[" << k << "] isnan OR isinf at " <<
 	  m->xyz[j*3 + 0] << "  " << m->xyz[j*3 + 1] << " " << m->xyz[j*3 + 2];
 	Abort << ss.str();
       }

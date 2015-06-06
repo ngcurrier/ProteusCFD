@@ -3,7 +3,7 @@
 template <class Type>
 Sensors<Type>::Sensors(std::string filename, Int neqn, Int nstride, Type* Q, 
 		       PObj<Type>* p, Int* ipsp, Int* psp, Type* mxyz, 
-		       Int nnodes) : neqn(neqn), nstride(nstride), psp(psp), ipsp(ipsp), 
+		       Int nnodes) : count(0), neqn(neqn), nstride(nstride), psp(psp), ipsp(ipsp), 
 				     mxyz(mxyz), mnnode(nnodes), q(Q), xyz(NULL), 
 				     values(NULL), domain(NULL), nodes(NULL), p(p)
   
@@ -65,7 +65,8 @@ Int Sensors<Type>::ReadFile(std::string filename)
 
   fin.open(filename.c_str());
   if(!fin.is_open()){
-    std::cerr << "WARNING: SENSORS_IO: " << filename << " is not found for reading!" << std::endl;
+    std::cerr << "WARNING: SENSORS_IO: " << filename 
+	      << " is not found for reading! Will not attempt again this run!" << std::endl;
     count = 0;
     return(-1);
   }
