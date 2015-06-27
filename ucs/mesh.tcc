@@ -2320,19 +2320,19 @@ Int Mesh<Type>::AllocateSolutionMemory()
 }
 
 template <class Type>
-Int Mesh<Type>::IsInteriorNode(Int n)
+Int Mesh<Type>::IsInteriorNode(Int n) const
 {
   return(n < nnode);
 }
 
 template <class Type>
-Int Mesh<Type>::IsGhostNode(Int n)
+Int Mesh<Type>::IsGhostNode(Int n) const
 {
   return(n >= nnode && n < (nnode+gnode));
 }
 
 template <class Type>
-Int Mesh<Type>::IsBoundaryNode(Int n)
+Int Mesh<Type>::IsBoundaryNode(Int n) const
 {
   return(n >= (nnode+gnode));
 }

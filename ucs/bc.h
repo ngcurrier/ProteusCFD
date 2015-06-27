@@ -40,9 +40,9 @@ class BoundaryConditions
   std::string* surface_names;   //plain text identifiers for surfaces
   Int* bc_applied;              //list which holds bc's applied to surfaces
   Int* bc_map;                  //maps bc number in file to lower order number in code
-                                //this is in case number is non-consecutive i.e. 1, 3, 199, etc.
+                                //this is in case surface id numbers are non-consecutive i.e. 1, 3, 199, etc.
 
-  BCObj<Type>* bcs;                   //list of reference states
+  BCObj<Type>* bcs;             //list of reference states, i.e. the conditions themselves
 
   Int num_bcs;                  //number of bcs present in domain
   Int largest_bc_id;            //largest bc id present in bc file

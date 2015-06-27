@@ -56,9 +56,9 @@ public:
   //on the owning process... owning Process and localId return negative if in error
   void GetParallelTuple(Int node, Int* owningProcess, Int* localId);
 
-  Int IsInteriorNode(Int n);   //interior to mesh
-  Int IsGhostNode(Int n);      //parallel update nodes
-  Int IsBoundaryNode(Int n);   //boundary condition nodes
+  Int IsInteriorNode(Int n) const;   //interior to mesh
+  Int IsGhostNode(Int n) const;      //parallel update nodes
+  Int IsBoundaryNode(Int n) const;   //boundary condition nodes
 
   Int CalcMetrics(); //MASTER CALLING FUNCTION - calcs all metrics, and checks
                      //all other metrics functions privatized 

@@ -3,6 +3,7 @@
 #include "mesh.h"
 #include "portFileio.h"
 #include "exceptions.h"
+#include "ffd.h"
 #include <sstream>
 #include <cmath>
 

@@ -6,6 +6,10 @@
 #include "bc.h"
 #include <vector>
 
+//forward declarations
+template <class Type> class BoundaryConditions;
+template <class Type> class Mesh;
+
 /*
 This class is design to perform FFD (free form deformation) of a boundary which
 is identified through input.  The end goal here being the ability to deform a mesh
@@ -15,7 +19,8 @@ template <class Type>
 class FFD
 {
 public:
-  FFD(const int boundaryAttached, const Mesh* m, const BoundaryConditions* bcs);
+  template <class Type2>
+  FFD(const Int boundaryAttached, const Mesh<Type>* m, const BoundaryConditions<Type2>* bcs);
   ~FFD();
 
 protected:
@@ -23,13 +28,13 @@ protected:
 private:
   FFD();
 
-  int bcAttached; //Boundary id to which FFD box is attached
-  double xmax;  //max x-extent
-  double xmin;  //min x-extent
-  double ymax;  //max y-extent
-  double ymin;  //min y-extent
-  double zmax;  //max z-extent
-  double zmin;  //min z-extent
+  Int bcAttached; //Boundary id to which FFD box is attached
+  Type xmax;  //max x-extent
+  Type xmin;  //min x-extent
+  Type ymax;  //max y-extent
+  Type ymin;  //min y-extent
+  Type zmax;  //max z-extent
+  Type zmin;  //min z-extent
 
 };
 
