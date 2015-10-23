@@ -55,7 +55,7 @@ SolutionSpace<Type>::SolutionSpace(Param<Type>* param, PObj<Real>* p, std::strin
   //build the mesh maps.. this creates all ghost/phantom nodes as appropriate
   //needs to be done before memInit which happens after eqnset object creation
   this->timers.StartTimer("MapsBuildTimer");
-  if(param->reorder == 1 && m->reordered == false){
+  if(param->reorder == 1 && m->IsReordered() == false){
     //this builds only the maps up to psp()
     ierr = m->BuildMapsDecomp();
     //use reverse CuthillMcKee
@@ -215,9 +215,10 @@ void SolutionSpace<Type>::Init()
 
   std::cout << "INIT: sensors" << std::endl;
   //allocate sensors object if appropriate
+  Int nnode = m->GetNumNodes();
   sensors = new Sensors<Type>(param->path+param->spacename+".sensors", eqnset->neqn, 
 			      eqnset->nauxvars+eqnset->neqn, q, 
-			      p, m->ipsp, m->psp, m->xyz, m->nnode);
+			      p, m->ipsp, m->psp, m->xyz, nnode);
   //search for sensor points once
   sensors->Search();
   
@@ -247,7 +248,7 @@ void SolutionSpace<Type>::Init()
   AddField("partition");
   Type* part = GetField("partition", FIELDS::STATE_NONE);
   Int rank = p->GetRank();
-  for(Int i = 0; i < m->nnode; i++){
+  for(Int i = 0; i < nnode; i++){
     part[i] = rank; 
   }
   p->UpdateGeneralVectors(part, 1);
@@ -276,9 +277,9 @@ void SolutionSpace<Type>::Init()
   if(param->torder && !param->useRestart){
     Int neqn = eqnset->neqn;
     Int nvars = neqn + eqnset->nauxvars;
-    memcpy(qold, q, sizeof(Type)*m->nnode*nvars);
-    memcpy(qoldm1, q, sizeof(Type)*m->nnode*nvars);
-    for(Int i = 0; i < m->nnode; i++){
+    memcpy(qold, q, sizeof(Type)*nnode*nvars);
+    memcpy(qoldm1, q, sizeof(Type)*nnode*nvars);
+    for(Int i = 0; i < nnode; i++){
       eqnset->NativeToConservative(&qold[i*nvars]);
       eqnset->NativeToConservative(&qoldm1[i*nvars]);
     }
@@ -490,6 +491,9 @@ void SolutionSpace<Type>::ValidateRequestedFields() const
 template <class Type>
 void SolutionSpace<Type>::PreIterate()
 {
+  Int nnode = m->GetNumNodes();
+  Int gnode = m->GetNumParallelNodes();
+
   //verify that all fields that are requested are actually present
   ValidateRequestedFields();
 
@@ -511,16 +515,16 @@ void SolutionSpace<Type>::PreIterate()
 
   if(param->movement){
     //we need to save the xyz locations of the nodes at t = 0
-    memcpy(m->xyz_base, m->xyz, sizeof(Type)*(m->nnode+m->gnode)*3);
+    memcpy(m->xyz_base, m->xyz, sizeof(Type)*(nnode+gnode)*3);
     //we also need to zero the displacements over time since we use
     //higher order accurate grid speed terms
-    memcpy(m->xyzold, m->xyz, sizeof(Type)*(m->nnode*3));
-    memcpy(m->xyzoldm1, m->xyz, sizeof(Type)*(m->nnode*3));
+    memcpy(m->xyzold, m->xyz, sizeof(Type)*(nnode*3));
+    memcpy(m->xyzoldm1, m->xyz, sizeof(Type)*(nnode*3));
     if(param->gcl && !param->useRestart){
       //we need to set our gcl volumes to be equal to the current time
       //this is taken care of in restart routines if using restarted solution
-      memcpy(m->vololdm1, m->vol, sizeof(Type)*m->nnode);
-      memcpy(m->volold, m->vol, sizeof(Type)*m->nnode);
+      memcpy(m->vololdm1, m->vol, sizeof(Type)*nnode);
+      memcpy(m->volold, m->vol, sizeof(Type)*nnode);
     }
   }
 
@@ -550,6 +554,7 @@ void SolutionSpace<Type>::PreTimeAdvance()
 {
   Int neqn = eqnset->neqn;
   Int nvars = neqn + eqnset->nauxvars;
+  Int nnode = m->GetNumNodes();
 
   std::cout << "\n" << this->iter << ": --------------------------------------------------------------------------\n\n";
 
@@ -560,7 +565,7 @@ void SolutionSpace<Type>::PreTimeAdvance()
     }
     //we only use these q's for unsteady simulations so we need to ensure
     //that these can be contributed directly to the RHS of the unsteady residual
-    for(Int i = 0; i < m->nnode; i++){
+    for(Int i = 0; i < nnode; i++){
       eqnset->NativeToConservative(&qold[i*nvars]);
     }
   }
@@ -577,13 +582,13 @@ void SolutionSpace<Type>::PreTimeAdvance()
   //we need to save the movement data for the h.o. temporal accuracy here
   if(param->movement){
     //copy down the old displacements so we get h.o. accurate grid speeds
-    memcpy(m->xyzoldm1, m->xyzold, sizeof(Type)*3*m->nnode);
-    memcpy(m->xyzold, m->xyz, sizeof(Type)*3*m->nnode);
+    memcpy(m->xyzoldm1, m->xyzold, sizeof(Type)*3*nnode);
+    memcpy(m->xyzold, m->xyz, sizeof(Type)*3*nnode);
     if(param->gcl){
       //if we are using a modifiable mesh we need to update the GCL contributions
       //for this we need the volumes from two previous steps
-      memcpy(m->vololdm1, m->volold, sizeof(Type)*m->nnode);
-      memcpy(m->volold, m->vol, sizeof(Type)*m->nnode);
+      memcpy(m->vololdm1, m->volold, sizeof(Type)*nnode);
+      memcpy(m->volold, m->vol, sizeof(Type)*nnode);
     }
     if(param->viscous){
       std::cout << "Wall distance results: " << std::endl;
@@ -605,8 +610,13 @@ void SolutionSpace<Type>::PreTimeAdvance()
 template <class Type>
 void SolutionSpace<Type>::NewtonIterate()
 {
+  Int nnode = m->GetNumNodes();
+  Int nbnode = m->GetNumBoundaryNodes();
+  Int gnode = m->GetNumParallelNodes();
+
   Int neqn = eqnset->neqn;
   Int nvars = neqn + eqnset->nauxvars;
+
   Type dqNorm, dqNormGlobal;
   Int resnode;
   Type tempmax, tempold, deltaDq;
@@ -625,7 +635,7 @@ void SolutionSpace<Type>::NewtonIterate()
     this->timers.StartAccumulate("GradientTimer");
   }
 
-  for(Int i = 0; i < (m->nnode+m->nbnode+m->gnode); i++){
+  for(Int i = 0; i < (nnode+nbnode+gnode); i++){
     eqnset->NativeToExtrapolated(&q[i*nvars]);
   }
 
@@ -642,7 +652,7 @@ void SolutionSpace<Type>::NewtonIterate()
   }
 
   //convert back
-  for(Int i = 0; i < (m->nnode+m->nbnode+m->gnode); i++){
+  for(Int i = 0; i < (nnode+nbnode+gnode); i++){
     eqnset->ExtrapolatedToNative(&q[i*nvars]);
   }
 
@@ -700,7 +710,7 @@ void SolutionSpace<Type>::NewtonIterate()
     Type* bstore;
     crs->AllocateVector(&xstore);
     crs->AllocateVector(&bstore);
-    memcpy(bstore, crs->b, sizeof(Type)*(neqn*(m->nnode+m->gnode)));
+    memcpy(bstore, crs->b, sizeof(Type)*(neqn*(nnode+gnode)));
     
     deltaDq = crs->GMRES(1, 10, 1, &Store, xstore, bstore);
     std::cout << "\nD||diag||: " << deltaDq;
@@ -729,7 +739,7 @@ void SolutionSpace<Type>::NewtonIterate()
   }
 
   //check for infinite updates and if found zero the node's update
-  for(Int j = 0; j < m->nnode; j++){
+  for(Int j = 0; j < nnode; j++){
     bool zero = false;
     for(Int k = 0; k < neqn; k++){
       if(isnan(real(crs->x[j*neqn +k])) || isinf(real(crs->x[j*neqn+k]))){
@@ -749,11 +759,11 @@ void SolutionSpace<Type>::NewtonIterate()
     }
   }
 
-  for(Int j = 0; j < m->nnode; j++){
+  for(Int j = 0; j < nnode; j++){
     eqnset->ApplyDQ(&crs->x[j*neqn], &q[j*nvars], &m->xyz[j*3]);
   }  
 
-  for(Int j = 0; j < m->nnode; j++){
+  for(Int j = 0; j < nnode; j++){
     for(Int k = 0; k < neqn; k++){
       if(isnan(real(q[j*nvars + k])) || isinf(real(q[j*nvars+k]))){
 	std::stringstream ss;
@@ -764,8 +774,8 @@ void SolutionSpace<Type>::NewtonIterate()
     }
   }
 
-  dqNorm = VecL2Norm(crs->x, (m->nnode+m->gnode)*neqn);
-  dqNormGlobal = ParallelL2Norm(p, crs->x, m->nnode*neqn);
+  dqNorm = VecL2Norm(crs->x, (nnode+gnode)*neqn);
+  dqNormGlobal = ParallelL2Norm(p, crs->x, nnode*neqn);
 
   if(p->GetRank() == 0){
     this->timers.PauseAccumulateAndPrint("SolutionUpdateTimer", timerOutFile);
@@ -781,7 +791,7 @@ void SolutionSpace<Type>::NewtonIterate()
   tempmax = VecL2Norm(&crs->b[0], neqn);
   resnode = 0;
   tempold = tempmax;
-  for(Int j = 1; j < m->nnode; j++){
+  for(Int j = 1; j < nnode; j++){
     tempmax = MAX(tempmax, VecL2Norm(&crs->b[j*neqn], neqn));
     if(tempold != tempmax){
       tempold = tempmax;
@@ -794,7 +804,7 @@ void SolutionSpace<Type>::NewtonIterate()
   tempmax = VecL2Norm(&crs->x[0], neqn);
   Int qnode = 0;
   tempold = tempmax;
-  for(Int j = 1; j < m->nnode; j++){
+  for(Int j = 1; j < nnode; j++){
     tempmax = MAX(tempmax, VecL2Norm(&crs->x[j*neqn], neqn));
     if(tempold != tempmax){
       tempold = tempmax;
@@ -959,7 +969,9 @@ void SolutionSpace<Type>::InitCRSSystem()
     return;
   }
   crs = new CRS<Type>;
-  crs->Init(m->nnode, m->gnode, eqnset->neqn, m->ipsp, m->psp, m->p);
+  Int nnode = m->GetNumNodes();
+  Int gnode = m->GetNumParallelNodes();
+  crs->Init(nnode, gnode, eqnset->neqn, m->ipsp, m->psp, m->p);
 }
 
 template <class Type>
@@ -1040,14 +1052,16 @@ template <class Type>
 void SolutionSpace<Type>::WriteSurfaceVariables(Type* var, std::ofstream& fout, Int ignoreSymmPlanes)
 {
   Int i;
-  Int* list = new Int[m->nnode];
-  Type* avg = new Type[m->nnode];
+  Int nnode = m->GetNumNodes();
+  Int nbedge = m->GetNumBoundaryEdges();
+  Int* list = new Int[nnode];
+  Type* avg = new Type[nnode];
   
-  MemBlank(list, m->nnode);
-  MemBlank(avg, m->nnode);
+  MemBlank(list, nnode);
+  MemBlank(avg, nnode);
   
   //we write out the averages on the face, this isn't ideal but works okay?
-  for(i = 0; i < m->nbedge; i++){
+  for(i = 0; i < nbedge; i++){
     //get the node on the surface
     Int node = m->bedges[i].n[0];
     Int factag = m->bedges[i].factag;
@@ -1061,7 +1075,7 @@ void SolutionSpace<Type>::WriteSurfaceVariables(Type* var, std::ofstream& fout, 
       avg[node] += var[i];
     }
   }
-  for(i = 0; i < m->nbedge; i++){
+  for(i = 0; i < nbedge; i++){
     //get the node on the surface
     Int node = m->bedges[i].n[0];
     //get the number of values added here
@@ -1085,6 +1099,8 @@ void SolutionSpace<Type>::WriteSurfaceVariables(Type* var, std::ofstream& fout, 
 template <class Type>
 void SolutionSpace<Type>::WriteRestartFile()
 {
+  Int nnode = m->GetNumNodes();
+  Int gnode = m->GetNumParallelNodes();
   std::ostringstream temposs;
   temposs.str("");
   temposs << p->GetRank();
@@ -1102,11 +1118,11 @@ void SolutionSpace<Type>::WriteRestartFile()
   hid_t h5out = HDF_OpenFile(filename, 1);
   HDF_WriteScalar(h5out, "/Solver State/", "Iteration Count", &this->iter);
   HDF_WriteScalar(h5out, "/Solver State/", "GCL State", &param->gcl);
-  HDF_WriteArray(h5out, "/Mesh State/", "Volume N+1", m->vol, m->nnode);
-  HDF_WriteArray(h5out, "/Mesh State/", "Volume N", m->volold, m->nnode);
-  HDF_WriteArray(h5out, "/Mesh State/", "Volume N-1", m->vololdm1, m->nnode);
-  HDF_WriteArray(h5out, "/Mesh State/", "Nodal Coordinates Current", m->xyz, 3*(m->nnode+m->gnode));
-  HDF_WriteArray(h5out, "/Mesh State/", "Nodal Coordinates Base", m->xyz_base, 3*(m->nnode+m->gnode));
+  HDF_WriteArray(h5out, "/Mesh State/", "Volume N+1", m->vol, nnode);
+  HDF_WriteArray(h5out, "/Mesh State/", "Volume N", m->volold, nnode);
+  HDF_WriteArray(h5out, "/Mesh State/", "Volume N-1", m->vololdm1, nnode);
+  HDF_WriteArray(h5out, "/Mesh State/", "Nodal Coordinates Current", m->xyz, 3*(nnode+gnode));
+  HDF_WriteArray(h5out, "/Mesh State/", "Nodal Coordinates Base", m->xyz_base, 3*(nnode+gnode));
   HDF_CloseFile(h5out);
 }
 
@@ -1117,7 +1133,9 @@ void SolutionSpace<Type>::ReadRestartFile()
   temposs.str("");
   temposs << p->GetRank();
   std::string filename = param->path+param->spacename + "." + temposs.str() + ".rs";
-  
+  Int nnode = m->GetNumNodes();
+  Int gnode = m->GetNumParallelNodes();
+
   std::cout << "RESTART READFILE: reading restart file --> " << filename << std::endl;
 
   for(typename std::vector<SolutionField<Type>*>::iterator it = fields.begin(); it != fields.end(); ++it){
@@ -1137,10 +1155,11 @@ void SolutionSpace<Type>::ReadRestartFile()
   if(gclcheck != param->gcl){
     Abort << "WARNING: GCL state not sane across restart, this is not going to end well";
   }
-  HDF_ReadArray(h5in, "/Mesh State/", "Volume N+1", &m->vol, &m->nnode);
-  HDF_ReadArray(h5in, "/Mesh State/", "Volume N", &m->volold, &m->nnode);
-  HDF_ReadArray(h5in, "/Mesh State/", "Volume N-1", &m->vololdm1, &m->nnode);
-  Int ntnodes = 3*(m->nnode+m->gnode);
+  HDF_ReadArray(h5in, "/Mesh State/", "Volume N+1", &m->vol, &nnode);
+  m->SetNumNodes(nnode);
+  HDF_ReadArray(h5in, "/Mesh State/", "Volume N", &m->volold, &nnode);
+  HDF_ReadArray(h5in, "/Mesh State/", "Volume N-1", &m->vololdm1, &nnode);
+  Int ntnodes = 3*(nnode+gnode);
   HDF_ReadArray(h5in, "/Mesh State/", "Nodal Coordinates Current", &m->xyz, &ntnodes);
   HDF_ReadArray(h5in, "/Mesh State/", "Nodal Coordinates Base", &m->xyz_base, &ntnodes);
   HDF_CloseFile(h5in);

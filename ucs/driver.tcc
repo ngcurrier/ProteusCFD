@@ -11,7 +11,8 @@ Int Driver(SolutionSpace<Type>* space, Kernel<Type> &kernel, Int scatterSize,
   Int inode, eid;
   Int left_cv, right_cv;
   Mesh<Type>* m = space->m;
-  
+  Int nedge = m->GetNumEdges();
+
 #ifdef _OPENMP
   omp_set_num_threads(NUM_THREADS);
 #pragma omp parallel default(none) shared(space, m, custom, scatterSize) \
@@ -28,7 +29,7 @@ Int Driver(SolutionSpace<Type>* space, Kernel<Type> &kernel, Int scatterSize,
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
-    for(i = 0; i < m->nedge; i++){
+    for(i = 0; i < nedge; i++){
       eid = i;
       std::vector<pthread_mutex_t*> mutexes;
       left_cv = m->edges[eid].n[0];
@@ -76,6 +77,8 @@ Int Bdriver(SolutionSpace<Type>* space, Kernel<Type> &bkernel, Int scatterSize,
   Int n, k;
   Int factag;
   Mesh<Type>* m = space->m;
+  Int ngedge = m->GetNumParallelEdges();
+  Int nbedge = m->GetNumBoundaryEdges();
 
 #ifdef _OPENMP
   omp_set_num_threads(NUM_THREADS);
@@ -92,7 +95,7 @@ Int Bdriver(SolutionSpace<Type>* space, Kernel<Type> &bkernel, Int scatterSize,
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
-    for(eid = 0; eid < m->nbedge+m->ngedge; eid++){
+    for(eid = 0; eid < nbedge+ngedge; eid++){
       std::vector<pthread_mutex_t*> mutexes;
       left_cv = m->bedges[eid].n[0];
       right_cv = m->bedges[eid].n[1];
@@ -145,6 +148,8 @@ Int BdriverNoScatter(SolutionSpace<Type>* space, Kernel<Type> &bkernel, Int scat
   Int n, k;
   Int factag;
   Mesh<Type>* m = space->m;
+  Int nbedge = m->GetNumBoundaryEdges();
+  Int ngedge = m->GetNumParallelEdges();
 
 #ifdef _OPENMP
   omp_set_num_threads(NUM_THREADS);
@@ -162,7 +167,7 @@ Int BdriverNoScatter(SolutionSpace<Type>* space, Kernel<Type> &bkernel, Int scat
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
-    for(eid = 0; eid < m->nbedge+m->ngedge; eid++){
+    for(eid = 0; eid < nbedge+ngedge; eid++){
       left_cv = m->bedges[eid].n[0];
       right_cv = m->bedges[eid].n[1];
       factag = m->bedges[eid].factag;
@@ -209,6 +214,7 @@ Int DriverNoScatter(SolutionSpace<Type>* space, Kernel<Type> &kernel,
   Int inode, eid;
   Int left_cv, right_cv;
   Mesh<Type>* m = space->m;
+  Int nedge = m->GetNumEdges();
 
 #ifdef _OPENMP
   omp_set_num_threads(NUM_THREADS);
@@ -226,7 +232,7 @@ Int DriverNoScatter(SolutionSpace<Type>* space, Kernel<Type> &kernel,
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
-    for(i = 0; i < m->nedge; i++){
+    for(i = 0; i < nedge; i++){
       eid = i;
       left_cv = m->edges[eid].n[0];
       right_cv = m->edges[eid].n[1];

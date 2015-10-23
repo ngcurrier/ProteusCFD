@@ -12,7 +12,7 @@ TurbulenceModel<Type>::TurbulenceModel(SolutionSpace<Type>* space):
 {
   //add turbulent viscosity field
   space->AddField("mut");
-
+  
   return;
 }
 
@@ -122,6 +122,8 @@ void TurbulenceModel<Type>::TemporalResidual(Type timestep, Int iter, Int torder
   Type* dq = new Type[neqn];
   Type* dqm1 = new Type[neqn];
   Mesh<Type>* m = space->m;
+  Int nnode = m->GetNumNodes();
+
   if(iter > 1 && torder == 2){
     //coefficients for BDF2 are phi_n+1 = 1.5, phi_n = -2.0, phi_n-1 = 0.5 
     cnp1 = 1.5;
@@ -133,7 +135,7 @@ void TurbulenceModel<Type>::TemporalResidual(Type timestep, Int iter, Int torder
     cnm1 = 0.0;
     //cn = -1.0;
   }
-  for(Int i = 0; i < m->nnode; i++){
+  for(Int i = 0; i < nnode; i++){
     offset = i*neqn;
     dt = cnp1*m->vol[i]/timestep;           //use v_n+1
     if(space->eqnset->param->gcl && iter > 2){
@@ -176,6 +178,8 @@ void TurbulenceModel<Type>::Compute()
 {
   Int i, j;
   Mesh<Type>* m = space->m;
+  Int nnode = m->GetNumNodes();
+  Int gnode = m->GetNumParallelNodes();
   EqnSet<Type>* eqnset = space->eqnset;
   Type* tres = (Type*)alloca(sizeof(Type)*neqn);
   Type* tjac = (Type*)alloca(sizeof(Type)*neqn*neqn);
@@ -216,7 +220,7 @@ void TurbulenceModel<Type>::Compute()
   
   //compute source terms
   Type* dist = space->GetField("wallDistance", FIELDS::STATE_NONE);
-  for(i = 0; i < m->nnode; i++){
+  for(i = 0; i < nnode; i++){
     Type* q = &space->q[i*qnvars];
     Type vol = m->vol[i];
     Type d = dist[i];
@@ -250,7 +254,7 @@ void TurbulenceModel<Type>::Compute()
   if(space->iter > 1 && param->torder == 2){
     cnp1 = 1.5;
   }
-  for(Int i = 0; i < m->nnode; i++){
+  for(Int i = 0; i < nnode; i++){
     ContributeTemporalTerms(m->vol[i], cnp1, param->dt, dt[i], crs.A->GetPointer(i,i));
   }
 
@@ -258,8 +262,8 @@ void TurbulenceModel<Type>::Compute()
   Kernel<Type> Jac_Modify(BC_Turb_Jac_Kernel);
   BdriverNoScatter(space, Jac_Modify, neqn*neqn, this);
 
-  Type resid = VecL2Norm(crs.b, m->nnode*neqn);
-  Type residGlobal = ParallelL2Norm(space->p, crs.b, m->nnode*neqn);
+  Type resid = VecL2Norm(crs.b, nnode*neqn);
+  Type residGlobal = ParallelL2Norm(space->p, crs.b, nnode*neqn);
 
   std::cout << "\t ||Turb res||: " << resid << " ";
 
@@ -278,7 +282,7 @@ void TurbulenceModel<Type>::Compute()
     }
   }
   else{
-    for(i = 0; i < m->nnode; i++){
+    for(i = 0; i < nnode; i++){
       for(j = 0; j < neqn; j++){
 	crs.x[i*neqn + j] = crs.b[i*neqn + j]*dt[i]/m->vol[i];
       }
@@ -288,7 +292,7 @@ void TurbulenceModel<Type>::Compute()
 
   //now apply the solution change
   Type relax = 0.5;
-  for(i = 0; i < m->nnode; i++){
+  for(i = 0; i < nnode; i++){
     for(j = 0; j < neqn; j++){
       //tvar[i*neqn + j] += MIN(tvar[i*neqn + j]*relax, crs.x[i*neqn + j]);
       tvar[i*neqn + j] += crs.x[i*neqn + j];
@@ -305,7 +309,7 @@ void TurbulenceModel<Type>::Compute()
 
   //now that we have computed the turbulence variables
   //compute the eddy viscosity which is what we actually need
-  for(i = 0; i < m->nnode+m->gnode; i++){
+  for(i = 0; i < nnode+gnode; i++){
     Type* q = &space->q[i*qnvars];
     Type rho = eqnset->GetDensity(q);
     Type T = eqnset->GetTemperature(q);

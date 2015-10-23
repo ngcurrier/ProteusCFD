@@ -10,9 +10,10 @@ template <class Type>
 SolutionField<Type>::SolutionField(Mesh<Type> & mesh, DataInfo dataInfo, Int stateType, Int varLocation):
   mesh(mesh), dataInfo(dataInfo), mystate(stateType), varLoc(varLocation)
 {
-  Int mnnode = mesh.nnode;
-  Int mgnode = mesh.gnode;
-  Int mnallnode = mnnode + mgnode + mesh.nbnode;
+  Int mnnode = mesh.GetNumNodes();
+  Int mgnode = mesh.GetNumParallelNodes();
+  Int mnbnode = mesh.GetNumBoundaryNodes();
+  Int mnallnode = mnnode + mgnode + mnbnode;
   Int narrays = 0;
   ndof = dataInfo.GetNdof();
   if(varLoc == FIELDS::VAR_EVERYWHERE){
@@ -45,9 +46,10 @@ template <class Type>
 SolutionField<Type>::SolutionField(Mesh<Type>& mesh, hid_t fileId, std::string path):
   mesh(mesh)
 {
-  Int mnnode = mesh.nnode;
-  Int mgnode = mesh.gnode;
-  Int mnallnode = mnnode + mgnode + mesh.nbnode;
+  Int mnnode = mesh.GetNumNodes();
+  Int mgnode = mesh.GetNumParallelNodes();
+  Int mnbnode = mesh.GetNumBoundaryNodes();
+  Int mnallnode = mnnode + mgnode + mnbnode;
   Int nentities = 0;
   size_t loc = path.rfind("/");
   if(loc == std::string::npos){

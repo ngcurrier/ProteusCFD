@@ -76,7 +76,8 @@ void ExplicitSolve(SolutionSpace<Type>& solSpace)
   Type cn = 1.0;
   Mesh<Type>* m = solSpace.m;
   CRS<Type>& crs = *solSpace.crs;
-  
+  Int nnode = m->GetNumNodes();
+
   Type* dt = solSpace.GetField("timestep", FIELDS::STATE_NONE);
 
 #ifdef _OPENMP
@@ -89,7 +90,7 @@ void ExplicitSolve(SolutionSpace<Type>& solSpace)
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
-	for(i = 0; i < m->nnode; i++){
+	for(i = 0; i < nnode; i++){
 	  for(j = 0; j < neqn; j++){
 	    crs.x[i*neqn + j] = crs.b[i*neqn + j]*dt[i]/m->vol[i];
 	  }
@@ -103,7 +104,7 @@ void ExplicitSolve(SolutionSpace<Type>& solSpace)
 	Int p[neqn];
 	//This works but is not currently functional for any boundary condition where the 
 	//jacobian and residual must be modified to enforce the BC
-	for(i = 0; i < m->nnode; i++){
+	for(i = 0; i < nnode; i++){
 	  Type beta = betaa[i];
 	  MemBlank(A, neqn*neqn);
 	  eqnset->ContributeTemporalTerms(&solSpace.q[i*nvars], m->vol[i], cn, dt[i], 0.0, A, beta);
@@ -114,7 +115,7 @@ void ExplicitSolve(SolutionSpace<Type>& solSpace)
 	}
 #else
 	Type* qc = new Type[neqn];
-	for(i = 0; i < m->nnode; i++){
+	for(i = 0; i < nnode; i++){
 	  memcpy(qc, &solSpace.q[i*nvars], sizeof(Type)*neqn);
 	  eqnset->NativeToConservative(&solSpace.q[i*nvars]);
 	  for(j = 0; j < neqn; j++){

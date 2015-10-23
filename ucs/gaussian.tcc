@@ -84,7 +84,7 @@ void GaussianSource<Type>::ApplyToResidual()
       for(Int i = 0; i < nnodes; i++){
 	Int node = nodes[i];
 	//check that we don't try to contribute to a ghost node
-	if(node < m->nnode){
+	if(node < m->GetNumNodes()){
 	  //we actually want to control the precise mass being added, not the density integration
 	  //this is currently commented out b/c the mass source addition on viscous
 	  //boundaries is unstable, all of the supporting code is useful, however, for 

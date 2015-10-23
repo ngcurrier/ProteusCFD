@@ -348,7 +348,9 @@ int main(int argc, char* argv[]){
       Perturb_Param(beta, *space.param, -1);
       space.RefreshForParam();
       //reset the grid for the next pass, keeps accumulation of movement from occurring
-      memcpy(space.m->xyz, space.m->xyz_base, sizeof(Real)*3*(space.m->nnode+space.m->gnode));
+      Int nnode = space.m->GetNumNodes();
+      Int gnode = space.m->GetNumParallelNodes();
+      memcpy(space.m->xyz, space.m->xyz_base, sizeof(Real)*3*(nnode+gnode));
       space.m->CalcMetrics();
       std::cout.setf(std::ios::scientific);
       std::cout.precision(16);

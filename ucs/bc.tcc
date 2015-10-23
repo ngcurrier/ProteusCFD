@@ -1383,7 +1383,9 @@ Int GetNodesOnSymmetryPlanes(const Mesh<Type>* m, BoundaryConditions<Real>* bc, 
 
   Bool clean;
 
-  for(eid = 0; eid < m->nbedge+m->ngedge; eid++){
+  Int nbedge = m->GetNumBoundaryEdges();
+  Int ngedge = m->GetNumParallelEdges();
+  for(eid = 0; eid < nbedge+ngedge; eid++){
     factag = m->bedges[eid].factag;
     bcId = bc->GetBCId(factag);
     node = m->bedges[eid].n[0];
@@ -1443,12 +1445,15 @@ Int GetNodesOnBCType(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int** no
   BCObj<Real>* bcobj;
 
   //check for duplicates as we go along
-  Bool* dupeCheck = new Bool[m->nnode];
-  for(i = 0; i < m->nnode; i++){
+  Int nnode = m->GetNumNodes();
+  Bool* dupeCheck = new Bool[nnode];
+  for(i = 0; i < nnode; i++){
     dupeCheck[i] = false;
   }
-
-  for(eid = 0; eid < m->nbedge+m->ngedge; eid++){
+  
+  Int nbedge = m->GetNumBoundaryEdges();
+  Int ngedge = m->GetNumParallelEdges();
+  for(eid = 0; eid < nbedge+ngedge; eid++){
     factag = m->bedges[eid].factag;
     node = m->bedges[eid].n[0];
     bcobj = bc->GetBCObj(factag);
@@ -1492,12 +1497,15 @@ Int GetNodesOnMovingBC(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int** 
   Int bcNum;
 
   //check for duplicates as we go along
-  Bool* dupeCheck = new Bool[m->nnode];
-  for(i = 0; i < m->nnode; i++){
+  Int nnode = m->GetNumNodes();
+  Bool* dupeCheck = new Bool[nnode];
+  for(i = 0; i < nnode; i++){
     dupeCheck[i] = false;
   }
   
-  for(eid = 0; eid < m->nbedge+m->ngedge; eid++){
+  Int nbedge = m->GetNumBoundaryEdges();
+  Int ngedge = m->GetNumParallelEdges();
+  for(eid = 0; eid < nbedge+ngedge; eid++){
     factag = m->bedges[eid].factag;
     node = m->bedges[eid].n[0];
     bcobj = bc->GetBCObj(factag);
@@ -1545,12 +1553,15 @@ Int GetNodesOnMovingBC(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int be
   Int bcNum;
 
   //check for duplicates as we go along
-  Bool* dupeCheck = new Bool[m->nnode];
-  for(i = 0; i < m->nnode; i++){
+  Int nnode = m->GetNumNodes();
+  Bool* dupeCheck = new Bool[nnode];
+  for(i = 0; i < nnode; i++){
     dupeCheck[i] = false;
   }
  
-  for(eid = 0; eid < m->nbedge+m->ngedge; eid++){
+  Int nbedge = m->GetNumBoundaryEdges();
+  Int ngedge = m->GetNumParallelEdges();
+  for(eid = 0; eid < nbedge+ngedge; eid++){
     factag = m->bedges[eid].factag;
     node = m->bedges[eid].n[0];
     bcNum = bc->bc_map[factag];
@@ -1593,12 +1604,15 @@ Int GetNodesOnBCId(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int bcid,
   Int bcNum;
 
   //check for duplicates as we go along
-  Bool* dupeCheck = new Bool[m->nnode];
-  for(i = 0; i < m->nnode; i++){
+  Int nnode = m->GetNumNodes();
+  Bool* dupeCheck = new Bool[nnode];
+  for(i = 0; i < nnode; i++){
     dupeCheck[i] = false;
   }
  
-  for(eid = 0; eid < m->nbedge+m->ngedge; eid++){
+  Int nbedge = m->GetNumBoundaryEdges();
+  Int ngedge = m->GetNumParallelEdges();
+  for(eid = 0; eid < nbedge+ngedge; eid++){
     factag = m->bedges[eid].factag;
     node = m->bedges[eid].n[0];
     bcNum = bc->bc_map[factag];
@@ -1656,7 +1670,9 @@ void GetSElemsOnBCId(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int bcid
 template <class Type>
 void SetBCStatFlags(Mesh<Type>* m, BoundaryConditions<Real>* bc)
 {
-  for(Int eid = 0; eid < m->nbedge+m->ngedge; eid++){
+  Int nbedge = m->GetNumBoundaryEdges();
+  Int ngedge = m->GetNumParallelEdges();
+  for(Int eid = 0; eid < nbedge+ngedge; eid++){
     Int factag = m->bedges[eid].factag;
     Int bcId = bc->GetBCId(factag);
     Int node = m->bedges[eid].n[0];

@@ -92,13 +92,16 @@ void Spalart<Type>::Initialize()
   EqnSet<Type>* eqnset = this->space->eqnset;
   Mesh<Type>* m = this->space->m;
   Param<Type>* param = this->space->param;
+  Int nnode = m->GetNumNodes();
+  Int gnode = m->GetNumParallelNodes();
+  
   Type* mut = this->space->GetField("mut", FIELDS::STATE_NONE);
   Type* dist = this->space->GetField("wallDistance", FIELDS::STATE_NONE);
   Type* q = this->space->q;
 
   Type Re = param->Re;
   if(!param->useRestart){
-    for(Int i = 0; i < m->nnode+m->gnode; i++){
+    for(Int i = 0; i < nnode+gnode; i++){
       //this is in Spalart's paper
       Type nu_ref = param->ref_viscosity/param->ref_density;
       //this->tvar[i] = nu_ref / 10.0;
@@ -124,7 +127,7 @@ void Spalart<Type>::Initialize()
 
   //initialize flow field turbulent viscosity
   Int qnvars = eqnset->neqn + eqnset->nauxvars;
-  for(Int i = 0; i < m->nnode+m->gnode; i++){
+  for(Int i = 0; i < nnode+gnode; i++){
     Type* ql = &q[i*qnvars];
     Type rho = eqnset->GetDensity(ql);
     Type mu = eqnset->ComputeViscosity(ql);
@@ -133,7 +136,7 @@ void Spalart<Type>::Initialize()
   }
 
   //allocate a crs object to take care of the solution duties
-  this->crs.Init(m->nnode, m->gnode, this->neqn, m->ipsp, m->psp, this->space->p);
+  this->crs.Init(nnode, gnode, this->neqn, m->ipsp, m->psp, this->space->p);
   this->limiter = new Limiter<Type>(this->space, this->tvar, this->tgrad, this->neqn, this->neqn, this->neqn, "spalart");
   
   return;

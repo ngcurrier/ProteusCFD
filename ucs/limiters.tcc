@@ -13,8 +13,8 @@ Limiter<Type>::Limiter(SolutionSpace<Type>* space, Type* q, Type* grad, Int neqn
   Int i;
   std::stringstream temposs;
   //set up internal data 
-  this->nnodes = space->m->nnode;
-  this->gnode = space->m->gnode;
+  this->nnodes = space->m->GetNumNodes();
+  this->gnode = space->m->GetNumParallelNodes();
   this->neqn = neqn;
   this->gradneqn = gradStride;
   this->nvars = stride;

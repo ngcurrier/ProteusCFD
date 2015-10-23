@@ -467,9 +467,8 @@ Int PObj<Type>::BuildCommMaps(Mesh<Type>* m)
   Int i, sum;
   
   this->m = m;
-  
-  gnode = m->gnode;
-  nnode = m->nnode;
+  gnode = m->GetNumParallelNodes();
+  nnode = m->GetNumNodes();
   
   MPI_Status status;
   
@@ -480,7 +479,7 @@ Int PObj<Type>::BuildCommMaps(Mesh<Type>* m)
     commOffsetsSend[i] = 0;
   }
   //count number of nodes to recv from each process
-  for(i = 0; i < m->gnode; i++){
+  for(i = 0; i < gnode; i++){
     commCountsRecv[m->gNodeOwner[i]]++;
   }
   
@@ -563,6 +562,7 @@ Int PObj<Type>::ReorderCommNodes(Mesh<Type>* m)
   //to be correct... we have to build it here
   Int err = 0;
   Int i, j, sum;
+  Int gnode = m->GetNumParallelNodes();
 
   MPI_Status status;
   
@@ -573,7 +573,7 @@ Int PObj<Type>::ReorderCommNodes(Mesh<Type>* m)
     commOffsetsSend[i] = 0;
   }
   //count number of nodes to recv from each process
-  for(i = 0; i < m->gnode; i++){
+  for(i = 0; i < gnode; i++){
     commCountsRecv[m->gNodeOwner[i]]++;
   }
 
@@ -618,7 +618,7 @@ Int PObj<Type>::ReorderCommNodes(Mesh<Type>* m)
   Int** orderingList = new Int*[np];
   Int* orderingListData = new Int[sum];
   //we will be recv'ing gnode new id's
-  Int* recvOrdering = new Int[m->gnode];
+  Int* recvOrdering = new Int[gnode];
   
 
   for(i = 0; i < np; i++){

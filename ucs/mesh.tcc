@@ -2669,14 +2669,14 @@ template <class Type> template <class Type2>
 Mesh<Type>::Mesh(const Mesh<Type2>& meshToCopy)
 {
   //set all integer values to be equivalent
-  lnelem = meshToCopy.lnelem;
-  nnode = meshToCopy.nnode;
-  gnode = meshToCopy.gnode;
-  nbnode = meshToCopy.nbnode;
-  gnelem = meshToCopy.gnelem;
-  nedge = meshToCopy.nedge;
-  ngedge = meshToCopy.ngedge;
-  nbedge = meshToCopy.nbedge;
+  lnelem = meshToCopy.GetNumLocalElem();
+  nnode = meshToCopy.GetNumNodes();
+  gnode = meshToCopy.GetNumParallelNodes();
+  nbnode = meshToCopy.GetNumBoundaryNodes();
+  gnelem = meshToCopy.GetNumGlobalElem();
+  nedge = meshToCopy.GetNumEdges();
+  ngedge = meshToCopy.GetNumParallelEdges();
+  nbedge = meshToCopy.GetNumBoundaryEdges();
   bface = meshToCopy.bface;
   nfactags = meshToCopy.nfactags;
   nvnodes = meshToCopy.nvnodes;
@@ -2687,8 +2687,12 @@ Mesh<Type>::Mesh(const Mesh<Type2>& meshToCopy)
 
   //now deep copy all integer arrays
   DuplicateArray(&ordering, meshToCopy.ordering, nnode);
-  DuplicateArray(&mnode, meshToCopy.mnode, MAX_E_TYPES);
-  DuplicateArray(&nelem, meshToCopy.nelem, MAX_E_TYPES);
+  for(Int i = 0; i < MAX_E_TYPES; ++i){
+    mnode[i] = meshToCopy.GetNumElemNodes(i);
+  }
+  for(Int i = 0; i < MAX_E_TYPES; ++i){
+    nelem[i] = meshToCopy.GetNumElem(i);
+  }
   DuplicateArray(&gNodeOwner, meshToCopy.gNodeOwner, gnode);
   DuplicateArray(&gNodeLocalId, meshToCopy.gNodeLocalId, gnode);
   DuplicateArray(&ielsp, meshToCopy.ielsp, nnode+gnode+1);
@@ -2792,8 +2796,8 @@ Mesh<Type>::Mesh(const Mesh<Type2>& meshToCopy)
   mapsInitPsp = true;
   edgeInit = true;
   solMemAlloc = true;
-  reordered = meshToCopy.reordered;
-  scaled = meshToCopy.scaled;
+  reordered = meshToCopy.IsReordered();
+  scaled = meshToCopy.IsScaled();
 }
 
 

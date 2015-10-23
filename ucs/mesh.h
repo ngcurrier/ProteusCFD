@@ -82,30 +82,22 @@ public:
   //this call writes current coords in a timestep-# directory for mesh movement
   Int WriteCurrentCoords(std::string casename, Int timestep);
 
-  //scales mesh by a value
-  void ScaleMesh(Type scaleFactor);
+  void ScaleMesh(Type scaleFactor);   //scales mesh by a value
+  Bool IsScaled() const {return scaled;};
+  Bool IsReordered() const {return reordered;};
+  Int GetNumElemNodes(Int type) const {return mnode[type];};
+  Int GetNumElem(Int type) const {return nelem[type];};
+  Int GetNumParallelNodes() const {return gnode;};
+  Int GetNumGlobalNodes() const {return gnnode;};
+  Int GetNumNodes() const {return nnode;};
+  Int GetNumBoundaryNodes() const {return nbnode;};
+  Int GetNumGlobalElem() const {return gnelem;};
+  Int GetNumLocalElem() const {return lnelem;};
+  Int GetNumEdges() const {return nedge;};
+  Int GetNumParallelEdges() const {return ngedge;};
+  Int GetNumBoundaryEdges() const {return nbedge;};
 
-  //flag that is set on mesh read which states a mesh is previously
-  //reordered... we won't do it again
-  Bool reordered;
-
-  //flag that is set on mesh read which states a mesh is previously
-  //scaled.. we wont' do it again
-  Bool scaled;
-
-  //number of nodes in each element type
-  Int* mnode;
-  
-  Int gnnode;       //number of global nodes
-  Int nnode;        //number of nodes in mesh
-  Int gnode;        //number of ghost nodes in mesh (parallel only)
-  Int nbnode;       //nodes numbered >= (nnode+gnode) & < (nnode+gnode+nbnode) are phantom/ghost nodes for bedges
-  Int* nelem;       //number of each type of element in mesh -- nelem[Tri], nelem[Quad], ...
-  Int gnelem;       //number of global elements 
-  Int lnelem;       //number of elements in local mesh
-  Int nedge;        //number of edges in mesh
-  Int ngedge;       //number of half edges in mesh (ghost -- for parallel)
-  Int nbedge;       //number of half edges in mesh (boundary)
+  void SetNumNodes(Int nnode){this->nnode = nnode;};
 
   //parallel utility maps
   Int* gNodeOwner;   //(gnode long) lists proc id which own ghost nodes
@@ -172,12 +164,36 @@ public:
   Int* ibesp;    //index into CRS of besp
 
 private:
+
+  Int gnnode;       //number of global nodes
+  Int nnode;        //number of nodes in mesh
+  Int gnode;        //number of ghost nodes in mesh (parallel only)
+  Int nbnode;       //nodes numbered >= (nnode+gnode) & < (nnode+gnode+nbnode) are phantom/ghost nodes for bedges
+  Int* nelem;       //number of each type of element in mesh -- nelem[Tri], nelem[Quad], ...
+  Int gnelem;       //number of global elements 
+  Int lnelem;       //number of elements in local mesh
+  Int nedge;        //number of edges in mesh
+  Int ngedge;       //number of half edges in mesh (ghost -- for parallel)
+  Int nbedge;       //number of half edges in mesh (boundary)
+
+  //flag that is set on mesh read which states a mesh is previously
+  //scaled.. we wont' do it again
+  Bool scaled;
+
+  //flag that is set on mesh read which states a mesh is previously
+  //reordered... we won't do it again
+  Bool reordered;
+
+  //list of booleans which indicates what memory has been alloc'd
   Bool meshInit;
   Bool mapsInit;
   Bool mapsInitPsp;
   Bool edgeInit;
   Bool metricsCalc;
   Bool solMemAlloc;
+  
+  //number of nodes in each element type
+  Int* mnode;
   
   //Called via public BuildMaps() function
   Int BuildElsp();  //element to surrounding point map

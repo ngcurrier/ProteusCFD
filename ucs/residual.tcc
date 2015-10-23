@@ -12,6 +12,8 @@
 template <class Type>
 std::vector<Type> ComputeResiduals(SolutionSpace<Type>* space)
 {
+  Mesh<Type>* m = space->m;
+  Int nnode = m->GetNumNodes();
   Param<Type>* param = space->param;
   EqnSet<Type>* eqnset = space->eqnset;
   Int neqn = eqnset->neqn;
@@ -42,9 +44,9 @@ std::vector<Type> ComputeResiduals(SolutionSpace<Type>* space)
 
   //compute residual norm before static sources, this gives a better indication
   //of whether or not the system is converged
-  Type residGlobal = ParallelL2Norm(space->p, space->crs->b, space->m->nnode*neqn);
+  Type residGlobal = ParallelL2Norm(space->p, space->crs->b, nnode*neqn);
 
-  std::vector<Type> res = StridedParallelL2Norm(space->p, space->crs->b, space->m->nnode, neqn);
+  std::vector<Type> res = StridedParallelL2Norm(space->p, space->crs->b, nnode, neqn);
 
   //this applies any constant source terms which do not vanish as the solution
   //converges. Just keeps their contributions out of the residual computation
@@ -67,6 +69,7 @@ void SpatialResidual(SolutionSpace<Type>* space)
   Mesh<Type>* m = space->m;
   Param<Type>* param = space->param;
   EqnSet<Type>* eqnset = space->eqnset;
+  Int nnode = m->GetNumNodes();
   Int neqn = eqnset->neqn;
   Int nvars = neqn + eqnset->nauxvars;
   Type* source = new Type[neqn];
@@ -103,7 +106,7 @@ void SpatialResidual(SolutionSpace<Type>* space)
   }
 
   //contribute source terms
-  for(i = 0; i < m->nnode; i++){
+  for(i = 0; i < nnode; i++){
     eqnset->SourceTerm(&space->q[i*nvars], m->vol[i], source);
     for(j = 0; j < neqn; j++){
       space->crs->b[i*neqn + j] += source[j];
@@ -126,6 +129,7 @@ void TemporalResidual(SolutionSpace<Type>* space, Type timestep, Int iter, Int t
   Int i, j, offset;
   EqnSet<Type>* eqnset = space->eqnset;
   Mesh<Type>* m = space->m;
+  Int nnode = m->GetNumNodes();
   Int neqn = eqnset->neqn;
   Int nvars = neqn + eqnset->nauxvars;
   Type cnp1, cnm1;
@@ -145,7 +149,7 @@ void TemporalResidual(SolutionSpace<Type>* space, Type timestep, Int iter, Int t
     cnm1 = 0.0;
     //cn = -1.0;
   }
-  for(i = 0; i < m->nnode; i++){
+  for(i = 0; i < nnode; i++){
     dt = cnp1*m->vol[i]/timestep;           //use v_n+1
     if(eqnset->param->gcl && iter > 2){
       dtm1 = cnm1*m->vololdm1[i]/timestep;  //use v_n-1
@@ -562,6 +566,7 @@ void ContributeGCL2(SolutionSpace<Type>* space, Type timestep, Int iter, Int tor
   Int i, j;
   Mesh<Type>* m = space->m;
   EqnSet<Type>* eqnset = space->eqnset;
+  Int nnode = m->GetNumNodes();
   Int neqn = eqnset->neqn;
   Int nvars = neqn + eqnset->nauxvars;
   Int offset;
@@ -586,7 +591,7 @@ void ContributeGCL2(SolutionSpace<Type>* space, Type timestep, Int iter, Int tor
 
   res = 0.0;
   maxres = 0.0;
-  for(i = 0; i < m->nnode; i++){
+  for(i = 0; i < nnode; i++){
     offset = i*nvars;
     K = (cnp1*m->vol[i] + cn*m->volold[i] - cnm1*m->vololdm1[i])/timestep;
 
@@ -600,7 +605,7 @@ void ContributeGCL2(SolutionSpace<Type>* space, Type timestep, Int iter, Int tor
     }
   }
   
-  res = sqrt(res)/(Type)m->nnode;
+  res = sqrt(res)/(Type)nnode;
   std::cout << "\t||GCL-res||: " << res; 
   std::cout << "\tmax||GCL-res||: " << maxres;
   std::cout << "\t";

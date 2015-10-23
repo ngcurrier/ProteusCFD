@@ -29,7 +29,8 @@ void Compute_dRdQ(CRS<Type>& crs, SolutionSpace<Type>* space, Int type)
   Int neqn = eqnset->neqn;
   Int neqn2 = neqn*neqn;
   Int nvars = neqn + eqnset->nauxvars;
-  
+  Int nnode = m->GetNumNodes();
+
   //zero old jacobians for accumulation
   crs.BlankMatrix();
 
@@ -89,7 +90,7 @@ void Compute_dRdQ(CRS<Type>& crs, SolutionSpace<Type>* space, Int type)
   RCmplx* source = new RCmplx[nvars];
   RCmplx h(0.0, 1.0e-11);
   EqnSet<RCmplx >* ceqnset = space->ceqnset;
-  for(i = 0; i < m->nnode; i++){
+  for(i = 0; i < nnode; i++){
     Type* jac = crs.A->GetPointer(i, i);
     for(j = 0; j < neqn; j++){
       for(k = 0; k < neqn; k++){
@@ -143,6 +144,7 @@ void ComputeSpatialJacobian(SolutionSpace<Type>* space)
   Int neqn = eqnset->neqn;
   Int neqn2 = neqn*neqn;
   Int nvars = neqn + eqnset->nauxvars;
+  Int nnode = m->GetNumNodes();
 
   //zero old jacobians for accumulation
   crs.BlankMatrix();
@@ -202,7 +204,7 @@ void ComputeSpatialJacobian(SolutionSpace<Type>* space)
 
   //compute source term jacobians
   Type* A = new Type[neqn2];
-  for(i = 0; i < m->nnode; i++){
+  for(i = 0; i < nnode; i++){
     eqnset->SourceTermJacobian(&space->q[i*nvars], m->vol[i], A);
     Type* jac = crs.A->GetPointer(i, i);
     for(j = 0; j < neqn2; j++){
@@ -231,6 +233,7 @@ void ContributeTemporalTerms(SolutionSpace<Type>* space)
   Int nvars = neqn + eqnset->nauxvars;
   Type cnp1 = 1.0;
   Int torder = param->torder;
+  Int nnode = m->GetNumNodes();
 
   if(space->iter > 1 &&  torder == 2){
     cnp1 = 1.5;
@@ -244,7 +247,7 @@ void ContributeTemporalTerms(SolutionSpace<Type>* space)
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif    
-    for(i = 0; i < m->nnode; i++){
+    for(i = 0; i < nnode; i++){
       eqnset->ContributeTemporalTerms(&space->q[i*nvars], m->vol[i], cnp1, (Type)param->dt,
 				      dt[i], crs.A->GetPointer(i,i), beta[i]);
     }

@@ -117,6 +117,11 @@ void ComputeWallDistOct(Type* wallDist, SolutionSpace<Type>* space)
   Mesh<Type>* m = space->m;
   PObj<Type>* p = space->p;
 
+  Int nnode = m->GetNumNodes();
+  Int gnode = m->GetNumParallelNodes();
+  Int nbedge = m->GetNumBoundaryEdges();
+  Int ngedge = m->GetNumParallelEdges();
+
   //xyz coords of viscous nodes
   Type* xyzTotal = NULL;
   Type* xyzParallel = NULL;
@@ -132,7 +137,7 @@ void ComputeWallDistOct(Type* wallDist, SolutionSpace<Type>* space)
   //find all the viscous points in the mesh which are local
   //this would normally be handled within the driver module
   //but concern regarding the threading there kept me away
-  for(Int eid = 0; eid < m->nbedge+m->ngedge; eid++){
+  for(Int eid = 0; eid < nbedge+ngedge; eid++){
     Int factag = m->bedges[eid].factag;
     Int bcNum = bc->bc_map[factag];
     Int bcId;
@@ -154,7 +159,7 @@ void ComputeWallDistOct(Type* wallDist, SolutionSpace<Type>* space)
   }
 
   Int count = 0;
-  for(Int eid = 0; eid < m->nbedge+m->ngedge; eid++){
+  for(Int eid = 0; eid < nbedge+ngedge; eid++){
     Int factag = m->bedges[eid].factag;
     Int bcNum = bc->bc_map[factag];
     Int bcId;
@@ -193,7 +198,7 @@ void ComputeWallDistOct(Type* wallDist, SolutionSpace<Type>* space)
 
   //search for the closest bounding box at the lowest level
   //then do an exhaustive search for all points in the sector
-  for(i = 0; i < m->nnode+m->gnode; i++){
+  for(i = 0; i < nnode+gnode; i++){
     Int nodeId;
     wallDist[i] = octree.FindDistance(&m->xyz[i*3 + 0], nodeId);
   }
@@ -229,14 +234,18 @@ Type ComputeWallDist(Type* wallDist, SolutionSpace<Type>* space)
   Mesh<Type>* m = space->m;
   PObj<Type>* p = space->p;
 
-  Type* phi = new Type[m->nnode+m->gnode+m->nbnode];
-  Type* grads = new Type[3*(m->nnode+m->gnode)];
+  Int nnode = m->GetNumNodes();
+  Int gnode = m->GetNumParallelNodes();
+  Int nbnode = m->GetNumBoundaryNodes();
+
+  Type* phi = new Type[nnode+gnode+nbnode];
+  Type* grads = new Type[3*(nnode+gnode)];
   Type norm;
   Type dphi;
   Type convnorm;
 
   CRS<Type> crs;
-  crs.Init(m->nnode, m->gnode, 1, m->ipsp, m->psp, m->p);
+  crs.Init(nnode, gnode, 1, m->ipsp, m->psp, m->p);
 
   //setup gradient struct
   Gradient<Type> grad(1, 1, NULL, phi, space, gradType, grads, 0);
@@ -249,7 +258,7 @@ Type ComputeWallDist(Type* wallDist, SolutionSpace<Type>* space)
   Type dz = m->extentsMax[2] - m->extentsMin[2];
   Type maxd = MAX(dx, dy);
   maxd = MAX(maxd, dz);
-  for(i = 0; i < m->nnode; i++){
+  for(i = 0; i < nnode; i++){
     Type ldx = pow(m->vol[i], 1.0/3.0);
     //phi[i] = maxd;
     //phi[i] = Cdes * ldx;
@@ -298,7 +307,7 @@ Type ComputeWallDist(Type* wallDist, SolutionSpace<Type>* space)
     Bdriver(space, BKWallDist, 1, (void*)&pstruct);
 
     //add in source term
-    for(j = 0; j < m->nnode; j++){
+    for(j = 0; j < nnode; j++){
       crs.b[j] -= m->vol[j];
     }
 
@@ -306,13 +315,13 @@ Type ComputeWallDist(Type* wallDist, SolutionSpace<Type>* space)
     convnorm = crs.SGS(nsgs, NULL, NULL, NULL, 1);
     //convnorm = crs.GMRES(1, 30, 2, NULL, NULL, NULL);
 
-    for(j = 0; j < m->nnode; j++){
+    for(j = 0; j < nnode; j++){
       phi[j] += crs.x[j];
     }
     p->UpdateGeneralVectors(phi, 1);
 
-    norm = ParallelL2Norm(p, crs.b, m->nnode);
-    dphi = ParallelL2Norm(p, crs.x, m->nnode);
+    norm = ParallelL2Norm(p, crs.b, nnode);
+    dphi = ParallelL2Norm(p, crs.x, nnode);
 
     iter++;
     
@@ -330,13 +339,13 @@ Type ComputeWallDist(Type* wallDist, SolutionSpace<Type>* space)
 
 
   //now, compute walldistance
-  for(i = 0; i < m->nnode; i++){
+  for(i = 0; i < nnode; i++){
     wallDist[i] = abs(sqrt(abs(DotProduct(&grads[i*3], &grads[i*3]) + 2.0*phi[i])) - 
       Magnitude(&grads[i*3]));
   }
 
 #if 0
-  for(i = 0; i < m->nnode; i++){
+  for(i = 0; i < nnode; i++){
     std::cout << m->xyz[i*3+0] << " " << m->xyz[i*3+1] << " " 
 	      << m->xyz[i*3+2] << " " << phi[i] << " " << wallDist[i] << std::endl;
   }

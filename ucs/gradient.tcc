@@ -9,7 +9,7 @@
 template <class Type>
 Gradient<Type>::Gradient(Int neqn, Int stride, Int* list, Type* data,  
 			 SolutionSpace<Type>* space, Int gradType, Type* grad, Int weighted) :
-  neqn(neqn), nnode(space->m->nnode + space->m->gnode),  stride(stride), 
+  neqn(neqn), nnode(space->m->GetNumNodes() + space->m->GetNumParallelNodes()),  stride(stride), 
   type(gradType), weighted(weighted), space(space), data(data)
 {
   if(data == NULL){
@@ -122,7 +122,9 @@ void ComputeNodeLSQCoefficients(SolutionSpace<Type>* space)
   Kernel<Type> LSQCoeffW(Kernel_LSQ_CoefficientsWeighted);
   Kernel<Type> BLSQCoeffW(Bkernel_LSQ_CoefficientsWeighted);
 
-  for(Int i = 0; i < (m->nnode+m->gnode)*6; i++){
+  Int nnode = m->GetNumNodes();
+  Int gnode = m->GetNumParallelNodes();
+  for(Int i = 0; i < (nnode+gnode)*6; i++){
     m->s[i] = m->sw[i] = 0.0;
   }
 

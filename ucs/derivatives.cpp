@@ -25,9 +25,9 @@ void Compute_dRdBeta_CTSE(Real* dRdB, SolutionSpace<Real>& space, Int beta)
 
   Mesh<Real>* rm = space.m;
 
-  Int nnode = rm->nnode;
-  Int gnode = rm->gnode;
-  Int nbnode = rm->nbnode;
+  Int nnode = rm->GetNumNodes();
+  Int gnode = rm->GetNumParallelNodes();
+  Int nbnode = rm->GetNumBoundaryNodes();
 
   std::ifstream fin;
 
@@ -36,6 +36,11 @@ void Compute_dRdBeta_CTSE(Real* dRdB, SolutionSpace<Real>& space, Int beta)
   PObj<RCmplx>* cp = cspace.p;
   EqnSet<RCmplx>* ceqnset = cspace.eqnset;
   Param<RCmplx>* param = cspace.param;
+  
+  Int cnnode = cm->GetNumNodes();
+  Int cgnode = cm->GetNumParallelNodes();
+  Int cnbnode = cm->GetNumBoundaryNodes();
+
   RCmplx* q = cspace.q;
 
   Int neqn = ceqnset->neqn;
@@ -76,12 +81,12 @@ void Compute_dRdBeta_CTSE(Real* dRdB, SolutionSpace<Real>& space, Int beta)
 
   //now, compute gradients and limiters
   if(param->sorder > 1 || param->viscous){
-    for(Int i = 0; i < (cm->nnode+cm->nbnode+cm->gnode); i++){
+    for(Int i = 0; i < (cnnode+cnbnode+cgnode); i++){
       ceqnset->NativeToExtrapolated(&q[i*nvars]);
     }
     cspace.grad->Compute();
     cspace.limiter->Compute(&cspace);
-    for(Int i = 0; i < (cm->nnode+cm->nbnode+cm->gnode); i++){
+    for(Int i = 0; i < (cnnode+cnbnode+cgnode); i++){
       ceqnset->ExtrapolatedToNative(&q[i*nvars]);
     }
   }
@@ -112,7 +117,9 @@ void Compute_dRdBeta_FD(Real* dRdB, SolutionSpace<Real>& space, Int beta)
   Int neqn = eqnset->neqn;
   Int nvars = neqn + eqnset->nauxvars;
 
-  Int nnode = m->nnode;
+  Int nnode = m->GetNumNodes();
+  Int gnode = m->GetNumParallelNodes();
+  Int nbnode = m->GetNumBoundaryNodes();
 
   Real* Qorig = new Real[nnode*nvars];
   Real* resOrig = new Real[nnode*neqn];
@@ -128,18 +135,18 @@ void Compute_dRdBeta_FD(Real* dRdB, SolutionSpace<Real>& space, Int beta)
   //compute spatial residual
   SpatialResidual(&space);
   ExtraSourceResidual(&space);
-  for(Int i = 0; i < m->nnode; i++){
+  for(Int i = 0; i < nnode; i++){
     for(Int j = 0; j < eqnset->neqn; j++){
       resOrig[i*eqnset->neqn + j] = space.crs->b[i*eqnset->neqn + j];
     }
   } 
 
-  Real* dxdb = new Real[m->nnode*3];
+  Real* dxdb = new Real[nnode*3];
 
   Get_dXdB(space.param->path+space.param->spacename, dxdb, m, beta);
 
   //perturb complex part by dxdb*perturb UP
-  for(Int i = 0; i < m->nnode; i++){
+  for(Int i = 0; i < nnode; i++){
     for(Int j = 0; j < 3; j++){
       m->xyz[i*3 + j] += dxdb[i*3 + j]*perturb;
     }
@@ -166,12 +173,12 @@ void Compute_dRdBeta_FD(Real* dRdB, SolutionSpace<Real>& space, Int beta)
   UpdateBCs(&space);
   //now, compute gradients and limiters
   if(param->sorder > 1 || param->viscous){
-    for(Int i = 0; i < (m->nnode+m->nbnode+m->gnode); i++){
+    for(Int i = 0; i < (nnode+nbnode+gnode); i++){
       eqnset->NativeToExtrapolated(&q[i*nvars]);
     }
     space.grad->Compute();
     space.limiter->Compute(&space);
-    for(Int i = 0; i < (m->nnode+m->nbnode+m->gnode); i++){
+    for(Int i = 0; i < (nnode+nbnode+gnode); i++){
       eqnset->ExtrapolatedToNative(&q[i*nvars]);
     }
   }
@@ -179,7 +186,7 @@ void Compute_dRdBeta_FD(Real* dRdB, SolutionSpace<Real>& space, Int beta)
   //compute spatial residual
   SpatialResidual(&space);
   ExtraSourceResidual(&space);
-  for(Int i = 0; i < m->nnode; i++){
+  for(Int i = 0; i < nnode; i++){
     for(Int j = 0; j < eqnset->neqn; j++){
       resUp[i*eqnset->neqn + j] = (space.crs->b[i*eqnset->neqn + j]);
     }
@@ -198,7 +205,7 @@ void Compute_dRdBeta_FD(Real* dRdB, SolutionSpace<Real>& space, Int beta)
   }
 
   //perturb complex part by dxdb*perturb DOWN
-  for(Int i = 0; i < m->nnode; i++){
+  for(Int i = 0; i < nnode; i++){
     for(Int j = 0; j < 3; j++){
       m->xyz[i*3 + j] -= 2.0*dxdb[i*3 + j]*perturb;
     }
@@ -213,25 +220,25 @@ void Compute_dRdBeta_FD(Real* dRdB, SolutionSpace<Real>& space, Int beta)
   UpdateBCs(&space);
   //now, compute gradients and limiters
   if(param->sorder > 1 || param->viscous){
-    for(Int i = 0; i < (m->nnode+m->nbnode+m->gnode); i++){
+    for(Int i = 0; i < (nnode+nbnode+gnode); i++){
       eqnset->NativeToExtrapolated(&q[i*nvars]);
     }
     space.grad->Compute();
     space.limiter->Compute(&space);
-    for(Int i = 0; i < (m->nnode+m->nbnode+m->gnode); i++){
+    for(Int i = 0; i < (nnode+nbnode+gnode); i++){
       eqnset->ExtrapolatedToNative(&q[i*nvars]);
     }
   }
   //compute spatial residual
   SpatialResidual(&space);
   ExtraSourceResidual(&space);
-  for(Int i = 0; i < m->nnode; i++){
+  for(Int i = 0; i < nnode; i++){
     for(Int j = 0; j < eqnset->neqn; j++){
       resDown[i*eqnset->neqn + j] = (space.crs->b[i*eqnset->neqn + j]);
     }
   } 
 
-  for(Int i = 0; i < m->nnode; i++){
+  for(Int i = 0; i < nnode; i++){
     for(Int j = 0; j < eqnset->neqn; j++){
       //up
       resUp[i*eqnset->neqn + j] -= resOrig[i*eqnset->neqn + j];
@@ -245,7 +252,7 @@ void Compute_dRdBeta_FD(Real* dRdB, SolutionSpace<Real>& space, Int beta)
   }
   
   //reset metrics in case we need them
-  for(Int i = 0; i < m->nnode; i++){
+  for(Int i = 0; i < nnode; i++){
     for(Int j = 0; j < 3; j++){
       m->xyz[i*3 + j] += dxdb[i*3 + j]*perturb;
     }
@@ -257,7 +264,7 @@ void Compute_dRdBeta_FD(Real* dRdB, SolutionSpace<Real>& space, Int beta)
   //compute gradient coefficients once
   ComputeNodeLSQCoefficients(&space);
   //reset Qorig in case we need it
-  for(i = 0; i < m->nnode*nvars; i++){
+  for(i = 0; i < nnode*nvars; i++){
     space.q[i] = Qorig[i];
   }
  
@@ -277,12 +284,12 @@ void Compute_dRdBeta_FD(Real* dRdB, SolutionSpace<Real>& space, Int beta)
   UpdateBCs(&space);
   //now, compute gradients and limiters
   if(param->sorder > 1 || param->viscous){
-    for(Int i = 0; i < (m->nnode+m->nbnode+m->gnode); i++){
+    for(Int i = 0; i < (nnode+nbnode+gnode); i++){
       eqnset->NativeToExtrapolated(&q[i*nvars]);
     }
     space.grad->Compute();
     space.limiter->Compute(&space);
-    for(Int i = 0; i < (m->nnode+m->nbnode+m->gnode); i++){
+    for(Int i = 0; i < (nnode+nbnode+gnode); i++){
       eqnset->ExtrapolatedToNative(&q[i*nvars]);
     }
   }
@@ -305,7 +312,7 @@ void Compute_dQdBeta(Real* dQdB, SolutionSpace<Real>& space, Int beta)
   BoundaryConditions<Real>* bc = space.bc;
   Param<Real>* param = space.param;
   Mesh<Real>* m = space.m;
-  Int nnode = m->nnode;
+  Int nnode = m->GetNumNodes();
   Int neqn = eqnset->neqn;
   
   std::cout << "\n\nCOMPUTING dQ/dBeta\n" << std::endl;
@@ -374,12 +381,14 @@ void Compute_dQdBeta_CTSE(Real* dQdB, SolutionSpace<Real>& space, Int beta)
   operations.Insert("Iterate " + name);
   operations.Finalize(cSolSpaces);
 
-  Real* dxdb = new Real[cm->nnode*3];
+  Int cnnode = cm->GetNumNodes();
+
+  Real* dxdb = new Real[cnnode*3];
 
   Get_dXdB(space.param->path+space.param->spacename, dxdb, rm, beta);
 
   //perturb complex part by dxdb*perturb
-  for(Int i = 0; i < cm->nnode; i++){
+  for(Int i = 0; i < cnnode; i++){
     for(Int j = 0; j < 3; j++){
       cm->xyz[i*3 + j] += dxdb[i*3 + j]*perturb;
     }
@@ -393,7 +402,7 @@ void Compute_dQdBeta_CTSE(Real* dQdB, SolutionSpace<Real>& space, Int beta)
   //run solver
   Solve(cSolSpaces, operations);
 
-  for(Int i = 0; i < cm->nnode; i++){
+  for(Int i = 0; i < cnnode; i++){
     for(Int j = 0; j < ceqnset->neqn; j++){
       dQdB[i*ceqnset->neqn + j] = 
 	imag(cspace.q[i*(ceqnset->neqn+ceqnset->nauxvars) + j]) / imag(perturb);
@@ -415,6 +424,8 @@ void Compute_dQdBeta_FD(Real* dQdB, SolutionSpace<Real>& space, Int beta)
   Mesh<Real>* m = space.m;
   PObj<Real>* p = space.p;
 
+  Int nnode = m->GetNumNodes();
+
   std::vector<SolutionSpaceBase<Real>*> solSpaces;
   solSpaces.push_back(&space);
 
@@ -425,22 +436,22 @@ void Compute_dQdBeta_FD(Real* dQdB, SolutionSpace<Real>& space, Int beta)
   operations.Finalize(solSpaces);
 
   //compute dq/db with finite difference
-  Real* dQdB_up = new Real[m->nnode*eqnset->neqn];
-  Real* dQdB_down = new Real[m->nnode*eqnset->neqn];
-  Real* Qorig = new Real[m->nnode*eqnset->neqn];
+  Real* dQdB_up = new Real[nnode*eqnset->neqn];
+  Real* dQdB_down = new Real[nnode*eqnset->neqn];
+  Real* Qorig = new Real[nnode*eqnset->neqn];
 
-  for(i = 0; i < m->nnode; i++){
+  for(i = 0; i < nnode; i++){
     for(j = 0; j < eqnset->neqn; j++){
       Qorig[i*eqnset->neqn + j] = space.q[i*(eqnset->neqn+eqnset->nauxvars) + j];
     }
   }
 
-  Real* dxdb = new Real[m->nnode*3];
+  Real* dxdb = new Real[nnode*3];
 
   Get_dXdB(space.param->path+space.param->spacename, dxdb, m, beta);
 
   //perturb by dxdb*perturb UP
-  for(Int i = 0; i < m->nnode; i++){
+  for(Int i = 0; i < nnode; i++){
     for(Int j = 0; j < 3; j++){
       m->xyz[i*3 + j] += dxdb[i*3 + j]*perturb;
     }
@@ -456,14 +467,14 @@ void Compute_dQdBeta_FD(Real* dQdB, SolutionSpace<Real>& space, Int beta)
   space.RefreshForParam();
 
   Solve(solSpaces, operations);
-  for(i = 0; i < m->nnode; i++){
+  for(i = 0; i < nnode; i++){
     for(j = 0; j < eqnset->neqn; j++){
       dQdB_up[i*eqnset->neqn + j] = space.q[i*(eqnset->neqn+eqnset->nauxvars) + j];
     }
   }
 
   //perturb by dxdb*perturb DOWN
-  for(Int i = 0; i < m->nnode; i++){
+  for(Int i = 0; i < nnode; i++){
     for(Int j = 0; j < 3; j++){
       m->xyz[i*3 + j] -= 2.0*dxdb[i*3 + j]*perturb;
     }
@@ -481,14 +492,14 @@ void Compute_dQdBeta_FD(Real* dQdB, SolutionSpace<Real>& space, Int beta)
   space.RefreshForParam();
 
   Solve(solSpaces, operations);
-  for(i = 0; i < m->nnode; i++){
+  for(i = 0; i < nnode; i++){
     for(j = 0; j < eqnset->neqn; j++){
       dQdB_down[i*eqnset->neqn + j] = space.q[i*(eqnset->neqn+eqnset->nauxvars) + j];
     }
   }
 
   //compute differences
-  for(i = 0; i < m->nnode; i++){
+  for(i = 0; i < nnode; i++){
     for(j = 0; j < eqnset->neqn; j++){
       //up
       dQdB_up[i*eqnset->neqn + j] -= Qorig[i*eqnset->neqn + j];
@@ -500,7 +511,7 @@ void Compute_dQdBeta_FD(Real* dQdB, SolutionSpace<Real>& space, Int beta)
   }
 
   //average for central difference
-  for(i = 0; i < m->nnode; i++){
+  for(i = 0; i < nnode; i++){
     for(j = 0; j < eqnset->neqn; j++){
       dQdB[i*eqnset->neqn + j] = 
 	(dQdB_up[i*eqnset->neqn + j] + dQdB_down[i*eqnset->neqn + j]) / 2.0;
@@ -508,7 +519,7 @@ void Compute_dQdBeta_FD(Real* dQdB, SolutionSpace<Real>& space, Int beta)
   }
 
   //reset metrics in case we need them
-  for(Int i = 0; i < m->nnode; i++){
+  for(Int i = 0; i < nnode; i++){
     for(Int j = 0; j < 3; j++){
       m->xyz[i*3 + j] += dxdb[i*3 + j]*perturb;
     }
@@ -531,7 +542,7 @@ void Compute_dQdBeta_FD(Real* dQdB, SolutionSpace<Real>& space, Int beta)
   UpdateBCs(&space);
 
   //reset Qorig in case we need it
-  for(i = 0; i < m->nnode; i++){
+  for(i = 0; i < nnode; i++){
     for(j = 0; j < eqnset->neqn; j++){
       space.q[i*(eqnset->neqn+eqnset->nauxvars) + j] = Qorig[i*eqnset->neqn + j];
       eqnset->ComputeAuxiliaryVariables(&space.q[i*(eqnset->neqn+eqnset->nauxvars)]);
@@ -558,9 +569,9 @@ void Compute_dObjdQ(Real* dIdQ, SolutionSpace<Real>& space)
 
   Int node;
 
-  Int nnode = rm->nnode;
-  Int gnode = rm->gnode;
-  Int nbnode = rm->nbnode;
+  Int nnode = rm->GetNumNodes();
+  Int gnode = rm->GetNumParallelNodes();
+  Int nbnode = rm->GetNumBoundaryNodes();
   Int neqn = eqnset->neqn;
   Int nvars = neqn + eqnset->nauxvars;
   MPI_Datatype mpit = MPI_GetType(nnode);
@@ -599,7 +610,7 @@ void Compute_dObjdQ(Real* dIdQ, SolutionSpace<Real>& space)
       cp->UpdateGeneralVectors(cspace.q, nvars);
       Obj = Compute_Obj_Function(cspace);
       if(node >= 0){
-	if(node < rm->nnode){
+	if(node < nnode){
 	  dIdQ[node*neqn + j] = imag(Obj) / imag(perturb);
 	}
 	//reset q value
@@ -623,7 +634,8 @@ void Compute_Adjoint_Variables(Real* lambda, SolutionSpace<Real>& space)
   Param<Real>* param = space.param;
   EqnSet<Real>* eqnset = space.eqnset;
 
-  Int nnode = m->nnode;
+  Int nnode = m->GetNumNodes();
+  Int gnode = m->GetNumParallelNodes();
   Int neqn = eqnset->neqn;
 
   Real* dIdQ = new Real[nnode*neqn];
@@ -631,7 +643,7 @@ void Compute_Adjoint_Variables(Real* lambda, SolutionSpace<Real>& space)
  
   std::cout << "Adjoint solve - attempting to allocate dRdQ transpose" << std::endl;
   CRS<Real>* dRdQT = new CRS<Real>;
-  dRdQT->Init(m->nnode, m->gnode, eqnset->neqn, m->ipsp, m->psp, m->p);
+  dRdQT->Init(nnode, gnode, eqnset->neqn, m->ipsp, m->psp, m->p);
 
   Compute_dRdQ_Transpose(*dRdQT, &space, 2);
 
@@ -675,11 +687,12 @@ void Compute_Adjoint_Variables_II(Real* lambda, SolutionSpace<Real>& space)
   Param<Real>* param = space.param;
   EqnSet<Real>* eqnset = space.eqnset;
 
-  Int nnode = m->nnode;
+  Int nnode = m->GetNumNodes();
+  Int gnode = m->GetNumParallelNodes();
   Int neqn = eqnset->neqn;
 
   Real* dIdQ = new Real[nnode*neqn];
-  Real* prod = new Real[(nnode+m->gnode)*neqn];
+  Real* prod = new Real[(nnode+gnode)*neqn];
   Compute_dObjdQ(dIdQ, space);
 
   //we have to transpose our left hand side operator as well
@@ -689,10 +702,10 @@ void Compute_Adjoint_Variables_II(Real* lambda, SolutionSpace<Real>& space)
 
   std::cout << "Adjoint solve - attempting to allocate dRdQ transpose" << std::endl;
   CRS<Real>* dRdQT = new CRS<Real>;
-  dRdQT->Init(m->nnode, m->gnode, eqnset->neqn, m->ipsp, m->psp, m->p);
+  dRdQT->Init(nnode, gnode, eqnset->neqn, m->ipsp, m->psp, m->p);
 
   Compute_dRdQ_Transpose(*dRdQT, &space, 2);
-  MemSet(lambda, 0.0, (nnode+m->gnode)*neqn);
+  MemSet(lambda, 0.0, (nnode+gnode)*neqn);
 
   for(Int iter = 0; iter < space.temporalControl.nSteps; iter++){
 
@@ -742,12 +755,14 @@ Real Compute_dObjdBeta_Adjoint(Real* lambda, SolutionSpace<Real>& space, Int bet
   BoundaryConditions<Real>* bc = space.bc;
   Int neqn = space.eqnset->neqn;
   
-  Real* dRdB = new Real[m->nnode*neqn];
+  Int nnode = m->GetNumNodes();
+
+  Real* dRdB = new Real[nnode*neqn];
 
   Compute_dRdBeta_CTSE(dRdB, space, beta);
   
   dobjdbeta = 0.0;
-  for(i = 0; i < m->nnode*neqn; i++){
+  for(i = 0; i < nnode*neqn; i++){
     dobjdbeta += dRdB[i]*lambda[i];
   }
 
@@ -780,13 +795,15 @@ Real Compute_dObjdQ_dQdBeta(Real* dQdB, SolutionSpace<Real>& space)
   PObj<RCmplx>* cp = cspace.p;
   EqnSet<RCmplx>* ceqnset = cspace.eqnset;
 
+  Int cnnode = cm->GetNumNodes();
+
   Real dObjdBeta;
   Int i, j;
   Int neqn = eqnset->neqn;
   Int nauxvars = eqnset->nauxvars;
 
   //replace all Q values in mesh by dQdB*perturb and compute cost function
-  for(i = 0; i < cm->nnode; i++){
+  for(i = 0; i < cnnode; i++){
     for(j = 0; j < neqn; j++){
       cspace.q[i*(neqn+nauxvars) + j] += dQdB[i*neqn + j]*perturb;
     }
@@ -821,12 +838,15 @@ Real Compute_dObjdX_dXdBeta(SolutionSpace<Real>& space, Int beta)
   PObj<RCmplx>* cp = cspace.p;
   EqnSet<RCmplx>* ceqnset = cspace.eqnset;
 
-  Real* dxdb = new Real[m->nnode*3];
+  Int nnode = m->GetNumNodes();
+  Int cnnode = cm->GetNumNodes();
+
+  Real* dxdb = new Real[nnode*3];
 
   Get_dXdB(space.param->path+space.param->spacename, dxdb, m, beta);
 
   //perturb complex part by dxdb*perturb
-  for(Int i = 0; i < cm->nnode; i++){
+  for(Int i = 0; i < cnnode; i++){
     for(Int j = 0; j < 3; j++){
       cm->xyz[i*3 + j] += dxdb[i*3 + j]*perturb;
     }
@@ -853,7 +873,7 @@ Real Compute_dObjdBeta_Direct(SolutionSpace<Real>& space, Int beta)
   EqnSet<Real>* eqnset = space.eqnset;
 
   Int neqn = eqnset->neqn;
-  Int nnode = m->nnode;
+  Int nnode = m->GetNumNodes();
 
   Real* dQdB = new Real[nnode*neqn]; 
   
@@ -893,15 +913,15 @@ void Compute_dXdB(SolutionSpace<Real>& space)
 
   Int i, j;
 
-  Int nnode = m->nnode;
-  Int gnode = m->gnode;
-  Int nbnode = m->nbnode;
+  Int nnode = m->GetNumNodes();
+  Int gnode = m->GetNumParallelNodes();
+  Int nbnode = m->GetNumBoundaryNodes();
 
   Int beta;
 
   //this contains dxdb dydx and dzdb
-  Real* dxdb = new Real[m->nnode*3];
-  RCmplx* dxdbSurfC = new RCmplx[m->nnode*3];
+  Real* dxdb = new Real[nnode*3];
+  RCmplx* dxdbSurfC = new RCmplx[nnode*3];
 
   Mesh<RCmplx> cm(*m);
   PObj<RCmplx> cp;
@@ -909,6 +929,8 @@ void Compute_dXdB(SolutionSpace<Real>& space)
   cp.BuildCommMaps(&cm);
   //check for parallel comm sanity
   cp.CheckSanityCoords(cm.xyz);
+
+  Int cnnode = cm.GetNumNodes();
   
   std::cout << "\n\nCOMPUTING dX/dB\n" << std::endl;
 
@@ -927,13 +949,13 @@ void Compute_dXdB(SolutionSpace<Real>& space)
 
   Int np = m->p->GetNp();
   Int rank = m->p->GetRank();
-  fout << np << " " << rank << " " << cm.nnode << std::endl;
+  fout << np << " " << rank << " " << cnnode << std::endl;
 
   for(beta = 0; beta < ndv; beta++){
     std::cout << "PERTURBING BETA: " << beta << std::endl;
     Compute_dXdB_Surface(space.param->path + space.param->spacename, m, bc, dxdb, beta);
     //perturb points by h * dxdb_surface
-    for(i = 0; i < m->nnode; i++){
+    for(i = 0; i < nnode; i++){
       for(j = 0; j < 3; j++){
 	dxdbSurfC[i*3 + j] = dxdb[i*3 + j]*h;
       }
@@ -942,18 +964,18 @@ void Compute_dXdB(SolutionSpace<Real>& space)
     MoveMeshLinearElastic(&cm, bc, dxdbSurfC, smoothingPasses);
   
     //compute dxdb
-    for(i = 0; i < cm.nnode*3; i++){
+    for(i = 0; i < cnnode*3; i++){
       dxdb[i] = imag(cm.xyz[i])/imag(h);
     }
     //write dxdb dxdb dzdb to file
-    for(i = 0; i < cm.nnode; i++){
+    for(i = 0; i < cnnode; i++){
       for(j = 0; j < 3; j++){
 	fout << dxdb[i*3 + j] << " " ;
       }
       fout << std::endl;
     }
     //reset xyz coords for next pass
-    for(i = 0; i < m->nnode*3; i++){
+    for(i = 0; i < nnode*3; i++){
       cm.xyz[i] = m->xyz[i];
     }
     cp.UpdateXYZ(cm.xyz);
@@ -980,6 +1002,7 @@ void Get_dXdB(std::string path, Real* dxdb, Mesh<Real>* m, Int beta)
   Int np = p->GetNp();
 
   Int rankRead, npRead, nnodeRead;
+  Int nnode = m->GetNumNodes();
 
   ss.clear();
   ss << rank;
@@ -1006,7 +1029,7 @@ void Get_dXdB(std::string path, Real* dxdb, Mesh<Real>* m, Int beta)
     std::cerr << "WARNING: Get_dXdB() Mesh movement sensitivities opened with wrong rank!"
        << std::endl;
   }
-  if(nnodeRead != m->nnode){
+  if(nnodeRead != nnode){
     std::cerr << "WARNING: Get_dXdB() Mesh movement sensitivities opened with wrong number "
 	      << "of nodes!" << std::endl;
   }
@@ -1015,7 +1038,7 @@ void Get_dXdB(std::string path, Real* dxdb, Mesh<Real>* m, Int beta)
   //read in globalnodes for each beta up until we have read
   //the beta we are looking for
   for(b = 0; b <= beta; b++){
-    for(i = 0; i < m->nnode*3; i++){
+    for(i = 0; i < nnode*3; i++){
       fin >> dxdb[i];
     }
   }
@@ -1038,22 +1061,24 @@ Real Compute_dObjdBeta_CTSE(SolutionSpace<Real>& space, SolutionOrdering<Real>& 
   Param<Real>* param = space.param;
   BoundaryConditions<Real>* bc = space.bc;
   PObj<Real>* p = space.p;
+  Int nnode = rm->GetNumNodes();
 
   SolutionSpace<RCmplx> cspace(space);
   Mesh<RCmplx>* cm = cspace.m;
   PObj<RCmplx>* cp = cspace.p;
   EqnSet<RCmplx>* ceqnset = cspace.eqnset;
+  Int cnnode = cm->GetNumNodes();
 
   std::cout << "\n\nCOMPUTING dObj/dBeta_CTSE\n" << std::endl;
 
-  Real* dxSurf = new Real[rm->nnode*3];
-  RCmplx* dxSurfC = new RCmplx[rm->nnode*3];
+  Real* dxSurf = new Real[nnode*3];
+  RCmplx* dxSurfC = new RCmplx[nnode*3];
   Compute_dXdB_Surface(space.param->path + space.param->spacename, rm, bc, dxSurf, beta);
 
   std::vector<SolutionSpaceBase<RCmplx>*> cSpaces;
   cSpaces.push_back(&cspace);
 
-  for(i = 0; i < rm->nnode*3; i++){
+  for(i = 0; i < nnode*3; i++){
     //perturb complex part by displacement
     dxSurfC[i] = dxSurf[i]*perturb;
   }
@@ -1098,10 +1123,14 @@ void Compute_dRdQ_Product_MatrixFree(SolutionSpace<RCmplx>& cspace, Real* vector
   RCmplx* q = cspace.q;
   PObj<RCmplx>* p = cspace.p;
 
+  Int cnnode = cm->GetNumNodes();
+  Int cgnode = cm->GetNumParallelNodes();
+  Int cnbnode = cm->GetNumBoundaryNodes();
+
   Int neqn = ceqnset->neqn;
   Int nvars = ceqnset->nauxvars + neqn;
 
-  for(Int i = 0; i < cm->nnode; i++){
+  for(Int i = 0; i < cnnode; i++){
     RCmplx* iq = &q[i*nvars + 0];
     for(Int j = 0; j < neqn; j++){
       iq[j] += vector[i*neqn + j]*perturb;
@@ -1121,12 +1150,12 @@ void Compute_dRdQ_Product_MatrixFree(SolutionSpace<RCmplx>& cspace, Real* vector
   
   //now, compute gradients and limiters
   if(param->sorder > 1 || param->viscous){
-    for(Int i = 0; i < (cm->nnode+cm->nbnode+cm->gnode); i++){
+    for(Int i = 0; i < (cnnode+cnbnode+cgnode); i++){
       ceqnset->NativeToExtrapolated(&q[i*nvars]);
     }
     cspace.grad->Compute();
     cspace.limiter->Compute(&cspace);
-    for(Int i = 0; i < (cm->nnode+cm->nbnode+cm->gnode); i++){
+    for(Int i = 0; i < (cnnode+cnbnode+cgnode); i++){
       ceqnset->ExtrapolatedToNative(&q[i*nvars]);
     }
   }
@@ -1149,14 +1178,14 @@ void Compute_dRdQ_Product_MatrixFree(SolutionSpace<RCmplx>& cspace, Real* vector
   ExtraSourceResidual(&cspace);
 
   //Now do the CTSE derivative part
-  for(Int i = 0; i < cm->nnode; i++){
+  for(Int i = 0; i < cnnode; i++){
     for(Int j = 0; j < neqn; j++){
       prod[i*neqn + j] = imag(cspace.crs->b[i*neqn + j])/imag(perturb);
     }
   }
 
   //re-zero the complex part of the q vector in case we reuse the cspace
-  for(Int i = 0; i < cm->nnode; i++){
+  for(Int i = 0; i < cnnode; i++){
     RCmplx* iq = &q[i*nvars + 0];
     for(Int j = 0; j < neqn; j++){
       iq[j] = real(iq[j]);
@@ -1174,7 +1203,7 @@ void Compute_dQdBeta_II(Real* dQdB, SolutionSpace<Real>& space, Int beta)
   EqnSet<Real>* eqnset = space.eqnset;
   Param<Real>* param = space.param;
   Int neqn = eqnset->neqn;
-  Int nnode = m->nnode;
+  Int nnode = m->GetNumNodes();
   
   std::cout << "\n\nCOMPUTING dQ/dBeta - Incremental Iterative - Beta: " << beta << "\n";
 
@@ -1376,7 +1405,7 @@ void ComputedQdBeta_HardsetBC(Int nnodes, Int* nodes, Real* dQdB, const Solution
   Param<RCmplx>* param = cspace.param;
   RCmplx* q = cspace.q;
 
-  Int nnode = rm->nnode;
+  Int nnode = rm->GetNumNodes();
 
   Int neqn = ceqnset->neqn;
   Int nvars = neqn + ceqnset->nauxvars;

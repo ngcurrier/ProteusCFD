@@ -18,15 +18,16 @@ template <class Type>
 void MoveMesh(SolutionSpace<Type>* space, void* custom){
   Int i;
   Mesh<Type>* m = space->m;
+  Int nnode = m->GetNumNodes();
   Param<Type>* param = space->param;
   BoundaryConditions<Real>* bc = space->bc;
-  Type* dx = new Type[m->nnode*3];
+  Type* dx = new Type[nnode*3];
 
   //default to not requiring mesh smoothing for dx values
   Int reqSmoothing = false;
 
   //call routine to get point displacements on boundaries
-  MemBlank(dx, m->nnode*3);
+  MemBlank(dx, nnode*3);
   UpdateMeshDisplacements(space, dx, &reqSmoothing, custom);
 
   if(reqSmoothing){
@@ -36,7 +37,7 @@ void MoveMesh(SolutionSpace<Type>* space, void* custom){
   }
   else{
     //dx values are explicit, add them up
-    for(i = 0; i < m->nnode*3; i++){
+    for(i = 0; i < nnode*3; i++){
       m->xyz[i] += dx[i];
     }
     m->p->UpdateXYZ(m->xyz);
@@ -65,6 +66,8 @@ void UpdateMeshDisplacements(SolutionSpace<Type>* space, Type* dx, Int* reqSmoot
   BoundaryConditions<Real>* bc = space->bc;
   Param<Type>* param = space->param;
 
+  Int nnode = m->GetNumNodes();
+
   //sinusoidally pitching airfoil (rigid body)
   //this only works if we are rotating about the origin
   if(param->movement == 1){
@@ -91,7 +94,7 @@ void UpdateMeshDisplacements(SolutionSpace<Type>* space, Type* dx, Int* reqSmoot
 
     Type nxyz[3];
     //compute the displacements for the interior nodes
-    for(i = 0; i < m->nnode; i++){
+    for(i = 0; i < nnode; i++){
       //use the mesh at time t=0 for the offset
       Type* pt_base = &m->xyz_base[i*3];
       Type* pt_now = &m->xyz[i*3];
@@ -255,7 +258,7 @@ void UpdateMeshDisplacements(SolutionSpace<Type>* space, Type* dx, Int* reqSmoot
   }
   else if(param->movement == 4){
     //this is a testing routine, move at speed 0.6 mach in x direction
-    for(i = 0; i < m->nnode; i++){
+    for(i = 0; i < nnode; i++){
       dx[i*3 + 0] = 0.6*param->dt;
       dx[i*3 + 1] = 0.0;
       dx[i*3 + 2] = 0.0;
@@ -271,7 +274,7 @@ void UpdateMeshDisplacements(SolutionSpace<Type>* space, Type* dx, Int* reqSmoot
     //compute the displacements for the interior nodes
     for(i = 0; i < nodecount; i++){
      Int node = nodelist[i];
-     //for(Int node = 0; node < m->nnode; node++){
+     //for(Int node = 0; node < nnode; node++){
      dx[node*3 + 0] = 0.0;
      dx[node*3 + 1] = 0.1*sin(1.5*(space->iter)*param->dt);
      dx[node*3 + 2] = 0.0;
@@ -315,7 +318,7 @@ void UpdateMeshVelocities(Mesh<Type>* m, Type* xyz, Type* xyzold, Type* xyzoldm1
     cnm1 = 0.0;
   }
 
-  for(i = 0; i < m->nnode; i++){
+  for(i = 0; i < m->GetNumNodes(); i++){
     //this is the BDF2 grid speed
     K0 = (cnp1*xyz[i*3 + 0] + cn*xyzold[i*3 + 0] - cnm1*xyzoldm1[i*3 + 0]);
     K1 = (cnp1*xyz[i*3 + 1] + cn*xyzold[i*3 + 1] - cnm1*xyzoldm1[i*3 + 1]);
@@ -536,11 +539,17 @@ void MoveMeshLinearElastic(Mesh<Type>* m, BoundaryConditions<Real>* bc, Type* dx
   //thetas
   Type t11, t12, t13, t21, t22, t23, t31, t32, t33;
 
+  
   CRS<Type> crs;
-  crs.Init(m->nnode, m->gnode, 3, m->ipsp, m->psp, m->p);
+  Int nnode = m->GetNumNodes();
+  Int gnode = m->GetNumParallelNodes();
+  Int nedge = m->GetNumEdges();
+  Int ngedge = m->GetNumParallelEdges();
+  Int nbedge = m->GetNumBoundaryEdges();
+  crs.Init(nnode, gnode, 3, m->ipsp, m->psp, m->p);
 
-  aspectRatio = new Type[m->nnode];
-  for(i = 0; i < m->nnode; i++){
+  aspectRatio = new Type[nnode];
+  for(i = 0; i < nnode; i++){
     aspectRatio[i] = 1.0/m->vol[i];
   }  
 
@@ -548,9 +557,9 @@ void MoveMeshLinearElastic(Mesh<Type>* m, BoundaryConditions<Real>* bc, Type* dx
   crs.BlankSystem();
 
   //set the initial guess for the system
-  memcpy(crs.x, dx, (m->nnode*3)*sizeof(Type));
+  memcpy(crs.x, dx, (nnode*3)*sizeof(Type));
 
-  for(eid = 0; eid < m->nedge; eid++){
+  for(eid = 0; eid < nedge; eid++){
     avec = m->edges[eid].a;
     area = avec[3];
     n1 = m->edges[eid].n[0];
@@ -604,14 +613,14 @@ void MoveMeshLinearElastic(Mesh<Type>* m, BoundaryConditions<Real>* bc, Type* dx
   }
   
   //now do the boundary edges (only the parallel ones)
-  for(eid = m->nbedge; eid < m->nbedge+m->ngedge; eid++){
+  for(eid = nbedge; eid < nbedge+ngedge; eid++){
     avec = m->bedges[eid].a;
     area = avec[3];
     n1 = m->bedges[eid].n[0];
     n2 = m->bedges[eid].n[1];
     if(!m->IsGhostNode(n2)){
       std::cerr << "WARNING: something wrong in lin. elastic" << std::endl;
-      std::cerr << "Nnode: " << m->nnode << " Gnode: " << m->gnode 
+      std::cerr << "Nnode: " << nnode << " Gnode: " << gnode 
 		<< " Node1: " << n1 << " Node2: " << n2 
 		<< " Edgeid: " << eid << std::endl;
       
@@ -666,7 +675,7 @@ void MoveMeshLinearElastic(Mesh<Type>* m, BoundaryConditions<Real>* bc, Type* dx
   SetBCLinearElastic(m, &crs, bc, dx);
 
   //setup rhs (equal to displacements)
-  memcpy(crs.b, dx, (m->nnode*3)*sizeof(Type));
+  memcpy(crs.b, dx, (nnode*3)*sizeof(Type));
 
   //This seems to perform better with the relaxation SGS solver
   //GMRES does not seem to give accurate derivatives except with
@@ -684,10 +693,10 @@ void MoveMeshLinearElastic(Mesh<Type>* m, BoundaryConditions<Real>* bc, Type* dx
 
   //copy back the displacements to the dx vector since we may use these to compute
   //the node velocities in a moving mesh situation
-  memcpy(dx, crs.x, sizeof(Type)*(m->nnode*3));
+  memcpy(dx, crs.x, sizeof(Type)*(nnode*3));
   
   //update xyz coords locally
-  for(i = 0; i < m->nnode*3; i++){
+  for(i = 0; i < nnode*3; i++){
     m->xyz[i] += crs.x[i];
   }
 
@@ -707,7 +716,9 @@ template <class Type>
 void SetBCLinearElastic(Mesh<Type>* m, CRS<Type>* crs, BoundaryConditions<Real>* bc, Type* dx)
 {
   Int i;
-  Int* fixed = new Int[m->nnode+m->gnode];
+  Int nnode = m->GetNumNodes();
+  Int gnode = m->GetNumParallelNodes();
+  Int* fixed = new Int[nnode+gnode];
   Type* ptr;
 
   //we are going to allow symmetry plane nodes to move
@@ -723,7 +734,7 @@ void SetBCLinearElastic(Mesh<Type>* m, CRS<Type>* crs, BoundaryConditions<Real>*
   Int nFarNodes = GetNodesOnBCType(m, bc, &farNodes, FarField);
 
   //init all nodes as moving
-  for(i = 0; i < m->nnode+m->gnode; i++){
+  for(i = 0; i < nnode+gnode; i++){
     fixed[i] = 0;
   }
   //change volume nodes to moving
@@ -745,7 +756,7 @@ void SetBCLinearElastic(Mesh<Type>* m, CRS<Type>* crs, BoundaryConditions<Real>*
 
   //change diag jacobian to the identity matrix for fixed nodes
   //and zero the off-diagonal row entries
-  for(i = 0; i < m->nnode; i++){
+  for(i = 0; i < nnode; i++){
     if(fixed[i]){
       crs->BlankMatrixRow(i);
       ptr = crs->A->GetPointer(i, i);
@@ -783,25 +794,26 @@ void MoveMeshDesign(std::string casename, Mesh<Type>* m, BoundaryConditions<Real
 #else
   Int iter = 1000;
   //we need this allocation to be big enough to store ghost node movement as well
-  Type* dx = new Type[m->nnode*3];
+  Int nnode = m->GetNumNodes();
+  Type* dx = new Type[nnode*3];
   std::string dfname = casename;
   Int ndv = GetNdvDesignFile(dfname);
   Int beta;
   
-  Type* dxyz = new Type[m->nnode*3];
+  Type* dxyz = new Type[nnode*3];
   //initialize displacements to zero
-  MemBlank(dx, m->nnode*3);
+  MemBlank(dx, nnode*3);
   
   for(beta = 0; beta < ndv; beta++){
-    MemBlank(dxyz, m->nnode*3);
+    MemBlank(dxyz, nnode*3);
     Compute_dX_Surface(casename, m, bc, dxyz, beta); 
-    for(i = 0; i < m->nnode*3; i++){
+    for(i = 0; i < nnode*3; i++){
       dx[i] += dxyz[i];
     }
   }
 
   //divide total dx by nsweeps
-  for(i = 0; i < m->nnode*3; i++){
+  for(i = 0; i < nnode*3; i++){
     dx[i] /= (Type)nsweeps;
   }
 

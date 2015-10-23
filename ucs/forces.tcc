@@ -397,7 +397,7 @@ void Forces<Type>::ComputeYpCf()
   }
 
   //zero cf, yp, qdot
-  for(Int eid = 0; eid < m->nbedge; eid++){
+  for(Int eid = 0; eid < m->GetNumBoundaryEdges(); eid++){
     yp[eid] = cf[eid] = qdot[eid] = 0.0;
   }
 
@@ -502,7 +502,7 @@ void Forces<Type>::ReportYpCf()
   Real minYp = 99999.99;
   Real maxYpLoc[3];
   Real minYpLoc[3];
-  for(eid = 0; eid < m->nbedge; eid++){
+  for(eid = 0; eid < m->GetNumBoundaryEdges(); eid++){
     Int factag = m->bedges[eid].factag;
     Int bcId = bc->GetBCId(factag);
     //we only care about the min and max yplus on viscous boundaries
@@ -598,7 +598,7 @@ void Forces<Type>::AllocateForcesMemory(Int num_bcs, Int num_bodies)
   this->num_bcs = num_bcs;
   this->bodies = new CompositeBody<Type>[num_bodies+1];
   Mesh<Type>* m = space->m;
-  Int nbedge = m->nbedge;
+  Int nbedge = m->GetNumBoundaryEdges();
   yp = cf = qdot = cp = NULL;
   yp = new Type[nbedge];
   cf = new Type[nbedge];

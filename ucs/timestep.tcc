@@ -14,13 +14,14 @@ Type ComputeTimesteps(SolutionSpace<Type>* space)
   Type CFL = param->GetCFL();
   Type VNN = param->VNN;
   Int nvars = eqnset->neqn+eqnset->nauxvars;
+  Int nnode = m->GetNumNodes();
 
   Kernel<Type> Timestep(Kernel_Timestep);
   Kernel<Type> BTimestep(Bkernel_Timestep);
 
   Type* dt = space->GetField("timestep", FIELDS::STATE_NONE);
   // zero out the out timesteps
-  for(i = 0; i < m->nnode; i++){
+  for(i = 0; i < nnode; i++){
     dt[i] = 0.0;
   }
   // if we use local time stepping, compute the dt in the standard way
@@ -29,7 +30,7 @@ Type ComputeTimesteps(SolutionSpace<Type>* space)
     Bdriver(space, BTimestep, nvars, (void*)dt);
     dt[0] = CFL*(m->vol[0]/dt[0]);
     dtmin = dt[0];
-    for(i = 1; i < m->nnode; i++){
+    for(i = 1; i < nnode; i++){
       dt[i] = CFL*(m->vol[i]/dt[i]);
       //this line is the Von Neumann number diffusion stability limit
       //from D. Unrau "Viscous Airfoil Computations Using Local Preconditioning" 
@@ -43,14 +44,14 @@ Type ComputeTimesteps(SolutionSpace<Type>* space)
   // if we don't use local time stepping nor pseudotime 
   // and the time step is specified, use that value everywhere
   else if(!param->pseudotimestepping && real(param->dt) > 0.0){
-    for(i = 0; i < m->nnode; i++){
+    for(i = 0; i < nnode; i++){
       dt[i] = param->dt;
     }
   }
   // if we don't use local time stepping and we use pseudotime
   // and the pseudo time step is specified, use that value everywhere
   else if(param->pseudotimestepping && real(param->dtau) > 0.0){
-    for(i = 0; i < m->nnode; i++){
+    for(i = 0; i < nnode; i++){
       dt[i] = param->dtau;
     }
   }
@@ -63,14 +64,14 @@ Type ComputeTimesteps(SolutionSpace<Type>* space)
     Driver(space, Timestep, nvars, (void*)dt);
     Bdriver(space, BTimestep, nvars, (void*)dt);
     dtmin = CFL*(m->vol[0]/dt[0]);
-    for(i = 1; i < m->nnode; i++){
+    for(i = 1; i < nnode; i++){
       dtmin = MIN(dtmin, CFL*(m->vol[i]/dt[i]));
       if(param->enableVNN){
 	//same as above this is the von neumann number condition
 	dtmin = MIN(dtmin, VNN*pow(m->vol[i], 2.0/3.0));
       }
     }
-    for(i = 0; i < m->nnode; i++){
+    for(i = 0; i < nnode; i++){
       dt[i] = dtmin;
     }
   }

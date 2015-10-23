@@ -434,6 +434,9 @@ void IncompressibleEqnSet<Type>::SetInitialConditions()
   Int neqn = this->neqn;
   Int nauxvars = this->nauxvars;
   Mesh<Type>* m = this->space->m;
+  Int nnode = m->GetNumNodes();
+  Int gnode = m->GetNumParallelNodes();
+  Int nbnode = m->GetNumBoundaryNodes();
 
   //calculate Qinf values for class variables
   this->UpdateQinf();
@@ -451,7 +454,7 @@ void IncompressibleEqnSet<Type>::SetInitialConditions()
   std::cout << std::endl;
   
   //set all the nodes interior and phantom
-  for(i = 0; i < (m->nnode+m->gnode+m->nbnode); i++){
+  for(i = 0; i < (nnode+gnode+nbnode); i++){
     for(j = 0; j < neqn; j++){
       this->space->q[i*(neqn+nauxvars) + j] = this->Qinf[j];
     }

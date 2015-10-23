@@ -14,7 +14,8 @@ void Compute_dX_Surface(std::string casename, Mesh<Type>* m, BoundaryConditions<
   Int i;
   Int parType;
   std::string designName = casename;
-  
+  Int nnode = m->GetNumNodes();
+
   Int ndv = GetNdvDesignFile(designName);
   Real* x = new Real[ndv];
   Real* bounds = new Real[ndv*2];
@@ -23,7 +24,7 @@ void Compute_dX_Surface(std::string casename, Mesh<Type>* m, BoundaryConditions<
   Int* dvType = new Int[ndv];
   Int pt;
 
-  MemBlank(dxyz, m->nnode*3);
+  MemBlank(dxyz, nnode*3);
 
   ReadDesignFile(designName, &ndv, x, bounds, &f, grad, dvType); 
 
@@ -219,8 +220,9 @@ void Compute_dXdB_Surface(std::string casename, Mesh<Type>* m, BoundaryCondition
   Type* grad = new Type[ndv];
   Int* dvType = new Int[ndv];
   Int parType;
+  Int nnode = m->GetNumNodes();
 
-  MemBlank(dxdbSurf, m->nnode*3);
+  MemBlank(dxdbSurf, nnode*3);
 
   ReadDesignFile(designName, &ndv, x, bounds, &f, grad, dvType); 
   
