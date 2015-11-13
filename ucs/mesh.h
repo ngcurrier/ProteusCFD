@@ -124,11 +124,24 @@ public:
 
   Int nfactags;  //number of unique face tags in list factag
 
-  Type* extentsMax; //maximum xyz coords
-  Type* extentsMin; //minimum xyz coords
+  Type GetMinX() const {return extentsMin[0];};
+  Type GetMaxX() const {return extentsMax[1];};
+  Type GetMinY() const {return extentsMin[2];};
+  Type GetMaxY() const {return extentsMax[0];};
+  Type GetMinZ() const {return extentsMin[1];};
+  Type GetMaxZ() const {return extentsMax[2];}; 
+
+  Type const * GetNodeCoords() const;
+  Type* GetNodeCoords();
+  Type const * GetNodeCoordsBase() const;
 
   Type* xyz;      //coordinates of each vertex
   Type* xyz_base; //coordinates of each vertex at t=0, needed for movement routines
+
+  Type const * GetVolume() const;       //returns vector of cv volumes
+  Type const * GetVolumeOld() const;    //returns vector of nm1 cv volumes
+  Type const * GetVolumeOldM1() const;  //returns vector of nm2 cv volumes
+
   Type* vol;      //volumes of node based CVs
   Type* volold;   //volumes at n   (for GCL)
   Type* vololdm1; //volumes at n-1 (for GCL)
@@ -194,6 +207,9 @@ private:
   
   //number of nodes in each element type
   Int* mnode;
+
+  Type* extentsMax; //maximum xyz coords
+  Type* extentsMin; //minimum xyz coords
   
   //Called via public BuildMaps() function
   Int BuildElsp();  //element to surrounding point map

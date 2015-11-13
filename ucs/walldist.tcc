@@ -253,9 +253,10 @@ Type ComputeWallDist(Type* wallDist, SolutionSpace<Type>* space)
   PointerStruct<Type> pstruct(crs.b, grads, phi);
 
   //init phi to one?  better guess?
-  Type dx = m->extentsMax[0] - m->extentsMin[0];
-  Type dy = m->extentsMax[1] - m->extentsMin[1];
-  Type dz = m->extentsMax[2] - m->extentsMin[2];
+  Type dx = m->GetMaxX() - m->GetMinX();
+  Type dy = m->GetMaxY() - m->GetMinY();
+  Type dz = m->GetMaxZ() - m->GetMinZ();
+
   Type maxd = MAX(dx, dy);
   maxd = MAX(maxd, dz);
   for(i = 0; i < nnode; i++){

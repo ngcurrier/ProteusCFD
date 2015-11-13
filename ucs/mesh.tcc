@@ -73,10 +73,47 @@ Mesh<Type>::Mesh()
 }
 
 template <class Type>
+Type const * Mesh<Type>::GetNodeCoords() const
+{
+  return xyz;
+}
+
+template <class Type>
+Type* Mesh<Type>::GetNodeCoords()
+{
+  return xyz;
+}
+
+template <class Type>
+Type const * Mesh<Type>::GetNodeCoordsBase() const
+{
+
+  return xyz_base;
+}
+
+template <class Type>
 void Mesh<Type>::SetParallelPointer(PObj<Type>* p_passed)
 {
   p = p_passed;
   return;
+}
+
+template <class Type>
+Type const * Mesh<Type>::GetVolume() const
+{
+  return vol;
+}
+
+template <class Type>
+Type const * Mesh<Type>::GetVolumeOld() const
+{
+  return volold;
+}
+
+template <class Type>
+Type const * Mesh<Type>::GetVolumeOldM1() const
+{
+  return vololdm1;
 }
 
 template <class Type>
@@ -2682,8 +2719,12 @@ Mesh<Type>::Mesh(const Mesh<Type2>& meshToCopy)
   nvnodes = meshToCopy.nvnodes;
   nsnodes = meshToCopy.nsnodes;
 
-  DuplicateArray(&extentsMax, meshToCopy.extentsMax, 3);
-  DuplicateArray(&extentsMin, meshToCopy.extentsMin, 3);
+  extentsMax[0] = meshToCopy.GetMaxX();
+  extentsMax[1] = meshToCopy.GetMaxY();
+  extentsMax[2] = meshToCopy.GetMaxZ();
+  extentsMin[0] = meshToCopy.GetMinX();
+  extentsMin[1] = meshToCopy.GetMinY();
+  extentsMin[2] = meshToCopy.GetMinZ();
 
   //now deep copy all integer arrays
   DuplicateArray(&ordering, meshToCopy.ordering, nnode);
