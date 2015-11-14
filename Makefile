@@ -84,13 +84,13 @@ $(EXE_STRUCT_SOLVER): $(OBJS_STRUCT_SOLVER) ./ucs/libcommon.a
 $(EXE_STRUCT_ERROR): ./structuralDynamics/error.o ./ucs/libcommon.a
 	$(MPICXX) -o $(EXE_STRUCT_ERROR) $(LCXXFLAGS) ./structuralDynamics/error.o $(CXXLIBS)
 
-$(EXE_TESTS): ./unitTest/main.o $(GTEST_LIB)/libgtest.la
-	$(MPICXX) -o $(EXE_TESTS) $(LCXXFLAGS) ./unitTest/main.o $(CXXLIBS) -lgtest
+$(EXE_TESTS): $(GTEST_LIB)/libgtest.la ./unitTest/main.o 
+	$(MPICXX) -o $(EXE_TESTS) $(LCXXFLAGS) ./unitTest/main.o $(CXXLIBS) $(GTEST_LIB)/libgtest.a
 
 SRCDIRS = ./structuralDynamics ./ucs
 ROOT = $$PWD
 
-all: $(EXE_SOLVER) $(EXE_DECOMP) $(EXE_RECOMP) $(EXE_FINDPOINT) \
+all: $(EXE_SOLVER) $(EXE_DECOMP) $(EXE_RECOMP) $(EXE_FINDPOINT) $(EXE_TESTS)\
 	$(EXE_CHEMPROPS) $(EXE_STRUCT_SOLVER) $(EXE_STRUCT_ERROR)
 
 tools: $(EXE_DECOMP) $(EXE_RECOMP) $(EXE_CHEMPROPS) $(EXE_FINDPOINT)
@@ -120,10 +120,10 @@ $(TINYXML_LIB)/libtinyxml.a:
 	cd $$PWD/$(TINYXMLDIR);\
 	$(MAKE)
 
-$(GTEST_LIB)/libgtest.la:
+$(GTEST_LIB)/.libs/libgtest.a:
 	@orig=$$PWD;\
-	cd $$PWD/$(GTESTDIR);\
-	./configure;\
+	cd $$PWD/$(GTESTDIR); \
+	./configure; \
 	$(MAKE)
 
 .cpp.o:
