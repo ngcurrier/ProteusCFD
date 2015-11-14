@@ -12,7 +12,7 @@ template <class Type> class SpatialFunctor;
 template <class Type>
 class Element
 {
-public:
+ public:
 
   Element<Type>();
   template <class Type2>

@@ -1,7 +1,6 @@
 #include "mesh.h"
 #include "general.h"
 #include "h5layer.h"
-#include "io.h"
 #include "mem_util.h"
 #include "macros.h"
 #include <fstream>
@@ -36,6 +35,9 @@ int main(int argc, char* argv[]){
   vector<Int> vint;
   vector<Real> vreal;
 
+  //grab node coords
+  double const * xyz = m.GetNodeCoords();
+  
   Int i, j, k;
   Int ierr = 0;
 
@@ -57,13 +59,13 @@ int main(int argc, char* argv[]){
   casename = filename.substr(0,pos);
   fileextension = filename.substr(pos+1, filename.size() - (casename.size() ));
   if(fileextension == "crunch"){
-    ierr = ReadCRUNCH_Ascii(m, filename);
+    ierr = m.ReadCRUNCH_Ascii(filename);
   }
   else if(fileextension == "ugrid"){
-    ierr = ReadUGRID_Ascii(m, filename);
+    ierr = m.ReadUGRID_Ascii(filename);
   }
   else if(fileextension == "su2"){
-    ierr = ReadSU2_Ascii(m, filename);
+    ierr = m.ReadSU2_Ascii(filename);
   }
   else{
     cerr << "File extension " << fileextension << " not recognized" << endl;
@@ -78,7 +80,9 @@ int main(int argc, char* argv[]){
   //build utility maps for METIS
   m.BuildMapsDecomp();
 
-  idx_t* part = new idx_t[m.nnode];
+  Int nnode = m.GetNumNodes();
+  Int lnelem = m.GetNumLocalElem();
+  idx_t* part = new idx_t[nnode];
   Int localNodesCount[np];
   Int localNodesOffset[np];
   Int ghostNodesCount[np];
@@ -104,10 +108,10 @@ int main(int argc, char* argv[]){
   }
 
   //allocate and load up local nodes global Id
-  Int* localNodes = new Int[m.nnode];
+  Int* localNodes = new Int[nnode];
   for(i = 0; i < np; i++){
     Int count = 0;
-    for(j = 0; j < m.nnode; j++){
+    for(j = 0; j < nnode; j++){
       if(part[j] == i){
 	localNodes[localNodesOffset[i] + count] = j;
 	count++;
@@ -116,25 +120,25 @@ int main(int argc, char* argv[]){
   }
 
   //assume the likely number of ghost nodes drops with number of domains
-  Int goffset = m.nnode/np + 5;     
+  Int goffset = nnode/np + 5;     
   Int* ghostNodes = new Int[np * goffset];
   Int* ghostDoms = new Int[goffset];
   Int leoffset[np]; 
   Int** localElems = new Int*[np];
   for(i = 0; i < np; i++){
     //add an extra 20% as a buffer for unbalanced split
-    leoffset[i] = m.lnelem/np + m.lnelem/5;
+    leoffset[i] = lnelem/np + lnelem/5;
     localElems[i] = new Int[leoffset[i]];
   }
   //same thing for split elements but with a little wiggle room
-  Int seoffset = m.lnelem/np + 35;
+  Int seoffset = lnelem/np + 35;
   Int* splitElems = new Int[np * seoffset];
 
-  vint.reserve(m.nnode/np);
-  vreal.reserve(m.nnode/np*3);
+  vint.reserve(nnode/np);
+  vreal.reserve(nnode/np*3);
 	       
-  Bool* elemChecked = new Bool[m.lnelem];
-  for(i = 0; i < m.lnelem; i++){
+  Bool* elemChecked = new Bool[lnelem];
+  for(i = 0; i < lnelem; i++){
     elemChecked[i] = false;
   } 
  
@@ -164,7 +168,7 @@ int main(int argc, char* argv[]){
   
   //count elements which are unaccounted for and add them to the split 
   //elements list of appropriate domains
-  for(i = 0; i < m.lnelem; i++){
+  for(i = 0; i < lnelem; i++){
     //if elem was not local to a single domain
     if(elemChecked[i] == false){
       Int inDomain[np];
@@ -198,11 +202,11 @@ int main(int argc, char* argv[]){
 	
   //used to make sure duplicates are not put in the ghost nodes list
   //this would wreak all sorts of havoc
-  Bool* nodeInList = new Bool[m.nnode];
+  Bool* nodeInList = new Bool[nnode];
 
   //get ghost nodes list for split elements
   for(i = 0; i < np; i++){
-    for(j = 0; j < m.nnode; j++){
+    for(j = 0; j < nnode; j++){
       nodeInList[j] = 0;
     }
     for(j = 0; j < splitElemsCount[i]; j++){
@@ -285,8 +289,10 @@ int main(int argc, char* argv[]){
     HDF_WriteScalar(h5out[i], "/", "Number Of Processors", &np);
     Int reorder = reordered;
     HDF_WriteScalar(h5out[i], "/", "Reordered", &reorder);
-    HDF_WriteScalar(h5out[i], "/", "Global Number Of Nodes", &m.nnode);
-    HDF_WriteScalar(h5out[i], "/", "Global Number Of Elements", &m.lnelem);
+    Int tnnode = nnode;
+    HDF_WriteScalar(h5out[i], "/", "Global Number Of Nodes", &tnnode);
+    Int tlnelem = lnelem;
+    HDF_WriteScalar(h5out[i], "/", "Global Number Of Elements", &tlnelem);
     HDF_WriteScalar(h5out[i], "/", "Number Of Factags", &m.nfactags);
     Int scaled = 0;
     HDF_WriteScalar(h5out[i], "/", "Rescaled", &scaled);
@@ -346,7 +352,7 @@ int main(int argc, char* argv[]){
   }
   //build hash_map to lookup local id of nodes on owning processes
   //also used to reference local elems by local node number system
-  Int* hash_nodes = new Int[m.nnode];
+  Int* hash_nodes = new Int[nnode];
   for(i = 0; i < np; i++){
     for(j = 0; j < localNodesCount[i]; j++){
       Int node = localNodes[localNodesOffset[i] + j];
@@ -375,15 +381,15 @@ int main(int argc, char* argv[]){
     directoryBase = "/Mesh/";
     for(j = 0; j < localNodesCount[i]; j++){
       Int node = localNodes[localNodesOffset[i] + j];
-      vreal.push_back(m.xyz[node*3 + 0]);
-      vreal.push_back(m.xyz[node*3 + 1]);
-      vreal.push_back(m.xyz[node*3 + 2]);
+      vreal.push_back(xyz[node*3 + 0]);
+      vreal.push_back(xyz[node*3 + 1]);
+      vreal.push_back(xyz[node*3 + 2]);
     }
     for(j = 0; j < ghostNodesCount[i]; j++){
       Int node = ghostNodes[i*goffset + j];
-      vreal.push_back(m.xyz[node*3 + 0]);
-      vreal.push_back(m.xyz[node*3 + 1]);
-      vreal.push_back(m.xyz[node*3 + 2]);
+      vreal.push_back(xyz[node*3 + 0]);
+      vreal.push_back(xyz[node*3 + 1]);
+      vreal.push_back(xyz[node*3 + 2]);
     }
     HDF_WriteArray(h5out[i], directoryBase, "Nodal Coordinates", 
 		   &vreal.front(), vreal.size());
@@ -490,11 +496,13 @@ int main(int argc, char* argv[]){
 void Coordpartition(Mesh<Real>* m, Int* part, Int np, Int* nodesPart)
 {
   //split into np divisions based on x-coords
-  double maxX = m->xyz[0*3 + 0];
-  double minX = m->xyz[0*3 + 0];
-  for(Int i = 1; i < m->nnode; i++){
-    minX = MIN(minX, m->xyz[i*3 + 0]);
-    maxX = MAX(maxX, m->xyz[i*3 + 0]);
+  Int nnode = m->GetNumNodes();
+  double const * xyz = m->GetNodeCoords();
+  double maxX = xyz[0*3 + 0];
+  double minX = xyz[0*3 + 0];
+  for(Int i = 1; i < nnode; i++){
+    minX = MIN(minX, xyz[i*3 + 0]);
+    maxX = MAX(maxX, xyz[i*3 + 0]);
   }
   double span = maxX - minX;
   double div[np+1];
@@ -514,14 +522,14 @@ void Coordpartition(Mesh<Real>* m, Int* part, Int np, Int* nodesPart)
   for(Int j = 0; j < np; j++){
     double low = div[j];
     double high = div[j+1];
-    for(Int i = 0; i < m->nnode; i++){
-      double x = m->xyz[i*3 + 0];
+    for(Int i = 0; i < nnode; i++){
+      double x = xyz[i*3 + 0];
       if(x > low && x < high){
 	part[i] = j;
       }
     }
   }
-  for(Int i = 0; i < m->nnode; i++){
+  for(Int i = 0; i < nnode; i++){
     nodesPart[part[i]]++;
   }
   cout << "COORDX: Nodes per partition" << endl;
@@ -537,9 +545,10 @@ void METISpartition(Mesh<Real>* m, Int* part, Int np, Int* nodesPart)
   Int i;
   
   //calculate weights for vertics based on number of connections
+  Int nnode = m->GetNumNodes();
   Int* edgesw = NULL;
-  Int* vertw = new Int[m->nnode];
-  Int* vertsize = new Int[m->nnode];
+  Int* vertw = new Int[nnode];
+  Int* vertsize = new Int[nnode];
   Int edgecut;
   real_t* ubvec = NULL;
   real_t* tpwgts = NULL;
@@ -547,7 +556,7 @@ void METISpartition(Mesh<Real>* m, Int* part, Int np, Int* nodesPart)
   //use default options
   idx_t options[METIS_NOPTIONS];
   METIS_SetDefaultOptions(options);
-  for(i = 0; i < m->nnode; i++){
+  for(i = 0; i < nnode; i++){
     Int order = m->ipsp[i+1] - m->ipsp[i];
     vertw[i] = order;
     vertsize[i] = order;
@@ -561,7 +570,7 @@ void METISpartition(Mesh<Real>* m, Int* part, Int np, Int* nodesPart)
   
   if(np == 1){
     cout << "METIS: NP = 1 -- No partitioning required" << endl;
-    for(i = 0; i < m->nnode; i++){
+    for(i = 0; i < nnode; i++){
       part[i] = 0;
     }
     edgecut = 0; 
@@ -570,17 +579,19 @@ void METISpartition(Mesh<Real>* m, Int* part, Int np, Int* nodesPart)
   else{
     cout << "METIS: Partitioning graph" << endl;
     if(np < 8){
-      METIS_PartGraphRecursive(&m->nnode, &ncon, (idx_t*)m->ipsp, (idx_t*)m->psp, (idx_t*)vertw, (idx_t*)vertsize,
+      Int lnnode = nnode;
+      METIS_PartGraphRecursive(&lnnode, &ncon, (idx_t*)m->ipsp, (idx_t*)m->psp, (idx_t*)vertw, (idx_t*)vertsize,
 			       (idx_t*)edgesw, &np, tpwgts, ubvec, options, &edgecut, (idx_t*)part); 
     }
     else{
-      METIS_PartGraphKway(&m->nnode, &ncon, (idx_t*)m->ipsp, (idx_t*)m->psp, (idx_t*)vertw, (idx_t*)vertsize, 
+      Int lnnode = nnode;
+      METIS_PartGraphKway(&lnnode, &ncon, (idx_t*)m->ipsp, (idx_t*)m->psp, (idx_t*)vertw, (idx_t*)vertsize, 
 			  (idx_t*)edgesw, &np, tpwgts, ubvec, options, &edgecut, (idx_t*)part); 
       
     }
   }
   cout << "METIS: Edges cut: " << edgecut << endl;
-  for(i = 0; i < m->nnode; i++){
+  for(i = 0; i < nnode; i++){
     nodesPart[part[i]]++;
   }
   cout << endl;
@@ -594,13 +605,13 @@ void METISpartition(Mesh<Real>* m, Int* part, Int np, Int* nodesPart)
   cout << "================================" << endl;
 
   for(i = 0; i < np; i++){
-    cout << "\tPartition " << i << ": " << (Real)nodesPart[i]/(Real)m->nnode << endl;
+    cout << "\tPartition " << i << ": " << (Real)nodesPart[i]/(Real)nnode << endl;
   }
   cout << endl;
   cout << "METIS: Weighted load balancing" << endl;
   cout << "==============================" << endl;
   sum = 0;
-  for(i = 0; i < m->nnode; i++){
+  for(i = 0; i < nnode; i++){
     Int weight = m->ipsp[i+1] - m->ipsp[i];
     sum += weight;
     partWeight[part[i]] += weight;

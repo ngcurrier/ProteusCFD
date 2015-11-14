@@ -22,11 +22,11 @@ OBJS_COMMON = $(SRCS_COMMON:.cpp=.o)
 SRCS_SOLVER = ./ucs/main.cpp ./ucs/eqnset.cpp ./ucs/threaded.cpp ./ucs/parallel.cpp \
 	./ucs/customics.cpp ./ucs/oddsNends.cpp ./ucs/portFileio.cpp \
 	./ucs/elements.cpp ./ucs/dataInfo.cpp ./ucs/derivatives.cpp
-SRCS_DECOMP = ./ucs/decomp.cpp ./ucs/io.cpp ./ucs/parallel.cpp \
+SRCS_DECOMP = ./ucs/decomp.cpp ./ucs/mesh.cpp ./ucs/parallel.cpp \
 	./ucs/oddsNends.cpp ./ucs/dataInfo.cpp
-SRCS_RECOMP = ./ucs/recomp.cpp ./ucs/io.cpp ./ucs/parallel.cpp \
+SRCS_RECOMP = ./ucs/recomp.cpp ./ucs/mesh.cpp ./ucs/parallel.cpp \
 	./ucs/oddsNends.cpp ./ucs/dataInfo.cpp
-SRCS_FINDPOINT = ./ucs/find_point.cpp ./ucs/io.cpp ./ucs/parallel.cpp \
+SRCS_FINDPOINT = ./ucs/find_point.cpp ./ucs/mesh.cpp ./ucs/parallel.cpp \
 	./ucs/oddsNends.cpp ./ucs/dataInfo.cpp
 
 OBJS_SOLVER = $(SRCS_SOLVER:.cpp=.o)
@@ -54,19 +54,19 @@ SRCS_STRUCT_SOLVER = ./structuralDynamics/main.cpp ./structuralDynamics/element_
 	./structuralDynamics/fluid_structure.cpp
 OBJS_STRUCT_SOLVER = $(SRCS_STRUCT_SOLVER:.cpp=.o)
 
-SRCS_ALL = $(SRCS_SOLVER) ./ucs/decomp.cpp ./ucs/recomp.cpp ./ucs/io.cpp ./ucs/find_point.cpp $(CSRCS_PORTOPT)\
+SRCS_ALL = $(SRCS_SOLVER) ./ucs/decomp.cpp ./ucs/recomp.cpp ./ucs/mesh.cpp ./ucs/find_point.cpp $(CSRCS_PORTOPT)\
 	 $(SRCS_CHEMPROPS) $(SRCS_STRUCT_SOLVER) $(SRCS_COMMON)
 OBJS_ALL = $(SRCS_ALL:.cpp=.o)
 
 # --------- BEGIN EXECUTABLE TARGETS SECTION
 
-$(EXE_SOLVER): $(OBJS_SOLVER) ./ucs/libcommon.a $(TINYXMLDIR)/libtinyxml.a structuralDynamics/libstructdyn.a
+$(EXE_SOLVER):  $(TINYXMLDIR)/libtinyxml.a $(HDF5_LIB)/libhdf5.a $(OBJS_SOLVER) ./ucs/libcommon.a structuralDynamics/libstructdyn.a 
 	$(MPICXX) $(LINK_OPTS) -o $(EXE_SOLVER) $(LCXXFLAGS) $(OBJS_SOLVER) $(CXXLIBS) -lstructdyn -ltinyxml
 
-$(EXE_DECOMP): $(OBJS_DECOMP) $(METISINSTALLDIR)/libmetis.a ./ucs/libcommon.a
+$(EXE_DECOMP): $(METISINSTALLDIR)/libmetis.a $(HDF5_LIB)/libhdf5.a ./ucs/libcommon.a  $(OBJS_DECOMP) 
 	$(MPICXX) $(LINK_OPTS) -o $(EXE_DECOMP) $(LCXXFLAGS) -L$(METIS_LIB) $(OBJS_DECOMP) $(CXXLIBS) -lmetis -ltinyxml
 
-$(EXE_RECOMP): $(OBJS_RECOMP)
+$(EXE_RECOMP): $(HDF5_LIB)/libhdf5.a $(OBJS_RECOMP) 
 	$(MPICXX) $(LINK_OPTS) -o $(EXE_RECOMP) $(LCXXFLAGS) $(OBJS_RECOMP) $(CXXLIBS) -ltinyxml
 
 $(EXE_FINDPOINT): $(OBJS_FINDPOINT)
@@ -103,16 +103,16 @@ tools: $(EXE_DECOMP) $(EXE_RECOMP) $(EXE_CHEMPROPS) $(EXE_FINDPOINT)
 
 $(HDF5_LIB)/libhdf5.a: 
 	@orig=$$PWD;\
-	cd $$PWD/$(HDF5DIR);\
-	env CC=$(MPICXX) ./configure --prefix=$(HDF5INSTALLDIR);\
-	$(MAKE);\
-	$(MAKE) install;\
-	$(MAKE) lib
+	cd $$PWD/$(HDF5DIR); \
+	./configure --prefix $$PWD/build; \
+	$(MAKE); \
+	$(MAKE) install; \
+	$(MAKE) lib;
 
 $(METIS_LIB)/libmetis.a: 
 	@orig=$$PWD;\
-	cd $$PWD/$(METISDIR);\
-	$(MAKE) config;\
+	cd $$PWD/$(METISDIR); \
+	$(MAKE) config; \
 	$(MAKE)
 
 $(TINYXML_LIB)/libtinyxml.a:

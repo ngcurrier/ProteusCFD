@@ -53,15 +53,14 @@ TINYXMLDIR = ./TPLs/tinyxml/tinyxml-2.6.2
 TINYXML_INCLUDES = ./TPLs/tinyxml/tinyxml-2.6.2
 TINYXML_LIB = ./TPLs/tinyxml/tinyxml-2.6.2
 
-METISDIR = ./TPLs/metis/metis-5.0.2
-METISINSTALLDIR = $(METISDIR)/build/Linux-x86_64/libmetis
+METISDIR = /TPLs/metis/metis-5.0.2
+METISINSTALLDIR = ./$(METISDIR)/build/Linux-x86_64/libmetis
 METIS_LIB = $(METISINSTALLDIR)
 METIS_INCLUDES = $(METISDIR)/include
 
-HDF5DIR = ./TPLs/hdf5/hdf5-1.8.10-patch1
-HDF5INSTALLDIR = $(HDF5DIR)/build
-HDF5_LIB = $(HDF5INSTALLDIR)/lib
-HDF5_INCLUDES = $(HDF5INSTALLDIR)/include
+HDF5DIR = /TPLs/hdf5/hdf5-1.8.10-patch1
+HDF5_LIB = ./$(HDF5DIR)/build/lib
+HDF5_INCLUDES = ./$(HDF5DIR)/build/include
 
 GTESTDIR = ./TPLs/gtest/gtest-1.7.0/
 GTEST_LIB = $(GTESTDIR)/lib

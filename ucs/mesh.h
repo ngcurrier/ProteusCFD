@@ -2,14 +2,37 @@
 #define MESH_H__
 
 #include "general.h"
-#include "io.h"
 #include "uns_base.h"
+#include "etypes.h"
 #include "elementClass.h"
 #include "statflags.h"
+#include "endian_util.h"
+#include "strings_util.h"
+#include "tinyxml.h"
+#include "parallel.h"
+#include "h5layer.h"
+#include "dataInfo.h"
+#include "solutionField.h"
 #include <iostream>
 #include <cstdlib>
+#include <string>
 #include <sstream>
 #include <vector>
+#include <mpi.h>
+//used for Cuthill-McKee -- STL
+#include <deque> 
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+
+#include "geometry.h"
+#include "mem_util.h"
+#include "macros.h"
+#include "oddsNends.h"
+#include "exceptions.h"
+
+
+void TranslateWinding(Int* nodes, Int translation[6][8], Int num_nodes, Int etype, Int to_other_format);
 
 //forward declarations
 template <class Type> class PObj;
@@ -17,9 +40,8 @@ template <class Type> class PObj;
 template <class Type> 
 class Mesh
 {
+ public:
   
-public:
-
   Mesh();
   ~Mesh();
 
@@ -97,6 +119,14 @@ public:
   Int GetNumParallelEdges() const {return ngedge;};
   Int GetNumBoundaryEdges() const {return nbedge;};
 
+  Int ReadUGRID_Ascii(std::string filename);
+  Int ReadCRUNCH_Ascii(std::string filename);
+  Int ReadSU2_Ascii(std::string filename);
+  Int WriteCRUNCH_Ascii(std::string casename);
+  Int WriteVTK_Ascii(std::string casename, std::vector<SolutionField<Type>*>& fields);
+  Int WriteVTK_Binary(std::string casename, std::vector<SolutionField<Type>*>& fields);
+  Int WriteGridXDMF(PObj<Type> &p, std::string filebase, std::string meshname);
+  
   void SetNumNodes(Int nnode){this->nnode = nnode;};
 
   //parallel utility maps
@@ -176,8 +206,6 @@ public:
   Int* besp;     //boundary halfedges surrounding point
   Int* ibesp;    //index into CRS of besp
 
-private:
-
   Int gnnode;       //number of global nodes
   Int nnode;        //number of nodes in mesh
   Int gnode;        //number of ghost nodes in mesh (parallel only)
@@ -196,6 +224,9 @@ private:
   //flag that is set on mesh read which states a mesh is previously
   //reordered... we won't do it again
   Bool reordered;
+
+private:
+
 
   //list of booleans which indicates what memory has been alloc'd
   Bool meshInit;

@@ -54,10 +54,10 @@ int main(int argc, char* argv[]){
   casename = filename.substr(0,pos);
   fileextension = filename.substr(pos+1, filename.size() - (casename.size() ));
   if(fileextension == "crunch"){
-    ReadCRUNCH_Ascii(m, filename);
+    m.ReadCRUNCH_Ascii(filename);
   }
   else if(fileextension == "ugrid"){
-    ReadUGRID_Ascii(m, filename);
+    m.ReadUGRID_Ascii(filename);
   }
   else{
     cerr << "File extension " << fileextension << " not recognized" << endl;

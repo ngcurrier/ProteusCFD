@@ -1,7 +1,6 @@
 #include "mesh.h"
 #include "etypes.h"
 #include "general.h"
-#include "io.h"
 #include "strings_util.h"
 #include "h5layer.h"
 #include "solutionField.h"
@@ -158,7 +157,7 @@ int main(int argc, char* argv[])
       Int e = elementData[loc];
       loc++;
       //increment the node id by the nodeoffset value
-      for(Int k = 0; k < m.mnode[e]; k++){
+      for(Int k = 0; k < m.GetNumElemNodes(e); k++){
 	Int localNodeId = elementData[loc];
 	//check if the element node is a ghost node
 	//if so, we have to look up that ghost node's global id
@@ -287,13 +286,13 @@ int main(int argc, char* argv[])
   if(solutionPresent == false){
     std::cout << "RECOMP I/O: Solution not present, have you run the solver yet? ;) " << std::endl;
     if(format == 0){
-      WriteVTK_Binary(m, solfilename, fields);
+      m.WriteVTK_Binary(solfilename, fields);
     }  
     else if(format == 1){
-      WriteCRUNCH_Ascii(m, solfilename);
+      m.WriteCRUNCH_Ascii(solfilename);
     }
     else if(format == 2){
-      WriteVTK_Ascii(m, solfilename, fields);
+      m.WriteVTK_Ascii(solfilename, fields);
     } 
     else{}
   }
@@ -354,13 +353,13 @@ int main(int argc, char* argv[])
 
       if((sets[count] != sets[count+1]) || count == solutionVect.size()-1){
 	if(format == 0){
-	  WriteVTK_Binary(m, solfilename, fields);
+	  m.WriteVTK_Binary(solfilename, fields);
 	}  
 	else if(format == 1){
-	  WriteCRUNCH_Ascii(m, solfilename);
+	  m.WriteCRUNCH_Ascii(solfilename);
 	}
 	else if(format == 2){
-	  WriteVTK_Ascii(m, solfilename, fields);
+	  m.WriteVTK_Ascii(solfilename, fields);
 	}
 	//clear the fields for the next pass
 	for(std::vector<SolutionField<Real>*>::iterator it = fields.begin(); it != fields.end(); ++it){
