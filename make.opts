@@ -79,7 +79,7 @@ LCXXFLAGS = -L$(HDF5_LIB) -L./structuralDynamics -L$(TINYXML_LIB) -L$(GTEST_LIB)
 LFXXFLAGS = 
 
 #LIBS = -lmetis -lgomp -lmpi_cxx -lmpi -lefence
-CXXLIBS = -lhdf5 -lcommon -lz 
+CXXLIBS = $(HDF5_LIB)/libhdf5.a -lcommon -lz 
 #more mpi stuff from running mpiCC --showme
 CXXLIBS += -lstdc++ 
 FXXLIBS = -lstdc++
