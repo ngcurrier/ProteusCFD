@@ -1,6 +1,7 @@
 #!/usr/bin/env python
  
 import sys
+import pickle # we use pickle to save run information, etc.
 import vtk
 from PyQt4 import QtCore, QtGui
 from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
@@ -9,12 +10,36 @@ class MainWindow(QtGui.QMainWindow):
  
     def __init__(self, parent = None):
         QtGui.QMainWindow.__init__(self, parent)
- 
+
+        self.state = {"test", "stuff", "other"}
+         
         self.frame = QtGui.QFrame()
         self.resize(1000,600)
         self.setWindowTitle('ProteusCFD')
         self.move(100,100)
-         
+
+        exitAction = QtGui.QAction('Exit', self)
+        exitAction.setShortcut('Ctrl+Q')
+        exitAction.setStatusTip('Exit application')
+        exitAction.triggered.connect(self.close)
+
+        saveAction = QtGui.QAction('Save', self)
+        saveAction.setShortcut('Ctril+S')
+        saveAction.setStatusTip('Save config')
+        saveAction.triggered.connect(self.save)
+
+        loadAction = QtGui.QAction('Load', self)
+        loadAction.setStatusTip('Load config')
+        loadAction.triggered.connect(self.load)
+        
+        self.menubar = self.menuBar()
+        fileMenu = self.menubar.addMenu('&File')
+        fileMenu.addAction(exitAction)
+        fileMenu.addAction(saveAction)
+        fileMenu.addAction(loadAction)
+        
+        self.statusBar().showMessage('Waiting...')
+        
         self.vl = QtGui.QGridLayout()
         self.vl.setSpacing(10)
         self.vtkWidget = QVTKRenderWindowInteractor(self.frame)
@@ -137,7 +162,16 @@ class MainWindow(QtGui.QMainWindow):
             print "checked", item, item.text(column)
         if item.checkState(column) == QtCore.Qt.Unchecked:
             print "unchecked", item, item.text(column)
+
+    def save(self):
+        filename = "proteusCFD.state"
+        pickle.dump(self.state, open(filename, "wb"))
         
+    def load(self):
+        filename = "proteusCFD.state"
+        self.state = pickle.load(open(filename, "rb"))
+        print self.state
+    
  
 if __name__ == "__main__":
  
