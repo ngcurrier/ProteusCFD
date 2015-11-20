@@ -77,3 +77,13 @@ The following packages are required for core functionality:
 * TINYXML (used for I/O in some places)
 * GTest (used for unit testing framework, included in TPLs directory)
 
+Dependencies for GUI
+====================
+
+Proteus CFD has not traditionally had a GUI. However, development effort is being made to make this a
+reality as it is a prerequisite for many users.  This is experimental at this point only.  The following
+packages are required:
+
+*pyqt4 (Basis for all widgets and GUI framework)
+*vtk with python bindings (Framework for 3D visualization capability) - VTK must be built with the following enabled BUILD_SHARED_LIBS and VTK_WRAP_PYTHON 
+
