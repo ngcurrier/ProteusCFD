@@ -84,6 +84,6 @@ Proteus CFD has not traditionally had a GUI. However, development effort is bein
 reality as it is a prerequisite for many users.  This is experimental at this point only.  The following
 packages are required:
 
-*pyqt4 (Basis for all widgets and GUI framework)
-*vtk with python bindings (Framework for 3D visualization capability) - VTK must be built with the following enabled BUILD_SHARED_LIBS and VTK_WRAP_PYTHON 
+* pyqt4 (Basis for all widgets and GUI framework)
+* vtk with python bindings (Framework for 3D visualization capability) - VTK must be built with the following enabled BUILD_SHARED_LIBS and VTK_WRAP_PYTHON 
 
