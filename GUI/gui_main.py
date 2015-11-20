@@ -18,6 +18,20 @@ class MainWindow(QtGui.QMainWindow):
         self.setWindowTitle('ProteusCFD')
         self.move(100,100)
 
+        self.vl = QtGui.QGridLayout()
+        self.vl.setSpacing(10)
+
+        self.frame.setLayout(self.vl)
+        self.setCentralWidget(self.frame)
+
+        #Setup our tree view
+        self.treeWidget = QtGui.QTreeWidget()
+        self.treeWidget.setHeaderHidden(True)
+        self.addItems(self.treeWidget.invisibleRootItem())
+        self.treeWidget.itemChanged.connect (self.handleChanged)
+        self.vl.addWidget(self.treeWidget,0,0)
+
+        #Setup our menu and actions
         exitAction = QtGui.QAction('Exit', self)
         exitAction.setShortcut('Ctrl+Q')
         exitAction.setStatusTip('Exit application')
@@ -40,12 +54,14 @@ class MainWindow(QtGui.QMainWindow):
         
         self.statusBar().showMessage('Waiting...')
         
-        self.vl = QtGui.QGridLayout()
-        self.vl.setSpacing(10)
+        #Setup our vtk widget
         self.vtkWidget = QVTKRenderWindowInteractor(self.frame)
         self.vl.addWidget(self.vtkWidget, 0, 300)
- 
+
         self.ren = vtk.vtkRenderer()
+        self.ren.SetBackground(.5,.8,.5)       
+        self.ren.ResetCamera()
+
         self.vtkWidget.GetRenderWindow().AddRenderer(self.ren)
         self.iren = self.vtkWidget.GetRenderWindow().GetInteractor()
 
@@ -93,10 +109,12 @@ class MainWindow(QtGui.QMainWindow):
         #visualize the grid
         mapper = vtk.vtkDataSetMapper()
         mapper.SetInput(grid)
+
+        self.vtkActorList = []
         
         # Create an actor
-        actor = vtk.vtkActor()
-        actor.SetMapper(mapper)
+        self.vtkActorList.append(vtk.vtkActor())
+        self.vtkActorList[0].SetMapper(mapper)
 
         # Create source
         source = vtk.vtkSphereSource()
@@ -108,26 +126,14 @@ class MainWindow(QtGui.QMainWindow):
         mapper2.SetInputConnection(source.GetOutputPort())
  
         # Create an actor
-        actor2 = vtk.vtkActor()
-        actor2.SetMapper(mapper2)
- 
-        self.ren.AddActor(actor)
-        self.ren.AddActor(actor2)
-        self.ren.SetBackground(.5,.8,.5)       
-        self.ren.ResetCamera()
- 
-        self.frame.setLayout(self.vl)
-        self.setCentralWidget(self.frame)
- 
+        self.vtkActorList.append(vtk.vtkActor())
+        self.vtkActorList[1].SetMapper(mapper2)
+
+        for actor in self.vtkActorList:
+            self.ren.AddActor(actor)
+
         self.show()
         self.iren.Initialize()
-
-        #Setup our tree view
-        self.treeWidget = QtGui.QTreeWidget()
-        self.treeWidget.setHeaderHidden(True)
-        self.addItems(self.treeWidget.invisibleRootItem())
-        self.treeWidget.itemChanged.connect (self.handleChanged)
-        self.vl.addWidget(self.treeWidget,0,0)
 
     def addItems(self, parent):
         column = 0
@@ -160,8 +166,10 @@ class MainWindow(QtGui.QMainWindow):
     def handleChanged(self, item, column):
         if item.checkState(column) == QtCore.Qt.Checked:
             print "checked", item, item.text(column)
+            self.vtkActorList[0].VisibilityOn()
         if item.checkState(column) == QtCore.Qt.Unchecked:
             print "unchecked", item, item.text(column)
+            self.vtkActorList[0].VisibilityOff()
 
     def save(self):
         filename = "proteusCFD.state"
