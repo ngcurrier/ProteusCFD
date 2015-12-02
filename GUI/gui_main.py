@@ -24,13 +24,26 @@ class MainWindow(QtGui.QMainWindow):
         self.frame.setLayout(self.vl)
         self.setCentralWidget(self.frame)
 
+        #create tabs dialog and add it to the layout
+        self.tabs = QtGui.QTabWidget()
+        self.vl.addWidget(self.tabs,0,0)
+
         #Setup our tree view
         self.treeWidget = QtGui.QTreeWidget()
         self.treeWidget.setHeaderHidden(True)
         self.addItems(self.treeWidget.invisibleRootItem())
         self.treeWidget.itemChanged.connect (self.handleChanged)
-        self.vl.addWidget(self.treeWidget,0,0)
+        self.tabs.addTab(self.treeWidget, "Tree")
 
+        #setup some dummy tabs
+        tab1 = QtGui.QWidget()
+        self.tabs.addTab(tab1, "tab1")
+        tab2 = QtGui.QWidget()
+        self.tabs.addTab(tab2, "tab2")
+
+        #draw the tabs
+        self.tabs.show()
+        
         #Setup our menu and actions
         exitAction = QtGui.QAction('Exit', self)
         exitAction.setShortcut('Ctrl+Q')
