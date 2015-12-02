@@ -35,9 +35,6 @@ int main(int argc, char* argv[]){
   vector<Int> vint;
   vector<Real> vreal;
 
-  //grab node coords
-  double const * xyz = m.GetNodeCoords();
-  
   Int i, j, k;
   Int ierr = 0;
 
@@ -77,6 +74,9 @@ int main(int argc, char* argv[]){
     return (1);
   }
 
+  //grab node coords
+  double const * xyz = m.GetNodeCoords();
+  
   //build utility maps for METIS
   m.BuildMapsDecomp();
 
