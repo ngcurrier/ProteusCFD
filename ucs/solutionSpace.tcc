@@ -287,7 +287,7 @@ void SolutionSpace<Type>::Init()
   p->UpdateGeneralVectors(q, eqnset->neqn+eqnset->nauxvars);
 
   //sanity check for parallel comms based on passing node coordinates
-  ierr = p->CheckSanityCoords(m->xyz);
+  ierr = p->CheckSanityCoords(m->GetNodeCoords());
   if(ierr){
     Abort << "Parallel sanity check of coordinates failed";
   }
