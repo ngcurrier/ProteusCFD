@@ -174,9 +174,12 @@ dist:
 cleanucs:
 	rm $(OBJS_ALL) $(EXE_ALL) Make.depend
 
-Make.depend:
-	$(MPICXX) -MM $(INCLUDES) $(SRCS_SOLVER) $(SRCS_DECOMP) $(SRCS_RECOMP) \
-	$(SRCS_FINDPOINT) $(SRCS_CHEMPROPS) > Make.depend
+depend: .depend
 
-include Make.depend
+.depend: $(SRCS_SOLVER) $(SRCS_DECOMP) $(SRCS_RECOMP) $(SRCS_FINDPOINT) $(SRCS_CHEMPROPS)
+	rm -rf .depend
+	$(MPICXX) -MM $(INCLUDES) $(SRCS_SOLVER) $(SRCS_DECOMP) $(SRCS_RECOMP) \
+	$(SRCS_FINDPOINT) $(SRCS_CHEMPROPS) > ./.depend
+
+include .depend
 
