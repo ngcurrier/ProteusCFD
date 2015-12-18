@@ -1,4 +1,4 @@
-FILE(REMOVE_RECURSE
+file(REMOVE_RECURSE
   "CMakeFiles/graphchk.dir/graphchk.c.o"
   "CMakeFiles/graphchk.dir/io.c.o"
   "graphchk.pdb"
@@ -6,6 +6,6 @@ FILE(REMOVE_RECURSE
 )
 
 # Per-language clean rules from dependency scanning.
-FOREACH(lang C)
-  INCLUDE(CMakeFiles/graphchk.dir/cmake_clean_${lang}.cmake OPTIONAL)
-ENDFOREACH(lang)
+foreach(lang C)
+  include(CMakeFiles/graphchk.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

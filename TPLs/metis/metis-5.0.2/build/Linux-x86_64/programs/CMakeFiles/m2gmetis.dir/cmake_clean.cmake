@@ -1,4 +1,4 @@
-FILE(REMOVE_RECURSE
+file(REMOVE_RECURSE
   "CMakeFiles/m2gmetis.dir/m2gmetis.c.o"
   "CMakeFiles/m2gmetis.dir/cmdline_m2gmetis.c.o"
   "CMakeFiles/m2gmetis.dir/io.c.o"
@@ -7,6 +7,6 @@ FILE(REMOVE_RECURSE
 )
 
 # Per-language clean rules from dependency scanning.
-FOREACH(lang C)
-  INCLUDE(CMakeFiles/m2gmetis.dir/cmake_clean_${lang}.cmake OPTIONAL)
-ENDFOREACH(lang)
+foreach(lang C)
+  include(CMakeFiles/m2gmetis.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

@@ -160,9 +160,9 @@ gklib_rename.h
 
 ../../libmetis/./struct.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/GKlib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/GKlib.h
 gk_arch.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/gk_arch.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/gk_arch.h
 stddef.h
 -
 stdlib.h
@@ -196,7 +196,7 @@ sys/stat.h
 pcreposix.h
 -
 gkregex.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/gkregex.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/gkregex.h
 regex.h
 -
 omp.h
@@ -228,47 +228,47 @@ gk_mkutils.h
 gk_proto.h
 -
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/b64.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/b64.c
 GKlib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/GKlib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/GKlib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/blas.c
-GKlib.h
--
-
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/csr.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/blas.c
 GKlib.h
 -
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/error.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/csr.c
 GKlib.h
 -
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/evaluate.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/error.c
 GKlib.h
 -
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/fkvkselect.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/evaluate.c
 GKlib.h
 -
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/fs.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/fkvkselect.c
 GKlib.h
 -
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/getopt.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/fs.c
 GKlib.h
 -
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/gk_arch.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/getopt.c
+GKlib.h
+-
+
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/gk_arch.h
 execinfo.h
 -
 ms_stdint.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/ms_stdint.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/ms_stdint.h
 ms_inttypes.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/ms_inttypes.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/ms_inttypes.h
 ms_stat.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/ms_stat.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/ms_stat.h
 stdint.h
 -
 inttypes.h
@@ -280,13 +280,13 @@ sys/resource.h
 sys/time.h
 -
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/gkregex.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/gkregex.c
 config.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/config.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/config.h
 ../locale/localeinfo.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/../locale/localeinfo.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/locale/localeinfo.h
 GKlib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/GKlib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/GKlib.h
 assert.h
 -
 ctype.h
@@ -332,167 +332,167 @@ locale/weight.h
 shlib-compat.h
 -
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/gkregex.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/gkregex.h
 sys/types.h
 -
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/htable.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/htable.c
 GKlib.h
 -
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/io.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/io.c
 stdio.h
 -
 GKlib.h
 -
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/itemsets.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/itemsets.c
 GKlib.h
 -
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/mcore.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/mcore.c
 GKlib.h
 -
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/memory.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/memory.c
 GKlib.h
 -
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/ms_inttypes.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/ms_inttypes.h
 ms_stdint.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/ms_stdint.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/ms_stdint.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/ms_stat.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/ms_stat.h
 sys/stat.h
 -
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/ms_stdint.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/ms_stdint.h
 limits.h
 -
 wchar.h
 -
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/omp.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/omp.c
 GKlib.h
 -
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/pdb.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/pdb.c
 GKlib.h
 -
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/pqueue.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/pqueue.c
 GKlib.h
 -
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/random.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/random.c
 GKlib.h
 -
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/seq.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/seq.c
 GKlib.h
 -
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/sort.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/sort.c
 GKlib.h
 -
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/string.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/string.c
 GKlib.h
 -
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/timers.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/timers.c
 GKlib.h
 -
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/tokenizer.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/tokenizer.c
 GKlib.h
 -
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/GKlib/util.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/GKlib/util.c
 GKlib.h
 -
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/auxapi.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/auxapi.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/balance.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/balance.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/bucketsort.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/bucketsort.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/checkgraph.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/checkgraph.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/coarsen.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/coarsen.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/compress.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/compress.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/contig.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/contig.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/debug.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/debug.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/fm.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/fm.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/fortran.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/fortran.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/frename.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/frename.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/gklib.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/gklib.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/graph.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/graph.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/initpart.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/initpart.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/kmetis.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/kmetis.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/kwayfm.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/kwayfm.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/kwayrefine.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/kwayrefine.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/mcutil.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/mcutil.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/mesh.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/mesh.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/meshpart.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/meshpart.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 GKlib.h
 -
 omp.h
@@ -512,63 +512,63 @@ macros.h
 proto.h
 -
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/minconn.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/minconn.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/mincover.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/mincover.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/mmd.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/mmd.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/ometis.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/ometis.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/options.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/options.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/parmetis.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/parmetis.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/pmetis.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/pmetis.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/refine.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/refine.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/separator.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/separator.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/sfm.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/sfm.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/srefine.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/srefine.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/stat.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/stat.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/timing.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/timing.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/util.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/util.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/wspace.c
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/wspace.c
 metislib.h
-/home/nick/Solver/TPLs/metis/metis-5.0.2/libmetis/metislib.h
+/home/nick/ProteusCFD/TPLs/metis/metis-5.0.2/libmetis/metislib.h
 
