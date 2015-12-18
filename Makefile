@@ -16,6 +16,7 @@ EXE_TESTS = ./bin/tests.x
 SRCS_COMMON = ./ucs/timer.cpp ./ucs/endian_util.cpp ./ucs/strings_util.cpp \
 	./ucs/h5layer.cpp ./ucs/parameterParser.cpp
 OBJS_COMMON = $(SRCS_COMMON:.cpp=.o)
+DEPS_COMMON = $(SRCS_COMMON:.cpp=.d)
 
 # --------- BEGIN FLUID DYNAMICS CORE SECTION
 
@@ -30,14 +31,19 @@ SRCS_FINDPOINT = ./ucs/find_point.cpp ./ucs/mesh.cpp ./ucs/parallel.cpp \
 	./ucs/oddsNends.cpp ./ucs/dataInfo.cpp
 
 OBJS_SOLVER = $(SRCS_SOLVER:.cpp=.o)
+DEPS_SOLVER = $(SRCS_SOLVER:.cpp=.d)
 OBJS_DECOMP = $(SRCS_DECOMP:.cpp=.o)
+DEPS_DECOMP = $(SRCS_DECOMP:.cpp=.d)
 OBJS_RECOMP = $(SRCS_RECOMP:.cpp=.o)
+DEPS_RECOMP = $(SRCS_DECOMP:.cpp=.d)
 OBJS_FINDPOINT = $(SRCS_FINDPOINT:.cpp=.o)
+DEPS_FINDPOINT = $(SRCS_FINDPOINT:.cpp=.d)
 
 # --------- BEGIN CHEMICAL PROPERTIES UTILITY SECTION
 
 SRCS_CHEMPROPS = ./ucs/chemprops.cpp ./ucs/elements.cpp 
 OBJS_CHEMPROPS = $(SRCS_CHEMPROPS:.cpp=.o)
+DEPS_CHEMPROPS = $(SRCS_CHEMPROPS:.cpp=.d)
 
 # --------- BEGIN OPTIMIZATION TOOLKIT SECTION
 
@@ -53,32 +59,34 @@ SRCS_STRUCT_SOLVER = ./structuralDynamics/main.cpp ./structuralDynamics/element_
 	./structuralDynamics/forces.cpp ./structuralDynamics/bc.cpp ./structuralDynamics/io.cpp \
 	./structuralDynamics/fluid_structure.cpp
 OBJS_STRUCT_SOLVER = $(SRCS_STRUCT_SOLVER:.cpp=.o)
+DEPS_STRUCT_SOLVER = $(SRCS_STRUCT_SOLVER:.cpp=.d)
 
 SRCS_ALL = $(SRCS_SOLVER) ./ucs/decomp.cpp ./ucs/recomp.cpp ./ucs/mesh.cpp ./ucs/find_point.cpp $(CSRCS_PORTOPT)\
 	 $(SRCS_CHEMPROPS) $(SRCS_STRUCT_SOLVER) $(SRCS_COMMON)
 OBJS_ALL = $(SRCS_ALL:.cpp=.o)
+DEPS_ALL = $(SRCS_ALL:.cpp=.d)
 
 # --------- BEGIN EXECUTABLE TARGETS SECTION
 
-$(EXE_SOLVER):  $(TINYXMLDIR)/libtinyxml.a $(HDF5_LIB)/libhdf5.a $(OBJS_SOLVER) ./ucs/libcommon.a structuralDynamics/libstructdyn.a 
+$(EXE_SOLVER):  $(TINYXMLDIR)/libtinyxml.a $(HDF5_LIB)/libhdf5.a $(DEPS_SOLVER) $(OBJS_SOLVER) ./ucs/libcommon.a structuralDynamics/libstructdyn.a 
 	$(MPICXX) $(LINK_OPTS) -o $(EXE_SOLVER) $(LCXXFLAGS) $(OBJS_SOLVER) $(CXXLIBS) -lstructdyn -ltinyxml
 
-$(EXE_DECOMP): $(METISINSTALLDIR)/libmetis.a $(HDF5_LIB)/libhdf5.a ./ucs/libcommon.a  $(OBJS_DECOMP) 
+$(EXE_DECOMP): $(METISINSTALLDIR)/libmetis.a $(HDF5_LIB)/libhdf5.a ./ucs/libcommon.a  $(DEPS_DECOMP) $(OBJS_DECOMP) 
 	$(MPICXX) $(LINK_OPTS) -o $(EXE_DECOMP) $(LCXXFLAGS) -L$(METIS_LIB) $(OBJS_DECOMP) $(CXXLIBS) -lmetis -ltinyxml
 
 $(EXE_RECOMP): $(HDF5_LIB)/libhdf5.a $(OBJS_RECOMP) 
-	$(MPICXX) $(LINK_OPTS) -o $(EXE_RECOMP) $(LCXXFLAGS) $(OBJS_RECOMP) $(CXXLIBS) -ltinyxml
+	$(MPICXX) $(LINK_OPTS) -o $(EXE_RECOMP) $(LCXXFLAGS) $(DEPS_RECOMP) $(OBJS_RECOMP) $(CXXLIBS) -ltinyxml
 
 $(EXE_FINDPOINT): $(OBJS_FINDPOINT)
-	$(MPICXX) $(LINK_OPTS) -o $(EXE_FINDPOINT) $(LCXXFLAGS) $(OBJS_FINDPOINT) $(CXXLIBS) -ltinyxml
+	$(MPICXX) $(LINK_OPTS) -o $(EXE_FINDPOINT) $(LCXXFLAGS) $(DEPS_FINDPOINT) $(OBJS_FINDPOINT) $(CXXLIBS) -ltinyxml
 
 $(EXE_PORTOPT): $(OBJS_PORTOPT)
 	$(FXX) $(FXX_LINK_OPTS) -o $(EXE_PORTOPT) $(LCXXFLAGS) $(OBJS_PORTOPT) $(FXXLIBS) -lcommon
 
 $(EXE_CHEMPROPS): $(OBJS_CHEMPROPS)
-	$(MPICXX) $(LINK_OPTS) -o $(EXE_CHEMPROPS) $(LCXXFLAGS) $(OBJS_CHEMPROPS) $(CXXLIBS)
+	$(MPICXX) $(LINK_OPTS) -o $(EXE_CHEMPROPS) $(LCXXFLAGS) $(DEPS_CHEMPROPS) $(OBJS_CHEMPROPS) $(CXXLIBS)
 
-$(EXE_STRUCT_SOLVER): $(OBJS_STRUCT_SOLVER) ./ucs/libcommon.a
+$(EXE_STRUCT_SOLVER): $(DEPS_STRUCT_SOLVER) $(OBJS_STRUCT_SOLVER) ./ucs/libcommon.a
 	$(MPICXX) -o $(EXE_STRUCT_SOLVER) $(LCXXFLAGS) $(OBJS_STRUCT_SOLVER) $(CXXLIBS)
 
 $(EXE_STRUCT_ERROR): ./structuralDynamics/error.o ./ucs/libcommon.a
@@ -95,10 +103,10 @@ all: $(EXE_SOLVER) $(EXE_DECOMP) $(EXE_RECOMP) $(EXE_FINDPOINT) $(EXE_TESTS)\
 
 tools: $(EXE_DECOMP) $(EXE_RECOMP) $(EXE_CHEMPROPS) $(EXE_FINDPOINT)
 
-./structuralDynamics/libstructdyn.a: $(OBJS_STRUCT_SOLVER) 
+./structuralDynamics/libstructdyn.a: $(DEPS_STRUCT_SOLVER) $(OBJS_STRUCT_SOLVER) 
 	ar rvs ./structuralDynamics/libstructdyn.a $(OBJS_STRUCT_SOLVER)
 
-./ucs/libcommon.a: $(OBJS_COMMON)
+./ucs/libcommon.a: $(DEPS_COMMON) $(OBJS_COMMON)
 	ar rvs ./ucs/libcommon.a $(OBJS_COMMON) 
 
 $(HDF5_LIB)/libhdf5.a: 
@@ -129,11 +137,15 @@ $(GTEST_LIB)/.libs/libgtest.a:
 .cpp.o:
 	$(MPICXX) -c $< $(CXX_OPTS) $(INCLUDES) -o $@
 
+%.d:%.cpp
+	$(MPICXX) -MM $< $(INCLUDES) -MT $(<:.cpp=.o) > $@
+
 .f.o: 
 	$(FXX) -c $< $(FXX_OPTS) $(INCLUDES) -o $@
 
 clean:
 	rm $(OBJS_ALL); \
+	rm $(DEPS_ALL); \
 	rm $(EXE_SOLVER); \
 	rm $(EXE_DECOMP); \
 	rm $(EXE_RECOMP); \
@@ -172,14 +184,8 @@ dist:
 	tar -cvzf src.tgz ./* --exclude='src.tgz'
 
 cleanucs:
-	rm $(OBJS_ALL) $(EXE_ALL) Make.depend
+	rm $(OBJS_ALL) $(EXE_ALL) $(DEPS_ALL)
 
-depend: .depend
 
-.depend: $(SRCS_SOLVER) $(SRCS_DECOMP) $(SRCS_RECOMP) $(SRCS_FINDPOINT) $(SRCS_CHEMPROPS)
-	rm -rf .depend
-	$(MPICXX) -MM $(INCLUDES) $(SRCS_SOLVER) $(SRCS_DECOMP) $(SRCS_RECOMP) \
-	$(SRCS_FINDPOINT) $(SRCS_CHEMPROPS) > ./.depend
-
-include .depend
+-include $(DEPS_ALL)
 

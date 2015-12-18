@@ -5,6 +5,7 @@ Make.depend
 *.lo
 *.o
 *.obj
+*.d
 
 # Compiled Dynamic libraries
 *.so
