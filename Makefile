@@ -92,7 +92,7 @@ $(EXE_STRUCT_SOLVER): $(DEPS_STRUCT_SOLVER) $(OBJS_STRUCT_SOLVER) ./ucs/libcommo
 $(EXE_STRUCT_ERROR): ./structuralDynamics/error.o ./ucs/libcommon.a
 	$(MPICXX) -o $(EXE_STRUCT_ERROR) $(LCXXFLAGS) ./structuralDynamics/error.o $(CXXLIBS)
 
-$(EXE_TESTS): $(GTEST_LIB)/libgtest.la ./unitTest/main.o 
+$(EXE_TESTS): $(GTEST_LIB)/.libs/libgtest.a ./unitTest/main.o 
 	$(MPICXX) -o $(EXE_TESTS) $(LCXXFLAGS) ./unitTest/main.o $(CXXLIBS) $(GTEST_LIB)/libgtest.a
 
 SRCDIRS = ./structuralDynamics ./ucs
