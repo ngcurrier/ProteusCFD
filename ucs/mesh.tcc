@@ -3177,6 +3177,96 @@ Int Mesh<Type>::ReadSU2_Ascii(std::string filename)
   return(0);
 }
 
+template <class Type>
+Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
+{
+  std::ifstream fin;
+  std::string line;
+
+  //states for our state machine reader
+  enum{
+    stateReadNdim,
+    stateReadNelem,
+    stateReadElem,
+    stateReadNpoints,
+    stateReadPoints,
+    stateReadNmark,
+    stateReadMarkerTag,
+    stateReadMarkerNelem,
+    stateReadMarkerElem,
+    stateExit,
+    NSTATES
+  };
+
+  std::string versionTarget = "2.2";
+  std::string headerKey = "MeshFormat";
+  std::string physicalKey = "PhysicalNames";
+  std::string nodeKey = "Nodes";
+  std::string elementKey = "Elements";
+  
+
+  Int state = stateReadNdim;
+
+  fin.open(filename.c_str());
+  if(!fin.is_open()){
+    return(-1);
+  }
+  //read each line one at a time, use a state machine to process data
+  std::size_t loc;
+  while(std::getline(fin, line)){
+    if(line.size() == 0) continue; //skip blank lines
+    if(line[0] == '%') continue; //skip comment lines
+    std::stringstream ss;
+    ss.str(line);
+    //use our state machine to do cool stuff with the datas...
+    Int elemId = 0;
+    Int elemType = -1;
+    Int physicalId = 0;
+    Int elementaryId = 0;
+    Int junk = -999;
+    switch(state)
+      {
+      case stateReadNdim:
+	break;
+      case stateReadNelem:
+	//format is elemId, elemType, ???, physicalId, elementaryId, <list of nodes>
+	ss >> elemId;
+	ss >> elemType;
+	ss >> junk;
+	ss >> physicalId;
+	ss >> elementaryId;
+	if(elemType == GMSH_LINE){
+
+	}
+	else if(elemType == GMSH_TRI){
+
+	}
+	else if(elemType == GMSH_QUAD){
+
+	}
+	else if(elemType == GMSH_TET){
+
+	}
+	else if(elemType == GMSH_HEX){
+
+	}
+	else if(elemType == GMSH_PRISM){
+
+
+	}
+	else if(elemType == GMSH_PYRAMID){
+
+	}
+	else{
+	  //write error we don't know what this is...
+	}
+	break;
+      default:
+	break;
+      }
+  }
+  fin.close();
+}
 
 template <class Type>
 Int Mesh<Type>::WriteCRUNCH_Ascii(std::string casename)
