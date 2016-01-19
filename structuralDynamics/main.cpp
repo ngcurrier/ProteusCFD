@@ -21,11 +21,6 @@ int main(int argc, char* argv[])
   stringstream ss;
   int mode;
 
-  //set this flag to true if we want to hand
-  //specify mass, stiffness, forcing, etc. in the config file
-  //set this flag to false if using the Finite Element model
-  bool specifiedMatrices = false;
-
   //time parameters
   double tfinal;
   //# of degrees of freedom
@@ -45,11 +40,14 @@ int main(int argc, char* argv[])
   double dt;
 
   //solution memory
-  double* x, *xd, *xdd;
+  double* x = NULL;
+  double* xd = NULL;
+  double* xdd = NULL;
   
   if(argc != 4){
-    cerr << "USAGE: " << argv[0] << " t_final timestep mode" << endl;
+    cerr << "USAGE: " << argv[0] << " t_final timestep mode(+/-)" << endl;
     cerr << "modes:  0 - analytic (one degree of freedom only!)\n";
+    cerr << "If any of the modes given are negative, solver assumes 1D solve and looks for config.dat\n";
     cerr << "        1 - 2nd O RK - Raulston's method\n";
     cerr << "        2 - 2nd O RK - Trapezoidal rule\n";
     cerr << "        3 - 3rd O RK - Simpson's 1/3rd rule\n";
@@ -75,6 +73,13 @@ int main(int argc, char* argv[])
   ss << argv[3];
   ss >> mode;
 
+  //set this flag to true if we want to hand
+  //specify mass, stiffness, forcing, etc. in the config file
+  //set this flag to false if using the Finite Element model
+  //this will look for config.dat in that case
+  bool specifiedMatrices = false;
+  if(mode <= 0) specifiedMatrices = true; mode = abs(mode);
+
   nsteps = (int)((double)tfinal/dt) + 1;
 
   //create forces object
@@ -84,13 +89,13 @@ int main(int argc, char* argv[])
   //parameters file, stores the mesh and case info
   SParam param;
 
-  bcs.Read();
-  bcs.SetParam(&param);
-
   if(specifiedMatrices){
     Read1DCase(&dof, nsteps, dt, &x, &xd, &xdd, &m, &c, &k, &forces);
   }
   else{
+    bcs.Read();
+    bcs.SetParam(&param);
+
     std::string fileName = "infile.msh";
     dof = param.ReadMesh(fileName, &forces);
     bool dynamic = true;
@@ -226,68 +231,71 @@ int main(int argc, char* argv[])
   //write solution
   WriteSolution(dof, nsteps, dt, x, xd, xdd);
 
-  //write solution in vtk format
-  double* temp = new double[param.nnodes*3];
-  std::string* varNames = new std::string[3];
-  varNames[0] = "PositionDx";
-  varNames[1] = "PositionDy";
-  varNames[2] = "PositionDz";
-  std::string casename;
-
-  //for visualizing movement
-  double* rxyz = new double[param.nnodes*3];
-
-#if 1
-  for(t = 0; t < nsteps; t++){
-    //load up solution array
-    jj = 0;
-    for(i = 0; i < param.nelem[0]; i++){
-      int ndofpn = param.elements[i].GetNodeDOF();
-      int ndof = param.elements[i].GetDxDOF();
-      for(j = 0; j < param.elements[i].GetNnodes(); j++){
-	int node = param.elements[i].nodes[j];
-	int offset = param.nodeOffsetsDOF[node] + ndof;
-	temp[jj*param.nnodes + node] = x[t*dof + offset];
+  return 1;
+  
+  //output solution through VTK, i.e. exaggerated
+  if(mode > 0 && !specifiedMatrices){
+    //write solution in vtk format
+    double* temp = new double[param.nnodes*3];
+    std::string* varNames = new std::string[3];
+    varNames[0] = "PositionDx";
+    varNames[1] = "PositionDy";
+    varNames[2] = "PositionDz";
+    std::string casename;
+    
+    //for visualizing movement
+    double* rxyz = new double[param.nnodes*3];
+    for(t = 0; t < nsteps; t++){
+      //load up solution array
+      jj = 0;
+      for(i = 0; i < param.nelem[0]; i++){
+	int ndofpn = param.elements[i].GetNodeDOF();
+	int ndof = param.elements[i].GetDxDOF();
+	for(j = 0; j < param.elements[i].GetNnodes(); j++){
+	  int node = param.elements[i].nodes[j];
+	  int offset = param.nodeOffsetsDOF[node] + ndof;
+	  temp[jj*param.nnodes + node] = x[t*dof + offset];
+	}
       }
-    }
-    jj = 1;
-    for(i = 0; i < param.nelem[0]; i++){
-      int ndofpn = param.elements[i].GetNodeDOF();
-      int ndof = param.elements[i].GetDyDOF();
-      for(j = 0; j < param.elements[i].GetNnodes(); j++){
-	int node = param.elements[i].nodes[j];
-	int offset = param.nodeOffsetsDOF[node] + ndof;
-	temp[jj*param.nnodes + node] = x[t*dof + offset];
+      jj = 1;
+      for(i = 0; i < param.nelem[0]; i++){
+	int ndofpn = param.elements[i].GetNodeDOF();
+	int ndof = param.elements[i].GetDyDOF();
+	for(j = 0; j < param.elements[i].GetNnodes(); j++){
+	  int node = param.elements[i].nodes[j];
+	  int offset = param.nodeOffsetsDOF[node] + ndof;
+	  temp[jj*param.nnodes + node] = x[t*dof + offset];
+	}
       }
-    }
-    jj = 2;
-    for(i = 0; i < param.nelem[0]; i++){
-      int ndofpn = param.elements[i].GetNodeDOF();
-      int ndof = param.elements[i].GetDzDOF();
-      for(j = 0; j < param.elements[i].GetNnodes(); j++){
-	int node = param.elements[i].nodes[j];
-	int offset = param.nodeOffsetsDOF[node] + ndof;
-	temp[jj*param.nnodes + node] = x[t*dof + offset];
+      jj = 2;
+      for(i = 0; i < param.nelem[0]; i++){
+	int ndofpn = param.elements[i].GetNodeDOF();
+	int ndof = param.elements[i].GetDzDOF();
+	for(j = 0; j < param.elements[i].GetNnodes(); j++){
+	  int node = param.elements[i].nodes[j];
+	  int offset = param.nodeOffsetsDOF[node] + ndof;
+	  temp[jj*param.nnodes + node] = x[t*dof + offset];
+	}
       }
+      //load up displacement array for viz
+      for(i = 0; i < param.nnodes; i++){
+	rxyz[i*3 + 0] = temp[0*param.nnodes + i];
+	rxyz[i*3 + 1] = temp[1*param.nnodes + i];
+	rxyz[i*3 + 2] = temp[2*param.nnodes + i];
+      }
+      double scale = 1.0e2;
+      param.MoveMesh(rxyz, rxyz, scale);
+      
+      ss.clear();
+      ss.str("");
+      ss << t;
+      casename = "sol." + ss.str();
+      WriteVTK_Ascii(casename, param.nelem, param.elements, param.nnodes, 
+		     rxyz, temp, 3, varNames);
     }
-    //load up displacement array for viz
-    for(i = 0; i < param.nnodes; i++){
-      rxyz[i*3 + 0] = temp[0*param.nnodes + i];
-      rxyz[i*3 + 1] = temp[1*param.nnodes + i];
-      rxyz[i*3 + 2] = temp[2*param.nnodes + i];
-    }
-    double scale = 1.0e2;
-    param.MoveMesh(rxyz, rxyz, scale);
-
-    ss.clear();
-    ss.str("");
-    ss << t;
-    casename = "sol." + ss.str();
-    WriteVTK_Ascii(casename, param.nelem, param.elements, param.nnodes, 
-		   rxyz, temp, 3, varNames);
+    delete [] temp;
   }
-#endif  
-
+ 
   delete [] m;
   delete [] diagm;
   delete [] c;
@@ -295,7 +303,6 @@ int main(int argc, char* argv[])
   delete [] x;
   delete [] xd;
   delete [] xdd;
-  delete [] temp;
 
   return 0;
 }

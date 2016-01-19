@@ -37,7 +37,11 @@ void SForces::Read()
   std::ifstream fin;
 
   fin.open(fileName.c_str());
-
+  if(!fin.is_open()){
+    std::cerr << "Could not open forces file " << fileName << std::endl;
+    return;
+  }
+  
   this->init = true;
 
   fin >> this->ndofForces;

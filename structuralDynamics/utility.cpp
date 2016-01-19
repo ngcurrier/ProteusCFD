@@ -217,6 +217,9 @@ void Read1DCase(int* dof_, int nsteps, double dt, double** x_, double** xd_,
   
   //open and read config file
   fin.open(filename.c_str());
+  if(!fin.is_open()){
+    std::cerr << "Could not open 1D file " << filename << std::endl;
+  }
   //throw away first line, it's instructions
   getline(fin, junk);
   fin >> (*dof_);

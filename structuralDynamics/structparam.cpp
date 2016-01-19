@@ -46,6 +46,10 @@ int SParam::ReadMesh(std::string fileName, SForces* forces)
 
   std::ifstream fin;
   fin.open(fileName.c_str());
+  if(!fin.is_open()){
+    std::cerr << "Could not open mesh file " << fileName << std::endl;
+    return 1;
+  }
   
   //read number of nodes
   fin >> this->nnodes;

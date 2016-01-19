@@ -39,7 +39,12 @@ void BC::Read()
   std::ifstream fin;
 
   fin.open(fileName.c_str());
-
+  if(!fin.is_open()){
+    std::cerr << "Could not open BC file " << fileName << std::endl;
+    return;
+  }
+		   
+  
   this->init = true;
 
   fin >> this->ndofbc;
