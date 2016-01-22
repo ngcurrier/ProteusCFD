@@ -11,6 +11,7 @@
 #include "forces.h"
 #include "bc.h"
 #include "io.h"
+#include "lapacke.h"
 
 using namespace std;
 using namespace STRUCTDYN;

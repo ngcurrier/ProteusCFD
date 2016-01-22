@@ -68,6 +68,7 @@ GTEST_INCLUDES = $(GTESTDIR)/include
 
 LAPACKDIR = ./TPLs/LAPACK/lapack-3.6.0/
 LAPACK_LIB = $(LAPACKDIR)
+LAPACK_INCLUDES = $(LAPACKDIR)/LAPACKE/include
 
 ifeq ($(TARGET),papertape)
      #this is for infiniband support on papertape
@@ -78,7 +79,7 @@ MPICXX = mpicxx
 
 INCLUDES = -I$(METIS_INCLUDES) -I$(HDF5_INCLUDES) -I$(TINYXML_INCLUDES) -I$(GTEST_INCLUDES)\
 	  -I./structuralDynamics -I./ucs
-LCXXFLAGS = -L$(HDF5_LIB) -L./structuralDynamics -L$(TINYXML_LIB) -L$(GTEST_LIB) -L./ucs
+LCXXFLAGS = -L$(HDF5_LIB) -L./structuralDynamics -L$(TINYXML_LIB) -L$(GTEST_LIB) -L$(LAPACK_LIB) -L./ucs
 LFXXFLAGS = 
 
 #LIBS = -lmetis -lgomp -lmpi_cxx -lmpi -lefence

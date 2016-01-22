@@ -174,6 +174,8 @@ cleanall:
 	$(MAKE) distclean;\
 	cd $$orig/$(TINYXMLDIR);\
 	$(MAKE) clean;\
+	cd $$orig/$(LAPACKDIR);\
+	$(MAKE) clean;\
 	rm $$orig/$(METISINSTALLDIR)/configRun;\
 	rm $$orig/$(HDF5INSTALLDIR)/configRun
 
