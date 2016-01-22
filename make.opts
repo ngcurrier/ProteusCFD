@@ -66,6 +66,9 @@ GTESTDIR = ./TPLs/gtest/gtest-1.7.0/
 GTEST_LIB = $(GTESTDIR)/lib/.libs
 GTEST_INCLUDES = $(GTESTDIR)/include
 
+LAPACKDIR = ./TPLs/LAPACK/lapack-3.6.0/
+LAPACK_LIB = $(LAPACKDIR)
+
 ifeq ($(TARGET),papertape)
      #this is for infiniband support on papertape
      CXX_OPTS += -xAVX

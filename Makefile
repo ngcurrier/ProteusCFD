@@ -86,8 +86,8 @@ $(EXE_PORTOPT): $(OBJS_PORTOPT)
 $(EXE_CHEMPROPS): $(DEPS_CHEMPROPS) $(OBJS_CHEMPROPS)
 	$(MPICXX) $(LINK_OPTS) -o $(EXE_CHEMPROPS) $(LCXXFLAGS) $(OBJS_CHEMPROPS) $(CXXLIBS)
 
-$(EXE_STRUCT_SOLVER): $(DEPS_STRUCT_SOLVER) $(OBJS_STRUCT_SOLVER) ./ucs/libcommon.a
-	$(MPICXX) -o $(EXE_STRUCT_SOLVER) $(LCXXFLAGS) $(OBJS_STRUCT_SOLVER) $(CXXLIBS)
+$(EXE_STRUCT_SOLVER): $(DEPS_STRUCT_SOLVER) $(OBJS_STRUCT_SOLVER) $(LAPACK_LIB)/liblapacke.a ./ucs/libcommon.a
+	$(MPICXX) -o $(EXE_STRUCT_SOLVER) $(LCXXFLAGS) $(OBJS_STRUCT_SOLVER) $(CXXLIBS) -llapacke
 
 $(EXE_STRUCT_ERROR): ./structuralDynamics/error.o ./ucs/libcommon.a
 	$(MPICXX) -o $(EXE_STRUCT_ERROR) $(LCXXFLAGS) ./structuralDynamics/error.o $(CXXLIBS)
@@ -103,7 +103,7 @@ all: $(EXE_SOLVER) $(EXE_DECOMP) $(EXE_RECOMP) $(EXE_FINDPOINT) $(EXE_TESTS)\
 
 tools: $(EXE_DECOMP) $(EXE_RECOMP) $(EXE_CHEMPROPS) $(EXE_FINDPOINT)
 
-./structuralDynamics/libstructdyn.a: $(DEPS_STRUCT_SOLVER) $(OBJS_STRUCT_SOLVER) 
+./structuralDynamics/libstructdyn.a: $(DEPS_STRUCT_SOLVER) $(OBJS_STRUCT_SOLVER)
 	ar rvs ./structuralDynamics/libstructdyn.a $(OBJS_STRUCT_SOLVER)
 
 ./ucs/libcommon.a: $(DEPS_COMMON) $(OBJS_COMMON)
@@ -133,6 +133,11 @@ $(GTEST_LIB)/.libs/libgtest.a:
 	cd $$PWD/$(GTESTDIR); \
 	./configure; \
 	$(MAKE)
+
+$(LAPACK_LIB)/liblapacke.a:
+	@orig=$$PWD
+	cd $$PWD/$(LAPACK_LIB);\
+	$(MAKE) lapackelib
 
 .cpp.o:
 	$(MPICXX) -c $< $(CXX_OPTS) $(INCLUDES) -o $@
