@@ -33,14 +33,22 @@ class MainWindow(QtGui.QMainWindow):
         self.treeWidget.setHeaderHidden(True)
         self.addItems(self.treeWidget.invisibleRootItem())
         self.treeWidget.itemChanged.connect (self.handleChanged)
-        self.tabs.addTab(self.treeWidget, "Tree")
+        self.tabs.addTab(self.treeWidget, "Physics Options")
 
-        #setup some dummy tabs
-        tab1 = QtGui.QWidget()
-        self.tabs.addTab(tab1, "tab1")
-        tab2 = QtGui.QWidget()
-        self.tabs.addTab(tab2, "tab2")
+        #setup solution control tab
+        SolutionControlTab = QtGui.QWidget()
+        self.tabs.addTab(SolutionControlTab, "Solution Control")
 
+        #setup boundary condition tab
+        BCTab = QtGui.QWidget()
+        self.tabs.addTab(BCTab, "Boundary Conditions")
+        addBCButton = QtGui.QPushButton('Add Boundary Condition', BCTab)
+        addBCButton.clicked.connect(self.BoundaryConditionPopup)
+        addBCButton.setToolTip('Add a new boundary condition')
+        addBCButton.resize(addBCButton.sizeHint())
+        addBCButton.move(10, 10)     
+        self.bcwindow = None
+        
         #draw the tabs
         self.tabs.show()
         
@@ -192,8 +200,27 @@ class MainWindow(QtGui.QMainWindow):
         filename = "proteusCFD.state"
         self.state = pickle.load(open(filename, "rb"))
         print self.state
-    
- 
+
+    def BoundaryConditionPopup(self):
+        print "Opening a new BC popup window..."
+        self.bcwindow = BCPopup()
+        self.bcwindow.setGeometry(QtCore.QRect(100, 100, 400, 200))
+        self.bcwindow.show()
+
+class BCPopup(QtGui.QWidget):
+    def __init__(self):
+        QtGui.QWidget.__init__(self)
+
+        self.bcList = QtGui.QComboBox(self)
+        self.bcList.addItems('one two three four'.split())
+        self.bcList.move(10,10)
+        #call method upon activation
+        self.bcList.activated[str].connect(self.bcListActivate)
+
+    def bcListActivate(self, text):
+        print 'Combo selection changed to ' + text
+        
+        
 if __name__ == "__main__":
  
     app = QtGui.QApplication(sys.argv)

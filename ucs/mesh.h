@@ -41,7 +41,7 @@
 #define SU2_PYRAMID 14
 
 //define the element types for the gmsh mesh format
-#define GMSH_LINE 1
+#define GMSH_LINE 1 
 #define GMSH_TRI 2
 #define GMSH_QUAD 3
 #define GMSH_TET 4

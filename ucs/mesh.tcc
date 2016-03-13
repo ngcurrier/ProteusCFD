@@ -3204,7 +3204,9 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
   std::string nodeKey = "Nodes";
   std::string elementKey = "Elements";
   
-
+  Int nodeCount = 0; //counts number of nodes read
+  Int npt = 0; //total number of nodes to read
+  
   Int state = stateReadNdim;
 
   fin.open(filename.c_str());
@@ -3223,42 +3225,80 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
     Int elemType = -1;
     Int physicalId = 0;
     Int elementaryId = 0;
-    Int junk = -999;
+    // first tag is the physical entity to which element belongs
+    // second tag is the elementary geometric entity
+    // third is the number of which partitions to which element belongs, followed by the partition ids (negative implies ghost cells)
+    // -- a zero tagis equivalent to no tag
+    Int numberOfTags = 0;
+    std::vector<double> nodes;
+    Int tnnodes;
+    Int ndim;
     switch(state)
       {
       case stateReadNdim:
+	ss >> ndim;
+	if(ndim != 3){
+	  std::cerr << "GMSH ASCII I/O: Number of dimensions required is 3. Received " << ndim << std::endl;
+	}
+	break;
+      case stateReadPoints:
+	for(Int ipt = 0; ipt < npt; ++ipt){
+	  Int ptid = 0;
+	  Real xyz[3];
+	  ss >> ptid;
+	  ss >> xyz[0];
+	  ss >> xyz[1];
+	  ss >> xyz[2];
+	  if(ptid != nodeCount){
+	    std::cerr << "GMSH ASCII I/O: Warning points not ordered. Dying." << std::endl;
+	  }
+	  xyz[nodeCount*3 + 0] = xyz[0];
+	  xyz[nodeCount*3 + 1] = xyz[1];
+	  xyz[nodeCount*3 + 2] = xyz[2];
+	  nodeCount++;
+	}
 	break;
       case stateReadNelem:
-	//format is elemId, elemType, ???, physicalId, elementaryId, <list of nodes>
+	//format is elemId, elemType, number of tags, <tags> (physicalId, elementaryId, ... ) <list of nodes>
 	ss >> elemId;
 	ss >> elemType;
-	ss >> junk;
-	ss >> physicalId;
-	ss >> elementaryId;
-	if(elemType == GMSH_LINE){
-
-	}
-	else if(elemType == GMSH_TRI){
-
-	}
-	else if(elemType == GMSH_QUAD){
-
-	}
-	else if(elemType == GMSH_TET){
-
-	}
-	else if(elemType == GMSH_HEX){
-
-	}
-	else if(elemType == GMSH_PRISM){
-
-
-	}
-	else if(elemType == GMSH_PYRAMID){
-
+	ss >> numberOfTags;
+	if(numberOfTags == 2){
+	  ss >> physicalId;
+	  ss >> elementaryId;
 	}
 	else{
-	  //write error we don't know what this is...
+	  std::cerr << "GMSH ASCII I/O: number of tags inconsistent. Require two. One physical and one elementary tag id per element." << std::endl;
+	}
+	if(elemType == GMSH_LINE){
+	  tnnodes = 2;
+	}
+	else if(elemType == GMSH_TRI){
+	  tnnodes = 3;
+	}
+	else if(elemType == GMSH_QUAD){
+	  tnnodes = 4;
+	}
+	else if(elemType == GMSH_TET){
+	  tnnodes = 4;
+	}
+	else if(elemType == GMSH_HEX){
+	  tnnodes = 8;
+	}
+	else if(elemType == GMSH_PRISM){
+	  tnnodes = 6;
+	}
+	else if(elemType == GMSH_PYRAMID){
+	  tnnodes = 5;
+	}
+	else{
+	  std::cerr << "GMSH ASCII I/O: Element type " << elemType << " not valid" << std::endl;
+	}
+	//read the nodes
+	for(int inode = 0; inode < tnnodes; ++inode){
+	  int nodei;
+	  ss >> nodei;
+	  nodes.push_back(nodei);
 	}
 	break;
       default:
