@@ -20,4 +20,13 @@
 #define HEX 5
 #define MAX_E_TYPES 6
 
+//define the element types for the gmsh mesh format
+#define GMSH_LINE 1 
+#define GMSH_TRI 2
+#define GMSH_QUAD 3
+#define GMSH_TET 4
+#define GMSH_HEX 5
+#define GMSH_PRISM 6
+#define GMSH_PYRAMID 7
+
 #endif

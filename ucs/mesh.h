@@ -31,24 +31,6 @@
 #include "oddsNends.h"
 #include "exceptions.h"
 
-//define the element types for the .su2 mesh format
-#define SU2_LINE 3
-#define SU2_TRI 5
-#define SU2_QUAD 9
-#define SU2_TET 10
-#define SU2_HEX 12
-#define SU2_PRISM 13
-#define SU2_PYRAMID 14
-
-//define the element types for the gmsh mesh format
-#define GMSH_LINE 1 
-#define GMSH_TRI 2
-#define GMSH_QUAD 3
-#define GMSH_TET 4
-#define GMSH_HEX 5
-#define GMSH_PRISM 6
-#define GMSH_PYRAMID 7
-
 void TranslateWinding(Int* nodes, Int translation[6][8], Int num_nodes, Int etype, Int to_other_format);
 
 //forward declarations
