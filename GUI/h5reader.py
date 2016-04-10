@@ -30,18 +30,69 @@ def loadHDF5File(filename):
     print 'Reading ' + str(int(nquad)) + ' quads'
     print 'Reading ' + str(int(ntet)) + ' tets'
     print 'Reading ' + str(int(ntri)) + ' triangles'
-    print 'Reading ' + str(int(nhex)) + ' nhexes'
+    print 'Reading ' + str(int(nhex)) + ' hexes'
 
-    elements = [tri(), quad(), hex()]
+    triCount = 0
+    quadCount = 0
+    tetCount = 0
+    pyramidCount = 0
+    prismCount = 0
+    hexCount = 0
 
-    for elm in elements:
-        print elm.getName()
-        print elm.nodes
+    elements = []
     
-    tri1 = tri()
-    print 'tri nodes: ' + str(tri1.getNnodes())
+    i = 0;
+    while i < len(elemData):
+        if elemData[i] == TRI:
+            i = i + 3 + 1
+            elements.append(Tri())
+            elements[-1].nodes = elemData[i+1:i+4]
+            triCount = triCount + 1
+            continue
+        elif elemData[i] == QUAD:
+            i = i + 4 +1
+            elements.append(Quad())
+            elements[-1].nodes = elemData[i+1:i+5]
+            quadCount = quadCount + 1
+            continue
+        elif elemData[i] == TET:
+            i = i + 4 +1
+            elements.append(Tet())
+            elements[-1].nodes = elemData[i+1:i+5]
+            tetCount = tetCount + 1
+            continue
+        elif elemData[i] == PYRAMID:
+            i = i + 5 + 1
+            elements.append(Pyramid())
+            elements[-1].nodes = elemData[i+1:i+6]
+            pyramidCount = pyramidCount + 1
+            continue
+        elif elemData[i] == PRISM:
+            i = i + 6 + 1
+            elements.append(Prism())
+            elements[-1].nodes = elemData[i+1:i+7]
+            prismCount = prismCount + 1
+            continue
+        elif elemData[i] == HEX:
+            i = i + 8 + 1
+            elements.append(Hex())
+            elements[-1].nodes = elemData[i+1:i+9]
+            hexCount = hexCount + 1
+            continue
+
+    print 'Found ' + str(triCount) + ' Tri'
+    print 'Found ' + str(quadCount) + ' Quad'
+    print 'Found: ' + str(tetCount) + ' Tet'
+    print 'Found: ' + str(pyramidCount) + ' Pyramid'
+    print 'Found: ' + str(prismCount) + ' Prism'
+    print 'Found: ' + str(hexCount) + ' Hex'
+
+    #for elm in elements:
+    #    print elm.getName()
+    #    print elm.nodes
     
-class elem():
+    
+class Elem():
     def __init__(self):
         self.nnodes = 0
         self.nodes = []
@@ -52,16 +103,15 @@ class elem():
     def getName(self):
         raise NotImplementedError
 
-class tri(elem):
+class Tri(Elem):
     def __init__(self):
         self.nnodes = 3
         self.nodes = [0,0,0]
 
     def getName(self):
         return 'tri'
-        
 
-class quad(elem):
+class Quad(Elem):
     def __init__(self):
         self.nnodes = 4;
         self.nodes = [0,0,0,0]
@@ -69,22 +119,22 @@ class quad(elem):
     def getName(self):
         return 'quad'
         
-class tet(elem):
+class Tet(Elem):
     def __init__(self):
         self.nnodes = 4
         self.nodes = [0,0,0,0]
 
-class pyramid(elem):
+class Pyramid(Elem):
     def __init__(self):
         self.nnodes = 5
         self.nodes = [0,0,0,0,0]
 
-class prism(elem):
+class Prism(Elem):
     def __init__(self):
         self.nnodes = 6
         self.nodes  = [0,0,0,0,0,0]
 
-class hex(elem):
+class Hex(Elem):
     def __init__(self):
         self.nnodes = 8
         self.nodes = [0,0,0,0,0,0,0,0]
