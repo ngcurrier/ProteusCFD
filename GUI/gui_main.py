@@ -3,6 +3,7 @@
 import sys
 import pickle # we use pickle to save run information, etc.
 import vtk
+import h5reader
 from PyQt4 import QtCore, QtGui
 from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
  
@@ -51,6 +52,9 @@ class MainWindow(QtGui.QMainWindow):
         
         #draw the tabs
         self.tabs.show()
+
+        self.caseName = 'bump'
+        self.mesh = h5reader.loadHDF5File(self.caseName)
         
         #Setup our menu and actions
         exitAction = QtGui.QAction('Exit', self)
@@ -86,28 +90,18 @@ class MainWindow(QtGui.QMainWindow):
         self.vtkWidget.GetRenderWindow().AddRenderer(self.ren)
         self.iren = self.vtkWidget.GetRenderWindow().GetInteractor()
 
-        #create the points
-        P0 = [0.0, 0.0, 0.0] 
-        P1 = [1.0, 0.0, 0.0]
-        P2 = [1.0, 1.0, 0.0]
-        P3 = [0.0, 1.0, 0.0]
-        P4 = [0.0, 0.0, 1.0]
-        P5 = [1.0, 0.0, 1.0]
-        P6 = [1.0, 1.0, 1.0]
-        P7 = [0.0, 1.0, 1.0]
-
-        # Create the points
+        # Create the points for VTK
         points = vtk.vtkPoints()
-        points.InsertNextPoint(P0)
-        points.InsertNextPoint(P1)
-        points.InsertNextPoint(P2)
-        points.InsertNextPoint(P3)
-        points.InsertNextPoint(P4)
-        points.InsertNextPoint(P5)
-        points.InsertNextPoint(P6)
-        points.InsertNextPoint(P7)
-        
-        #create a hex
+        for i in range(0, len(self.mesh.coords)/3):
+            p = self.mesh.coords[(i*3):(i*3+3)]
+            points.InsertNextPoint(p)
+
+        #create the elements for VTK
+        tri = vtk.vtkTriangle()
+        quad = vtk.vtkQuad()
+        tet = vtk.vtkTetra()
+        pyramid = vtk.vtkPyramid()
+        prism = vtk.vtkWedge()  #prism
         hex = vtk.vtkHexahedron()
         hex.GetPointIds().SetId(0,0)
         hex.GetPointIds().SetId(1,1)
@@ -117,11 +111,7 @@ class MainWindow(QtGui.QMainWindow):
         hex.GetPointIds().SetId(5,5)
         hex.GetPointIds().SetId(6,6)
         hex.GetPointIds().SetId(7,7)
-        
-        #create the cells and insert them
-        cells = vtk.vtkCellArray()
-        cells.InsertNextCell(hex)
-
+              
         #add the points and cells to unstructured grid
         grid = vtk.vtkUnstructuredGrid()
         grid.SetPoints(points)
@@ -139,8 +129,8 @@ class MainWindow(QtGui.QMainWindow):
 
         # Create source
         source = vtk.vtkSphereSource()
-        source.SetCenter(10, 0, 0)
-        source.SetRadius(5.0)
+        source.SetCenter(0, 0, 0)
+        source.SetRadius(0.05)
  
         # Create a mapper
         mapper2 = vtk.vtkPolyDataMapper()

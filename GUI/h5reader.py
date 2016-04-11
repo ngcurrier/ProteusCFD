@@ -11,27 +11,28 @@ PYRAMID = 3
 PRISM = 4
 HEX = 5
 
-def loadHDF5File(filename):
+#todo: glob all files with correct filename pattern for parallel read
+
+def loadHDF5File(casename):
+    filename = casename + '.0.h5'
     h5f = h5.File(filename, "r")
-    nelem = h5f['Global Number Of Elements'][:]
+
+    m = Mesh();
+
+    m.nelem = h5f['Global Number Of Elements'][:]
     elemData = h5f['Mesh/Element Data'][:]
-    factags = h5f['Mesh/Element Factags'][:]
-    coords = h5f['Mesh/Nodal Coordinates'][:]
+    m.nfactags = h5f['Mesh/Element Factags'][:]
+    m.coords = h5f['Mesh/Nodal Coordinates'][:]
 
-    nprism = h5f['Mesh/Number Of Prisms'][:]
-    npyramid = h5f['Mesh/Number Of Pyramids'][:]
-    nquad = h5f['Mesh/Number Of Quadrilaterals'][:]
-    ntet = h5f['Mesh/Number Of Tetrahedron'][:]
-    ntri = h5f['Mesh/Number Of Prisms'][:]
-    nhex = h5f['Mesh/Number Of Hexahedron'][:]
+    m.nprism = h5f['Mesh/Number Of Prisms'][:]
+    m.npyramid = h5f['Mesh/Number Of Pyramids'][:]
+    m.nquad = h5f['Mesh/Number Of Quadrilaterals'][:]
+    m.ntet = h5f['Mesh/Number Of Tetrahedron'][:]
+    m.ntri = h5f['Mesh/Number Of Prisms'][:]
+    m.nhex = h5f['Mesh/Number Of Hexahedron'][:]
     
-    print 'Reading ' + str(int(nprism)) + ' prisms'
-    print 'Reading ' + str(int(npyramid)) + ' pyramids'
-    print 'Reading ' + str(int(nquad)) + ' quads'
-    print 'Reading ' + str(int(ntet)) + ' tets'
-    print 'Reading ' + str(int(ntri)) + ' triangles'
-    print 'Reading ' + str(int(nhex)) + ' hexes'
-
+    m.printElemCounts()
+    
     triCount = 0
     quadCount = 0
     tetCount = 0
@@ -45,38 +46,38 @@ def loadHDF5File(filename):
     while i < len(elemData):
         if elemData[i] == TRI:
             i = i + 3 + 1
-            elements.append(Tri())
-            elements[-1].nodes = elemData[i+1:i+4]
+            m.elements.append(Tri())
+            m.elements[-1].nodes = elemData[i+1:i+4]
             triCount = triCount + 1
             continue
         elif elemData[i] == QUAD:
             i = i + 4 +1
-            elements.append(Quad())
-            elements[-1].nodes = elemData[i+1:i+5]
+            m.elements.append(Quad())
+            m.elements[-1].nodes = elemData[i+1:i+5]
             quadCount = quadCount + 1
             continue
         elif elemData[i] == TET:
             i = i + 4 +1
-            elements.append(Tet())
-            elements[-1].nodes = elemData[i+1:i+5]
+            m.elements.append(Tet())
+            m.elements[-1].nodes = elemData[i+1:i+5]
             tetCount = tetCount + 1
             continue
         elif elemData[i] == PYRAMID:
             i = i + 5 + 1
-            elements.append(Pyramid())
-            elements[-1].nodes = elemData[i+1:i+6]
+            m.elements.append(Pyramid())
+            m.elements[-1].nodes = elemData[i+1:i+6]
             pyramidCount = pyramidCount + 1
             continue
         elif elemData[i] == PRISM:
             i = i + 6 + 1
-            elements.append(Prism())
-            elements[-1].nodes = elemData[i+1:i+7]
+            m.elements.append(Prism())
+            m.elements[-1].nodes = elemData[i+1:i+7]
             prismCount = prismCount + 1
             continue
         elif elemData[i] == HEX:
             i = i + 8 + 1
-            elements.append(Hex())
-            elements[-1].nodes = elemData[i+1:i+9]
+            m.elements.append(Hex())
+            m.elements[-1].nodes = elemData[i+1:i+9]
             hexCount = hexCount + 1
             continue
 
@@ -90,8 +91,31 @@ def loadHDF5File(filename):
     #for elm in elements:
     #    print elm.getName()
     #    print elm.nodes
-    
-    
+    return m
+
+class Mesh():
+    def __init__(self):
+        self.nnodes = 0
+        self.nfactags = 0
+        self.nelem = 0
+        self.ntri = 0
+        self.nquad = 0
+        self.ntet = 0
+        self.npyramid = 0
+        self.nprism = 0
+        self.nhex = 0
+        self.elements = []
+        self.coords = []
+        
+    def printElemCounts(self):
+        print 'Reading ' + str(int(self.nprism)) + ' prisms'
+        print 'Reading ' + str(int(self.npyramid)) + ' pyramids'
+        print 'Reading ' + str(int(self.nquad)) + ' quads'
+        print 'Reading ' + str(int(self.ntet)) + ' tets'
+        print 'Reading ' + str(int(self.ntri)) + ' triangles'
+        print 'Reading ' + str(int(self.nhex)) + ' hexes'
+
+        
 class Elem():
     def __init__(self):
         self.nnodes = 0
@@ -143,7 +167,7 @@ class Hex(Elem):
         return 'hex'
         
 def main():
-    loadHDF5File("bump.0.h5")
+    loadHDF5File("bump")
     
 if __name__ == "__main__":
     main()
