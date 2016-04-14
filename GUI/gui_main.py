@@ -6,6 +6,7 @@ import vtk
 import h5reader
 from PyQt4 import QtCore, QtGui
 from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
+from defines import *
  
 class MainWindow(QtGui.QMainWindow):
  
@@ -96,27 +97,37 @@ class MainWindow(QtGui.QMainWindow):
             p = self.mesh.coords[(i*3):(i*3+3)]
             points.InsertNextPoint(p)
 
-        #create the elements for VTK
-        tri = vtk.vtkTriangle()
-        quad = vtk.vtkQuad()
-        tet = vtk.vtkTetra()
-        pyramid = vtk.vtkPyramid()
-        prism = vtk.vtkWedge()  #prism
-        hex = vtk.vtkHexahedron()
-        hex.GetPointIds().SetId(0,0)
-        hex.GetPointIds().SetId(1,1)
-        hex.GetPointIds().SetId(2,2)
-        hex.GetPointIds().SetId(3,3)
-        hex.GetPointIds().SetId(4,4)
-        hex.GetPointIds().SetId(5,5)
-        hex.GetPointIds().SetId(6,6)
-        hex.GetPointIds().SetId(7,7)
-              
         #add the points and cells to unstructured grid
         grid = vtk.vtkUnstructuredGrid()
         grid.SetPoints(points)
-        grid.InsertNextCell(hex.GetCellType(), hex.GetPointIds())
 
+        #add the VTK elements to the mesh
+        for i in range(0,self.mesh.nelem):
+            element = self.mesh.elements[i]
+            type = element.getType()
+            nodes = element.nodes
+            cell = vtk.vtkTriangle()
+            if type == eTypes.TRI:
+                cell = vtk.vtkTriangle()
+            elif type == eTypes.QUAD:
+                cell = vtk.vtkQuad()
+            elif type == eTypes.TET:
+                cell = vtk.vtkTetra()
+            elif type == eTypes.PYRAMID:
+                cell = vtk.vtkPyramid()
+            elif type == eTypes.PRISM:
+                cell = vtk.vtkWedge()  #prism
+            elif type == eTypes.HEX:
+                cell = vtk.vtkHexahedron()
+            else:
+                raise # throw an exception
+            j = 0
+            for n in nodes:
+                cell.GetPointIds().SetId(j,n)
+                j = j+1
+            grid.InsertNextCell(cell.GetCellType(), cell.GetPointIds())
+
+            
         #visualize the grid
         mapper = vtk.vtkDataSetMapper()
         mapper.SetInput(grid)
@@ -126,19 +137,6 @@ class MainWindow(QtGui.QMainWindow):
         # Create an actor
         self.vtkActorList.append(vtk.vtkActor())
         self.vtkActorList[0].SetMapper(mapper)
-
-        # Create source
-        source = vtk.vtkSphereSource()
-        source.SetCenter(0, 0, 0)
-        source.SetRadius(0.05)
- 
-        # Create a mapper
-        mapper2 = vtk.vtkPolyDataMapper()
-        mapper2.SetInputConnection(source.GetOutputPort())
- 
-        # Create an actor
-        self.vtkActorList.append(vtk.vtkActor())
-        self.vtkActorList[1].SetMapper(mapper2)
 
         for actor in self.vtkActorList:
             self.ren.AddActor(actor)

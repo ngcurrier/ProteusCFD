@@ -2,17 +2,11 @@
 
 import h5py as h5
 import numpy as np
-
-#define element types
-TRI = 0
-QUAD = 1
-TET = 2
-PYRAMID = 3
-PRISM = 4
-HEX = 5
+from defines import *
 
 #todo: glob all files with correct filename pattern for parallel read
 
+        
 def loadHDF5File(casename):
     filename = casename + '.0.h5'
     h5f = h5.File(filename, "r")
@@ -44,42 +38,44 @@ def loadHDF5File(casename):
     
     i = 0;
     while i < len(elemData):
-        if elemData[i] == TRI:
+        if elemData[i] == eTypes.TRI:
             i = i + 3 + 1
             m.elements.append(Tri())
             m.elements[-1].nodes = elemData[i+1:i+4]
             triCount = triCount + 1
             continue
-        elif elemData[i] == QUAD:
+        elif elemData[i] == eTypes.QUAD:
             i = i + 4 +1
             m.elements.append(Quad())
             m.elements[-1].nodes = elemData[i+1:i+5]
             quadCount = quadCount + 1
             continue
-        elif elemData[i] == TET:
+        elif elemData[i] == eTypes.TET:
             i = i + 4 +1
             m.elements.append(Tet())
             m.elements[-1].nodes = elemData[i+1:i+5]
             tetCount = tetCount + 1
             continue
-        elif elemData[i] == PYRAMID:
+        elif elemData[i] == eTypes.PYRAMID:
             i = i + 5 + 1
             m.elements.append(Pyramid())
             m.elements[-1].nodes = elemData[i+1:i+6]
             pyramidCount = pyramidCount + 1
             continue
-        elif elemData[i] == PRISM:
+        elif elemData[i] == eTypes.PRISM:
             i = i + 6 + 1
             m.elements.append(Prism())
             m.elements[-1].nodes = elemData[i+1:i+7]
             prismCount = prismCount + 1
             continue
-        elif elemData[i] == HEX:
+        elif elemData[i] == eTypes.HEX:
             i = i + 8 + 1
             m.elements.append(Hex())
             m.elements[-1].nodes = elemData[i+1:i+9]
             hexCount = hexCount + 1
             continue
+        else:
+            raise
 
     print 'Found ' + str(triCount) + ' Tri'
     print 'Found ' + str(quadCount) + ' Quad'
@@ -94,6 +90,7 @@ def loadHDF5File(casename):
     return m
 
 class Mesh():
+    
     def __init__(self):
         self.nnodes = 0
         self.nfactags = 0
@@ -127,6 +124,9 @@ class Elem():
     def getName(self):
         raise NotImplementedError
 
+    def getType(self):
+        raise NotImplementedError
+
 class Tri(Elem):
     def __init__(self):
         self.nnodes = 3
@@ -135,6 +135,9 @@ class Tri(Elem):
     def getName(self):
         return 'tri'
 
+    def getType(self):
+        return eTypes.TRI
+ 
 class Quad(Elem):
     def __init__(self):
         self.nnodes = 4;
@@ -143,20 +146,42 @@ class Quad(Elem):
     def getName(self):
         return 'quad'
         
+    def getType(self):
+        return eTypes.QUAD
+
 class Tet(Elem):
     def __init__(self):
         self.nnodes = 4
         self.nodes = [0,0,0,0]
+
+    def getName(self):
+        return 'tet'
+        
+    def getType(self):
+        return eTypes.TET
 
 class Pyramid(Elem):
     def __init__(self):
         self.nnodes = 5
         self.nodes = [0,0,0,0,0]
 
+    def getName(self):
+        return 'pyramid'
+        
+    def getType(self):
+        return eTypes.PYRAMID
+
 class Prism(Elem):
     def __init__(self):
         self.nnodes = 6
         self.nodes  = [0,0,0,0,0,0]
+
+    def getName(self):
+        return 'prism'
+    
+    def getType(self):
+        return eTypes.PRISM
+
 
 class Hex(Elem):
     def __init__(self):
@@ -166,6 +191,9 @@ class Hex(Elem):
     def getName(self):
         return 'hex'
         
+    def getType(self):
+        return eTypes.HEX
+
 def main():
     loadHDF5File("bump")
     
