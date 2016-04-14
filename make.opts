@@ -78,7 +78,7 @@ endif
 MPICXX = mpicxx
 
 INCLUDES = -I$(METIS_INCLUDES) -I$(HDF5_INCLUDES) -I$(TINYXML_INCLUDES) -I$(GTEST_INCLUDES)\
-	  -I./structuralDynamics -I./ucs
+	  -I$(LAPACK_INCLUDES) -I./structuralDynamics -I./ucs
 LCXXFLAGS = -L$(HDF5_LIB) -L./structuralDynamics -L$(TINYXML_LIB) -L$(GTEST_LIB) -L$(LAPACK_LIB) -L./ucs
 LFXXFLAGS = 
 

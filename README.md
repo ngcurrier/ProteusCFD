@@ -86,4 +86,4 @@ packages are required:
 
 * pyqt4 (Basis for all widgets and GUI framework)
 * vtk with python bindings (Framework for 3D visualization capability) - VTK must be built with the following enabled BUILD_SHARED_LIBS and VTK_WRAP_PYTHON 
-
+* h5py for reading partitioned mesh files
