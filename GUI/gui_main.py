@@ -3,17 +3,19 @@
 import sys
 import pickle # we use pickle to save run information, etc.
 import vtk
-import h5reader
+from guiData import *
 from PyQt4 import QtCore, QtGui
 from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 from defines import *
- 
+
+
 class MainWindow(QtGui.QMainWindow):
  
     def __init__(self, parent = None):
         QtGui.QMainWindow.__init__(self, parent)
 
         self.state = {"test", "stuff", "other"}
+        self.data = GuiData()
          
         self.frame = QtGui.QFrame()
         self.resize(1000,600)
@@ -54,9 +56,9 @@ class MainWindow(QtGui.QMainWindow):
         #draw the tabs
         self.tabs.show()
 
-        self.caseName = 'bump'
-        self.mesh = h5reader.loadHDF5File(self.caseName)
-        
+        self.data.loadMesh()
+        self.data.buildVTKGrid()
+                
         #Setup our menu and actions
         exitAction = QtGui.QAction('Exit', self)
         exitAction.setShortcut('Ctrl+Q')
@@ -91,46 +93,9 @@ class MainWindow(QtGui.QMainWindow):
         self.vtkWidget.GetRenderWindow().AddRenderer(self.ren)
         self.iren = self.vtkWidget.GetRenderWindow().GetInteractor()
 
-        # Create the points for VTK
-        points = vtk.vtkPoints()
-        for i in range(0, len(self.mesh.coords)/3):
-            p = self.mesh.coords[(i*3):(i*3+3)]
-            points.InsertNextPoint(p)
-
-        #add the points and cells to unstructured grid
-        grid = vtk.vtkUnstructuredGrid()
-        grid.SetPoints(points)
-
-        #add the VTK elements to the mesh
-        for i in range(0,self.mesh.nelem):
-            element = self.mesh.elements[i]
-            type = element.getType()
-            nodes = element.nodes
-            cell = vtk.vtkTriangle()
-            if type == eTypes.TRI:
-                cell = vtk.vtkTriangle()
-            elif type == eTypes.QUAD:
-                cell = vtk.vtkQuad()
-            elif type == eTypes.TET:
-                cell = vtk.vtkTetra()
-            elif type == eTypes.PYRAMID:
-                cell = vtk.vtkPyramid()
-            elif type == eTypes.PRISM:
-                cell = vtk.vtkWedge()  #prism
-            elif type == eTypes.HEX:
-                cell = vtk.vtkHexahedron()
-            else:
-                raise # throw an exception
-            j = 0
-            for n in nodes:
-                cell.GetPointIds().SetId(j,n)
-                j = j+1
-            grid.InsertNextCell(cell.GetCellType(), cell.GetPointIds())
-
-            
         #visualize the grid
         mapper = vtk.vtkDataSetMapper()
-        mapper.SetInput(grid)
+        mapper.SetInput(self.data.getVTKGrid())
 
         self.vtkActorList = []
         
@@ -191,12 +156,12 @@ class MainWindow(QtGui.QMainWindow):
 
     def BoundaryConditionPopup(self):
         print "Opening a new BC popup window..."
-        self.bcwindow = BCPopup()
+        self.bcwindow = BCPopup(self.data)
         self.bcwindow.setGeometry(QtCore.QRect(100, 100, 400, 200))
         self.bcwindow.show()
 
 class BCPopup(QtGui.QWidget):
-    def __init__(self):
+    def __init__(self, data):
         QtGui.QWidget.__init__(self)
 
         self.bcList = QtGui.QComboBox(self)

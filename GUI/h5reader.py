@@ -2,6 +2,7 @@
 
 import h5py as h5
 import numpy as np
+import vtk
 from defines import *
 
 #todo: glob all files with correct filename pattern for parallel read
@@ -112,7 +113,7 @@ class Mesh():
         print 'Reading ' + str(int(self.ntri)) + ' triangles'
         print 'Reading ' + str(int(self.nhex)) + ' hexes'
 
-        
+            
 class Elem():
     def __init__(self):
         self.nnodes = 0
