@@ -5,7 +5,7 @@ from defines import *
 class GuiData():
     def __init__(self):
         self.params = []
-        self.bcTypes = []
+        self.bcTypes = {"velocity", "pressure", "farfield", "symmetry"}
 
     def loadMesh(self):
         self.caseName = 'bump'

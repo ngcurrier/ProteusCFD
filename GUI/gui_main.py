@@ -115,6 +115,7 @@ class MainWindow(QtGui.QMainWindow):
         vendors_item = self.addParent(parent, column, 'Vendors', 'data Vendors')
         time_period_item = self.addParent(parent, column, 'Time Period', 'data Time Period')
 
+        
         self.addChild(clients_item, column, 'Type A', 'data Type A')
         self.addChild(clients_item, column, 'Type B', 'data Type B')
 
@@ -157,21 +158,64 @@ class MainWindow(QtGui.QMainWindow):
     def BoundaryConditionPopup(self):
         print "Opening a new BC popup window..."
         self.bcwindow = BCPopup(self.data)
-        self.bcwindow.setGeometry(QtCore.QRect(100, 100, 400, 200))
+        self.bcwindow.setGeometry(QtCore.QRect(100, 100, 600, 300))
         self.bcwindow.show()
 
 class BCPopup(QtGui.QWidget):
     def __init__(self, data):
         QtGui.QWidget.__init__(self)
+        self.numBCsSet = 3
+        self.bcIdSelected = 0
+        self.bcTypeSelected = 'NULL'
 
-        self.bcList = QtGui.QComboBox(self)
+        # setup layout
+        self.vl = QtGui.QGridLayout()
+        self.vl.setSpacing(10)
+        self.setLayout(self.vl)
+
+        # List of factags (i.e. BCs to set)
+        self.bcList = QtGui.QComboBox()
         self.bcList.addItems('one two three four'.split())
-        self.bcList.move(10,10)
-        #call method upon activation
         self.bcList.activated[str].connect(self.bcListActivate)
+        self.vl.addWidget(self.bcList,0,0)
+        
+        # List of bc types available
+        self.typeList = QtGui.QComboBox()
+        for type in data.bcTypes:
+            self.typeList.addItem(type)
+        self.typeList.activated[str].connect(self.bcTypeActivate)
+        self.vl.addWidget(self.typeList,1,0)
+
+        # List of current BCs set
+        bcCols = 4
+        bcRows = self.numBCsSet
+        self.bcTable = QtGui.QTableWidget()
+        self.bcTable.setRowCount(self.numBCsSet)
+        self.bcTable.setColumnCount(bcCols)
+        self.bcTable.resize(self.bcTable.sizeHint())
+        self.bcTable.setItem(1,0, QtGui.QTableWidgetItem('testing'))
+        self.bcTable.setHorizontalHeaderLabels(("BoundaryID; Factag; head3; Nickname").split(";"))
+        self.bcTable.show()
+        self.vl.addWidget(self.bcTable,2,1)
+
+
+        self.addBCButton = QtGui.QPushButton('Apply')
+        #addBCButton.clicked.connect()
+        self.addBCButton.setToolTip('Apply Boundary Condition')
+        self.addBCButton.resize(self.addBCButton.sizeHint())
+        self.addBCButton.setStyleSheet("background-color: #5BC85B")
+        self.vl.addWidget(self.addBCButton,3,1)
 
     def bcListActivate(self, text):
         print 'Combo selection changed to ' + text
+        self.bcIdSelected = text
+
+    def bcTypeActivate(self, text):
+        print 'Combo selection changed to ' + text
+        self.bcTypeSelected = text
+
+    def treeChanged(self, item, column):
+        print 'tree changed'
         
         
 if __name__ == "__main__":
