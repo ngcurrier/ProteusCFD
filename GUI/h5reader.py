@@ -7,6 +7,18 @@ from defines import *
 
 #todo: glob all files with correct filename pattern for parallel read
 
+def uniqify(seq): 
+   seen = {}
+   result = []
+   for i in range(0,len(seq)):
+       marker = int(seq[i])
+       # in old Python versions:
+       # if seen.has_key(marker)
+       # but in new ones:
+       if marker in seen: continue
+       seen[marker] = 1
+       result.append(int(seq[i]))
+   return result
         
 def loadHDF5File(casename):
     filename = casename + '.0.h5'
@@ -16,7 +28,8 @@ def loadHDF5File(casename):
 
     m.nelem = h5f['Global Number Of Elements'][:]
     elemData = h5f['Mesh/Element Data'][:]
-    m.nfactags = h5f['Mesh/Element Factags'][:]
+    m.nfactags = h5f['Number Of Factags'][:]
+    m.factags = h5f['Mesh/Element Factags'][:]
     m.coords = h5f['Mesh/Nodal Coordinates'][:]
 
     m.nprism = h5f['Mesh/Number Of Prisms'][:]
@@ -36,48 +49,65 @@ def loadHDF5File(casename):
     hexCount = 0
 
     elements = []
-    
+
     i = 0;
+    icell = 0;
     while i < len(elemData):
         if elemData[i] == eTypes.TRI:
             i = i + 3 + 1
             m.elements.append(Tri())
             m.elements[-1].nodes = elemData[i+1:i+4]
+            m.elements[-1].factag = m.factags[icell]
             triCount = triCount + 1
+            icell = icell + 1
             continue
         elif elemData[i] == eTypes.QUAD:
             i = i + 4 +1
             m.elements.append(Quad())
             m.elements[-1].nodes = elemData[i+1:i+5]
+            m.elements[-1].factag = m.factags[icell]
             quadCount = quadCount + 1
+            icell = icell + 1
             continue
         elif elemData[i] == eTypes.TET:
             i = i + 4 +1
             m.elements.append(Tet())
             m.elements[-1].nodes = elemData[i+1:i+5]
+            m.elements[-1].factag = m.factags[icell]
             tetCount = tetCount + 1
+            icell = icell + 1
             continue
         elif elemData[i] == eTypes.PYRAMID:
             i = i + 5 + 1
             m.elements.append(Pyramid())
             m.elements[-1].nodes = elemData[i+1:i+6]
+            m.elements[-1].factag = m.factags[icell]
             pyramidCount = pyramidCount + 1
+            icell = icell + 1
             continue
         elif elemData[i] == eTypes.PRISM:
             i = i + 6 + 1
             m.elements.append(Prism())
             m.elements[-1].nodes = elemData[i+1:i+7]
+            m.elements[-1].factag = m.factags[icell]
             prismCount = prismCount + 1
+            icell = icell + 1
             continue
         elif elemData[i] == eTypes.HEX:
             i = i + 8 + 1
             m.elements.append(Hex())
             m.elements[-1].nodes = elemData[i+1:i+9]
+            m.elements[-1].factag = m.factags[icell]
             hexCount = hexCount + 1
+            icell = icell + 1
             continue
         else:
             raise
 
+    print 'Unique element groups -- (+) boundaries, (-) volumes: ' + str(m.nfactags)
+    m.elementGroups = uniqify(m.factags);
+    print m.elementGroups
+    
     print 'Found ' + str(triCount) + ' Tri'
     print 'Found ' + str(quadCount) + ' Quad'
     print 'Found: ' + str(tetCount) + ' Tet'
@@ -104,6 +134,8 @@ class Mesh():
         self.nhex = 0
         self.elements = []
         self.coords = []
+        self.factags = []
+        self.elementGroups = []
         
     def printElemCounts(self):
         print 'Reading ' + str(int(self.nprism)) + ' prisms'
@@ -117,10 +149,14 @@ class Mesh():
 class Elem():
     def __init__(self):
         self.nnodes = 0
+        self.factag = -999
         self.nodes = []
 
     def getNnodes(self):
         return self.nnodes;
+
+    def getFactag(self):
+        return factag
 
     def getName(self):
         raise NotImplementedError

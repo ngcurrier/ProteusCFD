@@ -7,6 +7,7 @@ from guiData import *
 from PyQt4 import QtCore, QtGui
 from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 from defines import *
+import functools
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -16,6 +17,8 @@ class MainWindow(QtGui.QMainWindow):
 
         self.state = {"test", "stuff", "other"}
         self.data = GuiData()
+        #read the mesh
+        self.data.loadMesh("bump")
          
         self.frame = QtGui.QFrame()
         self.resize(1000,600)
@@ -50,15 +53,23 @@ class MainWindow(QtGui.QMainWindow):
         addBCButton.clicked.connect(self.BoundaryConditionPopup)
         addBCButton.setToolTip('Add a new boundary condition')
         addBCButton.resize(addBCButton.sizeHint())
-        addBCButton.move(10, 10)     
+        addBCButton.move(10, 10)
+        irow = 0
+        for tag in self.data.elemGroups:
+            if int(tag) >= 0:
+                checkViz = QtGui.QCheckBox('factag: ' + str(tag), BCTab)
+                checkViz.setChecked(True)
+            else:
+                checkViz = QtGui.QCheckBox('voltag: ' + str(tag), BCTab)
+                checkViz.setChecked(False) # hide volumes by default
+            checkViz.stateChanged.connect(functools.partial(self.visibilityChanged, int(irow), int(tag)))
+            checkViz.move(20, 40+25*irow)
+            irow = irow + 1
         self.bcwindow = None
         
         #draw the tabs
         self.tabs.show()
 
-        self.data.loadMesh()
-        self.data.buildVTKGrid()
-                
         #Setup our menu and actions
         exitAction = QtGui.QAction('Exit', self)
         exitAction.setShortcut('Ctrl+Q')
@@ -93,16 +104,19 @@ class MainWindow(QtGui.QMainWindow):
         self.vtkWidget.GetRenderWindow().AddRenderer(self.ren)
         self.iren = self.vtkWidget.GetRenderWindow().GetInteractor()
 
-        #visualize the grid
-        mapper = vtk.vtkDataSetMapper()
-        mapper.SetInput(self.data.getVTKGrid())
-
+        # Create actors based on grid parts
         self.vtkActorList = []
-        
-        # Create an actor
-        self.vtkActorList.append(vtk.vtkActor())
-        self.vtkActorList[0].SetMapper(mapper)
-
+        vtkgrids = self.data.buildVTKGrids()
+        itag = 0
+        for vtkgrid in vtkgrids:
+            mapper = vtk.vtkDataSetMapper()
+            mapper.SetInput(vtkgrid)
+            self.vtkActorList.append(vtk.vtkActor())
+            self.vtkActorList[-1].SetMapper(mapper)
+            if int(self.data.elemGroups[itag]) < 0:
+                self.vtkActorList[-1].VisibilityOff()
+            
+        #visualize the grid
         for actor in self.vtkActorList:
             self.ren.AddActor(actor)
 
@@ -141,10 +155,18 @@ class MainWindow(QtGui.QMainWindow):
     def handleChanged(self, item, column):
         if item.checkState(column) == QtCore.Qt.Checked:
             print "checked", item, item.text(column)
-            self.vtkActorList[0].VisibilityOn()
         if item.checkState(column) == QtCore.Qt.Unchecked:
             print "unchecked", item, item.text(column)
-            self.vtkActorList[0].VisibilityOff()
+    
+    def visibilityChanged(self, vtkGridPartId, factagId, state):
+        if state == QtCore.Qt.Checked:
+            self.vtkActorList[vtkGridPartId].VisibilityOn()
+            self.iren.Render()
+            print "visibility On for factag: ", factagId
+        else:
+            self.vtkActorList[vtkGridPartId].VisibilityOff()
+            self.iren.Render()
+            print "visibility Off for factag: ", factagId
 
     def save(self):
         filename = "proteusCFD.state"
@@ -164,7 +186,7 @@ class MainWindow(QtGui.QMainWindow):
 class BCPopup(QtGui.QWidget):
     def __init__(self, data):
         QtGui.QWidget.__init__(self)
-        self.numBCsSet = 3
+        self.numBCsSet = len(data.elemGroups)
         self.bcIdSelected = 0
         self.bcTypeSelected = 'NULL'
 
@@ -175,7 +197,8 @@ class BCPopup(QtGui.QWidget):
 
         # List of factags (i.e. BCs to set)
         self.bcList = QtGui.QComboBox()
-        self.bcList.addItems('one two three four'.split())
+        for tag in data.elemGroups:
+            self.bcList.addItem('factag: ' + str(tag))
         self.bcList.activated[str].connect(self.bcListActivate)
         self.vl.addWidget(self.bcList,0,0)
         
@@ -193,7 +216,11 @@ class BCPopup(QtGui.QWidget):
         self.bcTable.setRowCount(self.numBCsSet)
         self.bcTable.setColumnCount(bcCols)
         self.bcTable.resize(self.bcTable.sizeHint())
-        self.bcTable.setItem(1,0, QtGui.QTableWidgetItem('testing'))
+        irow = 0
+        for tag in data.elemGroups:
+            self.bcTable.setItem(irow,1, QtGui.QTableWidgetItem(str(tag)))
+            irow = irow + 1
+            
         self.bcTable.setHorizontalHeaderLabels(("BoundaryID; Factag; head3; Nickname").split(";"))
         self.bcTable.show()
         self.vl.addWidget(self.bcTable,2,1)
