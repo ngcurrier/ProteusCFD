@@ -88,9 +88,8 @@ class BCPopup(QtGui.QWidget):
         self.bcTable.show()
         self.vl.addWidget(self.bcTable,2,1)
 
-
         self.addBCButton = QtGui.QPushButton('Apply')
-        self.addBCButton.clicked.connect(self.creatBCObj)
+        self.addBCButton.clicked.connect(self.createBCObj)
         self.addBCButton.setToolTip('Apply Boundary Condition')
         self.addBCButton.resize(self.addBCButton.sizeHint())
         self.addBCButton.setStyleSheet("background-color: #5BC85B")
