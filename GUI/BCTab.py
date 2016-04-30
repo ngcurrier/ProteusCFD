@@ -8,12 +8,22 @@ class BCTab(QtGui.QWidget):
     # pass in the gui data object and a function to change visibility of vtk parts
     def __init__(self, data, visibilityChangeFunc):
         self.data = data
+        self.visibilityChangeFunc = visibilityChangeFunc
         super(BCTab, self).__init__()
         addBCButton = QtGui.QPushButton('Add Boundary Condition', self)
         addBCButton.clicked.connect(functools.partial(self.BoundaryConditionPopup, self.data))
         addBCButton.setToolTip('Add a new boundary condition')
         addBCButton.resize(addBCButton.sizeHint())
         addBCButton.move(10, 10)
+
+    def clearBCVizBoxes(self):
+        checkBoxes = self.findChildren(QtGui.QCheckBox)
+        for i in reversed(range(0, len(checkBoxes))): 
+            checkBoxes[i].setParent(None)
+        
+    def drawBCVizBoxes(self):
+        # Clear the old boxes if they exist
+        self.clearBCVizBoxes()
         # This loop assumes that the vtk parts are created in the same order as the factags
         irow = 0
         for tag in self.data.elemGroups:
@@ -23,7 +33,7 @@ class BCTab(QtGui.QWidget):
             else:
                 checkViz = QtGui.QCheckBox('voltag: ' + str(tag), self)
                 checkViz.setChecked(False) # hide volumes by default
-            checkViz.stateChanged.connect(functools.partial(visibilityChangeFunc, int(irow), int(tag)))
+            checkViz.stateChanged.connect(functools.partial(self.visibilityChangeFunc, int(irow), int(tag)))
             checkViz.move(20, 40+25*irow)
             irow = irow + 1
         self.bcwindow = None

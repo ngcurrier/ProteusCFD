@@ -18,8 +18,6 @@ class MainWindow(QtGui.QMainWindow):
 
         self.state = {"test", "stuff", "other"}
         self.data = GuiData()
-        #read the mesh
-        self.data.loadMesh("bump")
          
         self.frame = QtGui.QFrame()
         self.resize(1000,600)
@@ -68,12 +66,17 @@ class MainWindow(QtGui.QMainWindow):
         loadAction = QtGui.QAction('Load', self)
         loadAction.setStatusTip('Load config')
         loadAction.triggered.connect(self.load)
+
+        openFileAction = QtGui.QAction('Import', self)
+        openFileAction.setStatusTip('Import Grid')
+        openFileAction.triggered.connect(self.selectFile)
         
         self.menubar = self.menuBar()
         fileMenu = self.menubar.addMenu('&File')
         fileMenu.addAction(exitAction)
         fileMenu.addAction(saveAction)
         fileMenu.addAction(loadAction)
+        fileMenu.addAction(openFileAction)
         
         self.statusBar().showMessage('Waiting...')
         
@@ -88,6 +91,13 @@ class MainWindow(QtGui.QMainWindow):
         self.vtkWidget.GetRenderWindow().AddRenderer(self.ren)
         self.iren = self.vtkWidget.GetRenderWindow().GetInteractor()
 
+        #read the mesh
+        meshFile = "bump.0.h5"
+        parts = meshFile.split('.')
+        self.casename = parts[0]
+        self.data.loadMesh(self.casename)
+        BCTab1.drawBCVizBoxes()
+        
         # Create actors based on grid parts
         self.vtkActorList = []
         vtkgrids = self.data.buildVTKGrids()
@@ -163,6 +173,11 @@ class MainWindow(QtGui.QMainWindow):
         self.state = pickle.load(open(filename, "rb"))
         print self.state
 
+    def selectFile(self):
+        meshFile = QtGui.QFileDialog.getOpenFileName()
+        parts = meshFile.split('.')
+        self.casename = parts[0]
+        print 'Selected casename ' + self.casename
 
         
         

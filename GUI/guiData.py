@@ -6,6 +6,7 @@ class GuiData():
     def __init__(self):
         self.params = []
         self.bcTypes = {"velocity", "pressure", "farfield", "symmetry"}
+        self.elemGroups = []
 
     def loadMesh(self, casename):
         self.mesh = h5reader.loadHDF5File(casename)
