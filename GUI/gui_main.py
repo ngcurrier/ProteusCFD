@@ -9,6 +9,7 @@ from PyQt4 import QtCore, QtGui
 from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 from defines import *
 import functools
+import math
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -18,6 +19,7 @@ class MainWindow(QtGui.QMainWindow):
 
         self.state = {"test", "stuff", "other"}
         self.data = GuiData()
+        self.vtkActorList = []
          
         self.frame = QtGui.QFrame()
         self.resize(1000,600)
@@ -46,8 +48,8 @@ class MainWindow(QtGui.QMainWindow):
         self.tabs.addTab(SolutionControlTab, "Solution Control")
 
         #setup boundary condition tab
-        BCTab1 = BCTab(self.data, self.visibilityChanged)
-        self.tabs.addTab(BCTab1, "Boundary Conditions")
+        self.BCTab1 = BCTab(self.data, self.visibilityChanged)
+        self.tabs.addTab(self.BCTab1, "Boundary Conditions")
         
         #draw the tabs
         self.tabs.show()
@@ -90,32 +92,18 @@ class MainWindow(QtGui.QMainWindow):
 
         self.vtkWidget.GetRenderWindow().AddRenderer(self.ren)
         self.iren = self.vtkWidget.GetRenderWindow().GetInteractor()
+        self.iren.AddObserver("KeyPressEvent", self.keyPressVTK)
 
-        #read the mesh
-        meshFile = "bump.0.h5"
-        parts = meshFile.split('.')
-        self.casename = parts[0]
-        self.data.loadMesh(self.casename)
-        BCTab1.drawBCVizBoxes()
+        #create axes
+        axes = vtk.vtkAxesActor()
+        self.ren.AddActor(axes)
+        scale = vtk.vtkTransform()
+        scale.Scale(0.5, 0.5, 0.5)
+        axes.SetUserTransform(scale)
+        translate = vtk.vtkTransform()
+        translate.Translate(-0.5,-0.5,-0.5)
+        axes.SetUserTransform(translate)
         
-        # Create actors based on grid parts
-        self.vtkActorList = []
-        vtkgrids = self.data.buildVTKGrids()
-        itag = 0
-        for vtkgrid in vtkgrids:
-            mapper = vtk.vtkDataSetMapper()
-            mapper.SetInput(vtkgrid)
-            self.vtkActorList.append(vtk.vtkActor())
-            self.vtkActorList[-1].SetMapper(mapper)
-            # set visibility of volumes to false on startup
-            if int(self.data.elemGroups[itag]) < 0:
-                self.vtkActorList[-1].VisibilityOff()
-            itag = itag + 1
-            
-        #visualize the grid
-        for actor in self.vtkActorList:
-            self.ren.AddActor(actor)
-
         self.show()
         self.iren.Initialize()
 
@@ -174,17 +162,88 @@ class MainWindow(QtGui.QMainWindow):
         print self.state
 
     def selectFile(self):
-        meshFile = QtGui.QFileDialog.getOpenFileName()
-        parts = meshFile.split('.')
-        self.casename = parts[0]
+        meshFile = str(QtGui.QFileDialog.getOpenFileName())
+        input = meshFile.split('.')
+        parts = input[0].split('/')
+        self.casename = parts[-1]
+        parts = parts[0:-1]
+        path = "/"
+        for item in parts:
+            path = path + item + '/'
         print 'Selected casename ' + self.casename
+        print 'Case path ' + path
+        self.clearMesh()
+        self.readMesh(path, self.casename)
+        
+    # resets view for the camera to centered facing y
+    def resetCamera(self, direction):
+        self.ren.ResetCamera()
+        fp = self.ren.GetActiveCamera().GetFocalPoint()
+        p = self.ren.GetActiveCamera().GetPosition()
+        dist = math.sqrt( (p[0]-fp[0])**2 + (p[1]-fp[1])**2 + (p[2]-fp[2])**2 )
+        if direction == "z":
+            self.ren.GetActiveCamera().SetPosition(fp[0], fp[1], fp[2]+dist)
+            self.ren.GetActiveCamera().SetViewUp(0.0, 1.0, 0.0)
+        elif direction == "y":
+            self.ren.GetActiveCamera().SetPosition(fp[0], fp[1]+dist, fp[2])
+            self.ren.GetActiveCamera().SetViewUp(0.0, 0.0, 1.0)
+        elif direction == "x":
+            self.ren.GetActiveCamera().SetPosition(fp[0]+dist, fp[1], fp[2])
+            self.ren.GetActiveCamera().SetViewUp(0.0, 1.0, 0.0)
+        self.iren.Render()
+                    
+    def keyPressVTK(self, obj, event):
+        print "Key pressed " + str(obj.GetKeyCode()) + " " + str(obj.GetKeySym())
+        self.keyPressEvent(str(obj.GetKeyCode()))
 
+    def keyPressEvent(self, keyName):
+        if keyName == "x":
+            self.resetCamera("x")
+        elif keyName == "y":
+            self.resetCamera("y")
+        elif keyName == "z":
+            self.resetCamera("z")
+        elif keyName == "c":
+            self.clearMesh()
+
+    def clearMesh(self):
+        for part in self.vtkActorList:
+            self.ren.RemoveActor(part)
+        self.vtkActorList = []
+        self.data.clear()
+        self.iren.Render()
         
+        #update mesh visibility options
+        self.BCTab1.drawBCVizBoxes()
         
+    def readMesh(self, path, casename):
+        #read the mesh
+        self.data.loadMesh(path, casename)
+
+        # Create actors based on grid parts
+        self.vtkActorList = []
+        vtkgrids = self.data.buildVTKGrids()
+        itag = 0
+        for vtkgrid in vtkgrids:
+            mapper = vtk.vtkDataSetMapper()
+            mapper.SetInput(vtkgrid)
+            self.vtkActorList.append(vtk.vtkActor())
+            self.vtkActorList[-1].SetMapper(mapper)
+            # set visibility of volumes to false on startup
+            if int(self.data.elemGroups[itag]) < 0:
+                self.vtkActorList[-1].VisibilityOff()
+            itag = itag + 1
+            
+        #visualize the grid
+        for actor in self.vtkActorList:
+            self.ren.AddActor(actor)
+        self.iren.Render()
+        
+        #update mesh visibility options
+        self.BCTab1.drawBCVizBoxes()
+         
+            
 if __name__ == "__main__":
- 
     app = QtGui.QApplication(sys.argv)
- 
     window = MainWindow()
- 
     sys.exit(app.exec_())

@@ -90,7 +90,7 @@ class BCPopup(QtGui.QWidget):
 
 
         self.addBCButton = QtGui.QPushButton('Apply')
-        #addBCButton.clicked.connect()
+        self.addBCButton.clicked.connect(self.creatBCObj)
         self.addBCButton.setToolTip('Apply Boundary Condition')
         self.addBCButton.resize(self.addBCButton.sizeHint())
         self.addBCButton.setStyleSheet("background-color: #5BC85B")
@@ -106,3 +106,6 @@ class BCPopup(QtGui.QWidget):
 
     def treeChanged(self, item, column):
         print 'tree changed'
+
+    def createBCObj(self):
+        print 'Apply clicked'

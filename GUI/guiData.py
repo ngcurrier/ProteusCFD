@@ -8,9 +8,14 @@ class GuiData():
         self.bcTypes = {"velocity", "pressure", "farfield", "symmetry"}
         self.elemGroups = []
 
-    def loadMesh(self, casename):
-        self.mesh = h5reader.loadHDF5File(casename)
+    def loadMesh(self, path, casename):
+        self.mesh = h5reader.loadHDF5File(path, casename)
         self.elemGroups = self.mesh.elementGroups
+
+    #remove data contained re: mesh
+    def clear(self):
+        self.mesh = None
+        self.elemGroups = []
 
     #builds a set of vtk grid objects based on factag defined
     #element groups, i.e. boundaries and volumes

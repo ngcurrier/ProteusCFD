@@ -20,8 +20,8 @@ def uniqify(seq):
        result.append(int(seq[i]))
    return result
         
-def loadHDF5File(casename):
-    filename = casename + '.0.h5'
+def loadHDF5File(path, casename):
+    filename = path + casename + '.0.h5'
     h5f = h5.File(filename, "r")
 
     m = Mesh();
