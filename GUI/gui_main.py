@@ -26,7 +26,7 @@ class MainWindow(QtGui.QMainWindow):
         self.setWindowTitle('ProteusCFD')
         self.move(100,100)
 
-        self.vl = QtGui.QGridLayout()
+        self.vl = QtGui.QHBoxLayout()
         self.vl.setSpacing(10)
 
         self.frame.setLayout(self.vl)
@@ -34,7 +34,7 @@ class MainWindow(QtGui.QMainWindow):
 
         #create tabs dialog and add it to the layout
         self.tabs = QtGui.QTabWidget()
-        self.vl.addWidget(self.tabs,0,0)
+        self.vl.addWidget(self.tabs,1.0)
 
         #Setup our tree view
         self.treeWidget = QtGui.QTreeWidget()
@@ -84,10 +84,13 @@ class MainWindow(QtGui.QMainWindow):
         
         #Setup our vtk widget
         self.vtkWidget = QVTKRenderWindowInteractor(self.frame)
-        self.vl.addWidget(self.vtkWidget, 0, 300)
+        self.vl.addWidget(self.vtkWidget, 2.0)
 
+        #renderer inherits from vtkViewport so we have access to these members
         self.ren = vtk.vtkRenderer()
-        self.ren.SetBackground(.5,.8,.5)       
+        self.ren.SetBackground(0.5,0.5,0.5)
+        self.ren.SetBackground2(.5,.8,.5)
+        self.ren.GradientBackgroundOn()
         self.ren.ResetCamera()
 
         self.vtkWidget.GetRenderWindow().AddRenderer(self.ren)
