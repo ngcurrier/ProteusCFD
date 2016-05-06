@@ -2848,7 +2848,6 @@ Int Mesh<Type>::ReadSU2_Ascii(std::string filename)
   std::string line;
   Int ndim = 0;   //number of dimensions
   Int nnelem = 0;  //number of elements
-  Int nnodes = 0; //number of points
   Int nbound = 0; //number of boundaries
     
   Int elemCounter = 0; //counts number of elements read
@@ -2900,6 +2899,7 @@ Int Mesh<Type>::ReadSU2_Ascii(std::string filename)
   //NOTE: SU2 allows for comments with the % symbol
   fin.open(filename.c_str());
   if(!fin.is_open()){
+    std::cerr << "Could not open file " << filename << " in SU2 ASCII I/O" << std::endl;
     return(-1);
   }
 
@@ -2969,7 +2969,7 @@ Int Mesh<Type>::ReadSU2_Ascii(std::string filename)
 	  ss >> nodes[3];
 	  Int id;
 	  ss >> id;
-	  tempe = new Quadrilateral<Type>;
+	  tempe = new Tetrahedron<Type>;
 	  tempe->Init(nodes);
 	  elementList.push_back(tempe);
 	  nelem[TET]++;
@@ -3037,10 +3037,9 @@ Int Mesh<Type>::ReadSU2_Ascii(std::string filename)
 	}
 	else{
 	  ss.str(line.substr(loc+npoinKey.size()));
-	  ss >> nnodes;
-	  std::cout << "SU2 ASCII I/O: Reading " << nnodes << " nodes" << std::endl;
+	  ss >> nnode;
+	  std::cout << "SU2 ASCII I/O: Reading " << nnode << " nodes" << std::endl;
 	  state = stateReadPoints;
-	  nnode = nnodes;
 	  MemInitMesh();
 	  std::cout << "SU2 ASCII I/O: Memory initialized" << std::endl;
 	}
@@ -3059,7 +3058,7 @@ Int Mesh<Type>::ReadSU2_Ascii(std::string filename)
 	  xyz[nodeCount*3 + 2] = xyz[2];
 	  nodeCount++;
 	}
-	if(nodeCount >= nnodes){
+	if(nodeCount >= nnode){
 	  state = stateReadNmark;
 	}
 	break;
@@ -3180,132 +3179,235 @@ Int Mesh<Type>::ReadSU2_Ascii(std::string filename)
 template <class Type>
 Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
 {
+  Element<Type>* tempe = NULL;
   std::ifstream fin;
   std::string line;
 
   //states for our state machine reader
-  enum{
-    stateReadNdim,
-    stateReadNelem,
-    stateReadElem,
-    stateReadNpoints,
-    stateReadPoints,
-    stateReadNmark,
-    stateReadMarkerTag,
-    stateReadMarkerNelem,
-    stateReadMarkerElem,
-    stateExit,
+  enum s{
+    None, /* this state is looking for new sections*/
+    ReadMeshFormat,
+    ReadNpoints,
+    ReadPoints,
+    ReadNelem,
+    ReadElem,
+    ReadNphysicalNames,
+    ReadPhysicalNames,
+    Exit,
     NSTATES
   };
-
+  
   std::string versionTarget = "2.2";
-  std::string headerKey = "MeshFormat";
-  std::string physicalKey = "PhysicalNames";
-  std::string nodeKey = "Nodes";
-  std::string elementKey = "Elements";
-  
-  Int nodeCount = 0; //counts number of nodes read
-  Int npt = 0; //total number of nodes to read
-  
-  Int state = stateReadNdim;
 
+  std::map<std::string, int> stateMap;
+  stateMap["$MeshFormat"] = ReadMeshFormat;
+  stateMap["$EndMeshFormat"] = None;
+  stateMap["$Nodes"] = ReadNpoints;
+  stateMap["$EndNodes"] = None;
+  stateMap["$Elements"] = ReadNelem;
+  stateMap["$EndElements"] = None;
+  stateMap["$PhysicalNames"] = ReadNphysicalNames;
+  stateMap["$EndPhysicalNames"] = None;
+  stateMap["$NodeData"] = None; //ignore this
+  stateMap["$EndNodeData"] = None;
+  stateMap["$ElementData"] = None; //ignore this
+  stateMap["$EndElementData"] = None;
+  
+  Int state = None;
+  Int nodesRead = 0; //counter to keep track of how many nodes have been read
+  Int elemRead = 0;  //counter to keep track of how many elements have been read
+  Int totalElems = 0; //tracks total elements expected
+  
   fin.open(filename.c_str());
   if(!fin.is_open()){
+    std::cerr << "Could not open file " << filename << " in GMSH ASCII I/O" << std::endl;
     return(-1);
   }
+
+  std::cout << "GMSH ASCII I/O: Reading file --> " << filename << std::endl;
+
   //read each line one at a time, use a state machine to process data
   std::size_t loc;
   while(std::getline(fin, line)){
     if(line.size() == 0) continue; //skip blank lines
     if(line[0] == '%') continue; //skip comment lines
+    //this is a state change
+    if(line[0] == '$'){
+      std::map<std::string, int>::iterator it = stateMap.find(line);
+      if(it != stateMap.end()){
+	state = stateMap[line];
+      }
+    }
     std::stringstream ss;
     ss.str(line);
     //use our state machine to do cool stuff with the datas...
-    Int elemId = 0;
-    Int elemType = -1;
-    Int physicalId = 0;
-    Int elementaryId = 0;
-    // first tag is the physical entity to which element belongs
-    // second tag is the elementary geometric entity
-    // third is the number of which partitions to which element belongs, followed by the partition ids (negative implies ghost cells)
-    // -- a zero tagis equivalent to no tag
     Int numberOfTags = 0;
     std::vector<double> nodes;
-    Int tnnodes;
-    Int ndim;
+
     switch(state)
       {
-      case stateReadNdim:
-	ss >> ndim;
-	if(ndim != 3){
-	  std::cerr << "GMSH ASCII I/O: Number of dimensions required is 3. Received " << ndim << std::endl;
+      case None:
+	//this just skips the line read and moves on
+	break;
+      case ReadMeshFormat:
+	{
+	  Int ndim;
+	  ss >> ndim;
+	  if(ndim != 3){
+	    std::cerr << "GMSH ASCII I/O: Number of dimensions required is 3. Received " << ndim << std::endl;
+	  }
 	}
 	break;
-      case stateReadPoints:
-	for(Int ipt = 0; ipt < npt; ++ipt){
-	  Int ptid = 0;
-	  Real xyz[3];
+      case ReadNpoints:
+	ss >> nnode;
+	std::cout << "GMSH ASCII I/O: Number of points to read is " << nnode << std::endl;
+	MemInitMesh();
+	std::cout << "GMSH ASCII I/O: Memory initialized" << std::endl;
+	state = ReadPoints; //trip to next state for reading
+	break;
+      case ReadPoints:
+	{
+	  Int ptid;
 	  ss >> ptid;
-	  ss >> xyz[0];
-	  ss >> xyz[1];
-	  ss >> xyz[2];
-	  if(ptid != nodeCount){
+	  if(ptid != nodesRead){
 	    std::cerr << "GMSH ASCII I/O: Warning points not ordered. Dying." << std::endl;
 	  }
-	  xyz[nodeCount*3 + 0] = xyz[0];
-	  xyz[nodeCount*3 + 1] = xyz[1];
-	  xyz[nodeCount*3 + 2] = xyz[2];
-	  nodeCount++;
+	  ss >> xyz[nodesRead*3 + 0];
+	  ss >> xyz[nodesRead*3 + 1];
+	  ss >> xyz[nodesRead*3 + 2];
+	  nodesRead++;
 	}
 	break;
-      case stateReadNelem:
-	//format is elemId, elemType, number of tags, <tags> (physicalId, elementaryId, ... ) <list of nodes>
-	ss >> elemId;
-	ss >> elemType;
-	ss >> numberOfTags;
-	if(numberOfTags == 2){
-	  ss >> physicalId;
-	  ss >> elementaryId;
-	}
-	else{
-	  std::cerr << "GMSH ASCII I/O: number of tags inconsistent. Require two. One physical and one elementary tag id per element." << std::endl;
-	}
-	if(elemType == GMSH_LINE){
-	  tnnodes = 2;
-	}
-	else if(elemType == GMSH_TRI){
-	  tnnodes = 3;
-	}
-	else if(elemType == GMSH_QUAD){
-	  tnnodes = 4;
-	}
-	else if(elemType == GMSH_TET){
-	  tnnodes = 4;
-	}
-	else if(elemType == GMSH_HEX){
-	  tnnodes = 8;
-	}
-	else if(elemType == GMSH_PRISM){
-	  tnnodes = 6;
-	}
-	else if(elemType == GMSH_PYRAMID){
-	  tnnodes = 5;
-	}
-	else{
-	  std::cerr << "GMSH ASCII I/O: Element type " << elemType << " not valid" << std::endl;
-	}
-	//read the nodes
-	for(int inode = 0; inode < tnnodes; ++inode){
-	  int nodei;
-	  ss >> nodei;
-	  nodes.push_back(nodei);
+      case ReadNelem:
+	ss >> totalElems;
+	std::cout << "GMSH ASCII I/O: Number of elements to read is " << totalElems << std::endl;
+	state = ReadElem; //trip to next state for reading
+	break;
+      case ReadElem:
+	{
+	  Int elemId = 0;
+	  Int elemType = -1;
+	  Int physicalId = 0;
+	  Int elementaryId = 0;
+	  // * first tag is the physical entity to which element belongs
+	  // * second tag is the elementary geometric entity
+	  // * third is the number of which partitions to which element belongs,
+	  // * followed by the partition ids (negative implies ghost cells)
+	  //     -- a zero tag is equivalent to no tag
+	  // * format is elemId, elemType, number of tags, <tags> (physicalId, elementaryId, ... ) <list of nodes>
+	  ss >> elemId;
+	  ss >> elemType;
+	  ss >> numberOfTags;
+	  if(numberOfTags == 2){
+	    ss >> physicalId;
+	    ss >> elementaryId;
+	  }
+	  else{
+	    std::cerr << "GMSH ASCII I/O: number of tags inconsistent. Require two. One physical and one elementary tag id per element." << std::endl;
+	    return (-1);
+	  }
+	  if(elemType == GMSH_LINE){
+	    std::cerr << "SU2 ASCII I/O: Only 3d elements expected, found line";
+	    return (-1);
+	  }
+	  else if(elemType == GMSH_TRI){
+	    Int nodes[3];
+	    ss >> nodes[0];
+	    ss >> nodes[1];
+	    ss >> nodes[2];
+	    Int id;
+	    ss >> id;
+	    tempe = new Triangle<Type>;
+	    tempe->Init(nodes);
+	    tempe->SetFactag(elementaryId);
+	    elementList.push_back(tempe);
+	    nelem[TRI]++;
+	  }
+	  else if(elemType == GMSH_QUAD){
+	    Int nodes[4];
+	    ss >> nodes[0];
+	    ss >> nodes[1];
+	    ss >> nodes[2];
+	    ss >> nodes[3];
+	    Int id;
+	    ss >> id;
+	    tempe = new Quadrilateral<Type>;
+	    tempe->Init(nodes);
+	    tempe->SetFactag(elementaryId);
+	    elementList.push_back(tempe);
+	    nelem[QUAD]++;
+	  }
+	  else if(elemType == GMSH_TET){
+	    Int nodes[4];
+	    ss >> nodes[0];
+	    ss >> nodes[1];
+	    ss >> nodes[2];
+	    ss >> nodes[3];
+	    Int id;
+	    ss >> id;
+	    tempe = new Tetrahedron<Type>;
+	    tempe->Init(nodes);
+	    elementList.push_back(tempe);
+	    nelem[TET]++;
+	  }
+	  else if(elemType == GMSH_HEX){
+	    Int nodes[8];
+	    ss >> nodes[0];
+	    ss >> nodes[1];
+	    ss >> nodes[2];
+	    ss >> nodes[3];
+	    ss >> nodes[4];
+	    ss >> nodes[5];
+	    ss >> nodes[6];
+	    ss >> nodes[7];
+	    Int id;
+	    ss >> id;
+	    tempe = new Hexahedron<Type>;
+	    tempe->Init(nodes);
+	    elementList.push_back(tempe);
+	    nelem[HEX]++;
+	  }
+	  else if(elemType == GMSH_PRISM){
+	    Int nodes[6];
+	    ss >> nodes[0];
+	    ss >> nodes[1];
+	    ss >> nodes[2];
+	    ss >> nodes[3];
+	    ss >> nodes[4];
+	    ss >> nodes[5];
+	    Int id;
+	    ss >> id;
+	    tempe = new Prism<Type>;
+	    tempe->Init(nodes);
+	    elementList.push_back(tempe);
+	    nelem[PRISM]++;
+	  }
+	  else if(elemType == GMSH_PYRAMID){
+	    Int nodes[5];
+	    ss >> nodes[0];
+	    ss >> nodes[1];
+	    ss >> nodes[2];
+	    ss >> nodes[3];
+	    ss >> nodes[4];
+	    Int id;
+	    ss >> id;
+	    tempe = new Pyramid<Type>;
+	    tempe->Init(nodes);
+	    elementList.push_back(tempe);
+	    nelem[PYRAMID]++;
+	  }
+	  else{
+	    std::cerr << "GMSH ASCII I/O: Element type " << elemType << " not valid" << std::endl;
+	  }
 	}
 	break;
+	
       default:
 	break;
       }
   }
   fin.close();
+  return 0;
 }
 
 template <class Type>

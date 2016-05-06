@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <map>
 
 #include "geometry.h"
 #include "mem_util.h"

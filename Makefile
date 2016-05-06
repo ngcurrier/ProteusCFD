@@ -8,8 +8,12 @@ EXE_PORTOPT = ./bin/opt.x
 EXE_CHEMPROPS = ./bin/chemprops.x
 EXE_STRUCT_SOLVER = ./bin/csd.x
 EXE_STRUCT_ERROR = ./bin/esd.x
-
 EXE_TESTS = ./bin/tests.x
+
+# --------- BEGIN TEST SECTION
+SRCS_TEST = ./unitTest/main.cpp 
+OBJS_TEST = $(SRCS_TEST:.cpp=.o)
+DEPS_TEST = $(SRCS_TEST:.cpp=.d)
 
 # --------- BEGIN COMMON LIBRARY SECTION
 
@@ -62,7 +66,7 @@ OBJS_STRUCT_SOLVER = $(SRCS_STRUCT_SOLVER:.cpp=.o)
 DEPS_STRUCT_SOLVER = $(SRCS_STRUCT_SOLVER:.cpp=.d)
 
 SRCS_ALL = $(SRCS_SOLVER) ./ucs/decomp.cpp ./ucs/recomp.cpp ./ucs/mesh.cpp ./ucs/find_point.cpp $(CSRCS_PORTOPT)\
-	 $(SRCS_CHEMPROPS) $(SRCS_STRUCT_SOLVER) $(SRCS_COMMON)
+	 $(SRCS_CHEMPROPS) $(SRCS_STRUCT_SOLVER) $(SRCS_COMMON) $(SRCS_TEST)
 OBJS_ALL = $(SRCS_ALL:.cpp=.o)
 DEPS_ALL = $(SRCS_ALL:.cpp=.d)
 
@@ -92,8 +96,8 @@ $(EXE_STRUCT_SOLVER): $(DEPS_STRUCT_SOLVER) $(OBJS_STRUCT_SOLVER) $(LAPACK_LIB)/
 $(EXE_STRUCT_ERROR): ./structuralDynamics/error.o ./ucs/libcommon.a
 	$(MPICXX) -o $(EXE_STRUCT_ERROR) $(LCXXFLAGS) ./structuralDynamics/error.o $(CXXLIBS)
 
-$(EXE_TESTS): $(GTEST_LIB)/.libs/libgtest.a ./unitTest/main.o 
-	$(MPICXX) -o $(EXE_TESTS) $(LCXXFLAGS) ./unitTest/main.o $(CXXLIBS) $(GTEST_LIB)/libgtest.a
+$(EXE_TESTS): $(DEPS_TEST) $(OBJS_TEST) $(GTEST_LIB)/.libs/libgtest.a ./ucs/libcommon.a
+	$(MPICXX) $(LINK_OPTS) -o $(EXE_TESTS) $(LCXXFLAGS) $(OBJS_TEST) $(CXXLIBS) $(GTEST_LIB)/libgtest.a
 
 SRCDIRS = ./structuralDynamics ./ucs
 ROOT = $$PWD
@@ -154,6 +158,7 @@ clean:
 	rm $(EXE_SOLVER); \
 	rm $(EXE_DECOMP); \
 	rm $(EXE_RECOMP); \
+	rm $(DEPS_TEST); \
 	rm $(EXE_FINDPOINT); \
 	rm $(EXE_PORTOPT); \
 	rm $(EXE_CHEMPROPS); \
