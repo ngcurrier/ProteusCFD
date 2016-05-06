@@ -4,13 +4,13 @@ import sys
 import pickle # we use pickle to save run information, etc.
 import vtk
 from guiData import *
+from colors import colors
 from BCTab import BCTab
 from PyQt4 import QtCore, QtGui
 from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 from defines import *
 import functools
 import math
-
 
 class MainWindow(QtGui.QMainWindow):
  
@@ -227,11 +227,13 @@ class MainWindow(QtGui.QMainWindow):
         self.vtkActorList = []
         vtkgrids = self.data.buildVTKGrids()
         itag = 0
+        c = colors()
         for vtkgrid in vtkgrids:
             mapper = vtk.vtkDataSetMapper()
             mapper.SetInput(vtkgrid)
             self.vtkActorList.append(vtk.vtkActor())
             self.vtkActorList[-1].SetMapper(mapper)
+            self.vtkActorList[-1].GetProperty().SetColor(c.getNext())
             # set visibility of volumes to false on startup
             if int(self.data.elemGroups[itag]) < 0:
                 self.vtkActorList[-1].VisibilityOff()

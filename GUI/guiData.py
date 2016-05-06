@@ -23,16 +23,15 @@ class GuiData():
         grids = []
         for tag in self.mesh.elementGroups:
             grids.append(self.buildPartialVTKGrid(tag))
+        #grids.append(self.buildFullVTKGrid())
         return grids
         
     def getPointsWithFactag(self, factag):
         #loop over elements, add unique points to list
         seen = {}
         result = []
-        for element in self.mesh.elements:
+        for element in self.getElementsWithFactag(factag):
             nodes = element.nodes
-            efactag = element.factag
-            if factag != efactag: continue
             for node in nodes:
                 if int(node) in seen: continue
                 seen[int(node)] = 1
@@ -54,20 +53,16 @@ class GuiData():
 
         #create a lookup table so we can map the
         #cells from the global list to a local list
+        points = vtk.vtkPoints()
         localIdx = 0
         ptMap = {}
         for pt in pointsList:
             ptMap[int(pt)] = localIdx
             localIdx = localIdx + 1
+            p = self.mesh.coords[(pt*3):(pt*3+3)]
+            points.InsertNextPoint(p)
         
         vtkgrid = vtk.vtkUnstructuredGrid()
-
-        #create the points for VTK
-        points = vtk.vtkPoints()
-        for i in range(0, len(pointsList)):
-            ptid = pointsList[i]
-            p = self.mesh.coords[(ptid*3):(ptid*3+3)]
-            points.InsertNextPoint(p)
         vtkgrid.SetPoints(points)
 
         #get elements that have desired factag
@@ -77,7 +72,6 @@ class GuiData():
         for element in felements:
             type = element.getType()
             nodes = element.nodes
-            cell = vtk.vtkTriangle()
             if type == eTypes.TRI:
                 cell = vtk.vtkTriangle()
             elif type == eTypes.QUAD:
