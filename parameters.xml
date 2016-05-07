@@ -1,0 +1,184 @@
+<vectorDouble>
+  <keyword> flowDirection </keyword>
+  <variable> flowdir </variable>
+  <default> 1.0 0.0 0.0 </default>
+  <minimum> -1.0 </minimum>
+  <maximum> 1.0 </maximum>
+  <maxValues> 3 </maxValues>
+  <minValues> 3 </minValues>
+  <description>
+    Unit normal pointing in the direction of inflow.
+  </description>
+</vectorDouble>
+
+<vectorDouble>
+  <keyword> dragDirection </keyword>
+  <variable> dragdir </variable>
+  <default> 1.0 0.0 0.0 </default>
+  <minimum> -1.0 </minimum>
+  <maximum> 1.0 </maximum>
+  <maxValues> 3 </maxValues>
+  <minValues> 3 </minValues>
+  <description>
+    Unit normal pointing in the direction of drag computation.
+  </description>
+</vectorDouble>
+
+<vectorDouble>
+  <keyword> liftDirection </keyword>
+  <variable> liftdir </variable>
+  <default> 0.0 1.0 0.0 </default>
+  <minimum> -1.0 </minimum>
+  <maximum> 1.0 </maximum>
+  <maxValues> 3 </maxValues>
+  <minValues> 3 </minValues>
+  <description>
+    Unit normal pointing in the direction of lift computation.
+  </description>
+</vectorDouble>
+
+<vectorDouble>
+  <keyword> gravityDirection </keyword>
+  <variable> gravdir </variable>
+  <default> 0.0 0.0 -1.0 </default>
+  <minimum> -1.0 </minimum>
+  <maximum> 1.0 </maximum>
+  <maxValues> 3 </maxValues>
+  <minValues> 3 </minValues>
+  <description>
+    Unit normal pointing in the direction of gravity.
+  </description>
+</vectorDouble>
+
+<vectorDouble>
+  <keyword> massFractions </keyword>
+  <variable> massfractions </keyword>
+  <default> 1.0 </default>
+  <minimum> 0.0 </minimum>
+  <maximum> 1.0 </maximum>
+  <maxValues> 9999999 </maxValues>
+  <minValues> 1 </minValues>
+  <description>
+    Vector of mass fractions. Number of mass fractions given must be equal to number of species in simulation.
+  </description>
+</vectorDouble>
+
+<vectorDouble>
+  <keyword> sensorTarget </keyword>
+  <variable> sensTarget </keyword>
+  <default> 1.0 </default>
+  <minimum> 0.0 </minimum>
+  <maximum> 99999.0 </maximum>
+  <maxValues> 9999999 </maxValues>
+  <minValues> 1 </minValues>
+  <description>
+    List of target values for sensors in order of sensor definition. Used for sensor based objective function.
+  </description>
+</vectorDouble>
+
+<vectorString>
+  <keyword> fieldsRequested </keyword>
+  <variable> fieldsRequested </variable>
+  <default> variableQ </default>
+  <description>
+    List of variables requested to be written to output files for postprocessing.
+  </description>
+</vectorString>
+
+<enumList>
+</enumList>
+
+<doubleParam>
+  <item>
+  </item>
+</doubleParam>
+
+<boolParam>
+  <keyword> pseudoTimeStepping </keyword>
+  <variable> pseudotimestepping </variable>
+  <default> false </default>
+  <description>
+    Setting this value to true will turn on pseudo-timestepping. Useful in unsteady simulations in concert with large timesteps and a high number of Newton iterations.
+  </description>
+</boolParam>
+
+<boolParam>
+  <keyword> localTimeStepping </keyword>
+  <variable> useLocalTimeStepping </variable>
+  <default> true </default>
+  <description>
+    Setting this value to true will turn on local-timestepping. Allows each control volume to step in time according to a local CFL number. If running  unsteady, must also enable pseudoTimeStepping.
+  </description>
+</boolParam>
+
+<boolParam>
+  <keyword> higherOrderJacobians </keyword>
+  <variable> hojac </variable>
+  <default> false </default>
+  <description>
+    Enables second order Jacobian matrix contributions. Suggested value is false in nearly all cases.
+  </description>
+</boolParam>
+
+<boolParam>
+  <keyword> noCVBC </keyword>
+  <variable> no_cvbc </variable>
+  <default> false </default>
+  <description>
+    Setting value to true will result in using non-characteristic-variable boundary conditions. Recommended value is false.
+  </description>
+</boolParam>
+
+<boolParam>
+  <keyword> reorderMesh </keyword>
+  <variable> reorder </variable>
+  <default> true </default>
+  <description>
+    Setting to true allows for mesh reordering to occur. Results in matrix bandwidth reduction and performance increase in most cases.
+  </description>
+</boolParam>
+
+<boolParam>
+  <keyword> useRestart </keyword>
+  <variable> useRestart </variable>
+  <default> false </default>
+  <description>
+    Setting value to true results in solver looking for restart file and restarting from last run.
+  </description>
+</boolParam>
+
+<boolParam>
+  <keyword> preserveRestartCounters </keyword>
+  <variable> preserveRestartCounters </variable>
+  <default> true </default>
+  <description>
+    Setting to false will result in iteration counters being reset upon next restart.
+  </description>
+</boolParam>
+
+<boolParam>
+  <keyword> reactionsOn </keyword>
+  <variable> rxnOn </variable>
+  <default> true </default>
+  <description>
+    Setting to false will result in no chemical reactions occuring during flow solve.
+  </description>
+</boolParam>
+
+<boolParam>
+  <keyword> solutionTagStep </keyword>
+  <variable> solutionTagStep </keyword>
+  <default> false </default>
+  <description>
+    Setting to true will result in solution files being tagged with the timestep. If unsteady solution series is required this should be set to true.
+  </description>
+</boolParam>
+
+
+<intParam>
+
+</intParam>
+
+<stringParam>
+
+</stringParam>
