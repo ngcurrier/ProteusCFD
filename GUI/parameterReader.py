@@ -9,7 +9,13 @@ def readParameterDefinitions(filename):
     for node in root:
         print node.tag
         try:
-            print node.find('description').text
+            description = node.find('description').text
+            keyword = node.find('keyword').text
+            default = node.find('default').text
+            min = node.find('minimum').text
+            max = node.find('maximum').text
+            default = node.find('default').text
+            print keyword + '=' + default
         except:
             print 'no description'
             
