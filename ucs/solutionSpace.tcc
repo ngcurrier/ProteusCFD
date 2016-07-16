@@ -870,6 +870,14 @@ void SolutionSpace<Type>::PostTimeAdvance()
   //report cf, yp, qdot, cl, forces, etc.
   forces->Report();
 
+
+  //loop over all post processing plugins
+  for(typename std::vector<PostPlugin<Type>*>::iterator it =
+	postPlugins.begin(); it != postPlugins.end(); ++it){
+    (*it)->Compute();
+    (*it)->Report();
+  }
+  
   if(param->solutionWrite != 0){
     if(this->iter % param->solutionWrite == 0){
       WriteSolution();
@@ -949,6 +957,10 @@ void SolutionSpace<Type>::OpenOutFiles()
     }
   }
 
+  for(typename std::vector<PostPlugin<Type>*>::iterator it =
+	postPlugins.begin(); it != postPlugins.end(); ++it){
+    (*it)->WriteTabularHeader();
+  }
 
 }
 

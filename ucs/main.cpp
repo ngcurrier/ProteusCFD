@@ -169,12 +169,14 @@ int main(int argc, char* argv[]){
     }
   }
   //print out params after we have modified them as necessary
-  for(std::vector<Param<Real>*>::iterator it = paramList.begin(); it != paramList.end(); ++it){
+  for(std::vector<Param<Real>*>::iterator it = paramList.begin();
+      it != paramList.end(); ++it){
     (*it)->PrintSolverParams();
   }
   //setup solution space container
   vector<SolutionSpaceBase<Real>*> solSpaces;
-  for(std::vector<Param<Real>*>::iterator it = paramList.begin(); it != paramList.end(); ++it){
+  for(std::vector<Param<Real>*>::iterator it = paramList.begin();
+      it != paramList.end(); ++it){
     Param<Real>* param = *it;
     SolutionSpaceBase<Real>* solSpace;
     if(param->spacename == "structure"){

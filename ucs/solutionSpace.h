@@ -9,6 +9,7 @@
 #include "gradient.h"
 #include "temporalControl.h"
 #include "gaussian.h"
+#include "postPlugin.h"
 
 #include <string>
 #include <vector>
@@ -26,6 +27,7 @@ template <class Type> class TurbulenceModel;
 template <class Type> class SolutionField;
 template <class Type> class BoundaryConditions;
 template <class Type> class GaussianSource;
+template <class Type> class PostPlugin;
 
 //storage class for solution variables, eqnset type and mesh associated with a 
 //particular simulation region
@@ -97,7 +99,8 @@ public:
   CRS<Type>* crs;
   Gradient<Type>* grad;
   GaussianSource<Type>* gaussian;
-
+  std::vector<PostPlugin<Type>*> postPlugins;
+  
   //pointers for convenience
   Type* q;
   Type* qold;
