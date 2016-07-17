@@ -20,6 +20,7 @@
 #include <cmath>
 #include <vector>
 
+//this function handles implicit solution driving, inner and outer loops, and coupling
 template <class Type>
 void Solve(std::vector<SolutionSpaceBase<Type>*>& solSpaces, SolutionOrdering<Type>& solutionOperations)
 {
@@ -66,6 +67,9 @@ void Solve(std::vector<SolutionSpaceBase<Type>*>& solSpaces, SolutionOrdering<Ty
   return;
 }
 
+//this function handles explicit solution methodology only and contains special
+//logic for dealing with solution spaces that do not naturally use conservative
+//variables for storage/update - i.e. those that are preconditioned
 template <class Type>
 void ExplicitSolve(SolutionSpace<Type>& solSpace)
 {

@@ -164,6 +164,7 @@ void SolutionSpace<Type>::Init()
   //set status flags for boundary conditions
   SetBCStatFlags(m, bc);
 
+  //this logic is specific to error transport equations for error indicator
   if(param->viscous && param->errorTransport){
     DataInfo ETEViscData(eqnset->neqn, std::string("ETEVisc"));
     const std::vector<std::string>& names = eqnset->idata->GetNames();
@@ -366,6 +367,7 @@ void SolutionSpace<Type>::Init()
   return;
 }
 
+//add a field by name alone
 template <class Type>
 void SolutionSpace<Type>::AddField(std::string name)
 {
@@ -378,6 +380,7 @@ void SolutionSpace<Type>::AddField(std::string name)
   return;
 }
 
+//add a field with state information, a data descriptor, and location info
 template <class Type>
 void SolutionSpace<Type>::AddField(DataInfo dataInfo, Int stateType, Int varLocation)
 {
@@ -393,6 +396,7 @@ void SolutionSpace<Type>::AddField(DataInfo dataInfo, Int stateType, Int varLoca
   return;
 }
 
+//remove a field by name alone
 template <class Type>
 void SolutionSpace<Type>::RemoveField(std::string name)
 {
@@ -407,6 +411,7 @@ void SolutionSpace<Type>::RemoveField(std::string name)
   return;
 }
 
+//get a field by name alone
 template <class Type>
 SolutionField<Type> & SolutionSpace<Type>::GetField(std::string name)
 {
@@ -420,6 +425,7 @@ SolutionField<Type> & SolutionSpace<Type>::GetField(std::string name)
   return (**fields.begin());
 }
 
+//get a const field by name alone
 template <class Type>
 const SolutionField<Type> & SolutionSpace<Type>::GetField(std::string name) const
 {
@@ -434,6 +440,7 @@ const SolutionField<Type> & SolutionSpace<Type>::GetField(std::string name) cons
 }
 
 
+//get a field array by name and temporal state, returns a raw pointer
 template <class Type>
 Type* SolutionSpace<Type>::GetField(std::string name, Int state)
 {
@@ -447,6 +454,7 @@ Type* SolutionSpace<Type>::GetField(std::string name, Int state)
   return NULL;
 }
 
+//check if a field exists by name
 template <class Type>
 Bool SolutionSpace<Type>::CheckField(std::string name) const
 {
@@ -459,6 +467,7 @@ Bool SolutionSpace<Type>::CheckField(std::string name) const
   return false;
 }
 
+//writes a list of all available fields to output
 template <class Type>
 void SolutionSpace<Type>::WriteAvailableFields() const
 {
@@ -470,6 +479,7 @@ void SolutionSpace<Type>::WriteAvailableFields() const
   }
 }
 
+//function to validate fields requested from input parameters to be valid names on solution space
 template <class Type>
 void SolutionSpace<Type>::ValidateRequestedFields() const
 {
@@ -488,6 +498,7 @@ void SolutionSpace<Type>::ValidateRequestedFields() const
   }
 }
 
+//performs all solution space operations required prior to solution, called only once
 template <class Type>
 void SolutionSpace<Type>::PreIterate()
 {
@@ -549,6 +560,7 @@ void SolutionSpace<Type>::PreIterate()
   return;
 }
 
+//performs operations required prior to Newton iterations, once per timestep
 template <class Type>
 void SolutionSpace<Type>::PreTimeAdvance()
 {
@@ -607,6 +619,7 @@ void SolutionSpace<Type>::PreTimeAdvance()
   return;
 }
 
+//performs solution iteration, called multiple times per timestep
 template <class Type>
 void SolutionSpace<Type>::NewtonIterate()
 {
@@ -855,6 +868,7 @@ void SolutionSpace<Type>::NewtonIterate()
   return;
 }
 
+//performs operations required after Newton iterations, once per timestep
 template <class Type>
 void SolutionSpace<Type>::PostTimeAdvance()
 {
@@ -973,6 +987,7 @@ void SolutionSpace<Type>::CloseOutFiles()
   }
 }
 
+//initialize parallel compressed row storage for implicit solution
 template <class Type>
 void SolutionSpace<Type>::InitCRSSystem()
 {
@@ -1191,6 +1206,8 @@ void SolutionSpace<Type>::PrintTimers()
 }
 
 
+//copy constructor for solution space from one type (i.e. double) to another (i.e. complex)
+//used mostly for sensitivity derivative calculations
 template <class Type> template <class Type2>
 SolutionSpace<Type>::SolutionSpace(const SolutionSpace<Type2>& spaceToCopy) : 
   SolutionSpaceBase<Type>(spaceToCopy.name, spaceToCopy.temporalControl), turb(NULL), gaussian(NULL)

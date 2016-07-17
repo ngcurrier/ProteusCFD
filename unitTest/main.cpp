@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
+
+//list of all of the headers which define the tests
 #include "meshTest.h"
+#include "newtonTest.h"
 
 int main(int argc, char** argv)
 {

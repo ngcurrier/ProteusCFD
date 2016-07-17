@@ -207,7 +207,8 @@ int main(int argc, char* argv[]){
     Solve(solSpaces, operations);
     timers.StopTimer("SolveTimer");
   }
-  
+
+  //if mode is objective function evaluation
   if(mode == ObjectiveEval){
     SolutionSpace<Real>& space = *dynamic_cast<SolutionSpace<Real>*>(solSpaces[0]);
     Real ObjFunction = Compute_Obj_Function(space);
@@ -218,6 +219,7 @@ int main(int argc, char* argv[]){
     }
   }
 
+  //if mode is grid motion/smoothing
   if(mode == GridSmoothing){
     SolutionSpace<Real>& space = *dynamic_cast<SolutionSpace<Real>*>(solSpaces[0]);
     timers.StartTimer("MovementTimer");
@@ -228,6 +230,7 @@ int main(int argc, char* argv[]){
     space.m->WriteParallelMesh(space.param->path+space.param->spacename);
   }
 
+  //if mode is mesh sensitivity derivatives
   if(mode == MeshSensitivity){
     SolutionSpace<Real>& space = *dynamic_cast<SolutionSpace<Real>*>(solSpaces[0]);
     timers.StartTimer("MovementTimer");
@@ -240,6 +243,7 @@ int main(int argc, char* argv[]){
   std::cout.setf(std::ios::scientific);
   std::cout.precision(16);
 
+  //if mode is any of the solution sensitivity functionality 
   if(mode == Direct || mode == Adjoint || mode == CTSE || mode == FiniteDifference){
     SolutionSpace<Real>& space = *dynamic_cast<SolutionSpace<Real>*>(solSpaces[0]);
     Param<Real>* param = space.param;
@@ -267,6 +271,8 @@ int main(int argc, char* argv[]){
     //  }
     //}
   }
+
+  //if mode is direct solution sensitivity
   if(mode == Direct){
     SolutionSpace<Real>& space = *dynamic_cast<SolutionSpace<Real>*>(solSpaces[0]);
     for(Int beta = 0; beta < ndv; beta++){
@@ -279,7 +285,8 @@ int main(int argc, char* argv[]){
       cout << "dI/dBeta_direct[" << beta << "]: " << dObjdBeta[beta] << endl;
     }
   }
-    
+
+  //if mode is adjoint sensitivity
   if(mode == Adjoint){
     SolutionSpace<Real>& space = *dynamic_cast<SolutionSpace<Real>*>(solSpaces[0]);
     //adjoint
@@ -296,7 +303,8 @@ int main(int argc, char* argv[]){
       cout << "dI/dBeta_Adjoint[" << beta << "]: " << dObjdBeta[beta] << endl;
     }
   }
-  
+
+  //if mode is complex taylor series expansion sensitivity
   if(mode == CTSE){
     SolutionSpace<Real>& space = *dynamic_cast<SolutionSpace<Real>*>(solSpaces[0]);
     //complex differencing
@@ -310,7 +318,8 @@ int main(int argc, char* argv[]){
       cout << "dI/dBeta_CTSE[" << beta << "]: " << dObjdBeta[beta] << endl;
     }
   }
-  
+
+  //if mode is finit difference sensitivity
   if(mode == FiniteDifference){
     Real h = 1.0e-8;
     SolutionSpace<Real>& space = *dynamic_cast<SolutionSpace<Real>*>(solSpaces[0]);
@@ -374,7 +383,8 @@ int main(int argc, char* argv[]){
     delete [] x;
     delete [] grad;
   }
-  
+
+  //if any of the sensitivity modes, write output to file
   if(mode == Direct || mode == Adjoint || mode == CTSE || mode == FiniteDifference){
     SolutionSpace<Real>& space = *dynamic_cast<SolutionSpace<Real>*>(solSpaces[0]);
     timers.StopTimer("DesignTimer");
@@ -399,6 +409,7 @@ int main(int argc, char* argv[]){
   //print all timers
   timers.PrintAllTimers(std::cout);
 
+  //this is to clean up our solution spaces, etc.
   for(std::vector<SolutionSpaceBase<Real>*>::iterator it = solSpaces.begin(); it != solSpaces.end(); ++it){
     SolutionSpaceBase<Real>* space = *it;
     space->PrintTimers();
