@@ -38,8 +38,6 @@ Forces<Type>::Forces(SolutionSpace<Type>* space)
   //we need to push these back on the scalar fields for typical section analysis
   space->AddScalarField("CL");
   space->AddScalarField("CM");
-
-  return;
 }
 
 template <class Type>
@@ -47,7 +45,7 @@ Forces<Type>::~Forces()
 {
   fout.close();
   KillForcesMemory();
-  return;
+
 }
 
 
@@ -56,8 +54,6 @@ void Forces<Type>::Report()
 {
   ReportCl();
   ReportYpCf();
-
-  return;
 }
 
 template <class Type>
@@ -114,8 +110,6 @@ void Forces<Type>::ReportCl()
 	   << bodies[i].cd << std::endl;
     } 
   }
-
-  return;
 }
 
 
@@ -193,8 +187,6 @@ void FORCE_Kernel(B_KERNEL_ARGS)
       }
     }
   }
-  
-  return;
 }
 
 template <class Type>
@@ -258,8 +250,6 @@ void ComputeSurfaceAreas(SolutionSpace<Type>* space, Int verbosity)
     }
     std::cout << std::endl;
   }
-
-  return;
 }
 
 template <class Type>
@@ -317,8 +307,6 @@ void Forces<Type>::Compute()
   //assume that the first body defined is what we are interested in
   space->GetScalarField("CL").SetField(bodies[1].cl);
   space->GetScalarField("CM").SetField(bodies[1].cm);
-
-  return;
 }
 
 template <class Type>
@@ -367,9 +355,6 @@ void Forces<Type>::ComputeCl()
     //positive cm pitches the airfoil nose up
     bodies[i].cm = -moment / (0.5 * rho * Ma*Ma * amag * 1.0);
   } 
-
-
-  return;
 }
 
 template <class Type>
@@ -416,8 +401,6 @@ void Forces<Type>::ComputeYpCf()
   //call driver to loop over boundaries for accumulation of yplus, cf, qdot, etc.
   Kernel<Type> YpCf(YpCf_Kernel);
   BdriverNoScatter(space, YpCf, 0, NULL);
-
-  return;
 }
 
 template <class Type>
@@ -485,8 +468,6 @@ void YpCf_Kernel(B_KERNEL_ARGS)
     forces->yp[eid] = d*sqrt(tauw/rho)/nu*eqnset->GetRe();
     forces->cf[eid] = eqnset->GetCf(tauw, rho);
   }
-
-  return;
 }
 
 template <class Type>
@@ -547,48 +528,6 @@ void Forces<Type>::ReportYpCf()
     fout << "Min Y+: " << minYp << std::endl;
   }
 
-
-  return;
-}
-
-template <class Type>
-void Forces<Type>::DiscreteSurfaceForces(Int* nodelist, Int npts, double* forces)
-{
-  Int i, j;
-  Int indx, indx1, indx2;
-  Int node, bedge;
-  Type* avec;
-
-  EqnSet<Type>* eqnset = space->eqnset;
-  Mesh<Type>* m = space->m;
-
-  Int neqn = eqnset->neqn;
-  Int nvars = neqn + eqnset->nauxvars;
-  Int left_cv, right_cv;
-  
-  MemBlank(forces, npts*3);
-
-  for(i = 0; i < npts; i++){
-    node = nodelist[i];
-    left_cv = node;
-    //get the boundary edges surrounding the point on the wetted surface
-    indx1 = m->ibesp[node];
-    indx2 = m->ibesp[node+1];
-    for(indx = indx1; indx < indx2; indx++){
-      bedge = m->besp[indx];
-      right_cv = m->bedges[bedge].n[1];
-      avec = m->bedges[bedge].a;
-      Type* Qsurf = &space->q[left_cv*nvars];
-      Type* QR = &space->q[right_cv*nvars]; 
-      Type p = eqnset->GetPressure(Qsurf);
-      //add forces to temp vector of appropriate boundary object
-      for(j = 0; j < 3; j++){
-	forces[i*3 + j] = real(p*avec[j]*avec[3]);
-      }
-    }
-  }
-  
-  return;
 }
 
 template <class Type>
@@ -612,7 +551,6 @@ void Forces<Type>::AllocateForcesMemory(Int num_bcs, Int num_bodies)
 	       << std::endl;
   }
   forcesAlloc = 1;
-  return;
 }
 
 template <class Type>

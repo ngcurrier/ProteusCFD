@@ -10,6 +10,7 @@
 #include "temporalControl.h"
 #include "gaussian.h"
 #include "postPlugin.h"
+#include "exceptions.h"
 
 #include <string>
 #include <vector>
@@ -42,7 +43,8 @@ public:
   ~SolutionSpace();
   
   //all the internals of the class - forces, eqnset, etc. are built in here for modularity
-  //this is essential b/c our copy constructor relies on it
+  //this is essential b/c our copy constructor relies on it when copying from double to complex
+  //and back again
   void Init();
 
   void AddField(DataInfo dataInfo, Int stateType, Int varLocation);
@@ -69,6 +71,9 @@ public:
   //work to advance in time, copy down solution vars, compute forces, etc.
   void PostTimeAdvance();
 
+  //returns a pointer to a plugin with a given name
+  PostPlugin<Type>* GetPlugin(std::string pluginName);
+  
   //refreshes any internal data which may depend on a change in parameters
   void RefreshForParam();
 

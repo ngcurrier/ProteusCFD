@@ -30,10 +30,6 @@ public:
   void ReportCl();
   void ReportYpCf();
 
-  //returns a list of three vectors for the forces at each node in nodelist
-  //nodes in nodelist are assumed to lie on a surface, used for FSI
-  void DiscreteSurfaceForces(Int* nodelist, Int npts, double* forces);
-
   void AllocateForcesMemory(Int num_bcs, Int num_bodies);
   void KillForcesMemory();
 

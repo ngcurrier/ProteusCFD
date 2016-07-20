@@ -17,6 +17,7 @@
 #include "exceptions.h"
 #include "customics.h"
 #include "gaussian.h"
+#include "postForce.h"
 #include <sstream>
 #include <fstream>
 #include <iostream>
@@ -364,7 +365,9 @@ void SolutionSpace<Type>::Init()
   if(param->gaussianSource){
     gaussian->ApplyToResidual();
   }
-  return;
+
+  //add in the plugins
+  postPlugins.push_back(new PostForcePlugin<Type>(*this));
 }
 
 //add a field by name alone
@@ -914,9 +917,22 @@ void SolutionSpace<Type>::PostTimeAdvance()
   }
 
   this->iter++;
-
-  return;
 }
+
+//returns a plugin pointer given a particular name
+template <class Type>
+PostPlugin<Type>* SolutionSpace<Type>::GetPlugin(std::string pluginName)
+{
+  //loop over all post processing plugins
+  for(typename std::vector<PostPlugin<Type>*>::iterator it =
+	postPlugins.begin(); it != postPlugins.end(); ++it){
+    if ((*it)->isName(pluginName)) return (*it);
+  }
+  std::stringstream ss;
+  ss << "Could not find plugin of name: " << pluginName << "\n";
+  throw std::runtime_error(ss.str());
+}
+
 
 template <class Type>
 void SolutionSpace<Type>::RefreshForParam()

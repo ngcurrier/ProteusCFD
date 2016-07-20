@@ -5,6 +5,7 @@
 #include "kernel.h"
 #include "driver.h"
 #include "solutionSpace.h"
+#include <string>
 
 //post plugin defines a virtual interface class for
 //post-processing simulation results
@@ -12,14 +13,21 @@ template <class Type>
 class PostPlugin
 {
  public:
-  PostPlugin(SolutionSpace<Type>& space);
-  virtual ~PostPlugin();
+  PostPlugin(SolutionSpace<Type>& space, std::string name);
+  virtual ~PostPlugin(){};
+
+  //these are pure virtuals, must be defined as inherited
   virtual void Compute() = 0;
   virtual void WriteTabularHeader() = 0;
   virtual void Report() const = 0;
+
+  //these are default implementations (utilities)
+  std::string getName() const {return name;};
+  Bool isName(std::string name__) const {return (name__ == name);};
   
  protected:
   SolutionSpace<Type>& space;
+  std::string name;
 };
 
 // post surface integral is a derived class of post plugin
@@ -29,14 +37,14 @@ template <class Type>
 class PostSurfaceIntegral : public PostPlugin<Type>
 {
 public:
-  PostSurfaceIntegral(SolutionSpace<Type>& space);
-  virtual ~PostSurfaceIntegral();
+  PostSurfaceIntegral(SolutionSpace<Type>& space, std::string name, void(*bkernel)(B_KERNEL_ARGS));
+  virtual ~PostSurfaceIntegral(){};
   virtual void Compute();
   virtual void WriteTabularHeader() = 0;
   virtual void Report() const = 0; 
-private:
+protected:
   //this is the kernel where the core of the work happens for the plugin
-  void myBoundaryKernel(B_KERNEL_ARGS) = 0;
+  Kernel<Type> myKernel;
 };
 
 // post volume integral is a derived class of post plugin
@@ -46,13 +54,14 @@ template <class Type>
 class PostVolumeIntegral : public PostPlugin<Type>
 {
 public:
-  PostVolumeIntegral(SolutionSpace<Type>& space);
+  PostVolumeIntegral(SolutionSpace<Type>& space, std::string name, void(*kernel)(KERNEL_ARGS));
+  virtual ~PostVolumeIntegral(){};
   virtual void Compute();
   virtual void WriteTabularHeader() = 0;
   virtual void Report() const = 0; 
-private:
+protected:
   //this is the kernel where the core of the work happens for the plugin
-  void myVolumeKernel(B_KERNEL_ARGS) = 0;
+  Kernel<Type> myKernel;
 };
 
 //include implementations

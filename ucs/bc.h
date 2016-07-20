@@ -44,6 +44,8 @@ class BoundaryConditions
 
   BCObj<Type>* bcs;             //list of reference states, i.e. the conditions themselves
 
+  Int GetNumBodies() const {return num_bodies;};
+  
   Int num_bcs;                  //number of bcs present in domain
   Int largest_bc_id;            //largest bc id present in bc file
   Int num_bodies;               //number of composite bodies
