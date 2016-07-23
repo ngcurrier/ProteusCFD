@@ -13,19 +13,20 @@ Int NegativeQueue(theType* A, Int n){
 
 //default constructor
 template <class Type> 
-Mesh<Type>::Mesh()
+Mesh<Type>::Mesh() :
+  nnode(0), gnode(0), nbnode(0), nbedge(0), ngedge(0), meshInit(0), 
+  mapsInit(0), mapsInitPsp(0), edgeInit(0), metricsCalc(0), solMemAlloc(0),
+  reordered(false), scaled(false), edges(NULL), bedges(NULL), isel2el(NULL),
+  sel2el(NULL)
 {
-  //set some default values
-  nnode = 0;
-  gnode = 0;
-  nbnode = 0;
-  nbedge = 0;
-  ngedge = 0;
-
   //allocate space for element counts
   nelem = new Int[MAX_E_TYPES];
   mnode = new Int[MAX_E_TYPES];
 
+  for(Int i = 0; i < MAX_E_TYPES; ++i){
+    nelem[i] = 0;
+  }
+  
   //allocate space for extents
   extentsMax = new Type[3];
   extentsMin = new Type[3];
@@ -37,22 +38,6 @@ Mesh<Type>::Mesh()
   mnode[PYRAMID] = 5;
   mnode[PRISM] = 6;
   mnode[HEX] = 8;
-
-  meshInit = 0;
-  mapsInit = 0;
-  mapsInitPsp = 0;
-  edgeInit = 0;
-  metricsCalc = 0;
-  
-  solMemAlloc = 0;
-  
-  reordered = false;
-  scaled = false;
-
-  edges = NULL;
-  bedges = NULL;
-  isel2el = NULL;
-  sel2el = NULL;
 }
 
 template <class Type>
@@ -79,6 +64,16 @@ void Mesh<Type>::SetParallelPointer(PObj<Type>* p_passed)
 {
   p = p_passed;
   return;
+}
+
+template <class Type>
+Type Mesh<Type>::GetVolumeTotal() const
+{
+  Type totVol = 0.0;
+  for(Int i = 0; i < nnode; ++i){
+    totVol += vol[i]; 
+  }
+  return totVol;
 }
 
 template <class Type>
@@ -123,7 +118,7 @@ Int Mesh<Type>::MemInitMesh()
   //this must be set here incase mesh reordering is not use
   //i.e. this must be a valid list as it is used in the buildMaps() function
   ordering = new Int[nnode];
-  for(Int i = 0; i < nnode; i++){
+  for(Int i = 0; i < nnode; ++i){
     ordering[i] = i;
   }
 
@@ -1447,6 +1442,8 @@ Int Mesh<Type>::CalcExtents()
 template <class Type>
 Int Mesh<Type>::CalcAreasVolumes()
 {
+  std::cout << "MESH UTILITY: Calculating element areas and volumes" << std::endl;
+  
   Int i, j, k, jj, kk, nn;
   Int indx1, indx2, indx3, indx4;
   Int n1, n2;
@@ -1608,7 +1605,8 @@ Int Mesh<Type>::CalcAreasVolumes()
   for(i = 0; i < ngedge+nbedge; i++){
     bedges[i].a[0] = bedges[i].a[1] = bedges[i].a[2] = bedges[i].a[3] = 0.0;
   }
-
+  
+  std::cout << "MESH UTILITY: Calculating face closure areas" << std::endl;
   /***************************************/
   //Close off portions of CVs with edges
   /***************************************/
@@ -2462,6 +2460,12 @@ Int Mesh<Type>::WriteCurrentCoords(std::string casename, Int timestep)
 }
 
 template <class Type>
+Int Mesh<Type>::GetNumElem() const
+{
+  return lnelem;
+}
+
+template <class Type>
 Int Mesh<Type>::WriteParallelMesh(std::string casename)
 {
   Int err = 0;
@@ -2908,6 +2912,7 @@ Int Mesh<Type>::ReadSU2_Ascii(std::string filename)
   //read each line one at a time, use a state machine to process data
   std::size_t loc;
   while(std::getline(fin, line)){
+    std::cout << line << std::endl;
     if(line.size() == 0) continue; //skip blank lines
     if(line[0] == '%') continue; //skip comment lines
     std::stringstream ss;
@@ -2917,7 +2922,7 @@ Int Mesh<Type>::ReadSU2_Ascii(std::string filename)
       case stateReadNdim:
 	loc = line.find(ndimKey);
 	if(loc == std::string::npos){
-	  std::cerr << "SU2 ASCII I/O: File read did not find \"NDIME=\" marker where expected";
+	  std::cerr << "SU2 ASCII I/O: File read did not find \"NDIME=\" marker where expected\n";
 	  return(1);
 	}
 	else{
@@ -3032,13 +3037,13 @@ Int Mesh<Type>::ReadSU2_Ascii(std::string filename)
       case stateReadNpoints:
 	loc = line.find(npoinKey);
 	if(loc == std::string::npos){
-	  std::cerr << "SU2 ASCII I/O: File read did not find \"NPOIN=\" marker where expected";
+	  std::cerr << "SU2 ASCII I/O: File read did not find \"NPOIN=\" marker where expected\n";
 	  return(1);
 	}
 	else{
 	  ss.str(line.substr(loc+npoinKey.size()));
 	  ss >> nnode;
-	  std::cout << "SU2 ASCII I/O: Reading " << nnode << " nodes" << std::endl;
+	  std::cout << "SU2 ASCII I/O: Reading " << GetNumNodes() << " nodes" << std::endl;
 	  state = stateReadPoints;
 	  MemInitMesh();
 	  std::cout << "SU2 ASCII I/O: Memory initialized" << std::endl;
@@ -3061,11 +3066,12 @@ Int Mesh<Type>::ReadSU2_Ascii(std::string filename)
 	if(nodeCount >= nnode){
 	  state = stateReadNmark;
 	}
+	std::cout <<  nodeCount << std::endl;
 	break;
       case stateReadNmark:
 	loc = line.find(nmarkKey);
 	if(loc == std::string::npos){
-	  std::cerr << "SU2 ASCII I/O: File read did not find \"NMARK=\" marker where expected";
+	  std::cerr << "SU2 ASCII I/O: File read did not find \"NMARK=\" marker where expected\n";
 	  return(1);
 	}
 	else{
@@ -3078,7 +3084,7 @@ Int Mesh<Type>::ReadSU2_Ascii(std::string filename)
       case stateReadMarkerTag:
 	loc = line.find(markTagKey);
 	if(loc == std::string::npos){
-	  std::cerr << "SU2 ASCII I/O: File read did not find \"MARKER_TAG=\" where expected";
+	  std::cerr << "SU2 ASCII I/O: File read did not find \"MARKER_TAG=\" where expected\n";
 	  return(1);
 	}
 	else{
@@ -3092,7 +3098,7 @@ Int Mesh<Type>::ReadSU2_Ascii(std::string filename)
       case stateReadMarkerNelem:
 	loc = line.find(markElemKey);
 	if(loc == std::string::npos){
-	  std::cerr << "SU2 ASCII I/O: File read did not find \"MARKER_ELEMS=\" where expected";
+	  std::cerr << "SU2 ASCII I/O: File read did not find \"MARKER_ELEMS=\" where expected\n";
 	  return(1);
 	}
 	else{
@@ -3108,7 +3114,7 @@ Int Mesh<Type>::ReadSU2_Ascii(std::string filename)
 	ss.str(line);
 	ss >> elemType;
 	if(elemType == SU2_LINE){
-	  std::cerr << "SU2 ASCII I/O: Only 3d elements expected, found line";
+	  std::cerr << "SU2 ASCII I/O: Only 3d elements expected, found line ";
 	  return (-1);
 	}
 	else if(elemType == SU2_TRI){

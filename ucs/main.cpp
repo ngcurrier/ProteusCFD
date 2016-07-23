@@ -66,8 +66,8 @@ int main(int argc, char* argv[]){
   MPI_Comm_size(MPI_COMM_WORLD, &np);
   timers.StopTimer("MPI_InitTimer");
 
-  PObj<Real> p;
-  rank = p.GetRank();
+  PObj<Real> pobj;
+  rank = pobj.GetRank();
 
   if(!((argc == 2) || (argc == 3))){
     cerr << "Invalid arguments!!!" << endl;
@@ -119,7 +119,7 @@ int main(int argc, char* argv[]){
   stderrname = pathname + casestring + stderrname + (temposs.str());
   //only write to file if we are the last process
 #ifndef _DEBUG
-  if(p.GetRank() == p.GetNp()-1){
+  if(pobj.GetRank() == pobj.GetNp()-1){
     freopen(stdoutname.c_str(), "w", stdout);
     freopen(stderrname.c_str(), "w", stderr);
   }
@@ -186,7 +186,7 @@ int main(int argc, char* argv[]){
       solSpace = new STRUCTDYN::TypicalSection(param, param->spacename, temporalControl);
     }
     else{
-      solSpace = new SolutionSpace<Real>(param, &p, param->spacename, temporalControl);
+      solSpace = new SolutionSpace<Real>(param, &pobj, param->spacename, temporalControl);
     }
     solSpaces.push_back(solSpace);
   }
@@ -214,7 +214,7 @@ int main(int argc, char* argv[]){
     Real ObjFunction = Compute_Obj_Function(space);
     string fullpath = space.param->path + space.param->spacename;
     cout << "\n\nOBJ-FUNCTION: " << ObjFunction << "\n\n" << endl;
-    if(p.GetRank() == 0){
+    if(pobj.GetRank() == 0){
       WriteFunctionToDesignFile(fullpath, ObjFunction);
     }
   }
@@ -340,7 +340,7 @@ int main(int argc, char* argv[]){
       Real xtemp = x[beta];
       //perturb beta, write to design file for movement
       x[beta] = h;
-      if(p.GetRank() == 0){
+      if(pobj.GetRank() == 0){
 	WriteDesignFile(space.param->path+space.param->spacename, ndv, x, bounds, f, grad, dvType);
       }
       MPI_Barrier(MPI_COMM_WORLD);
@@ -371,7 +371,7 @@ int main(int argc, char* argv[]){
     for(Int i = 0; i < ndv; i++){
       grad[i] = dObjdBeta[i];
     }
-    if(p.GetRank() == 0){
+    if(pobj.GetRank() == 0){
       WriteDesignFile(space.param->path+space.param->spacename, ndv, x, bounds, f, grad, dvType);
     }
     MPI_Barrier(MPI_COMM_WORLD);
@@ -389,7 +389,7 @@ int main(int argc, char* argv[]){
     SolutionSpace<Real>& space = *dynamic_cast<SolutionSpace<Real>*>(solSpaces[0]);
     timers.StopTimer("DesignTimer");
     string fullpath = space.param->path + space.param->spacename;
-    if(p.GetRank() == 0){
+    if(pobj.GetRank() == 0){
       WriteGradToDesignFile(fullpath, dObjdBeta);
     }
     delete [] dObjdBeta;

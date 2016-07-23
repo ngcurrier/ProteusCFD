@@ -7,5 +7,16 @@
 int main(int argc, char** argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+
+  MPI_Init(&argc, &argv);
+
+  Int rank, np;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &np);
+
+  Int results = RUN_ALL_TESTS();
+
+  MPI_Finalize();
+
+  return results;
 }

@@ -108,6 +108,7 @@ class Mesh
   Bool IsScaled() const {return scaled;};
   Bool IsReordered() const {return reordered;};
   Int GetNumElemNodes(Int type) const {return mnode[type];};
+  Int GetNumElem() const;
   Int GetNumElem(Int type) const {return nelem[type];};
   Int GetNumParallelNodes() const {return gnode;};
   Int GetNumGlobalNodes() const {return gnnode;};
@@ -169,6 +170,7 @@ class Mesh
   Type* xyz;      //coordinates of each vertex
   Type* xyz_base; //coordinates of each vertex at t=0, needed for movement routines
 
+  Type GetVolumeTotal() const;
   Type const * GetVolume() const;       //returns vector of cv volumes
   Type const * GetVolumeOld() const;    //returns vector of nm1 cv volumes
   Type const * GetVolumeOldM1() const;  //returns vector of nm2 cv volumes

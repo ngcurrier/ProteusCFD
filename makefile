@@ -10,11 +10,6 @@ EXE_STRUCT_SOLVER = ./bin/csd.x
 EXE_STRUCT_ERROR = ./bin/esd.x
 EXE_TESTS = ./bin/tests.x
 
-# --------- BEGIN TEST SECTION
-SRCS_TEST = ./unitTest/main.cpp 
-OBJS_TEST = $(SRCS_TEST:.cpp=.o)
-DEPS_TEST = $(SRCS_TEST:.cpp=.d)
-
 # --------- BEGIN COMMON LIBRARY SECTION
 
 SRCS_COMMON = ./ucs/timer.cpp ./ucs/endian_util.cpp ./ucs/strings_util.cpp \
@@ -70,6 +65,11 @@ SRCS_ALL = $(SRCS_SOLVER) ./ucs/decomp.cpp ./ucs/recomp.cpp ./ucs/mesh.cpp ./ucs
 OBJS_ALL = $(SRCS_ALL:.cpp=.o)
 DEPS_ALL = $(SRCS_ALL:.cpp=.d)
 
+# --------- BEGIN TEST SECTION
+SRCS_TEST = ./unitTest/main.cpp ./ucs/mesh.cpp ./ucs/parallel.cpp
+OBJS_TEST = $(SRCS_TEST:.cpp=.o) 
+DEPS_TEST = $(SRCS_TEST:.cpp=.d)
+
 # --------- BEGIN EXECUTABLE TARGETS SECTION
 
 $(EXE_SOLVER):  $(TINYXMLDIR)/libtinyxml.a $(HDF5_LIB)/libhdf5.a $(DEPS_SOLVER) $(OBJS_SOLVER) ./ucs/libcommon.a structuralDynamics/libstructdyn.a $(LAPACK_LIB)/liblapacke.a 
@@ -97,7 +97,7 @@ $(EXE_STRUCT_ERROR): ./structuralDynamics/error.o ./ucs/libcommon.a
 	$(MPICXX) -o $(EXE_STRUCT_ERROR) $(LCXXFLAGS) ./structuralDynamics/error.o $(CXXLIBS)
 
 $(EXE_TESTS): $(DEPS_TEST) $(OBJS_TEST) $(GTEST_LIB)/.libs/libgtest.a ./ucs/libcommon.a
-	$(MPICXX) $(LINK_OPTS) -o $(EXE_TESTS) $(LCXXFLAGS) $(OBJS_TEST) $(CXXLIBS) $(GTEST_LIB)/libgtest.a
+	$(MPICXX) $(LINK_OPTS) -o $(EXE_TESTS) $(LCXXFLAGS) $(OBJS_TEST) $(CXXLIBS) $(GTEST_LIB)/.libs/libgtest.a
 
 SRCDIRS = ./structuralDynamics ./ucs
 ROOT = $$PWD
@@ -132,7 +132,7 @@ $(TINYXML_LIB)/libtinyxml.a:
 	cd $$PWD/$(TINYXMLDIR);\
 	$(MAKE)
 
-$(GTEST_LIB)/.libs/libgtest.a:
+$(GTEST_LIB)/.libs/libgtest.a: 
 	@orig=$$PWD;\
 	cd $$PWD/$(GTESTDIR); \
 	./configure; \

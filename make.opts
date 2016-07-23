@@ -63,7 +63,7 @@ HDF5_LIB = ./$(HDF5DIR)/build/lib
 HDF5_INCLUDES = ./$(HDF5DIR)/build/include
 
 GTESTDIR = ./TPLs/gtest/gtest-1.7.0/
-GTEST_LIB = $(GTESTDIR)/lib/.libs
+GTEST_LIB = $(GTESTDIR)/lib/
 GTEST_INCLUDES = $(GTESTDIR)/include
 
 LAPACKDIR = ./TPLs/LAPACK/lapack-3.6.0/
