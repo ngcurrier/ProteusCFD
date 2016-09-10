@@ -850,7 +850,9 @@ void Bkernel_BC_Jac_Modify(B_KERNEL_ARGS)
     //freestream values, which is what we initialize to 
     if(space->iter < bcobj->bleedSteps){
       for(i = 0; i < 3; i++){
-	Type fs = param->GetMach(space->iter)*param->flowdir[i];
+	Type V = param->GetVelocity(space->iter);
+	Type Mach = V;
+	Type fs = Mach*param->flowdir[i];
 	Type dv = fs - vel[i]; 
 	vel[i] = vel[i] + (fs - dv/(Type)bcobj->bleedSteps*(Type)space->iter);
       }
@@ -997,7 +999,9 @@ void Bkernel_BC_Res_Modify(B_KERNEL_ARGS)
     //freestream values, which is what we initialize to 
     if(space->iter < bcobj->bleedSteps){
       for(i = 0; i < 3; i++){
-	Type fs = param->GetMach(space->iter)*param->flowdir[i];
+	Type V = param->GetVelocity(space->iter);
+	Type Mach = V;
+	Type fs = Mach*param->flowdir[i];
 	Type dv = fs - vel[i]; 
 	vel[i] = vel[i] + (fs - dv/(Type)bcobj->bleedSteps*(Type)space->iter);
       }
@@ -1234,7 +1238,9 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
     //freestream values, which is what we initialize to 
     if(space->iter < bcobj->bleedSteps){
       for(i = 0; i < 3; i++){
-	Type fs = param->GetMach(space->iter)*param->flowdir[i];
+	Type V = param->GetVelocity(space->iter);
+	Type Mach = V;
+	Type fs = Mach*param->flowdir[i];
 	Type dv = fs - vel[i]; 
 	vel[i] = vel[i] + (fs - dv/(Type)bcobj->bleedSteps*(Type)space->iter);
       }

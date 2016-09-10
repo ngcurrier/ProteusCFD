@@ -328,7 +328,8 @@ void Forces<Type>::ComputeCl()
   }
 
   Type* momdir;
-  Type Ma = param->GetMach(space->iter);
+  Type V = param->GetVelocity(space->iter);
+  Type Mach = V;
   Type rho = eqnset->GetDensity(Qref);
   Type* area;
   Type amag;
@@ -349,11 +350,11 @@ void Forces<Type>::ComputeCl()
     moment += DotProduct(momdir, bodies[i].vmoments);
     area = bodies[i].surfArea;
     amag = Magnitude(area);
-    bodies[i].cl = lift / (0.5 * rho * Ma*Ma * amag);
-    bodies[i].cd = drag / (0.5 * rho * Ma*Ma * amag);
+    bodies[i].cl = lift / (0.5 * rho * Mach*Mach * amag);
+    bodies[i].cd = drag / (0.5 * rho * Mach*Mach * amag);
     //assume that the ref_length is unity in the grid, otherwise, WRONG!
     //positive cm pitches the airfoil nose up
-    bodies[i].cm = -moment / (0.5 * rho * Ma*Ma * amag * 1.0);
+    bodies[i].cm = -moment / (0.5 * rho * Mach*Mach * amag * 1.0);
   } 
 }
 

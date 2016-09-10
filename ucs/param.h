@@ -191,9 +191,9 @@ public:
   //section related to error transport equations
   Bool errorTransport;
 
-  Type machStart;       //mach number to start ramping from
-  Type mach;            //mach number in farfield
-  Int machRampingSteps; //number of steps used to ramp mach to "mach" variable
+  Type velocityStart;       //velocity to start ramping from
+  Type velocity;            //velocity in farfield
+  Int velocityRampingSteps; //number of steps used to ramp velocity to "velocity" variable
 
   void SetupParams();
 
@@ -205,7 +205,7 @@ public:
 
   void UpdateCFL(Int iter, Type deltaResidual);
   Type GetCFL();
-  Type GetMach(Int iter);
+  Type GetVelocity(Int iter);
 
   void UpdateForDesign();
   

@@ -68,8 +68,8 @@ CompressibleEqnSet<Type>::CompressibleEqnSet(SolutionSpace<Type>* space, Param<T
    }
    //set Reynold's number - rho*V*d/mu
    Type rho = this->Qinf[0];
-   Type Ma = this->param->GetMach(this->space->iter);
-   this->param->Re = (rho*this->param->ref_density)*(this->param->ref_velocity*Ma)*
+   Type V = this->param->GetVelocity(this->space->iter);
+   this->param->Re = (rho*this->param->ref_density)*(this->param->ref_velocity*V)*
      this->param->ref_length/this->param->ref_viscosity;
  }
 
@@ -559,7 +559,9 @@ void CompressibleEqnSet<Type>::ViscousFlux(Type* Q, Type* grad, Type* avec, Type
   tauyz = vz + wy;
 
   //non-dimensionalize Reynold's number w.r.t speed of sound
-  Type ReTilde = this->param->Re / this->param->GetMach(this->space->iter);
+  Type V = this->param->GetVelocity(this->space->iter);
+  Type Mach = V;
+  Type ReTilde = this->param->Re / Mach;
   Type RK = avec[3]/ReTilde;
   Type RKT = RK*tmut;
 
@@ -632,8 +634,9 @@ Type CompressibleEqnSet<Type>::MaxEigenvalue(Type* Q, Type* avec, Type vdotn, Ty
  {
    //non-dimensionalization here is by rho_inf, c_inf, T_inf
 
-   //use GetMach() function for ramping
-   Type Mach = this->param->GetMach(this->space->iter);
+   //use GetVelocity() function for ramping
+   Type V = this->param->GetVelocity(this->space->iter);
+   Type Mach = V;
    Type gamma = this->param->gamma;
    Type gm1 = gamma - 1.0;
 
@@ -915,7 +918,9 @@ void CompressibleEqnSet<Type>::ComputeStressVector(Type* vgrad, Type* avec, Type
   tauyn = tauxy*avec[0] + tauyy*avec[1] + tauyz*avec[2];
   tauzn = tauxz*avec[0] + tauyz*avec[1] + tauzz*avec[2];
 
-  Type ReTilde = this->param->Re / this->param->GetMach(this->space->iter);
+  Type V = this->param->GetVelocity(this->space->iter);
+  Type Mach = V;
+  Type ReTilde = this->param->Re / Mach;
 
   //negative sign indicates stress on the body, not the flow
   stress[0] = -(mu/ReTilde)*tauxn;
@@ -947,15 +952,17 @@ template <class Type>
 Type CompressibleEqnSet<Type>::GetCp(Type* Q, Type gamma)
 {
   Type P = GetPressure(Q);
-  Type Ma = this->param->GetMach(this->space->iter);
-  return ((P - 1.0/gamma)/(0.5*Ma*Ma));
+  Type V = this->param->GetVelocity(this->space->iter);
+  Type Mach = V;
+  return ((P - 1.0/gamma)/(0.5*Mach*Mach));
 }
 
 template <class Type>
 Type CompressibleEqnSet<Type>::GetCf(Type tauw, Type rho)
 {
-  Type Ma = this->param->GetMach(this->space->iter);
-  return (tauw/(0.5*rho*Ma*Ma));
+  Type V = this->param->GetVelocity(this->space->iter);
+  Type Mach = V;
+  return (tauw/(0.5*rho*Mach*Mach));
 }
 
 template <class Type>
@@ -964,8 +971,9 @@ Type CompressibleEqnSet<Type>::GetRe()
   //this function is overloaded b/c we nondimensionalize by
   //the speed of sound in the compressible eqnset, which makes the
   //mach number show up everytime Re is used
-  Type Ma = this->param->GetMach(this->space->iter);
-  return (this->param->Re / Ma);
+  Type V = this->param->GetVelocity(this->space->iter);
+  Type Mach = V;
+  return (this->param->Re / Mach);
 }
 
 template <class Type>
@@ -1393,7 +1401,7 @@ void CompressibleEqnSet<Type>::ViscousJacobian(Type* QL, Type* QR, Type* dx, Typ
   Type tmut = (mu + mut);
 
   //non-dimensionalize Reynold's number w.r.t speed of sound
-  Type ReTilde = this->param->Re / this->param->GetMach(this->space->iter);
+  Type ReTilde = this->param->Re / this->param->GetVelocity(this->space->iter);
   Type RK = avec[3]/ReTilde;
   Type RKT = RK*tmut;
   

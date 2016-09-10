@@ -113,8 +113,9 @@ void CompressibleFREqnSet<Type>::InitEqnSet()
 
   //set Reynold's number - rho*v*d/mu
   Type rho = this->Qinf[nspecies+5];
-  Type Ma = this->param->GetMach(this->space->iter);
-  this->param->Re = (rho*this->param->ref_density)*(this->param->ref_velocity*Ma)*
+  Type V = this->param->GetVelocity(this->space->iter);
+  Type Mach = V;
+  this->param->Re = (rho*this->param->ref_density)*(this->param->ref_velocity*Mach)*
     this->param->ref_length/this->param->ref_viscosity;
 }
 
@@ -637,8 +638,9 @@ Type CompressibleFREqnSet<Type>::GetCp(Type* Q, Type gamma)
 {
   Type P = GetPressure(Q);
   Type Pinf = GetPressure(this->Qinf);
-  Type Ma = this->param->GetMach(this->space->iter);
-  return  ((P - Pinf)/(0.5*Ma*Ma));
+  Type V = this->param->GetVelocity(this->space->iter);
+  Type Mach = V;
+  return  ((P - Pinf)/(0.5*Mach*Mach));
 }
 
 template <class Type>
@@ -1414,8 +1416,9 @@ void CompressibleFREqnSet<Type>::UpdateQinf()
 {
   //non-dimensionalization here is by p_inf, u_in, T_inf plus massfractions
 
-  //use GetMach() function for ramping
-  Type Mach = this->param->GetMach(this->space->iter);
+  //use GetVelocity() function for ramping
+  Type V = this->param->GetVelocity(this->space->iter);
+  Type Mach = V;
   Type u = this->param->flowdir[0]*Mach;
   Type v = this->param->flowdir[1]*Mach;
   Type w = this->param->flowdir[2]*Mach;
@@ -2166,9 +2169,9 @@ template <class Type>
 Type CompressibleFREqnSet<Type>::GetCf(Type tauw, Type rho)
 {
   //Is this correct?  Implementation from compressible perfect gas solver.
-  
-  Type Ma = this->param->GetMach(this->space->iter);
-  return (tauw/(0.5*rho*Ma*Ma));
+  Type V = this->param->GetVelocity(this->space->iter);
+  Type Mach = V;
+  return (tauw/(0.5*rho*Mach*Mach));
 }
 
 template <class Type>

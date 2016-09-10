@@ -238,8 +238,10 @@ void SolutionSpace<Type>::Init()
   AddField("beta");
   SolutionField<Type>& betaF = GetField("beta");
   //set preconditioner beta equal to Ma^2 if below sonic
-  if(real(param->GetMach(0)) < 1.0){
-    Type beta = MAX(real(param->betaMin), real(param->GetMach(0)*param->GetMach(0)));
+  Type V = param->GetVelocity(0);
+  Type Mach = V;
+  if(real(Mach) < 1.0){
+    Type beta = MAX(real(param->betaMin), real(Mach*Mach));
     betaF.Fill(beta);
   }
   else{

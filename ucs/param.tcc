@@ -169,7 +169,7 @@ void Param<Type>::SetupParams()
   paramListInt.push_back(Parameter<Int>("jacobianBoundaryType", &this->boundaryJacType, 0, 0, 2));
   paramListInt.push_back(Parameter<Int>("jacobianFieldType", &this->fieldJacType, 0, 0, 2));
   paramListInt.push_back(Parameter<Int>("gcl", &this->gcl, 0, 0, 2));
-  paramListInt.push_back(Parameter<Int>("rampMach", &this->machRampingSteps, 0, 0, 999999));
+  paramListInt.push_back(Parameter<Int>("rampVelocity", &this->velocityRampingSteps, 0, 0, 999999));
   paramListInt.push_back(Parameter<Int>("movement", &this->movement, 0, 0, 999));  //default to no movement
   paramListInt.push_back(Parameter<Int>("restartWrite", &this->writeRestartStep, 0, 0, 999999));
   paramListInt.push_back(Parameter<Int>("customIcId", &this->customIcId, 0, 0, 99));
@@ -186,8 +186,8 @@ void Param<Type>::SetupParams()
   paramListReal.push_back(Parameter<Type>("VNN", &this->VNN, 20.0, 0.0, 10000.0));
   paramListReal.push_back(Parameter<Type>("timeStep", &this->dt, 0.0, 0.0, 10000.0));
   paramListReal.push_back(Parameter<Type>("pseudoTimeStep", &this->dtau, 0.0, 0.0, 10000.0));
-  paramListReal.push_back(Parameter<Type>("mach", &this->mach, 1.0, 0.0, 999.0));
-  paramListReal.push_back(Parameter<Type>("startingMach", &this->machStart, 0.0, 0.0, 999.0));
+  paramListReal.push_back(Parameter<Type>("velocity", &this->velocity, 1.0, 0.0, 999.0));
+  paramListReal.push_back(Parameter<Type>("startingVelocity", &this->velocityStart, 0.0, 0.0, 999.0));
   paramListReal.push_back(Parameter<Type>("gamma", &this->gamma, 1.4, 0.0, 999.0));
   paramListReal.push_back(Parameter<Type>("betaMin", &this->betaMin, 0.0, 0.0, 999.0));
   paramListReal.push_back(Parameter<Type>("beta", &this->beta, 15.0, 0.0, 999.0)); 
@@ -529,11 +529,11 @@ void Param<Type>::PrintSolverParams()
     }
   }
   std::cout << "\tGamma (Cp/Cv): " << gamma << std::endl;
-  std::cout << "\tMach number: " << mach << std::endl;
-  if(machRampingSteps > 0){
-    std::cout << "\tMach ramping enabled!!" << std::endl;
-    std::cout << "\tMach start: " << machStart << std::endl;
-    std::cout << "\tMach ramping steps: " << machRampingSteps << std::endl;
+  std::cout << "\tVelocity: " << velocity << std::endl;
+  if(velocityRampingSteps > 0){
+    std::cout << "\tVelocity ramping enabled!!" << std::endl;
+    std::cout << "\tVelocity start: " << velocityStart << std::endl;
+    std::cout << "\tVelocity ramping steps: " << velocityRampingSteps << std::endl;
   }
   if(rxnOn){
     std::cout << "Chemical reactions turned ON" << std::endl;
@@ -667,14 +667,17 @@ void Param<Type>::UpdateCFL(Int iter, Type deltaResidual)
   }
 }
 
+//This function returns the non-dimensional velocity as non-dimensionalized by ref_velocity
+//if your function needs velocity non-dimensionalized by some other value like the speed of
+//sound as in compressible equations, that needs to be performed before this value is used
 template <class Type>
-Type Param<Type>::GetMach(Int iter)
+Type Param<Type>::GetVelocity(Int iter)
 {
-  if(machRampingSteps > 0 && iter < machRampingSteps){
-    return ( (mach-machStart) / (Type)machRampingSteps * (Type)iter + machStart);
+  if(velocityRampingSteps > 0 && iter < velocityRampingSteps){
+    return ( (velocity-velocityStart) / (Type)velocityRampingSteps * (Type)iter + velocityStart);
   }
   else{
-    return (mach);
+    return (velocity);
   }
 }
 

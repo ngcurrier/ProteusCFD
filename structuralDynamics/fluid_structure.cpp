@@ -62,7 +62,9 @@ void TypicalSection::PreIterate()
     //iea = k_alpha/omega_alpha^2 -> omega_alpha is natural frequency (rot.) at zero airspeed
     icg = 3.679;
     rhoinf = param->ref_density;
-    uinf = param->GetMach(this->iter)*param->ref_velocity;
+    double V = param->GetVelocity(this->iter)*param->ref_velocity;
+    double Mach = V;
+    uinf = Mach;
   }
   else if(param->movement == 6){
     //this is for the Isogai flutter case - NACA64A010
@@ -73,8 +75,10 @@ void TypicalSection::PreIterate()
     xalpha = 1.8;  //(static mass moment per unit span )/ (mass * b)
     icg = 3.46360595;
     //rhoinf should be 1.225 kg/m^3
-    rhoinf = param->ref_density;
-    uinf = param->GetMach(this->iter)*param->ref_velocity;
+    rhoinf = param->ref_density; 
+    double V = param->GetVelocity(this->iter)*param->ref_velocity;
+    double Mach = V;
+    uinf = Mach;
   }
   else{
     std::cerr << "Invalid Typical Section case type" << std::endl;

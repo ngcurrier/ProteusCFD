@@ -76,8 +76,9 @@ void IncompressibleEqnSet<Type>::InitEqnSet()
 
   //maybe this should be different? Use ideal gas law or something to set freestream density?  Unsure.
   Type rho = 1.0;
-  Type Ma = this->param->GetMach(this->space->iter);
-  this->param->Re = (rho*this->param->ref_density)*(this->param->ref_velocity*Ma)*
+  Type V = this->param->GetVelocity(this->space->iter);
+  Type Mach = V;
+  this->param->Re = (rho*this->param->ref_density)*(this->param->ref_velocity*Mach)*
     this->param->ref_length/this->param->ref_viscosity;
 }
 
@@ -406,12 +407,13 @@ Type IncompressibleEqnSet<Type>::MaxEigenvalue(Type* Q, Type* avec, Type vdotn, 
 template <class Type>
 void IncompressibleEqnSet<Type>::UpdateQinf()
 {
-  //use GetMach() function for ramping
+  //use GetVelocity() function for ramping
   //TODO: port this to use a uinf/uref instead of Mach
   //this is the correct non-dimensionlization for all regimes involving flow
   //for compressible it is uinf/(Mach_ref/C_ref).. and so forth... oh well
-  Type Mach = this->param->GetMach(this->space->iter);
-
+  Type V = this->param->GetVelocity(this->space->iter);
+  Type Mach = V;
+  
   Type u = this->param->flowdir[0]*Mach;
   Type v = this->param->flowdir[1]*Mach;
   Type w = this->param->flowdir[2]*Mach;

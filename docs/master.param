@@ -58,9 +58,10 @@ numberSGS = 8
 beta = 15.0
 gamma = 1.4
 
-mach = 2.0
-startingMach = 0.5
-rampMach = 100
+
+velocity = 2.0
+startingVelocity = 0.5
+rampVelocity = 100
 flowDirection = 1.0 0.0 0.0
 liftDirection = 0.0 1.0 0.0
 # 0 - laminar (none)
