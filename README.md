@@ -1,6 +1,11 @@
 ProteusCFD
 ==========
 
+<a href="https://scan.coverity.com/projects/ngcurrier-proteuscfd">
+  <img alt="Coverity Scan Build Status"
+       src="https://scan.coverity.com/projects/10218/badge.svg"/>
+</a>
+
 Proteus is a computational fluid dynamics (CFD) solver 
 with the goal of providing a complete, parallel, 
 multi-physics platform for advanced simulation.
