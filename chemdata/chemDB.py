@@ -26,8 +26,8 @@ def main():
    print("Processing Gordon-McBride database...")
    process_mcbride(h5,'trans.inp')
 
-   print("Processing Simcenter database...")
-   process_simcenter(h5,'simcenter.species.db')
+   print("Processing other database...")
+   process_database(h5,'database.species.db')
 
    #Most of these coefficients are accurate over a lower range
    print("Processing GRIMECH thermo database...")
@@ -38,7 +38,7 @@ def main():
    return
 
 
-def process_simcenter(h5,fname):
+def process_database(h5,fname):
    f = open(fname,"r")
    lines = f.read() 
    
@@ -62,7 +62,7 @@ def process_simcenter(h5,fname):
          k = k.split('=')
          d[k[0].strip()] = k[1].strip()
 
-      print("Simcenter database ==> %s"%d["compound"])
+      print("Database ==> %s"%d["compound"])
 
      
       # now we have a key, value dictionary with the data in there, but we need to
