@@ -50,9 +50,9 @@ def plotHeatmap(column_labels, row_labels, data):
    
     ax.set_xticklabels(row_labels, minor=False)
     ax.set_yticklabels(column_labels, minor=False)
-   
-    Plt.colorbar(format=’%.2f’)
-    Plt.xticks(rotation=45)
+
+    plt.colorbar(format='%.2f')
+    plt.xticks(rotation=45)
     plt.show()
  
 if __name__ == "__main__":
