@@ -1,11 +1,6 @@
-# $Id: simcenter.species.db,v 1.1 2010/02/23 21:03:43 ncurrier Exp $
-# This database contains data that we want to associate with each species that we cannot
-# dig from other datasets.
-# mostly, this database contains the Lennard-Jones parameters, vibrational temperatures/frequencies,
-# and Gupta curve fit data for Cp.  None of this data is used in normal code operation, but I had
-# put in a good deal of work gathering these numbers, and I didn't want to lose them; they might
-# be useful in the future, and if we want the components of libChem to work that depend on this
-# data, we had better keep the data.
+# $Id: database.species.db,v 1.1 2010/02/23 21:03:43 ncurrier Exp $
+# Mostly, this database contains the Lennard-Jones parameters, vibrational temperatures/frequencies,
+# and Gupta curve fit data for Cp.  
 
 # keywords:
 # eob         Lennard Jones epsilon  over boltzmann constant (Kelvin)
