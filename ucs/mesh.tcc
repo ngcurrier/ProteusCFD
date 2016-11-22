@@ -3224,13 +3224,13 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
   Int elemRead = 0;  //counter to keep track of how many elements have been read
   Int totalElems = 0; //tracks total elements expected
   
+  std::cout << "GMSH ASCII I/O: Reading file --> " << filename << std::endl;
+
   fin.open(filename.c_str());
   if(!fin.is_open()){
     std::cerr << "Could not open file " << filename << " in GMSH ASCII I/O" << std::endl;
     return(-1);
   }
-
-  std::cout << "GMSH ASCII I/O: Reading file --> " << filename << std::endl;
 
   //read each line one at a time, use a state machine to process data
   std::size_t loc;
@@ -3242,6 +3242,11 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
       std::map<std::string, int>::iterator it = stateMap.find(line);
       if(it != stateMap.end()){
 	state = stateMap[line];
+	continue;
+      }
+      else{
+	std::cerr << "GMSH ASCII I/O: found bad state " << state << std::endl;
+	return(-1);
       }
     }
     std::stringstream ss;
@@ -3257,6 +3262,12 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
 	break;
       case ReadMeshFormat:
 	{
+	  std::cout << "GMSH ASCII I/I: Reading mesh format" << std::endl;
+	  Real version;
+	  Int tmp;
+	  ss >> version;	
+	  std::cout << "GMSH ASCII I/I: Reading mesh format version " << version << std::endl;
+	  ss >> tmp;
 	  Int ndim;
 	  ss >> ndim;
 	  if(ndim != 3){
@@ -3273,10 +3284,12 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
 	break;
       case ReadPoints:
 	{
+	  std::cout << "Got: " << ss.str() << std::endl;
 	  Int ptid;
 	  ss >> ptid;
-	  if(ptid != nodesRead){
+	  if(ptid-1 != nodesRead){
 	    std::cerr << "GMSH ASCII I/O: Warning points not ordered. Dying." << std::endl;
+	    return -1;
 	  }
 	  ss >> xyz[nodesRead*3 + 0];
 	  ss >> xyz[nodesRead*3 + 1];
@@ -3321,8 +3334,10 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
 	    ss >> nodes[0];
 	    ss >> nodes[1];
 	    ss >> nodes[2];
-	    Int id;
-	    ss >> id;
+	    //gmsh nodes are 1 based, we are zero based
+	    nodes[0]--;
+	    nodes[1]--;
+	    nodes[2]--;
 	    tempe = new Triangle<Type>;
 	    tempe->Init(nodes);
 	    tempe->SetFactag(elementaryId);
@@ -3335,8 +3350,11 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
 	    ss >> nodes[1];
 	    ss >> nodes[2];
 	    ss >> nodes[3];
-	    Int id;
-	    ss >> id;
+	    //gmsh nodes are 1 based, we are zero based
+	    nodes[0]--;
+	    nodes[1]--;
+	    nodes[2]--;
+	    nodes[3]--;
 	    tempe = new Quadrilateral<Type>;
 	    tempe->Init(nodes);
 	    tempe->SetFactag(elementaryId);
@@ -3349,8 +3367,11 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
 	    ss >> nodes[1];
 	    ss >> nodes[2];
 	    ss >> nodes[3];
-	    Int id;
-	    ss >> id;
+	    //gmsh nodes are 1 based, we are zero based
+	    nodes[0]--;
+	    nodes[1]--;
+	    nodes[2]--;
+	    nodes[3]--;
 	    tempe = new Tetrahedron<Type>;
 	    tempe->Init(nodes);
 	    elementList.push_back(tempe);
@@ -3366,8 +3387,15 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
 	    ss >> nodes[5];
 	    ss >> nodes[6];
 	    ss >> nodes[7];
-	    Int id;
-	    ss >> id;
+	    //gmsh nodes are 1 based, we are zero based
+	    nodes[0]--;
+	    nodes[1]--;
+	    nodes[2]--;
+	    nodes[3]--;
+	    nodes[4]--;
+	    nodes[5]--;
+	    nodes[6]--;
+	    nodes[7]--;
 	    tempe = new Hexahedron<Type>;
 	    tempe->Init(nodes);
 	    elementList.push_back(tempe);
@@ -3381,8 +3409,13 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
 	    ss >> nodes[3];
 	    ss >> nodes[4];
 	    ss >> nodes[5];
-	    Int id;
-	    ss >> id;
+	    //gmsh nodes are 1 based, we are zero based
+	    nodes[0]--;
+	    nodes[1]--;
+	    nodes[2]--;
+	    nodes[3]--;
+	    nodes[4]--;
+	    nodes[5]--;
 	    tempe = new Prism<Type>;
 	    tempe->Init(nodes);
 	    elementList.push_back(tempe);
@@ -3395,8 +3428,12 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
 	    ss >> nodes[2];
 	    ss >> nodes[3];
 	    ss >> nodes[4];
-	    Int id;
-	    ss >> id;
+	    //gmsh nodes are 1 based, we are zero based
+	    nodes[0]--;
+	    nodes[1]--;
+	    nodes[2]--;
+	    nodes[3]--;
+	    nodes[4]--;
 	    tempe = new Pyramid<Type>;
 	    tempe->Init(nodes);
 	    elementList.push_back(tempe);
@@ -3413,6 +3450,21 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
       }
   }
   fin.close();
+
+  lnelem = 0;
+  for(Int e = TRI; e <= HEX; e++){
+    lnelem += nelem[e];
+  }
+  std::cout << "GMSH ASCII I/O: Number of nodes " << nnode << std::endl;
+  std::cout << "GMSH ASCII I/O: Number of elements " << lnelem << std::endl;
+  std::cout << "GMSH ASCII I/O: Number of Tris " << nelem[TRI] << std::endl;
+  std::cout << "GMSH ASCII I/O: Number of Quads " << nelem[QUAD] << std::endl;
+  std::cout << "GMSH ASCII I/O: Number of Tets " << nelem[TET] << std::endl;
+  std::cout << "GMSH ASCII I/O: Number of Pyramids " << nelem[PYRAMID] << std::endl;
+  std::cout << "GMSH ASCII I/O: Number of Prisms " << nelem[PRISM] << std::endl;
+  std::cout << "GMSH ASCII I/O: Number of Hexes " << nelem[HEX] << std::endl;
+  std::cout << "GMSH ASCII I/O: Number of tagged boundaries " << nfactags << std::endl;
+  
   return 0;
 }
 

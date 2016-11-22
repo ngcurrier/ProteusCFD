@@ -49,8 +49,16 @@ class MeshTestCrunch : public testing::Test
 
 TEST_F(MeshTestGmsh, testGmshRead)
 {
-  EXPECT_EQ(1,0); //force failure until this segfault is fixed
-  //EXPECT_EQ(0, m.ReadGMSH_Ascii("../unitTest/meshResources/gmsh.msh"));
+  PObj<Real> pobj;
+  EXPECT_EQ(0, m.ReadGMSH_Ascii("../unitTest/meshResources/gmsh.msh"));
+  m.SetParallelPointer(&pobj);
+
+  EXPECT_EQ(2496, m.GetNumNodes());
+  EXPECT_EQ(11416, m.GetNumElem());
+
+  m.BuildMaps();
+  m.CalcMetrics();
+    
 }
 
 TEST_F(MeshTestUgrid, testUgridRead)
