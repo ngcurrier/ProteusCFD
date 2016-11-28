@@ -2069,10 +2069,12 @@ void CompressibleFREqnSet<Type>::ConservativeToNative(Type* Q)
   Type R = 0.0;
   for(Int i = 0; i < nspecies; i++){
     rho += rhoi[i];
-    Y[i] = rhoi[i]/rho;
     R += rhoi[i]*this->param->ref_density*chem->species[i].R;
   }
   R /= this->param->ref_density*rho;
+  for(Int i = 0; i < nspecies; ++i){
+    Y[i] = rhoi[i]/rho;
+  }
   Type u = Q[nspecies] / rho;
   Type v = Q[nspecies+1] / rho;
   Type w = Q[nspecies+2] / rho;
