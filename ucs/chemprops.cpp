@@ -154,6 +154,65 @@ int main(int argc, char* argv[])
   for(Int i = 0; i < chem.nspecies; i++){
     std::cout << "dEtdrho[" << i << "]: " << dEtdRhoi[i] << std::endl;
   }
+
+  //temporal loop to compute change in makeup over time
+  double dt = 0.001;
+  double volume = 1.0; //m^3
+  Real* source = new Real[chem.nspecies];
+  Real* Y = new Real[chem.nspecies];
+  Real P = Pt;
+  Type tol = 1.0e-12;
+  Int maxit = 20;
+  for(i = 0; i < 10; ++i){
+    chem.GetMassProductionRates(rhoi, T, wdot);
+    for(int is = 0; is < chem.nspecies; ++is){
+      source[is] = wdot[is]*vol*dt;
+    }
+
+    //update the masses/densities given the source term (production/destruction)
+    rho = 0.0;
+    R = 0.0;
+    for(int is = 0; is < chem.nspecies; ++is){
+      Real mass = rhoi[is]*vol + source[is];
+      rhoi[is] = mass/vol;
+      rho += rhoi[is];
+      R += rhoi[is]*chem.species[i].R;
+    }
+    // R is dimensional after this
+    R /= rho;
+    for(int is = 0; is < chem.nspecies; ++is){
+      Y[is] = rhoi[is]/rho;
+    }
+    
+    //use last good temperature to guess at T
+    int j = 0;
+    Real T = TGiven;
+    for(j = 0; j < maxit; j++){
+      Type Tp = T + 1.0e-8;
+      Type H = rho*(chem->GetSpecificEnthalpy(Y, T, hi));
+      Type Hp = rho*(chem->GetSpecificEnthalpy(Y, Tp, hi));
+      Type P = chem->eos->GetP(R, rho, T);
+      Type Pp = chem->eos->GetP(R, rho,	Tp);
+      Type E = H - P;
+      Type Ep = Hp - Pp;
+      Type zpoint = res - E;
+      Type zpointp = res - Ep;
+      Type dzdT = (zpointp - zpoint)/(Tp - T);
+      dT = -zpoint/dzdT;
+      T += dT;
+      if (real(CAbs(dT)) < real(tol)) break;
+    }
+
+    if(j == maxit){
+      std::cerr << "WARNING: Newton iteration did not converge on a temperature in ConservativeToNative()" 
+		<< std::endl;
+      std::cerr << "Last dT = " << dT << std::endl;
+    }
+    
+  }
+  delete [] source;
+  delete [] Y;
+  
   delete [] dEtdRhoi;
   delete [] rhoi;
   delete [] wdot;
