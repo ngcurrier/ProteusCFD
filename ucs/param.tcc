@@ -92,7 +92,7 @@ void Param<Type>::SetupParams()
   this->Re = 1.0;
   this->viscous = 0;
 
-  defaultChemDB = "/usr/local/simcenter/database/chemdb.hdf5";
+  defaultChemDB = "/usr/local/database/chemdb.hdf5";
 
   //SET THE STRING VALUED PARAMETERS
   paramListString.push_back(ParameterString("chemicalDatabase", &chemDB, defaultChemDB));

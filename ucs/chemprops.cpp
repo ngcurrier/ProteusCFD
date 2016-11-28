@@ -74,9 +74,9 @@ int main(int argc, char* argv[])
     return(-1);
   }
 
-  double u = param.flowdir[0]*param.GetMach(1)*param.ref_velocity;
-  double v = param.flowdir[1]*param.GetMach(1)*param.ref_velocity;
-  double w = param.flowdir[2]*param.GetMach(1)*param.ref_velocity;
+  double u = param.flowdir[0]*param.GetVelocity(1)*param.ref_velocity;
+  double v = param.flowdir[1]*param.GetVelocity(1)*param.ref_velocity;
+  double w = param.flowdir[2]*param.GetVelocity(1)*param.ref_velocity;
 
   std::cout << "U: " << u  << " m/s" << std::endl;
   std::cout << "V: " << v  << " m/s" << std::endl;
