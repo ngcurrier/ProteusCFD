@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
   
   std::cout << "rho: " << rho << " kg/m^3" << std::endl;
   std::cout << "Rmix: " << R << std::endl;
-  std::cout << "Pressure (EOS only): " << P << " Pa" << std::endl;
+  std::cout << "Static pressure (EOS only): " << P << " Pa" << std::endl;
   double gamma = 0.0;
   double cv = 0.0;
   double X[chem.nspecies];
@@ -120,17 +120,20 @@ int main(int argc, char* argv[])
   double cp = chem.eos->GetCp(cv, R, rho, P, TGiven);
   gamma = cp/cv;
   std::cout << "gammamix: " << gamma << std::endl;
-  std::cout << "c (speed of sound): " << sqrt(gamma*R*TGiven) << " m/s" << std::endl;
+  double c = sqrt(gamma*R*TGiven);
+  std::cout << "c (speed of sound): " << c << " m/s" << std::endl;
   double hi[chem.nspecies];
   double v2 = u*u + v*v + w*w;
+  std::cout << "Mach: " << sqrt(v2/(c*c)) << std::endl;
   double Ht = rho*chem.GetSpecificEnthalpy(X, TGiven, hi) + 0.5*rho*v2;
   double Et = rho*chem.GetSpecificEnthalpy(X, TGiven, hi) - P + 0.5*rho*v2;
-  std::cout << "Total enthalpy: " << Ht << std::endl;
-  std::cout << "Total energy: " << Et << std::endl;
-
-  std::cout << "Pressure (gamma-1.0 formula): " << ((gamma - 1.0)*(Et - 0.5*rho*v2)/param.ref_enthalpy)*
-    param.ref_pressure << "Pa" << std::endl;
-
+  std::cout << "Total enthalpy: " << Ht/1000.0 << " (kJ)" << std::endl;
+  std::cout << "Total energy: " << Et/1000.0 <<  " (kJ)" << std::endl;
+  std::cout << "Total internal energy: " << (Et - 0.5*rho*v2)/1000.0 <<  " (kJ)" << std::endl;
+  
+  std::cout << "Total pressure (gamma-1.0 formula): " << ((gamma - 1.0)*(Et - 0.5*rho*v2)/param.ref_enthalpy)*
+    param.ref_pressure << " Pa" << std::endl;
+  std::cout << "Total temperature (gamma-1.0 formula): " << TGiven*(1.0  + (gamma-1.0)/2.0*(v2/(c*c))) << " (K) " << std::endl;
     
   std::cout << "\nAt given temperature of " << TGiven << "K production rates are: " << std::endl;
   std::cout << "===================================================" << std::endl;
@@ -156,48 +159,55 @@ int main(int argc, char* argv[])
   }
 
   //temporal loop to compute change in makeup over time
-  double dt = 0.001;
+  double dt = 0.0001;
   double volume = 1.0; //m^3
   Real* source = new Real[chem.nspecies];
   Real* Y = new Real[chem.nspecies];
-  Real P = Pt;
-  Type tol = 1.0e-12;
-  Int maxit = 20;
-  for(i = 0; i < 10; ++i){
+  P = Pt;
+  Real tol = 1.0e-12;
+  Real T = TGiven;
+  for(i = 0; i < 20; ++i){
+    std::cout << dt*i << " ----------------------------------------------" << std::endl;
+    std::cout << "Temp: " << T << std::endl;
     chem.GetMassProductionRates(rhoi, T, wdot);
     for(int is = 0; is < chem.nspecies; ++is){
-      source[is] = wdot[is]*vol*dt;
+      source[is] = wdot[is]*volume*dt;
+      std::cout << "s: " << source[is] << std::endl;
     }
 
     //update the masses/densities given the source term (production/destruction)
     rho = 0.0;
     R = 0.0;
     for(int is = 0; is < chem.nspecies; ++is){
-      Real mass = rhoi[is]*vol + source[is];
-      rhoi[is] = mass/vol;
+      Real mass = rhoi[is]*volume + source[is];
+      rhoi[is] = mass/volume;
       rho += rhoi[is];
-      R += rhoi[is]*chem.species[i].R;
+      R += rhoi[is]*chem.species[is].R;
     }
+    std::cout << "Rho: " << rho << std::endl;
     // R is dimensional after this
     R /= rho;
     for(int is = 0; is < chem.nspecies; ++is){
       Y[is] = rhoi[is]/rho;
+      std::cout << "y: " << Y[is] << std::endl;
     }
     
-    //use last good temperature to guess at T
     int j = 0;
-    Real T = TGiven;
+    Int maxit = 30;
+    Real dT = 0.0;
+    //todo: check if this is correct
+    Real res = Et - 0.5*rho*v2;
     for(j = 0; j < maxit; j++){
-      Type Tp = T + 1.0e-8;
-      Type H = rho*(chem->GetSpecificEnthalpy(Y, T, hi));
-      Type Hp = rho*(chem->GetSpecificEnthalpy(Y, Tp, hi));
-      Type P = chem->eos->GetP(R, rho, T);
-      Type Pp = chem->eos->GetP(R, rho,	Tp);
-      Type E = H - P;
-      Type Ep = Hp - Pp;
-      Type zpoint = res - E;
-      Type zpointp = res - Ep;
-      Type dzdT = (zpointp - zpoint)/(Tp - T);
+      Real Tp = T + 1.0e-8;
+      Real H = rho*(chem.GetSpecificEnthalpy(Y, T, hi));
+      Real Hp = rho*(chem.GetSpecificEnthalpy(Y, Tp, hi));
+      Real P = chem.eos->GetP(R, rho, T);
+      Real Pp = chem.eos->GetP(R, rho, Tp);
+      Real E = H - P;
+      Real Ep = Hp - Pp;
+      Real zpoint = res - E;
+      Real zpointp = res - Ep;
+      Real dzdT = (zpointp - zpoint)/(Tp - T);
       dT = -zpoint/dzdT;
       T += dT;
       if (real(CAbs(dT)) < real(tol)) break;
