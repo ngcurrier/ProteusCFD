@@ -2861,9 +2861,19 @@ Int Mesh<Type>::ReadSU2_Ascii(std::string filename)
   Int elemType;
   Int nbelemTmp = 0; // temporary counter for each boundary section
 
-  //initialize element type counters
-  nelem[TRI] = nelem[QUAD] = nelem[TET] = nelem[PYRAMID] = nelem[PRISM] = nelem[HEX] = 0;
+  //
+  // table converts from SU2 --> our format
+  //
+  Int translation[][8] = {
+    {2,1,0}, // Triangle
+    {3,2,1,0}, // Quad
+    {0,1,3,2},  // Tet
+    {0,1,2,3,4},  // Pyramid
+    {0,3,4,1,5,2},  // Prism
+    {0,1,3,2,4,5,7,6}  // Hex
+  };
 
+  
   //states for our state machine reader
   enum{
     stateReadNdim,
@@ -2974,6 +2984,7 @@ Int Mesh<Type>::ReadSU2_Ascii(std::string filename)
 	  ss >> nodes[3];
 	  Int id;
 	  ss >> id;
+	  TranslateWinding(nodes, translation, mnode[TET], TET, 0);
 	  tempe = new Tetrahedron<Type>;
 	  tempe->Init(nodes);
 	  elementList.push_back(tempe);
@@ -2991,6 +3002,7 @@ Int Mesh<Type>::ReadSU2_Ascii(std::string filename)
 	  ss >> nodes[7];
 	  Int id;
 	  ss >> id;
+	  TranslateWinding(nodes, translation, mnode[HEX], HEX, 0);
 	  tempe = new Hexahedron<Type>;
 	  tempe->Init(nodes);
 	  elementList.push_back(tempe);
@@ -3006,6 +3018,7 @@ Int Mesh<Type>::ReadSU2_Ascii(std::string filename)
 	  ss >> nodes[5];
 	  Int id;
 	  ss >> id;
+	  TranslateWinding(nodes, translation, mnode[PRISM], PRISM, 0);
 	  tempe = new Prism<Type>;
 	  tempe->Init(nodes);
 	  elementList.push_back(tempe);
@@ -3020,6 +3033,7 @@ Int Mesh<Type>::ReadSU2_Ascii(std::string filename)
 	  ss >> nodes[4];
 	  Int id;
 	  ss >> id;
+	  TranslateWinding(nodes, translation, mnode[PYRAMID], PYRAMID, 0);
 	  tempe = new Pyramid<Type>;
 	  tempe->Init(nodes);
 	  elementList.push_back(tempe);
@@ -3124,6 +3138,7 @@ Int Mesh<Type>::ReadSU2_Ascii(std::string filename)
 	  ss >> nodes[2];
 	  Int id;
 	  ss >> id;
+	  TranslateWinding(nodes, translation, mnode[TRI], TRI, 0);
 	  tempe = new Triangle<Type>;
 	  tempe->Init(nodes);
 	  tempe->SetFactag(boundCounter+1);
@@ -3138,6 +3153,7 @@ Int Mesh<Type>::ReadSU2_Ascii(std::string filename)
 	  ss >> nodes[3];
 	  Int id;
 	  ss >> id;
+	  TranslateWinding(nodes, translation, mnode[QUAD], QUAD, 0);
 	  tempe = new Quadrilateral<Type>;
 	  tempe->Init(nodes);
 	  tempe->SetFactag(boundCounter+1);
@@ -3185,6 +3201,26 @@ Int Mesh<Type>::ReadSU2_Ascii(std::string filename)
 template <class Type>
 Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
 {
+  //Winding information (edgelist):
+  // Triangle {0-1,1-2,2-0}
+  // Quad {0-1,1-2,2-3,3-0}
+  // Tet {0-3,3-1,1-0}, {3-1,1-2,2-3}, {1-0,0-2,2-1}, {0-3,3-2,2-0}
+  // Prism {1-2,2-0,0-1}, {4-5,5-3,3-4}, {1-2,2-5,5-4,4-1}, {2-0,0-3,3-5,5-2}, {0-1,1-4,4-3,3-0}
+  // Pyramid {3-0,0-1,1-2,2-3}, {1-2,2-4,4-1}, {0-1,1-4,4-0}, {2-3,3-4,4-2}, {3-0,0-4,4-3}
+  // Hex {0-4,4-7,7-3,3-0}, {4-5,5-6,6-7,7-4}, {5-1,1-2,2-6,6-5}, {1-0,0-3,3-2,2-1}, {0-1,1-5,5-4,4-0}, {7-6,6-2,2-3,3-7}
+
+  //
+  // table converts from gmsh --> our format
+  //
+  Int translation[][8] = {
+    {2,1,0}, // Triangle
+    {3,2,1,0}, // Quad
+    {0,1,3,2},  // Tet
+    {0,1,2,3,4},  // Pyramid
+    {0,3,4,1,5,2},  // Prism
+    {0,1,3,2,4,5,7,6}  // Hex
+  };
+
   Element<Type>* tempe = NULL;
   std::ifstream fin;
   std::string line;
@@ -3338,6 +3374,7 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
 	    nodes[0]--;
 	    nodes[1]--;
 	    nodes[2]--;
+	    TranslateWinding(nodes, translation, mnode[TRI], TRI, 0);
 	    tempe = new Triangle<Type>;
 	    tempe->Init(nodes);
 	    tempe->SetFactag(elementaryId);
@@ -3355,6 +3392,7 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
 	    nodes[1]--;
 	    nodes[2]--;
 	    nodes[3]--;
+	    TranslateWinding(nodes, translation, mnode[QUAD], QUAD, 0);
 	    tempe = new Quadrilateral<Type>;
 	    tempe->Init(nodes);
 	    tempe->SetFactag(elementaryId);
@@ -3372,6 +3410,7 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
 	    nodes[1]--;
 	    nodes[2]--;
 	    nodes[3]--;
+	    TranslateWinding(nodes, translation, mnode[TET], TET, 0);
 	    tempe = new Tetrahedron<Type>;
 	    tempe->Init(nodes);
 	    elementList.push_back(tempe);
@@ -3396,6 +3435,7 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
 	    nodes[5]--;
 	    nodes[6]--;
 	    nodes[7]--;
+	    TranslateWinding(nodes, translation, mnode[HEX], HEX, 0);
 	    tempe = new Hexahedron<Type>;
 	    tempe->Init(nodes);
 	    elementList.push_back(tempe);
@@ -3416,6 +3456,7 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
 	    nodes[3]--;
 	    nodes[4]--;
 	    nodes[5]--;
+	    TranslateWinding(nodes, translation, mnode[PRISM], PRISM, 0);
 	    tempe = new Prism<Type>;
 	    tempe->Init(nodes);
 	    elementList.push_back(tempe);
@@ -3434,6 +3475,7 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
 	    nodes[2]--;
 	    nodes[3]--;
 	    nodes[4]--;
+	    TranslateWinding(nodes, translation, mnode[PYRAMID], PYRAMID, 0);
 	    tempe = new Pyramid<Type>;
 	    tempe->Init(nodes);
 	    elementList.push_back(tempe);

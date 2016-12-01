@@ -102,11 +102,6 @@ $(EXE_TESTS): $(DEPS_TEST) $(OBJS_TEST) $(GTEST_LIB)/.libs/libgtest.a ./ucs/libc
 SRCDIRS = ./structuralDynamics ./ucs
 ROOT = $$PWD
 
-all: $(EXE_SOLVER) $(EXE_DECOMP) $(EXE_RECOMP) $(EXE_FINDPOINT) $(EXE_TESTS)\
-	$(EXE_CHEMPROPS) $(EXE_STRUCT_SOLVER) $(EXE_STRUCT_ERROR)
-
-tools: $(EXE_DECOMP) $(EXE_RECOMP) $(EXE_CHEMPROPS) $(EXE_FINDPOINT)
-
 ./structuralDynamics/libstructdyn.a: $(DEPS_STRUCT_SOLVER) $(OBJS_STRUCT_SOLVER)
 	ar rvs ./structuralDynamics/libstructdyn.a $(OBJS_STRUCT_SOLVER)
 
@@ -198,6 +193,18 @@ dist:
 cleanucs:
 	rm $(OBJS_ALL) $(EXE_ALL) $(DEPS_ALL)
 
+
+all: $(EXE_SOLVER) $(EXE_DECOMP) $(EXE_RECOMP) $(EXE_FINDPOINT) $(EXE_TESTS)\
+	$(EXE_CHEMPROPS) $(EXE_STRUCT_SOLVER) $(EXE_STRUCT_ERROR)
+
+tools: $(EXE_DECOMP) $(EXE_RECOMP) $(EXE_CHEMPROPS) $(EXE_FINDPOINT)
+tests: $(EXE_TESTS)
+chemprops: $(EXE_CHEMPROPS)
+ucs: $(EXE_SOLVER)
+decomp: $(EXE_DECOMP)
+recomp: $(EXE_RECOMP)
+
+.PHONY: tests chemprops all tools ucs decomp recomp
 
 -include $(DEPS_ALL)
 
