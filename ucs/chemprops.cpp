@@ -158,6 +158,7 @@ int main(int argc, char* argv[])
     std::cout << "dEtdrho[" << i << "]: " << dEtdRhoi[i] << std::endl;
   }
 
+#if 0
   //temporal loop to compute change in makeup over time
   double dt = 0.0001;
   double volume = 1.0; //m^3
@@ -222,6 +223,7 @@ int main(int argc, char* argv[])
   }
   delete [] source;
   delete [] Y;
+#endif
   
   delete [] dEtdRhoi;
   delete [] rhoi;
