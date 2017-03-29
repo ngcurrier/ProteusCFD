@@ -103,12 +103,29 @@ int main(int argc, char* argv[])
   double cv = 0.0;
   double X[chem.nspecies];
   if(param.massfractions.size() == chem.nspecies){
+    int Tlevels = (int)3500/100.0;
+    std::cout << std::endl;
+    std::cout << "Temp (K)\t\t Cv (J/kg.K)" << std::endl;
+    std::cout << "----------------------------------------" << std::endl;
+    for(j = 0; j < Tlevels; j++){
+      cv = 0.0;
+      double Ti = (double)(j*100.0 + 100.0);
+      for(i = 0; i < chem.nspecies; i++){
+	X[i] = rhoi[i]/rho;
+	double cpi = chem.species[i].GetCp(Ti);
+	double cvi = chem.eos->GetCv(cpi, R, rho, P, Ti);;
+	cv += param.massfractions[i]*cvi;
+      }
+      std::cout << Ti << "\t\t" << cv << std::endl;
+    }
+    std::cout << std::endl;
+    cv = 0.0;
     for(i = 0; i < chem.nspecies; i++){
       X[i] = rhoi[i]/rho;
       double cpi = chem.species[i].GetCp(TGiven);
       double cvi = chem.eos->GetCv(cpi, R, rho, P, TGiven);
       std::cout << "cv[" << chem.species[i].symbol << "]: " 
-		<<  cvi << std::endl;
+		<<  cvi << " (J/kg.K)" << std::endl;
       cv += param.massfractions[i]*cvi;
     }
   }
@@ -116,7 +133,7 @@ int main(int argc, char* argv[])
     std::cerr << "Number of species defined in param file does not match chem model" << std::endl;
     return(-1);
   }
-  std::cout << "cvmix: " << cv << std::endl;
+  std::cout << "cvmix: " << cv << " (J/kg.K)" << std::endl;
   double cp = chem.eos->GetCp(cv, R, rho, P, TGiven);
   gamma = cp/cv;
   std::cout << "gammamix: " << gamma << std::endl;
