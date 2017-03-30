@@ -97,36 +97,43 @@ int main(int argc, char* argv[])
   double P = chem.eos->GetP(R, rho, TGiven);
   
   std::cout << "rho: " << rho << " kg/m^3" << std::endl;
-  std::cout << "Rmix: " << R << std::endl;
+  std::cout << "Rmix: " << R << " J/kg.K" << std::endl;
   std::cout << "Static pressure (EOS only): " << P << " Pa" << std::endl;
   double gamma = 0.0;
   double cv = 0.0;
+	double cp = 0.0;
   double X[chem.nspecies];
   if(param.massfractions.size() == chem.nspecies){
     int Tlevels = (int)3500/100.0;
     std::cout << std::endl;
-    std::cout << "Temp (K)\t\t Cv (J/kg.K)" << std::endl;
-    std::cout << "----------------------------------------" << std::endl;
+    std::cout << "Temp (K)\tCv (J/kg.K)\tCp (J/kg.K)\tCp/R\tmu (Pa.s)\tk (W/m.K)" << std::endl;
+    std::cout << "--------------------------------------------------------------" << std::endl;
     for(j = 0; j < Tlevels; j++){
       cv = 0.0;
+			cp = 0.0;
       double Ti = (double)(j*100.0 + 100.0);
       for(i = 0; i < chem.nspecies; i++){
-	X[i] = rhoi[i]/rho;
-	double cpi = chem.species[i].GetCp(Ti);
-	double cvi = chem.eos->GetCv(cpi, R, rho, P, Ti);;
-	cv += param.massfractions[i]*cvi;
+				X[i] = rhoi[i]/rho;
+				double cpi = chem.species[i].GetCp(Ti);
+				double cvi = chem.eos->GetCv(cpi, R, rho, P, Ti);
+				cp += param.massfractions[i]*cpi;
+				cv += param.massfractions[i]*cvi;
       }
-      std::cout << Ti << "\t\t" << cv << std::endl;
+			double mu = chem.GetViscosity(rhoi, Ti);
+			double k = chem.GetThermalConductivity(rhoi, Ti);
+      std::cout << Ti << "\t" << cv << "\t" << cp << "\t" << cp/R << "\t" << mu << "\t" << k << std::endl;
     }
     std::cout << std::endl;
     cv = 0.0;
+		cp = 0.0;
     for(i = 0; i < chem.nspecies; i++){
       X[i] = rhoi[i]/rho;
       double cpi = chem.species[i].GetCp(TGiven);
       double cvi = chem.eos->GetCv(cpi, R, rho, P, TGiven);
       std::cout << "cv[" << chem.species[i].symbol << "]: " 
-		<<  cvi << " (J/kg.K)" << std::endl;
+								<<  cvi << " (J/kg.K)" << std::endl;
       cv += param.massfractions[i]*cvi;
+			cp += param.massfractions[i]*cpi;
     }
   }
   else{
@@ -134,9 +141,12 @@ int main(int argc, char* argv[])
     return(-1);
   }
   std::cout << "cvmix: " << cv << " (J/kg.K)" << std::endl;
-  double cp = chem.eos->GetCp(cv, R, rho, P, TGiven);
+	std::cout << "cpmix: " << cp << " (J/kg.K)" << std::endl;
+  cp = chem.eos->GetCp(cv, R, rho, P, TGiven);
   gamma = cp/cv;
   std::cout << "gammamix: " << gamma << std::endl;
+	std::cout << "Thermal conductivity: " << chem.GetThermalConductivity(rhoi, TGiven) << " (W/m.K)" << std::endl;
+	std::cout << "Viscosity: " << chem.GetThermalConductivity(rhoi, TGiven) << " (Pa.s)" << std::endl;
   double c = sqrt(gamma*R*TGiven);
   std::cout << "c (speed of sound): " << c << " m/s" << std::endl;
   double hi[chem.nspecies];
