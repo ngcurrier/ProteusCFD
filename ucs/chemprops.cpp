@@ -17,6 +17,7 @@ int main(int argc, char* argv[])
   Real TGiven;
   Real* rhoi;
   Real* wdot;
+	Real* molfrac;
 
   if(argc != 3){
     std::cerr << "USAGE: " << argv[0] << " casename Temperature(K)" << std::endl;
@@ -60,6 +61,7 @@ int main(int argc, char* argv[])
 
   rhoi = new Real[chem.nspecies];
   wdot = new Real[chem.nspecies];
+	molfrac = new Real[chem.nspecies];
 
   //using massfraction information available from param file if there
   //print out standard state conditions using chemistry
@@ -74,14 +76,6 @@ int main(int argc, char* argv[])
     return(-1);
   }
 
-  double u = param.flowdir[0]*param.GetVelocity(1)*param.ref_velocity;
-  double v = param.flowdir[1]*param.GetVelocity(1)*param.ref_velocity;
-  double w = param.flowdir[2]*param.GetVelocity(1)*param.ref_velocity;
-
-  std::cout << "U: " << u  << " m/s" << std::endl;
-  std::cout << "V: " << v  << " m/s" << std::endl;
-  std::cout << "W: " << w  << " m/s" << std::endl;
-  
   //compute rho and R
   double rho = 0.0;
   double R = 0.0;
@@ -95,19 +89,15 @@ int main(int argc, char* argv[])
   //R is dimensional after this
   R /= rho;
   double P = chem.eos->GetP(R, rho, TGiven);
-  
-  std::cout << "rho: " << rho << " kg/m^3" << std::endl;
-  std::cout << "Rmix: " << R << " J/kg.K" << std::endl;
-  std::cout << "Static pressure (EOS only): " << P << " Pa" << std::endl;
-  double gamma = 0.0;
+	double gamma = 0.0;
   double cv = 0.0;
 	double cp = 0.0;
-  double X[chem.nspecies];
+  double X[chem.nspecies]; //massfraction
   if(param.massfractions.size() == chem.nspecies){
     int Tlevels = (int)3500/100.0;
     std::cout << std::endl;
-    std::cout << "Temp (K)\tCv (J/kg.K)\tCp (J/kg.K)\tCp/R\tmu (Pa.s)\tk (W/m.K)" << std::endl;
-    std::cout << "--------------------------------------------------------------" << std::endl;
+    std::cout << "Temp-(K)\tCv-(J/kg.K)\tCp-(J/kg.K)\tCp/R\tmu-(Pa.s)\tk-(W/m.K)" << std::endl;
+    std::cout << "----------------------------------------------------------------------------" << std::endl;
     for(j = 0; j < Tlevels; j++){
       cv = 0.0;
 			cp = 0.0;
@@ -140,8 +130,37 @@ int main(int argc, char* argv[])
     std::cerr << "Number of species defined in param file does not match chem model" << std::endl;
     return(-1);
   }
+
+	//compute mol fractions and MW_mix
+	double MWmix = 0.0;
+	std::cout << "\nMole fractions" << std::endl;
+	std::cout << "========================= " << std::endl;
+	double summ = 0.0;
+	for(int i = 0; i < chem.nspecies; ++i){
+		molfrac[i] = (rhoi[i]/rho)/chem.species[i].MW;
+		summ += molfrac[i];
+	}
+	for(int i = 0; i < chem.nspecies; ++i){
+		molfrac[i] /= summ;
+		MWmix += molfrac[i] * chem.species[i].MW;
+		std::cout << "xi[" << chem.species[i].symbol << "]: " << molfrac[i] << std::endl;
+	}
+	std::cout << "\nMass fractions" << std::endl;
+	std::cout << "========================= " << std::endl;
+	for(int i = 0; i < chem.nspecies; ++i){
+		std::cout << "Yi[" << chem.species[i].symbol << "]: " << param.massfractions[i] << std::endl;
+	}
+	std::cout << std::endl;
+
+	std::cout << "Mixture properties at " << TGiven << " (K)" << std::endl;
+	std::cout << "=======================================" << std::endl;
+
+  std::cout << "rho: " << rho << " kg/m^3" << std::endl;
+  std::cout << "Rmix: " << R << " J/kg.K" << std::endl;
+  std::cout << "Static pressure (EOS only): " << P << " Pa" << std::endl;
   std::cout << "cvmix: " << cv << " (J/kg.K)" << std::endl;
 	std::cout << "cpmix: " << cp << " (J/kg.K)" << std::endl;
+	std::cout << "mwmix: " << MWmix << " (kg/mol)" << std::endl;
   cp = chem.eos->GetCp(cv, R, rho, P, TGiven);
   gamma = cp/cv;
   std::cout << "gammamix: " << gamma << std::endl;
@@ -150,8 +169,14 @@ int main(int argc, char* argv[])
   double c = sqrt(gamma*R*TGiven);
   std::cout << "c (speed of sound): " << c << " m/s" << std::endl;
   double hi[chem.nspecies];
+	double u = param.flowdir[0]*param.GetVelocity(1)*param.ref_velocity;
+  double v = param.flowdir[1]*param.GetVelocity(1)*param.ref_velocity;
+  double w = param.flowdir[2]*param.GetVelocity(1)*param.ref_velocity;
   double v2 = u*u + v*v + w*w;
-  std::cout << "Mach: " << sqrt(v2/(c*c)) << std::endl;
+  std::cout << "U: " << u  << " m/s" << std::endl;
+  std::cout << "V: " << v  << " m/s" << std::endl;
+  std::cout << "W: " << w  << " m/s" << std::endl;
+	std::cout << "Mach: " << sqrt(v2/(c*c)) << std::endl;
   double Ht = rho*chem.GetSpecificEnthalpy(X, TGiven, hi) + 0.5*rho*v2;
   double Et = rho*chem.GetSpecificEnthalpy(X, TGiven, hi) - P + 0.5*rho*v2;
   std::cout << "Total enthalpy: " << Ht/1000.0 << " (kJ)" << std::endl;
@@ -255,6 +280,7 @@ int main(int argc, char* argv[])
   delete [] dEtdRhoi;
   delete [] rhoi;
   delete [] wdot;
+	delete [] molfrac;
 
   return(ierr);
 }
