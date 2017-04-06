@@ -498,9 +498,14 @@ Type ChemModel<Type>::WilkesMixtureRule(Type* rhoi, Type* property, Type T)
 
   //compute mol fraction following Cox's dissertation 
   Type* molfrac = (Type*)alloca(sizeof(Type)*nspecies);
+	Type summ = 0.0;
   for(Int i = 0; i < nspecies; i++){
-    molfrac[i] = (rhoi[i]/rho)/species[i].MW;
+		molfrac[i] = (rhoi[i]/rho)/species[i].MW;
+		summ += molfrac[i];
   }
+  for(Int i = 0; i < nspecies; i++){
+		molfrac[i] /= summ;
+	}
 
   Type* visc = (Type*)alloca(sizeof(Type)*nspecies);
   for(Int i = 0; i < nspecies; i++){
