@@ -69,12 +69,12 @@ int main(int argc, char* argv[]){
   }
   else{
     cerr << "File extension " << fileextension << " not recognized" << endl;
-    return(0);
+    return 0;
   }
 
   if(ierr){
-    cerr << "Grid read failure: could not open -- " << filename << endl;
-    return (1);
+    cerr << "Grid read failure on file -- " << filename << endl;
+    return 1;
   }
 
   //grab node coords

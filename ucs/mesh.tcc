@@ -1744,7 +1744,7 @@ Int Mesh<Type>::CalcAreasVolumes()
       }
       for(kk = 0; kk < 4; kk++){
 	if(real(tv[kk]) < 0.0 ){//&& Abs(tv[kk]) > 1.0e-15){
-	  std::cout << "Negative volume detected in element " << jelem << " of type " << jtype 
+	  std::cout << "Negative volume detected in element " << jelem << " of type " << ETypeToName(jtype)
 		    << " -- volume " << tv[kk] << " # " << kk << std::endl;
 	}
       }
@@ -1896,7 +1896,7 @@ Int Mesh<Type>::CalcAreasVolumes()
       }
       for(kk = 0; kk < 2; kk++){
 	if(real(tv[kk]) < 0.0 ){//&& Abs(tv[kk]) > 1.0e-15){
-	  std::cout << "Negative volume detected in element " << jelem << " of type " << jtype 
+	  std::cout << "Negative volume detected in element " << jelem << " of type " << ETypeToName(jtype) 
 		    << " -- volume " << tv[kk] << " # " << kk << std::endl;
 	}
       }
@@ -2070,27 +2070,33 @@ Int Mesh<Type>::CheckForClosure()
   Int count = 0;
 
   Type* areasum = new Type[(nnode)*3];
+  //initialize to zero for all nodes in 3 coordinate directions
   for(i = 0; i < nnode; i++){
     areasum[i*3 + 0] = 0.0;
     areasum[i*3 + 1] = 0.0;
     areasum[i*3 + 2] = 0.0;
   }
+  //sum across all edges the 3 directional contributions
+  //add from node 1 and subtract contributions from node 2 since areas are signed on the edge
   for(i = 0; i < nedge; i++){
     n1 = edges[i].n[0];
     n2 = edges[i].n[1];
     Subtract(&areasum[n1*3], edges[i].a, &areasum[n1*3]);
     Add(&areasum[n2*3], edges[i].a, &areasum[n2*3]);
   }
+  //do the same thing with all boundary and ghost edges to ensure closure
   for(i = 0; i < ngedge+nbedge; i++){
     n1 = bedges[i].n[0];
     Subtract(&areasum[n1*3], bedges[i].a, &areasum[n1*3]);
-  }   
+  }
+  //check that the dual of each node has faces which are closed, if not, show warning
   for(i = 0; i < nnode; i++){
     if(real(Magnitude(&areasum[i*3])) > real(smallnum)){
       fail = 1;
-      std::cout << "WARNING!!! CV based on node " << i << " not closed -- "
+      std::cout << "WARNING!!! Dual CV based on node " << i << " not closed. Open by (" << areasum[i*3 + 0]
+		<< ", " << areasum[i*3 + 1] << ", " << areasum[i*3 + 2] << ") -- position ("
       		<< areasum[i*3 + 0] << " " << areasum[i*3 + 1] << " " 
-      		<< areasum[i*3 + 2]<< std::endl;
+      		<< areasum[i*3 + 2] << ")" << std::endl;
       count++;
     }
   }
@@ -2139,7 +2145,7 @@ Int Mesh<Type>::FixBoundaryWindings()
       indx2 = iel2el[gelem+1];
       if(indx2 - indx1 != 1){
 	std::cerr << "WARNING!!! Boundary face # " << gelem << " of type " 
-		  << itype << " connected to " 
+		  << ETypeToName(itype) << " connected to " 
 		  << "multiple volume elements Mesh::FixBoundaryWindings()" 
 		  << std::endl;
 	std::cerr << "Element list: " << std::endl;
@@ -2865,14 +2871,13 @@ Int Mesh<Type>::ReadSU2_Ascii(std::string filename)
   // table converts from SU2 --> our format
   //
   Int translation[][8] = {
-    {2,1,0}, // Triangle
-    {3,2,1,0}, // Quad
-    {0,1,3,2},  // Tet
+    {0,1,2}, // Triangle
+    {0,1,2,3}, // Quad
+    {0,1,2,3},  // Tet
     {0,1,2,3,4},  // Pyramid
-    {0,3,4,1,5,2},  // Prism
-    {0,1,3,2,4,5,7,6}  // Hex
+    {0,1,2,3,4,5},  // Prism
+    {0,1,2,3,4,5,6,7}  // Hex
   };
-
   
   //states for our state machine reader
   enum{
@@ -2922,7 +2927,6 @@ Int Mesh<Type>::ReadSU2_Ascii(std::string filename)
   //read each line one at a time, use a state machine to process data
   std::size_t loc;
   while(std::getline(fin, line)){
-    std::cout << line << std::endl;
     if(line.size() == 0) continue; //skip blank lines
     if(line[0] == '%') continue; //skip comment lines
     std::stringstream ss;
@@ -2957,7 +2961,7 @@ Int Mesh<Type>::ReadSU2_Ascii(std::string filename)
 	else{
 	  ss << line.substr(loc+nelemKey.size());
 	  ss >> nnelem;
-	  std::cout << "SU2 ASCII I/O: Reading " << nnelem << " elements" << std::endl;
+	  std::cout << "SU2 ASCII I/O: Reading " << nnelem << " volume elements" << std::endl;
 	  state = stateReadElem;
 	}
       	break;
@@ -3061,31 +3065,32 @@ Int Mesh<Type>::ReadSU2_Ascii(std::string filename)
 	  state = stateReadPoints;
 	  MemInitMesh();
 	  std::cout << "SU2 ASCII I/O: Memory initialized" << std::endl;
+	  std::cout << "SU2 ASCII I/O: Reading points " << std::endl;
 	}
 	break;
       case stateReadPoints:
 	ss.str(line);
 	{
-	  Real xyz[3];
-	  ss >> xyz[0];
-	  ss >> xyz[1];
-	  ss >> xyz[2];
+	  Real xyzt[3];
+	  ss >> xyzt[0];
+	  ss >> xyzt[1];
+	  ss >> xyzt[2];
 	  Int id;
 	  ss >> id;
-	  xyz[nodeCount*3 + 0] = xyz[0];
-	  xyz[nodeCount*3 + 1] = xyz[1];
-	  xyz[nodeCount*3 + 2] = xyz[2];
+	  xyz[nodeCount*3 + 0] = xyzt[0];
+	  xyz[nodeCount*3 + 1] = xyzt[1];
+	  xyz[nodeCount*3 + 2] = xyzt[2];
 	  nodeCount++;
 	}
 	if(nodeCount >= nnode){
 	  state = stateReadNmark;
+	  std::cout << "SU2 ASCII I/O: Reading boundary markers" << std::endl;
 	}
-	std::cout <<  nodeCount << std::endl;
 	break;
       case stateReadNmark:
 	loc = line.find(nmarkKey);
 	if(loc == std::string::npos){
-	  std::cerr << "SU2 ASCII I/O: File read did not find \"NMARK=\" marker where expected\n";
+	  std::cerr << "SU2 ASCII I/O: File read did not find \"NMARK=\" marker where expected" << std::endl;
 	  return(1);
 	}
 	else{
@@ -3213,12 +3218,12 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
   // table converts from gmsh --> our format
   //
   Int translation[][8] = {
-    {2,1,0}, // Triangle
-    {3,2,1,0}, // Quad
-    {0,1,3,2},  // Tet
+    {0,1,2}, // Triangle
+    {0,1,2,3}, // Quad
+    {0,1,2,3},  // Tet
     {0,1,2,3,4},  // Pyramid
-    {0,3,4,1,5,2},  // Prism
-    {0,1,3,2,4,5,7,6}  // Hex
+    {0,1,2,3,4,5},  // Prism
+    {0,1,2,3,4,5,6,7}  // Hex
   };
 
   Element<Type>* tempe = NULL;
@@ -3320,7 +3325,6 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
 	break;
       case ReadPoints:
 	{
-	  std::cout << "Got: " << ss.str() << std::endl;
 	  Int ptid;
 	  ss >> ptid;
 	  if(ptid-1 != nodesRead){
@@ -3362,8 +3366,12 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
 	    return (-1);
 	  }
 	  if(elemType == GMSH_LINE){
-	    std::cerr << "SU2 ASCII I/O: Only 3d elements expected, found line";
-	    return (-1);
+	    std::cerr << "GMSH ASCII I/O: found lin elements in file, these shouldn't be here.\n";
+	    return -1;
+	  }
+	  else if(elemType == GMSH_POINT){
+	    std::cerr << "GMSH ASCII I/O: found point elements in file, these shouldn't be here.\n";
+	    return -1;
 	  }
 	  else if(elemType == GMSH_TRI){
 	    Int nodes[3];
@@ -3496,6 +3504,14 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
   lnelem = 0;
   for(Int e = TRI; e <= HEX; e++){
     lnelem += nelem[e];
+  }
+  if(nelem[TRI] == 0 && nelem[QUAD] == 0){
+    std::cerr << "GMSH ASCII I/O: Warning no surface tri/quad elements found. Did you create physical groups on the surface for BCs?\n";
+    return -1;
+  }
+  
+  if(totalElems != lnelem){
+    std::cerr << "GMSH ASCII I/O: Number of elements expected does not match number read in" << std::endl;
   }
   std::cout << "GMSH ASCII I/O: Number of nodes " << nnode << std::endl;
   std::cout << "GMSH ASCII I/O: Number of elements " << lnelem << std::endl;

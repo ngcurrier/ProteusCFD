@@ -1,6 +1,9 @@
 #ifndef ETYPE_H__
 #define ETYPE_H__
 
+#include <string>
+#include "general.h"
+
 //define the element types for the .su2 mesh format
 #define SU2_LINE 3
 #define SU2_TRI 5
@@ -20,6 +23,8 @@
 #define HEX 5
 #define MAX_E_TYPES 6
 
+std::string ETypeToName(Int type);
+
 //define the element types for the gmsh mesh format
 #define GMSH_LINE 1 
 #define GMSH_TRI 2
@@ -28,5 +33,6 @@
 #define GMSH_HEX 5
 #define GMSH_PRISM 6
 #define GMSH_PYRAMID 7
+#define GMSH_POINT 15
 
 #endif

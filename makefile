@@ -22,11 +22,11 @@ DEPS_COMMON = $(SRCS_COMMON:.cpp=.d)
 SRCS_SOLVER = ./ucs/main.cpp ./ucs/eqnset.cpp ./ucs/threaded.cpp ./ucs/parallel.cpp \
 	./ucs/customics.cpp ./ucs/oddsNends.cpp ./ucs/portFileio.cpp \
 	./ucs/elements.cpp ./ucs/dataInfo.cpp ./ucs/derivatives.cpp
-SRCS_DECOMP = ./ucs/decomp.cpp ./ucs/mesh.cpp ./ucs/parallel.cpp \
+SRCS_DECOMP = ./ucs/decomp.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/parallel.cpp \
 	./ucs/oddsNends.cpp ./ucs/dataInfo.cpp
-SRCS_RECOMP = ./ucs/recomp.cpp ./ucs/mesh.cpp ./ucs/parallel.cpp \
+SRCS_RECOMP = ./ucs/recomp.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/parallel.cpp \
 	./ucs/oddsNends.cpp ./ucs/dataInfo.cpp
-SRCS_FINDPOINT = ./ucs/find_point.cpp ./ucs/mesh.cpp ./ucs/parallel.cpp \
+SRCS_FINDPOINT = ./ucs/find_point.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/parallel.cpp \
 	./ucs/oddsNends.cpp ./ucs/dataInfo.cpp
 
 OBJS_SOLVER = $(SRCS_SOLVER:.cpp=.o)
@@ -60,13 +60,13 @@ SRCS_STRUCT_SOLVER = ./structuralDynamics/main.cpp ./structuralDynamics/element_
 OBJS_STRUCT_SOLVER = $(SRCS_STRUCT_SOLVER:.cpp=.o)
 DEPS_STRUCT_SOLVER = $(SRCS_STRUCT_SOLVER:.cpp=.d)
 
-SRCS_ALL = $(SRCS_SOLVER) ./ucs/decomp.cpp ./ucs/recomp.cpp ./ucs/mesh.cpp ./ucs/find_point.cpp $(CSRCS_PORTOPT)\
+SRCS_ALL = $(SRCS_SOLVER) ./ucs/decomp.cpp ./ucs/recomp.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/find_point.cpp $(CSRCS_PORTOPT)\
 	 $(SRCS_CHEMPROPS) $(SRCS_STRUCT_SOLVER) $(SRCS_COMMON) $(SRCS_TEST)
 OBJS_ALL = $(SRCS_ALL:.cpp=.o)
 DEPS_ALL = $(SRCS_ALL:.cpp=.d)
 
 # --------- BEGIN TEST SECTION
-SRCS_TEST = ./unitTest/main.cpp ./ucs/mesh.cpp ./ucs/parallel.cpp
+SRCS_TEST = ./unitTest/main.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/parallel.cpp
 OBJS_TEST = $(SRCS_TEST:.cpp=.o) 
 DEPS_TEST = $(SRCS_TEST:.cpp=.d)
 

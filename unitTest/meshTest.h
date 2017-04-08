@@ -47,18 +47,33 @@ class MeshTestCrunch : public testing::Test
   Mesh<Real> m;
 };
 
+class MeshTestSU2 : public testing::Test
+{
+ protected:
+ MeshTestSU2():
+  ierr(0)
+    { };
+  ~MeshTestSU2(){};
+
+  void SetUp(){};
+  void TearDown(){};
+
+  int ierr;
+  Mesh<Real> m;
+};
+
 TEST_F(MeshTestGmsh, testGmshRead)
 {
   PObj<Real> pobj;
-  EXPECT_EQ(0, m.ReadGMSH_Ascii("../unitTest/meshResources/gmsh.msh"));
+  EXPECT_EQ(0, m.ReadGMSH_Ascii("../unitTest/meshResources/cube.msh"));
   m.SetParallelPointer(&pobj);
 
-  EXPECT_EQ(2496, m.GetNumNodes());
-  EXPECT_EQ(11416, m.GetNumElem());
+  EXPECT_EQ(14, m.GetNumNodes());
+  EXPECT_EQ(48, m.GetNumElem());
 
   m.BuildMaps();
   m.CalcMetrics();
-    
+  EXPECT_NEAR(1.0, m.GetVolumeTotal(), 1.0e-7);
 }
 
 TEST_F(MeshTestUgrid, testUgridRead)
@@ -87,4 +102,18 @@ TEST_F(MeshTestCrunch, testCrunchRead)
   m.BuildMaps();
   m.CalcMetrics();
   EXPECT_NEAR(14.92148669, m.GetVolumeTotal(), 1.0e-7);
+}
+
+TEST_F(MeshTestSU2, testSU2Read)
+{
+  PObj<Real> pobj;
+  EXPECT_EQ(0, m.ReadSU2_Ascii("../unitTest/meshResources/mesh_ONERAM6_inv.su2"));
+  m.SetParallelPointer(&pobj);
+
+  EXPECT_EQ(108396, m.GetNumNodes());
+  EXPECT_EQ(621508, m.GetNumElem());
+
+  m.BuildMaps();
+  m.CalcMetrics();
+  EXPECT_NEAR(4442.0775193109512, m.GetVolumeTotal(), 1.0e-7);
 }
