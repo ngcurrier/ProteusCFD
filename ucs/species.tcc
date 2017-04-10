@@ -52,7 +52,7 @@ Type Species<Type>::GetH(Type T, Bool shiftCurve)
 
   if(shiftCurve){
     //from the definition of these curves we need to shift h by h(298K) left and then
-    //add back the heat of formation at 298K to get the actual entalpy
+    //add back the heat of formation at 298K to get the actual enthalpy
     h -= href;
     //h += hf298;
   }
