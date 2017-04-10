@@ -8,6 +8,21 @@
 #include <string>
 #include <fstream>
 #include <stdexcept>
+#include <execinfo.h>
+
+#define GetStack(errorstr){                                 \
+    void* message[500];					    \
+    char** strings;					    \
+    int nptrs;                                              \
+    nptrs = backtrace(message, 500);                        \
+    strings = backtrace_symbols(message, nptrs);	    \
+    std::stringstream ERROR_MESSAGE;			    \
+    for (int II = 0; II < nptrs; II++) {		    \
+      ERROR_MESSAGE << std::endl << strings[II];	    \
+    }							    \
+    ERROR_MESSAGE << std::endl << __FILE__<<": " << __LINE__ << ": " << errorstr; \
+    std::cout << ERROR_MESSAGE.str() << std::endl;		                  \
+  }
 
 class Abort
 {
