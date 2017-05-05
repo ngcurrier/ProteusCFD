@@ -64,7 +64,9 @@ class ChemModel
   Type WilkesMixtureRule(Type* rhoi, Type* property, Type T);
   Type GetViscosity(Type* rhoi, Type T);
   Type GetThermalConductivity(Type* rhoi, Type T);
-
+  void MassFractionToMoleFraction(Type* massfrac, Type* molefrac);
+  void MoleFractionToMassFraction(Type* molefrac, Type* massfrac);
+  
  private:
 };
 

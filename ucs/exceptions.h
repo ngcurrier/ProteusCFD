@@ -45,8 +45,13 @@ public:
     std::ofstream fout;
     std::string filename = rootDirectory + "Abort.Log";
 
+    GetStack(message);
+    
+    std::cerr << "Aborting (Process Id - " << rank << "): " << message << std::endl;
+    
     fout.open(filename.c_str());
     fout << "Aborting (Process Id - " << rank << "): " << message << std::endl;
+    
     fout.close();
 
     MPI_Abort(MPI_COMM_WORLD, -999);

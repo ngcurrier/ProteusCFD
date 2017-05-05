@@ -12,6 +12,8 @@
 
 int main(int argc, char* argv[])
 {
+  MPI_Init(&argc, &argv);
+  
   Int i, j;
   Int ierr = 0;
   std::stringstream ss;
@@ -66,6 +68,20 @@ int main(int argc, char* argv[])
 
   //using massfraction information available from param file if there
   //print out standard state conditions using chemistry
+  if(param.molefractions.size() == chem.nspecies){
+    //convert to massfractions
+    double* molfrac = (double*)alloca(sizeof(double)*chem.nspecies);
+    double* massfrac = (double*)alloca(sizeof(double)*chem.nspecies); 
+    for(int i = 0; i < chem.nspecies; ++i){
+      molfrac[i] = param.molefractions[i];
+    }
+    chem.MoleFractionToMassFraction(molfrac, massfrac);
+    param.massfractions.resize(chem.nspecies);
+    for(int i = 0; i < chem.nspecies; ++i){
+      param.massfractions[i] = massfrac[i];
+    }
+  }
+  
   if(param.massfractions.size() == chem.nspecies){
     for(i = 0; i < chem.nspecies; i++){
       std::cout << "rho[" << chem.species[i].symbol << "]: " 
@@ -151,13 +167,12 @@ int main(int argc, char* argv[])
   double MWmix = 0.0;
   std::cout << "\nMole fractions" << std::endl;
   std::cout << "========================= " << std::endl;
-  double summ = 0.0;
+  double massfrac[chem.nspecies];
   for(int i = 0; i < chem.nspecies; ++i){
-    molfrac[i] = (rhoi[i]/rho)/chem.species[i].MW;
-    summ += molfrac[i];
+    massfrac[i] = param.massfractions[i];
   }
+  chem.MassFractionToMoleFraction(massfrac, molfrac);
   for(int i = 0; i < chem.nspecies; ++i){
-    molfrac[i] /= summ;
     MWmix += molfrac[i] * chem.species[i].MW;
     std::cout << "xi[" << chem.species[i].symbol << "]: " << molfrac[i] << std::endl;
   }

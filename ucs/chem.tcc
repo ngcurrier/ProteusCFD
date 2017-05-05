@@ -496,17 +496,16 @@ Type ChemModel<Type>::WilkesMixtureRule(Type* rhoi, Type* property, Type T)
     rho += rhoi[i];
   }
 
-  //compute mol fraction following Cox's dissertation 
-  Type* molfrac = (Type*)alloca(sizeof(Type)*nspecies);
-	Type summ = 0.0;
-  for(Int i = 0; i < nspecies; i++){
-		molfrac[i] = (rhoi[i]/rho)/species[i].MW;
-		summ += molfrac[i];
-  }
-  for(Int i = 0; i < nspecies; i++){
-		molfrac[i] /= summ;
-	}
+  //compute mol fraction
+  Type* massfrac = (Type*)alloca(sizeof(Type)*nspecies);
+  Type* molefrac = (Type*)alloca(sizeof(Type)*nspecies);
 
+  for(Int i = 0; i < nspecies; ++i){
+    massfrac[i] = rhoi[i]/rho;
+  }
+
+  MassFractionToMoleFraction(massfrac, molefrac);
+  
   Type* visc = (Type*)alloca(sizeof(Type)*nspecies);
   for(Int i = 0; i < nspecies; i++){
     visc[i] = species[i].GetViscosity(T);
@@ -514,10 +513,10 @@ Type ChemModel<Type>::WilkesMixtureRule(Type* rhoi, Type* property, Type T)
 
   for(Int i = 0; i < nspecies; i++){
     Type wi = 0.0;
-    Type fraci = molfrac[i];
+    Type fraci = molefrac[i];
     Type MWi = species[i].MW;
     for(Int j = 0; j < nspecies; j++){
-      Type fracj = molfrac[j];
+      Type fracj = molefrac[j];
       Type MWj = species[j].MW;
       Type temp = (1.0 + sqrt(visc[i]/visc[j])*pow(MWj/MWi, 0.25));
       Type phi = pow((1.0 + MWi/MWj), -0.5)*temp*temp/sqrt8;
@@ -525,6 +524,7 @@ Type ChemModel<Type>::WilkesMixtureRule(Type* rhoi, Type* property, Type T)
     }
     mixtureProp += (fraci/wi)*property[i];
   }
+
   return mixtureProp;
 }
 
@@ -548,4 +548,44 @@ Type ChemModel<Type>::GetThermalConductivity(Type* rhoi, Type T)
   }
   Type kt = WilkesMixtureRule(rhoi, k, T);
   return kt;
+}
+
+template <class Type>
+void ChemModel<Type>::MassFractionToMoleFraction(Type* massfrac, Type* molefrac)
+{
+  //compute mol fraction following Cox's dissertation 
+  Type summ = 0.0;
+  for(Int i = 0; i < nspecies; ++i){
+    molefrac[i] = (massfrac[i])/species[i].MW;
+    summ += molefrac[i];
+  }
+  for(Int i = 0; i < nspecies; ++i){
+    molefrac[i] /= summ;
+  }
+  //make sure we add up to one to rounding error
+  summ = 0.0;
+  for(Int i = 0; i < nspecies-1; ++i){
+    summ += molefrac[i];
+  }
+  molefrac[nspecies-1] = 1.0 - summ;
+  
+}
+
+
+template <class Type>
+void ChemModel<Type>::MoleFractionToMassFraction(Type* molefrac, Type* massfrac)
+{
+  Type avgmolemass = 0.0;
+  for(Int i = 0; i < nspecies; ++i){
+    avgmolemass += molefrac[i]*species[i].MW;
+  }
+  for(Int i = 0; i < nspecies; ++i){
+    massfrac[i] = molefrac[i]*species[i].MW/avgmolemass;
+  }
+  //make sure we add up to one to rounding error
+  Type summ = 0.0;
+  for(Int i = 0; i < nspecies-1; ++i){
+    summ += massfrac[i];
+  }
+  massfrac[nspecies-1] = 1.0 - summ;
 }

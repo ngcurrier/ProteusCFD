@@ -19,7 +19,7 @@ DEPS_COMMON = $(SRCS_COMMON:.cpp=.d)
 
 # --------- BEGIN FLUID DYNAMICS CORE SECTION
 
-SRCS_SOLVER = ./ucs/main.cpp ./ucs/eqnset.cpp ./ucs/threaded.cpp ./ucs/parallel.cpp \
+SRCS_SOLVER = ./ucs/main.cpp ./ucs/eqnset.cpp ./ucs/etypes.cpp ./ucs/threaded.cpp ./ucs/parallel.cpp \
 	./ucs/customics.cpp ./ucs/oddsNends.cpp ./ucs/portFileio.cpp \
 	./ucs/elements.cpp ./ucs/dataInfo.cpp ./ucs/derivatives.cpp
 SRCS_DECOMP = ./ucs/decomp.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/parallel.cpp \

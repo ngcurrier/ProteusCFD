@@ -117,9 +117,11 @@ void Param<Type>::SetupParams()
   val[2] = -1.0;
   paramListRealList.push_back(ParameterList<Type>("gravityDirection", &gravdir, val, -1.0, 1.0, 3, 3));
   val.clear();
+  val.resize(0);
   paramListRealList.push_back(ParameterList<Type>("massFractions", &massfractions, val, 0.0, 1.0, 999, 1));
+  paramListRealList.push_back(ParameterList<Type>("moleFractions", &molefractions, val, 0.0, 1.0, 999, 1));
   paramListRealList.push_back(ParameterList<Type>("sensorTarget", &sensTarget, val, 0.0, 9999999999.0, 999, 1));
- 
+
   //SET THE STRING LIST VALUED PARAMETERS
   paramListStringList.push_back(ParameterStringList("fieldsRequested", &fieldsRequested, "variableQ"));
 
@@ -393,6 +395,13 @@ void Param<Type>::PostCompute()
   if(chemDB != defaultChemDB){
     chemDB = path + chemDB;
   }
+
+  //make sure both molefractions and massfractions are not set
+  if(molefractions.size() != 0 && massfractions.size() != 0){
+    Abort << "WARNING: mass fractions and mole fraction cannot both be set in input file";
+  }
+  std::cerr << molefractions.size() << " HELLO " << massfractions.size() << std::endl;
+
 }
 
 template <class Type>

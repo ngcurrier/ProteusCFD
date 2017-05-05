@@ -142,6 +142,7 @@ public:
   Bool gravity_on;                //gravity switch
 
   std::vector<Type> massfractions;   //mass fractions of species for reacting flows
+  std::vector<Type> molefractions;   //mole fractions of species for reacting flows (optional setting)
 
   Int eqnset_id;     //see eqnset_defines.h for enumeration of types
 

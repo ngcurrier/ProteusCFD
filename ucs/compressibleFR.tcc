@@ -42,8 +42,25 @@ CompressibleFREqnSet<Type>::CompressibleFREqnSet(SolutionSpace<Type>* space, Par
 
   //check to ensure number of massfractions read in (if there) 
   //is the same as number of species in model
-  if(this->param->massfractions.size() != this->nspecies){
-    std::cerr << "Massfractions were read in but do not match ";
+  //default to mole fractions first
+  if(this->param->molefractions.size() == this->nspecies){
+    //convert to massfractions
+    Type* molfrac = (Type*)alloca(sizeof(Type)*this->nspecies);
+    Type* massfrac = (Type*)alloca(sizeof(Type)*this->nspecies); 
+    for(Int i = 0; i < this->nspecies; ++i){
+      molfrac[i] = this->param->molefractions[i];
+    }
+    this->chem->MoleFractionToMassFraction(molfrac, massfrac);
+    this->param->massfractions.resize(this->nspecies);
+    for(Int i = 0; i < this->nspecies; ++i){
+      this->param->massfractions[i] = massfrac[i];
+    }
+  }
+  else if(this->param->massfractions.size() == this->nspecies){
+    //do nothing, we want to get massfractions
+  }
+  else{
+    std::cerr << "Massfractions/molefractions were read in but do not match ";
     std::cerr << "the number of species in the model" << std::endl;
     std::cerr << "NSPECIES: " << this->nspecies 
 	      << " NMASSFRACTIONS: " << this->param->massfractions.size() << std::endl;
