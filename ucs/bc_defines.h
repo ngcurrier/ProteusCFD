@@ -22,6 +22,8 @@ enum BCTypes
     NormalOutFarField,
     PitchingFarField,
     TotalTempAndPressure,
+    HeatFlux,
+    Isothermal,
     NUM_BC_TYPES
   };
 const std::string BCs[] =
@@ -42,7 +44,9 @@ const std::string BCs[] =
     "normalInFarField", //normal inflow to flat boundary, subject to farfield conditions
     "normalOutFarField",  //normal ouflow to flat boundary, subject to farfield conditions
     "pitchingFarField",
-    "totalTempAndPressure"
+    "totalTempAndPressure",
+    "heatFlux",
+    "isothermal"
   }; 
 
 enum BCvarsId
@@ -61,6 +65,7 @@ enum BCvarsId
     Moving,
     BleedSteps,
     Twall,
+    Flux,
     NUM_BC_VAR_IDS
   };
 
@@ -79,7 +84,8 @@ const std::string BCVars[] =
     "massFractions",
     "isMoving",
     "bleedSteps",
-    "twall"
+    "twall",
+    "flux"
   };
 
 #endif

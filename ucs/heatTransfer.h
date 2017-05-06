@@ -27,7 +27,10 @@ public:
   void ExtrapolatedToNative(Type* Q){};
   Type MaxEigenvalue(Type* Q, Type* avec, Type vdotn, Type gamma, Type beta);
   void GetInviscidWallBoundaryVariables(Type* QL, Type* QR, Type* Qinf, Type* avec, Type vdotn, Type beta);
-private:
+  void GetIsothermalBoundaryVariables(Type* QL, Type* QR, Type Twall);
+  void GetHeatFluxBoundaryVariables(Type* QL, Type* QR, Type* normalQ, Type* normaldx, Type flux);
+
+ private:
   HeatTransferEqnSet();
 };
 

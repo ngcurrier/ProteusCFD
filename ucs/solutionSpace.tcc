@@ -706,9 +706,9 @@ void SolutionSpace<Type>::NewtonIterate()
   MPI_Allreduce(MPI_IN_PLACE, &dtmin_global, 1, mpit, MPI_MIN, MPI_COMM_WORLD);
 
   if(p->GetRank() == 0){
-    residOutFile << std::endl << this->iter << " " <<  residGlobal;
+    residOutFile << std::endl << this->iter << "\t" <<  residGlobal << "\t";
     for(Int i = 0; i < neqn; i++){
-      residOutFile << " " << residualComponents[i+1];
+      residOutFile << residualComponents[i+1] << "\t";
     }
   }
 
@@ -802,7 +802,7 @@ void SolutionSpace<Type>::NewtonIterate()
   std::cout << "\t||dq||: " << dqNorm;
   
   if(p->GetRank() == 0){
-    residOutFile << " " << dqNormGlobal << " ";
+    residOutFile << dqNormGlobal << "\t";
   }
   
   //find max residual and cv id
@@ -851,8 +851,8 @@ void SolutionSpace<Type>::NewtonIterate()
   Type currentCFL = param->GetCFL();
   std::cout << "CFL: " << currentCFL << "\n";
   if(p->GetRank() == 0){
-    residOutFile << " CFL: " << currentCFL;
-    residOutFile << " dtmin: " << dtmin_global;
+    residOutFile << currentCFL << "\t" ;
+    residOutFile << dtmin_global << "\t";
   }
   
   //we have to compute the forces inside the Newton loop
@@ -910,7 +910,7 @@ void SolutionSpace<Type>::PostTimeAdvance()
   }
 
   if(rank == 0){
-    timerOutFile << this->iter << ": ";
+    timerOutFile << this->iter << ":\n";
     this->timers.PrintSplit("IterationTimer", timerOutFile);
     //take care of the comm. timers
     p->timers.PrintAccumulate("CommTimer", timerOutFile);
@@ -951,6 +951,8 @@ void SolutionSpace<Type>::RefreshForParam()
 template <class Type>
 void SolutionSpace<Type>::OpenOutFiles()
 {
+  Int neqn = eqnset->neqn;
+
   //set residual print formats
   std::cout.setf(std::ios::scientific);
   std::cout.precision(6);
@@ -972,6 +974,12 @@ void SolutionSpace<Type>::OpenOutFiles()
     if(!residOutFile.is_open()){
       std::cerr << "Residual file: " << residOutFile << " NOT opened!" << std::endl;
     }
+    //todo: print residual headers to file for plotting purposes
+    residOutFile << "iter\tresGlobal\t";
+    for(Int i = 0; i < neqn; i++){
+      residOutFile << "resQ_" << i << "\t";
+    }
+    residOutFile << "||dq||\t" << "CFL\t" << "dtmin";
   }
   std::string timerFile = param->path+param->spacename + ".timer";
   if(isCopy){

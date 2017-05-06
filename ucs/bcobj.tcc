@@ -24,6 +24,7 @@ BCObj<Type>::BCObj()
   bleedSteps = 0;
   //set to constant temperature ratio of 1.0; twall < 0.0 is adiabatic
   twall = 1.0;
+  flux = 0.0;
 
   //default to have the parallel factag of zero
   //this is done since we make a bcobj that never gets initialized

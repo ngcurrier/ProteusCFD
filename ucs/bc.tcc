@@ -668,15 +668,31 @@ Int BoundaryConditions<Type>::SetVarsFromLine(Int ObjId, std::string& line)
 	    ss << subline;
 	    ss >> bcs[ObjId].twall;
 	    std::cout << "BC: BC #" << ObjId << " twall flag found ( "
-		 << bcs[ObjId].twall << " )" << std::endl;
+		      << bcs[ObjId].twall << " )" << std::endl;
 	    ss.clear();
 	    ss.str("");
 	  }
 	  else{
 	    std::cerr << "Found key " << BCVars[Twall] 
-		 << " but no [...] for definition" << std::endl;
+		      << " but no [...] for definition" << std::endl;
 	  }
 
+	}
+      case Flux:
+	loc = line.find(BCVars[Flux]);
+	if(loc != std::string::npos){
+	  if(!GetStringBetween("[","]", line, subline, loc)){
+	    ss << subline;
+	    ss >> bcs[ObjId].flux;
+	    std::cout << "BC: BC #" << ObjId << " heatFlux flag found ( "
+		      << bcs[ObjId].flux << " )" << std::endl;
+	    ss.clear();
+	    ss.str("");
+	  }
+	}
+	else{
+	  std::cerr << "Found key " << BCVars[Flux]
+		    << " but no [...] for defintion" << std::endl;
 	}
       default:
 	break;
@@ -1298,6 +1314,53 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
     //avoid repititve computation and simply apply the farfield BC
     //here, now compute the farfield BCs with the new AOA
     eqnset->GetFarfieldBoundaryVariables(QL, QR, Qinf, avec, vdotn, betaL);
+  }
+  else if(bcId == HeatFlux){
+    //find the most normal node to the wall
+    Type3* dx = (Type3*)alloca(sizeof(Type3)*3);
+    Type* ndx = (Type*)alloca(sizeof(Type)*3);
+    Type3* wallx = &m->xyz[left_cv*3];
+    Int indx, indx1, indx2;
+    Int normalNode = -1;
+    Type dotmax = 0.0;
+    indx1 = m->ipsp[left_cv];
+    indx2 = m->ipsp[left_cv+1];
+    for(indx = indx1; indx < indx2; indx++){
+      Int pt = m->psp[indx];
+      Type3* ptx = &m->xyz[pt*3];
+      Subtract(ptx, wallx, dx);
+      Normalize(dx, dx);
+      //this is to solve a templated type issue, standard DotProduct()
+      //call doesn't like incompatible types
+      Type3 dot = 0.0;
+      for(i = 0; i < 3; i++){
+	dot -= dx[i]*real(avec[i]);
+      }
+      //find the most normal point off the wall, use that distance for yplus
+      if(real(dot) >= real(dotmax)){
+	normalNode = pt;
+	dotmax = dot;
+	for(Int j = 0; j < 3; ++j){
+	  Subtract(ptx, wallx, dx);
+	  ndx[j] = dx[j];
+	}
+      }
+    }
+    if(normalNode < 0){
+      std::cerr << "WARNING: Normal node node found for point at "
+		<< wallx[0] << " " << wallx[1] << " " << wallx[2] << std::endl;
+    }
+    Int nvars = eqnset->neqn + eqnset->nauxvars;
+    Type nQ[nvars];
+    for(Int kk = 0; kk < nvars; kk++){
+      nQ[kk] = space->q[normalNode*nvars + kk];
+    }
+    Type flux = bcobj->flux;
+    eqnset->GetHeatFluxBoundaryVariables(QL, QR, nQ, ndx, flux);
+  }
+  else if(bcId == Isothermal){
+    Type Twall = bcobj->twall;
+    eqnset->GetIsothermalBoundaryVariables(QL, QR, Twall);
   }
   else{
     std::cout << "WARNING: EID for " << eid << " not found! " << std::endl;

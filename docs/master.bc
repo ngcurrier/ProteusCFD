@@ -1,4 +1,6 @@
-#BC file... comments start with a # symbol
+#
+# BC file... comments start with a # symbol
+# Developer note: These are referenced in bc_defines.h
 #
 surface #1 = symmetry "dual_walls"
 surface #2 = farField "outlet"
@@ -15,3 +17,8 @@ surface #10 noSlip "slidingViscousWall" slipDirection = [0.0 1.0 0.0] slipSpeed 
 surface #11 noSlip "spinningViscousWall" axis = [1.0 0.0 0.0] point = [0.0 0.0 0.0] omega = [12.0]
 surface #12 pitchingFarField "field"
 surface #13 impermeableWall "airfoil" isMoving = [1]
+
+# these are only used for heat transfer objects
+surface #14 heatFlux "wallSolid" flux = [10.0]
+surface #15 isothermal "wallSolid2" twall = [200.0]
+surface #16 Neumann "wallSolid3" 

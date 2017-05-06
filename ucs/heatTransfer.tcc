@@ -164,10 +164,50 @@ void HeatTransferEqnSet<Type>::ExtrapolateVariables(Type* Qho, const Type* Q, co
   Qho[0] = Q[0] + this->ExtrapolateCorrection(dQedge[0], &gradQ[0*3], dx)*limiter[0];
 }
 
+//These are actually symmetry conditions, just named funny
 template <class Type>
 void HeatTransferEqnSet<Type>::GetInviscidWallBoundaryVariables(Type* QL, Type* QR, Type* Qinf, Type* avec, Type vdotn, Type beta)
 {
   for(Int i = 0; i < this->neqn; i++){
     QR[i] = QL[i];
   }
+  ComputeAuxiliaryVariables(QL);
+  ComputeAuxiliaryVariables(QR);
+}
+
+
+template <class Type>
+void HeatTransferEqnSet<Type>::GetIsothermalBoundaryVariables(Type* QL, Type* QR, Type Twall)
+{
+  for(Int i = 0; i < this->neqn; i++){
+    QR[i] = QL[i] = Twall;
+  }
+  ComputeAuxiliaryVariables(QL);
+  ComputeAuxiliaryVariables(QR);
+}
+
+template <class Type>
+void HeatTransferEqnSet<Type>::GetHeatFluxBoundaryVariables(Type* QL, Type* QR, Type* normalQ, Type* normaldx, Type flux)
+{
+  //todo: this assumes that the inner point is completely normal
+  //      it should be generalized for cases where we can't find a normal and only use the directional
+  //      derivative part to set the boundary value
+
+  //heat flux is defined as q = -k*(dT/dx) = -k * grad(T) - units are W/m^2, and others
+  // q(+) is a flux into the solid, q(-) is out of the solid
+
+  Type k = 1.0;
+  //normaldx points from the wall to the infield point nearest to normal
+    Type dist = sqrt(normaldx[0]*normaldx[0] + normaldx[1]*normaldx[1] + normaldx[2]*normaldx[2]);
+  
+  Type Twall = flux*dist/k + normalQ[0];
+
+  //this is a hard set BC, set the surface and boundary condition both to the appropriate value to
+  //recover the correct heat flux into the solid
+  for(Int i = 0; i < this->neqn; i++){
+    QR[i] = QL[i] = Twall;
+  }
+
+  ComputeAuxiliaryVariables(QL);
+  ComputeAuxiliaryVariables(QR);
 }

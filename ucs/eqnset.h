@@ -185,6 +185,16 @@ class EqnSet
     Abort << "GetTotalTempPressureBoundaryVariables() not implemented";
     return;
   };
+  virtual void GetIsothermalBoundaryVariables(Type* QL, Type* QR, Type Twall)
+  {
+    Abort << "GetIsothermalBoundaryVariables() not implemented";
+    return;
+  }
+  virtual void GetHeatFluxBoundaryVariables(Type* QL, Type* QR, Type* normalQ, Type* normaldx, Type flux)
+  {
+    Abort << "GetHeatFluxBoundaryVariables() not implemented";
+    return;
+  }
   virtual void ModifyViscousWallJacobian(Type* QL, Type* QR, Type* vel, Int cvid, CRS<Type>* crs, 
 					 Int normalNode, Type Twall)
   {

@@ -53,6 +53,7 @@ class BCObj
 
   Type twall;        //used to specify the kind of viscous wall condition we are using
                      //twall > 0.0 is specified temp. ratio, twall < 0.0 is adiabatic
+  Type flux;          //used for heat conduction object - heat flux
 
   //function which will modify Qref according to set dynamic boundary
   void UpdateBCObj(Type tstep);  
