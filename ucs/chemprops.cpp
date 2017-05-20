@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
 	      << "\t" << std::setw(8) << "Cp(J/kg.K)"
 	      << "\t" << std::setw(8) << "Cp/R"
 	      << "\t" << std::setw(8) << "H(J/kg)"
-	      << "\t" << std::setw(8) << "h/R"
+	      << "\t" << std::setw(8) << "h/RT"
 	      << "\t" << std::setw(8) << "mu(Pa.s)"
 	      << "\t" << std::setw(8) << "k(W/m.K)" << std::endl;
     std::cout << "----------------------------------------------------------------------------------------------------------------------" << std::endl;
@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
 		<< "\t" << std::setw(10) << cp
 		<< "\t" << std::setw(10) << cp/R
 		<< "\t" << std::setw(10) << h
-		<< "\t" << std::setw(10) << h/R
+		<< "\t" << std::setw(10) << h/R/Ti
 		<< "\t" << std::setw(10) << mu
 		<< "\t" << std::setw(10) << k << std::endl;
     }
