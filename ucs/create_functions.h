@@ -14,6 +14,7 @@
 template <class Type>
 Int CreateEqnSet(SolutionSpace<Type>* space)
 {
+  std::cout << "CREATING COPY OF EQUATION SET CreateEqnSet(SolutionSpace<>* space)" << std::endl;
   if(space == NULL){
     std::cerr << "Solution Space point is NULL in CreateEqnSet()... FAILING!" << std::endl;
     return (-1);
@@ -45,6 +46,8 @@ Int CreateEqnSet(SolutionSpace<Type>* space)
 //eqnset object for things like complex jacobians
 template <class Type>
 Int CreateEqnSet(EqnSet<Type>** eqnset, Param<Type>* param){
+  std::cout << "CREATING DUMB COPY OF EQUATION SET CreateEqnSet(EqnSet<>**, Param<>* param)" << std::endl;
+
   //setup correct eqnset object..call also allocates solution memory
   if(param->eqnset_id == CompressibleEuler || param->eqnset_id == CompressibleNS){
     *eqnset = new CompressibleEqnSet<Type>(NULL, param);

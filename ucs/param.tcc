@@ -88,6 +88,7 @@ void Param<Type>::SetupParams()
   this->ref_time = 1.0;
   this->ref_enthalpy = 1.0;
   this->ref_density = 1.0;
+  this->ref_pressure = 1.0;
   this->chemModelId = 0;   //model 0 is defined from file
   this->Re = 1.0;
   this->viscous = 0;
@@ -245,7 +246,7 @@ Int Param<Type>::ReadSpace(std::string spaceName, std::ifstream& fin,
       getline(fin, temp);
       err = ParseLine(temp);
       if(err != 0){
-	std::cerr << "PARAM: could not parse line -- " + temp +  
+	Abort << "PARAM: could not parse line -- " + temp +  
 	  "\nPARAM: check that correct keyword is used";
       }
       err2 += err;
@@ -352,19 +353,16 @@ void Param<Type>::PostCompute()
   //ref_k = ref_density*v3*ref_length/ref_temperature;
   //ref_viscosity = ref_density*ref_velocity*ref_length;
   ref_enthalpy = ref_velocity*ref_velocity;
-  if(ref_pressure != REF_PRESSURE_DEFAULT && ref_density == REF_DENSITY_DEFAULT){
+
+  // warning: this does not do error checking but only one should ever be specified
+  //          this code gives preference to ref_pressure
+  if(real(ref_pressure) != REF_PRESSURE_DEFAULT){
     ref_density = ref_pressure/(ref_velocity*ref_velocity);
   }
-  else if(ref_density != REF_DENSITY_DEFAULT && ref_pressure == REF_PRESSURE_DEFAULT){
+  else if(real(ref_density) != REF_DENSITY_DEFAULT){
     ref_pressure = ref_density*ref_velocity*ref_velocity;
   }
-  else if(ref_density != REF_DENSITY_DEFAULT && ref_pressure != REF_PRESSURE_DEFAULT){
-    Abort << "Must specify either reference density or reference pressure. NOT both.";
-  }
-  else{
-    std::cerr << "WARNING: if running fluids case must specify either reference density or pressure";
-  }
-
+    
   //Reynolds number is now set in eqnset object initialization
   if(eqnset_id == IncompressibleNS || eqnset_id == CompressibleNS || 
      eqnset_id == CompressibleNSFR){
@@ -400,7 +398,6 @@ void Param<Type>::PostCompute()
   if(molefractions.size() != 0 && massfractions.size() != 0){
     Abort << "WARNING: mass fractions and mole fraction cannot both be set in input file";
   }
-  std::cerr << molefractions.size() << " HELLO " << massfractions.size() << std::endl;
 
 }
 
@@ -553,16 +550,14 @@ void Param<Type>::PrintSolverParams()
   if(no_cvbc){
     std::cout << "CVBCs turned OFF" << std::endl;
   }
-  std::cout << "Reference variables (specified)" << std::endl;
+  std::cout << "Reference variables (specified OR derived)" << std::endl;
   std::cout << "===============================" << std::endl;
   std::cout << "\tvelocity : " << ref_velocity << std::endl;
   std::cout << "\tlength : " << ref_length << std::endl;
   std::cout << "\ttemperature : " << ref_temperature << std::endl;
-  std::cout << "\tpressure : " << ref_pressure << std::endl;
+  std::cout << "\tpressure : " << ref_pressure<< std::endl;
   std::cout << "\tviscosity: " << ref_viscosity << std::endl;
   std::cout << "\tconductivity: " << ref_k << std::endl;
-  std::cout << "Reference variables (derived)" << std::endl;
-  std::cout << "===============================" << std::endl;
   std::cout << "\ttime : " << ref_time << std::endl;
   std::cout << "\tenthalpy: " << ref_enthalpy << std::endl;
   std::cout << "\tdensity: " << ref_density << std::endl;
@@ -845,7 +840,7 @@ const ParameterEnum& Param<Type>::GetParameterEnum(std::string name) const
 //This is the master param file reading call, will create and load a vector
 //of param files which correspond to each solution space defined in the param file
 template <class Type> 
-Int ReadParamFile(std::vector<Param<Type>*>& paramList, std::string casename, std::string pathname, 
+Int ReadParamFile(std::vector<Param<Type>*>& paramFileList, std::string casename, std::string pathname, 
 		  Bool verbose)
 {
   std::ifstream fin;
@@ -880,7 +875,7 @@ Int ReadParamFile(std::vector<Param<Type>*>& paramList, std::string casename, st
       if(loc != std::string::npos){
 	std::string spaceName;
 	if(GetStringBetween(beginSpace, endBang, temp, spaceName)){
-	  std::cerr << "WARNING: Solution space delimiter found uncomplete, given -- " + temp;
+	  Abort << "WARNING: Solution space delimiter found uncomplete, given -- " + temp;
 	  return(1);
 	}
 	std::streampos beginSpacepos = fin.tellg();
@@ -904,8 +899,8 @@ Int ReadParamFile(std::vector<Param<Type>*>& paramList, std::string casename, st
 	    endSpacepos = preEndSpacepos + (std::streampos)endSpace.size();
 	    Param<Real>* parampt = new Param<Real>();
 	    parampt->path = pathname;
-	    paramList.push_back(parampt);
-	    if(paramList.back()->ReadSpace(spaceName, fin, beginSpacepos, preEndSpacepos)){
+	    paramFileList.push_back(parampt);
+	    if(paramFileList.back()->ReadSpace(spaceName, fin, beginSpacepos, preEndSpacepos)){
 	      return (1);
 	    }
 	    //seek back to where we were to continue, routine readspace may modify stream
@@ -916,7 +911,7 @@ Int ReadParamFile(std::vector<Param<Type>*>& paramList, std::string casename, st
 	  preEndSpacepos = fin.tellg();
 	}
 	if(beginSpacepos == endSpacepos){
-	  std::cerr << "WARNING: Solution space end delimiter not found";
+	  Abort << "WARNING: Solution space end delimiter not found";
 	  return(1);
 	}
 	trash.clear();
@@ -926,17 +921,17 @@ Int ReadParamFile(std::vector<Param<Type>*>& paramList, std::string casename, st
     fin.close();
   }
   else{
-    std::cerr << "PARAM READFILE: Cannot open param file --> " + filename;
+    Abort << "PARAM READFILE: Cannot open param file --> " + filename;
     return (1);
   }
 
-  if(paramList.size() == 0){
-    std::cerr << "PARAM READFILE: Did not find any defined solution spaces\n\tThese are defined by <<<BEGIN SPACE (name)>>> and <<<END SPACE>>> delimiters";
+  if(paramFileList.size() == 0){
+    Abort << "PARAM READFILE: Did not find any defined solution spaces\n\tThese are defined by <<<BEGIN SPACE (name)>>> and <<<END SPACE>>> delimiters";
     return (1);
   }
   
 
-  for(typename std::vector<Param<Real>*>::iterator it = paramList.begin(); it != paramList.end(); ++it){
+  for(typename std::vector<Param<Real>*>::iterator it = paramFileList.begin(); it != paramFileList.end(); ++it){
     (*it)->PostCompute();
   }
 

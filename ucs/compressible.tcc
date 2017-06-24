@@ -477,7 +477,7 @@ template <class Type>
    Int yes;
    yes = MatInvCheck(T, Tinv, 5);
    if(!yes){
-     std::cerr << "Eigensystem not valid -- inverse check failed!!" << std::endl;
+     Abort << "Eigensystem not valid -- inverse check failed!!" << std::endl;
    } 
  #endif
 

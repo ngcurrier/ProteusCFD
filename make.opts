@@ -14,7 +14,7 @@ endif
 #intel
 ifeq ($(TOOLCHAIN),INTEL)
 	CXX = icc
-	CXX_OPTS = -O3
+	CXX_OPTS = -O3 -g
 	#CXX_OPTS = -O0 -g -D_DEBUG -guide 
 	#CXX_OPTS += -opt-report[3] -march=core2
 	LINK_OPTS = 
@@ -27,7 +27,7 @@ endif
 #GNU
 ifeq ($(TOOLCHAIN),GNU)
 	CXX = g++
-	CXX_OPTS = -O3 
+	CXX_OPTS = -O3 -g
 	#CXX_OPTS = -fopenmp 
 	#CXX_OPTS = -O0 -g
 	LINK_OPTS = 

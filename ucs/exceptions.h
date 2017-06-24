@@ -21,7 +21,7 @@
       ERROR_MESSAGE << std::endl << strings[II];	    \
     }							    \
     ERROR_MESSAGE << std::endl << __FILE__<<": " << __LINE__ << ": " << errorstr; \
-    std::cout << ERROR_MESSAGE.str() << std::endl;		                  \
+    std::cerr << ERROR_MESSAGE.str() << std::endl;		                  \
   }
 
 class Abort
@@ -48,6 +48,7 @@ public:
     GetStack(message);
     
     std::cerr << "Aborting (Process Id - " << rank << "): " << message << std::endl;
+    std::cout << "Aborting (Process Id - " << rank << "): " << message << std::endl;
     
     fout.open(filename.c_str());
     fout << "Aborting (Process Id - " << rank << "): " << message << std::endl;

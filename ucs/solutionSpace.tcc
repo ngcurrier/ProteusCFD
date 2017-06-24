@@ -302,6 +302,7 @@ void SolutionSpace<Type>::Init()
   //currently the only copies we use are complex anyway, CTSE does not
   //work in those situations
   if((param->requireComplex || param->mode != 0) && !isCopy){
+    std::cout << "Param file requires creation of complex equation set OR mode is NOT zero, creating" << std::endl;
     cparam = new Param<RCmplx>(*param);
     ierr = CreateEqnSet(&ceqnset, cparam);
     if(ierr){
