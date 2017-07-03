@@ -2691,6 +2691,14 @@ Int Mesh<Type>::ReadPartedMesh(std::string casename)
   
   HDF_CloseFile(h5in);
 
+  // do some basic sanity checks knowing that we need a field mesh to solve
+  if(lnelem == 0){
+    Abort << "WARNING: Mesh::ReadPartedMesh() found no local elements";
+  }
+  if(nelem[TET] +  nelem[PYRAMID] + nelem[PRISM] + nelem[HEX] == 0){
+    Abort << "WARNING: Mesh::ReaPartedMesh() found no volume elements";
+  }
+  
   return (0);
 }
 
@@ -3385,7 +3393,7 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
 	    TranslateWinding(nodes, translation, mnode[TRI], TRI, 0);
 	    tempe = new Triangle<Type>;
 	    tempe->Init(nodes);
-	    tempe->SetFactag(elementaryId);
+	    tempe->SetFactag(physicalId);
 	    elementList.push_back(tempe);
 	    nelem[TRI]++;
 	  }
@@ -3403,7 +3411,7 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
 	    TranslateWinding(nodes, translation, mnode[QUAD], QUAD, 0);
 	    tempe = new Quadrilateral<Type>;
 	    tempe->Init(nodes);
-	    tempe->SetFactag(elementaryId);
+	    tempe->SetFactag(physicalId);
 	    elementList.push_back(tempe);
 	    nelem[QUAD]++;
 	  }
