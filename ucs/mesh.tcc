@@ -95,6 +95,62 @@ Type const * Mesh<Type>::GetVolumeOldM1() const
 }
 
 template <class Type>
+Int* Mesh<Type>::ElspBegin(Int ptid)
+{
+  Int indx1 = ielsp[ptid];
+  return &(elsp[indx1]);
+}
+
+template <class Type>
+Int* Mesh<Type>::ElspEnd(Int ptid)
+{
+  Int indx2 = ielsp[ptid+1];
+  return &(elsp[indx2]);
+}
+
+template <class Type>
+Int* Mesh<Type>::SelspBegin(Int ptid)
+{
+  Int indx1 = iselsp[ptid];
+  return &(selsp[indx1]);
+}
+
+template <class Type>
+Int* Mesh<Type>::SelspEnd(Int ptid)
+{
+  Int indx2 = iselsp[ptid+1];
+  return &(selsp[indx2]);
+}
+
+template <class Type>
+const Int* Mesh<Type>::ElspBegin(Int ptid) const
+{
+  Int indx1 = ielsp[ptid];
+  return &(elsp[indx1]);
+}
+
+template <class Type>
+const Int* Mesh<Type>::ElspEnd(Int ptid) const
+{
+  Int indx2 = ielsp[ptid+1];
+  return &(elsp[indx2]);
+}
+
+template <class Type>
+const Int* Mesh<Type>::SelspBegin(Int ptid) const
+{
+  Int indx1 = iselsp[ptid];
+  return &(selsp[indx1]);
+}
+
+template <class Type>
+const Int* Mesh<Type>::SelspEnd(Int ptid) const
+{
+  Int indx2 = iselsp[ptid+1];
+  return &(selsp[indx2]);
+}
+
+template <class Type>
 Int Mesh<Type>::MemInitMesh()
 {
   if(nnode == 0){
@@ -2702,7 +2758,7 @@ Int Mesh<Type>::ReadPartedMesh(std::string casename)
   return (0);
 }
 
-
+// copy constructor for the mesh object
 template <class Type> template <class Type2>
 Mesh<Type>::Mesh(const Mesh<Type2>& meshToCopy)
 {

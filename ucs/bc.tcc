@@ -727,11 +727,8 @@ template <class Type> template <class Type2>
 Bool BoundaryConditions<Type>::IsNodeOnBC(Int nodeid, Mesh<Type2>* m, Int bcType)
 {
   //Check surface elements surround point
-  Int indx1, indx2, indx;
-  indx1 = m->iselsp[nodeid];
-  indx2 = m->iselsp[nodeid+1];
-  for(indx = indx1; indx < indx2; ++indx){
-    Int selemid = m->selsp[indx];
+  for(Int* indx = m->SelspBegin(nodeid); indx != m->SelspEnd(nodeid); ++indx){
+    Int selemid = *indx;;
     Int factag = m->elementList[selemid]->GetFactag();
     Int bcId = GetBCId(factag); 
     if(bcType == bcId){
@@ -1715,10 +1712,8 @@ void GetSElemsOnBCId(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int bcid
 
   for(Int i = 0; i < nbcnodes; ++i){
     Int node = bcnodes[i];
-    Int indx1 = m->iselsp[node];
-    Int indx2 = m->iselsp[node+1];
-    for(Int indx = indx1; indx < indx2; ++indx){
-      Int selemid = m->selsp[indx];
+    for(const Int* indx = m->SelspBegin(node); indx != m->SelspEnd(node); ++indx){
+      Int selemid = *indx;;
       Int factag = m->elementList[selemid]->GetFactag();
       Int bcNum = bc->bc_map[factag];
       if(bcNum == bcid){

@@ -22,3 +22,7 @@ Make.depend
 *.exe
 *.out
 *.app
+*.pyc
+
+# edited files
+*.*~

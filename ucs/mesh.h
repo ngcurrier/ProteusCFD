@@ -40,6 +40,12 @@ template <class Type> class PObj;
 template <class Type> 
 class Mesh
 {
+  //this little bit of weirdness brought to you by c++
+  //when c++ is your hammer everything looks like your thumb...
+  //truly this just allows complex and double typed classes to use private members in copy constructors
+  template <class Type3>
+    friend class Mesh;
+  
  public:
   
   Mesh();
@@ -180,20 +186,22 @@ class Mesh
   Type* vololdm1; //volumes at n-1 (for GCL)
 
   CVStat* cvstat; //control volume boolean status flags
+  
+  Int* ElspBegin(Int ptid); //returns beginning access to elements surrounding a point
+  Int* ElspEnd(Int ptid);   //returns ending access to elements surrounding a point
+  Int* SelspBegin(Int ptid); //returns beginning access to elements surrounding a surface point
+  Int* SelspEnd(Int ptid);   //returns ending access to elements surrounding a surface point
 
-  Int* elsp;     //elements surrounding point map (includes surf. elemente)
-  Int* ielsp;    //index into CRS of elsp
-  Int* selsp;    //elements surrounding point map (exludes vol. elements)
-  Int* iselsp;   //index into CRS of selsp
-
+  const Int* ElspBegin(Int ptid) const; //returns beginning access to elements surrounding a point
+  const Int* ElspEnd(Int ptid) const;   //returns ending access to elements surrounding a point
+  const Int* SelspBegin(Int ptid) const; //returns beginning access to elements surrounding a surface point
+  const Int* SelspEnd(Int ptid) const;   //returns ending access to elements surrounding a surface point
+  
   Int* psp;      //point surrounding point map
   Int* ipsp;     //index into CRS of psp
 
-  Int* el2el;   //volume element to element connectivity (includes surf. elements)
-  Int* iel2el;  //index into CRS of vel2el
-
-  Int* sel2el;   //surface element to element connectivity (excludes vol. elements)
-  Int* isel2el;  //index into CRS of sel2el
+  Int* besp;     //boundary halfedges surrounding point
+  Int* ibesp;    //index into CRS of besp
 
   Int nvnodes;   //number of nodes not lying on a surface
   Int* vnodes;   //simple list of nodes not on a surface (in field only)
@@ -203,12 +211,6 @@ class Mesh
   Edges<Type>* edges;       //list of Edge objects
   HalfEdges<Type>* bedges;  //list of HalfEdge objects (ghost edges then boundary edges)
   
-  Int* esp;      //edge surrounding point
-  Int* iesp;     //index into CRS of esp
-
-  Int* besp;     //boundary halfedges surrounding point
-  Int* ibesp;    //index into CRS of besp
-
   Int gnnode;       //number of global nodes
   Int nnode;        //number of nodes in mesh
   Int gnode;        //number of ghost nodes in mesh (parallel only)
@@ -229,7 +231,6 @@ class Mesh
   Bool reordered;
 
 private:
-
 
   //list of booleans which indicates what memory has been alloc'd
   Bool meshInit;
@@ -269,6 +270,21 @@ private:
   Int CalcAreasVolumes();    //calculate area vectors for the edges, and volumes of CVs
   Int CheckForClosure();     //check for CV closure
 
+ protected:
+
+  Int* esp;      //edge surrounding point
+  Int* iesp;     //index into CRS of esp
+
+  Int* el2el;   //volume element to element connectivity (includes surf. elements)
+  Int* iel2el;  //index into CRS of vel2el
+
+  Int* sel2el;   //surface element to element connectivity (excludes vol. elements)
+  Int* isel2el;  //index into CRS of sel2el
+
+  Int* elsp;     //elements surrounding point map (includes surf. elemente)
+  Int* ielsp;    //index into CRS of elsp
+  Int* selsp;    //elements surrounding point map (exludes vol. elements)
+  Int* iselsp;   //index into CRS of selsp
 };
 
 //include implementations
