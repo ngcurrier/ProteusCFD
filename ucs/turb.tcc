@@ -277,7 +277,7 @@ void TurbulenceModel<Type>::Compute()
     //report the true residual here
     Type solveres = crs.SGS(nsgs, NULL, NULL, NULL, 0);
     std::cout << "||Turb-Dq||: " << solveres << " ";
-    if(isnan(real(solveres)) || isinf(real(solveres))){
+    if(std::isnan(real(solveres)) || std::isinf(real(solveres))){
       Abort << "Turbulence solution residual divergent!! Infinite residual -- I'm OUT!";
     }
   }

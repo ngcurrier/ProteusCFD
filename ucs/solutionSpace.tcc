@@ -761,7 +761,7 @@ void SolutionSpace<Type>::NewtonIterate()
   for(Int j = 0; j < nnode; j++){
     bool zero = false;
     for(Int k = 0; k < neqn; k++){
-      if(isnan(real(crs->x[j*neqn +k])) || isinf(real(crs->x[j*neqn+k]))){
+      if(std::isnan(real(crs->x[j*neqn +k])) || std::isinf(real(crs->x[j*neqn+k]))){
 	crs->x[j*neqn + k] = 0.0;
 	std::stringstream ss;
 	ss << "Update dQ[" << k << "] isnan OR isinf at " <<
@@ -784,7 +784,7 @@ void SolutionSpace<Type>::NewtonIterate()
 
   for(Int j = 0; j < nnode; j++){
     for(Int k = 0; k < neqn; k++){
-      if(isnan(real(q[j*nvars + k])) || isinf(real(q[j*nvars+k]))){
+      if(std::isnan(real(q[j*nvars + k])) || std::isinf(real(q[j*nvars+k]))){
 	std::stringstream ss;
 	ss << "Updated Q[" << k << "] isnan OR isinf at " <<
 	  m->xyz[j*3 + 0] << "  " << m->xyz[j*3 + 1] << " " << m->xyz[j*3 + 2];
@@ -861,7 +861,7 @@ void SolutionSpace<Type>::NewtonIterate()
   forces->Compute();
   
   param->time += real(dtmin_global);
-  if(isnan(real(residGlobal)) || isinf(real(residGlobal))){
+  if(std::isnan(real(residGlobal)) || std::isinf(real(residGlobal))){
     std::cerr << "Solution residual divergent!! " << std::endl;
     std::cerr << "Coordinates of max residual: " << m->xyz[resnode*3 + 0] 
 	      << " " << m->xyz[resnode*3 + 1] << " " << m->xyz[resnode*3 + 2] << std::endl;
@@ -973,7 +973,7 @@ void SolutionSpace<Type>::OpenOutFiles()
       residOutFile.open(residualFileName.c_str(), std::ios::app);
     }
     if(!residOutFile.is_open()){
-      std::cerr << "Residual file: " << residOutFile << " NOT opened!" << std::endl;
+      std::cerr << "Residual file: " << residualFileName << " NOT opened!" << std::endl;
     }
     //todo: print residual headers to file for plotting purposes
     residOutFile << "iter\tresGlobal\t";
