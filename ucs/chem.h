@@ -38,8 +38,8 @@ class ChemModel
   //store casestring
   std::string caseString;
 
-  //equation of state class
-  EOS<Type>* eos;
+  //equation of state class, one for each species
+  std::vector<EOS<Type>* > eos;
   
   //used for general file defined models
   ChemModel(Param<Type>& param);

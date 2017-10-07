@@ -754,14 +754,14 @@ void CompressibleFREqnSet<Type>::ComputeAuxiliaryVariables(Type* Q)
 
   //set P via EOS
   Type TDim = T*(this->param->ref_temperature);
-  Type pDim = this->chem->eos->GetP(R, (*rho)*this->param->ref_density, TDim);
+  Type pDim = this->chem->eos[0]->GetP(R, (*rho)*this->param->ref_density, TDim);
   Q[nspecies+4] = pDim/this->param->ref_pressure;
 
   //compute cvi
   Type rhoDim = (*rho)*this->param->ref_density;
   for(i = 0; i < nspecies; i++){
     cvi[i] = this->chem->species[i].GetCp(TDim);
-    cvi[i] = chem->eos->GetCv(cvi[i], chem->species[i].R, rhoDim, pDim, TDim) / 
+    cvi[i] = chem->eos[i]->GetCv(cvi[i], chem->species[i].R, rhoDim, pDim, TDim) / 
       this->param->ref_velocity*this->param->ref_velocity/this->param->ref_temperature;
   }
 
@@ -796,7 +796,7 @@ Type CompressibleFREqnSet<Type>::ComputePressure(Type* Q, Type gamma)
 
   //set P via EOS
   Type TDim = T*(this->param->ref_temperature);
-  Type pDim = this->chem->eos->GetP(R, rho*this->param->ref_density, TDim);
+  Type pDim = this->chem->eos[0]->GetP(R, rho*this->param->ref_density, TDim);
   return ( pDim/this->param->ref_pressure);
 }
 
@@ -982,7 +982,7 @@ void CompressibleFREqnSet<Type>::GetFarfieldBoundaryVariables(Type* QL, Type* QR
 	Rdim += chem->species[i].R*QR[i]*this->param->ref_density;
       }
       Rdim /= rhodim;
-      Type T = chem->eos->GetT(Rdim, rhodim, QR[neqn-1]*this->param->ref_pressure);
+      Type T = chem->eos[0]->GetT(Rdim, rhodim, QR[neqn-1]*this->param->ref_pressure);
       QR[neqn-1] = T/this->param->ref_temperature;
     }
   }
@@ -1065,7 +1065,7 @@ void CompressibleFREqnSet<Type>::GetInviscidWallBoundaryVariables(Type* QL, Type
 	Rdim += chem->species[i].R*QR[i]*this->param->ref_density;
       }
       Rdim /= rhodim;
-      Type T = chem->eos->GetT(Rdim, rhodim, QR[neqn-1]*this->param->ref_pressure);
+      Type T = chem->eos[0]->GetT(Rdim, rhodim, QR[neqn-1]*this->param->ref_pressure);
       QR[neqn-1] = T/this->param->ref_temperature;
     }
 
@@ -1147,7 +1147,7 @@ void CompressibleFREqnSet<Type>::GetInternalInflowBoundaryVariables(Type* QL, Ty
     Rdim += chem->species[i].R*QR[i]*this->param->ref_density;
   }
   Rdim /= rhodim;
-  Type T = chem->eos->GetT(Rdim, rhodim, PL*this->param->ref_pressure);
+  Type T = chem->eos[0]->GetT(Rdim, rhodim, PL*this->param->ref_pressure);
   QR[nspecies+3] = T/this->param->ref_temperature;
 
   return;
@@ -1346,7 +1346,7 @@ void CompressibleFREqnSet<Type>::ContributeTemporalTerms(Type* Q, Type vol, Type
 
   Type ref_detdP = this->param->ref_enthalpy*this->param->ref_density/this->param->ref_pressure;
   dEtdP /= ref_detdP;
-  Type dPdT = chem->eos->GetdP_dT(R*s_ref, rhoDim, PDim, TDim);
+  Type dPdT = chem->eos[0]->GetdP_dT(R*s_ref, rhoDim, PDim, TDim);
   dPdT /= (this->param->ref_pressure/this->param->ref_temperature);
 
   //Now, compute the value for our limiting parameter thetaprime & beta - Ashish Gupta dissertation
@@ -1467,7 +1467,7 @@ void CompressibleFREqnSet<Type>::UpdateQinf()
     Rmix += this->Qinf[i]*chem->species[i].R;
   }
 
-  Type r = chem->eos->GetRho(Rmix, p, T*this->param->ref_temperature)/this->param->ref_density;
+  Type r = chem->eos[0]->GetRho(Rmix, p, T*this->param->ref_temperature)/this->param->ref_density;
 
   //scale mass fractions by total density
   for(Int i = 0; i < nspecies; i++){
@@ -1509,7 +1509,7 @@ void CompressibleFREqnSet<Type>::GetFluidProperties(Type P, Type T, Type rho, Ty
   //make chemistry call
   this->chem->GetFluidProperties(rhoDim, rhoiDim, cviDim, cv, R);
 
-  *cp = chem->eos->GetCp(*cv, *R, rhoDim, P*this->param->ref_pressure, Tdim);
+  *cp = chem->eos[0]->GetCp(*cv, *R, rhoDim, P*this->param->ref_pressure, Tdim);
   *gamma = (*cp)/(*cv);
 
   //we have to nondimensionalize speed of sound squared by the same reference velocity to be internally 
@@ -1621,7 +1621,7 @@ void CompressibleFREqnSet<Type>::GetInternalOutflowBoundaryVariables(Type* QL, T
     R += chem->species[i].R*rhoi[i]*this->param->ref_density;
   }
   R /= rho;
-  Type T = chem->eos->GetT(R, rho, pressure*this->param->ref_pressure);
+  Type T = chem->eos[0]->GetT(R, rho, pressure*this->param->ref_pressure);
 
   QR[nspecies+3] = T/this->param->ref_temperature;
 }
@@ -1840,8 +1840,8 @@ void CompressibleFREqnSet<Type>::ViscousJacobian(Type* QL, Type* QR, Type* dx, T
   Type v2L = (uL*uL + vL*vL + wL*wL);
   Type v2R = (uR*uR + vR*vR + wR*wR);
   
-  Type dT_dPL = chem->eos->GetdT_dP(RmixL, rhoL, PL, TL);
-  Type dT_dPR = chem->eos->GetdT_dP(RmixR, rhoR, PR, TR);
+  Type dT_dPL = chem->eos[0]->GetdT_dP(RmixL, rhoL, PL, TL);
+  Type dT_dPR = chem->eos[0]->GetdT_dP(RmixR, rhoR, PR, TR);
 
   Type* dTdRhoiL = new Type[nspecies];
   Type* dTdRhoiR = new Type[nspecies];
@@ -2100,7 +2100,7 @@ void CompressibleFREqnSet<Type>::ConservativeToNative(Type* Q)
 
   //use last pressure stored to guess at T
   Type P = GetPressure(Q);
-  Type T = chem->eos->GetT(R, rho*this->param->ref_density, P*this->param->ref_pressure)/
+  Type T = chem->eos[0]->GetT(R, rho*this->param->ref_density, P*this->param->ref_pressure)/
     this->param->ref_temperature;
   Type To = 1.0;
   Int j = 0;
@@ -2111,9 +2111,9 @@ void CompressibleFREqnSet<Type>::ConservativeToNative(Type* Q)
 		  this->param->ref_enthalpy);
     Type Hp = rho*(chem->GetSpecificEnthalpy(Y, Tp*this->param->ref_temperature, hi)/
 		   this->param->ref_enthalpy);
-    Type P = chem->eos->GetP(R, rho*this->param->ref_density, 
+    Type P = chem->eos[0]->GetP(R, rho*this->param->ref_density, 
 			     T*this->param->ref_temperature)/this->param->ref_pressure;
-    Type Pp = chem->eos->GetP(R, rho*this->param->ref_density, 
+    Type Pp = chem->eos[0]->GetP(R, rho*this->param->ref_density, 
 			      Tp*this->param->ref_temperature)/this->param->ref_pressure;
     Type E = H - P;
     Type Ep = Hp - Pp;
@@ -2202,7 +2202,7 @@ void CompressibleFREqnSet<Type>::GetTotalTempPressureBoundaryVariables(Type* QL,
   Type pDim = Pressure*this->param->ref_pressure;
   
   //solve for rho*R
-  Type rhoR = chem->eos->GetRhoR(pDim, TDim);
+  Type rhoR = chem->eos[0]->GetRhoR(pDim, TDim);
  
   //get massfractions
   Type* X = (Type*)alloca(sizeof(Type)*nspecies);
@@ -2232,7 +2232,7 @@ void CompressibleFREqnSet<Type>::GetTotalTempPressureBoundaryVariables(Type* QL,
   Type cv = 0.0;
   for(Int i = 0; i < nspecies; i++){
     cvi[i] = chem->species[i].GetCp(TDim);
-    cvi[i] = chem->eos->GetCv(cvi[i], chem->species[i].R, rhoDim, pDim, TDim);
+    cvi[i] = chem->eos[i]->GetCv(cvi[i], chem->species[i].R, rhoDim, pDim, TDim);
     cv += cvi[i]*X[i];
   }
 
@@ -2274,7 +2274,7 @@ void CompressibleFREqnSet<Type>::GetSpeciesSpeedOfSound(Type* c2i, Type* Q)
   Type* cvi = &Q[nspecies+6];
   for(Int i = 0; i < nspecies; i++){
     Type Ri = chem->species[i].R;
-    Type cpi = chem->eos->GetCp(cvi[i]*s_ref, Ri, rhoi[i]*this->param->ref_density, pdim, Tdim);
+    Type cpi = chem->eos[i]->GetCp(cvi[i]*s_ref, Ri, rhoi[i]*this->param->ref_density, pdim, Tdim);
     Type gamma = cpi/(cvi[i]*s_ref);
     c2i[i] = gamma*Ri*Tdim;
     c2i[i] /= v2_ref;

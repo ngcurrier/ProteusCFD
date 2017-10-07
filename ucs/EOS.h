@@ -17,9 +17,11 @@ public:
   //2 - ... 
   Int eosType;
 
+  
   virtual Type GetT(Type Rmix, Type rho, Type P) = 0;
   virtual Type GetRho(Type Rmix, Type P, Type T) = 0;
   virtual Type GetP(Type Rmix, Type rho, Type T) = 0;
+  //FLUENT uses: drho_dT, drho_dp, dh_dT, dh_dP
   virtual Type GetdT_dP(Type Rmix, Type rho, Type P, Type T) = 0;
   virtual Type GetdT_dRho(Type Rmix, Type rho, Type P, Type T) = 0;
   virtual Type GetdT_dR(Type Rmix, Type rho, Type P, Type T) = 0;

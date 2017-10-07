@@ -5,7 +5,6 @@ ChemModel<Type>::ChemModel(Param<Type>& param)
   Int eosType = 0; //ideal gas
   
   caseString = param.casestring;
-  CreateEOS(&eos, eosType);
 
   nreactions = GetNumberOfReactionsFromFile();
   reactions = new Reaction<Type>[nreactions];
@@ -82,6 +81,13 @@ ChemModel<Type>::ChemModel(Param<Type>& param)
     species[i].Print();
   }
 
+  for(i = 0; i < nspecies; ++i){
+    EOS<Type>* eosTmp;
+    CreateEOS(&eosTmp, eosType);
+    eos.push_back(eosTmp);
+  }
+
+  
   for(i = 0; i < nreactions; i++){
     reactions[i].Print();
     std::cout << std::endl;
@@ -97,8 +103,12 @@ ChemModel<Type>::ChemModel(Int modelId_, Param<Type>& param)
 {
   Int eosType = 0; //ideal gas
   this->modelId = modelId_;
-  //setup equation of state object
-  CreateEOS(&eos, eosType);
+  //setup equation of state objects
+  for(i = 0; i < nspecies; ++i){
+    EOS<Type>* eosTmp;
+    CreateEOS(&eosTmp, eosType);
+    eos.push_back(eosTmp);
+  }
   species = new Species<Type>[2];
   reactions = new Reaction<Type>[2];
 
@@ -112,7 +122,9 @@ ChemModel<Type>::~ChemModel()
 {
   delete [] reactions;
   delete [] species;
-  delete eos;
+  for(typename std::vector<EOS<Type>* >::iterator it = eos.begin(); it != eos.end(); ++it){
+    delete *it;
+  }
 
   return;
 }
@@ -260,7 +272,7 @@ Type ChemModel<Type>::dEtdT_dEtdRhoi_FD(Type* rhoi, Type T, Type P, Type v2, Typ
       Xp[j] = rhoip[j]/rhop;
     }
     //compute new P based on equation of state used
-    Ppu = eos->GetP(Rmixp, rhop, T);
+    Ppu = eos[i]->GetP(Rmixp, rhop, T);
     //compute new total energy based on perturbed state
     Htpu = rhop*GetSpecificEnthalpy(Xp, T, hip) + rhop*momV2;
     Etpu = Htpu - Ppu;
@@ -279,7 +291,7 @@ Type ChemModel<Type>::dEtdT_dEtdRhoi_FD(Type* rhoi, Type T, Type P, Type v2, Typ
       Xp[j] = rhoip[j]/rhop;
     }
     //compute new T based on equation of state used
-    Ppd = eos->GetP(Rmixp, rhop, T);
+    Ppd = eos[i]->GetP(Rmixp, rhop, T);
     //compute new total energy based on perturbed state
     Htpd = rhop*GetSpecificEnthalpy(Xp, T, hip) + rhop*momV2;
     Etpd = Htpd - Ppd;
@@ -291,8 +303,8 @@ Type ChemModel<Type>::dEtdT_dEtdRhoi_FD(Type* rhoi, Type T, Type P, Type v2, Typ
   Tpd = T-h;
   Htpu = rho*GetSpecificEnthalpy(X, Tpu, hip) + rho*momV2;
   Htpd = rho*GetSpecificEnthalpy(X, Tpd, hip) + rho*momV2;
-  Ppu = eos->GetP(Rmix, rho, Tpu);
-  Ppd = eos->GetP(Rmix, rho, Tpd);
+  Ppu = eos[0]->GetP(Rmix, rho, Tpu);
+  Ppd = eos[0]->GetP(Rmix, rho, Tpd);
   Etpu = Htpu - Ppu;
   Etpd = Htpd - Ppd;
   dEtdT = (Etpu - Etpd)/(2.0*h);
@@ -310,10 +322,10 @@ void ChemModel<Type>::dTdRhoi(Type* rhoi, Type P, Type* dTdRhoi)
     Rmix += rhoi[i]*species[i].R;
   }
   Rmix /= rho;
-  Type T = eos->GetT(Rmix, rho, P);
+  Type T = eos[0]->GetT(Rmix, rho, P);
   
-  Type dTdRho = eos->GetdT_dRho(Rmix, rho, P, T);
-  Type dTdR = eos->GetdT_dR(Rmix, rho, P, T);
+  Type dTdRho = eos[0]->GetdT_dRho(Rmix, rho, P, T);
+  Type dTdR = eos[0]->GetdT_dR(Rmix, rho, P, T);
   
   for(Int i = 0; i < nspecies; i++){
     dTdRhoi[i] = dTdR*dRmixdRhoi(rhoi, rho, i) + dTdRho;
@@ -372,7 +384,7 @@ Type ChemModel<Type>::dEtdP_dEtdRhoi_FD(Type* rhoi, Type T, Type P, Type v2, Typ
       Xp[j] = rhoip[j]/rhop;
     }
     //compute new P based on equation of state used
-    Ppu = eos->GetP(Rmixp, rhop, T);
+    Ppu = eos[i]->GetP(Rmixp, rhop, T);
     //compute new total energy based on perturbed state
     Htpu = rhop*GetSpecificEnthalpy(Xp, T, hip) + rhop*momV2;
     Etpu = Htpu - Ppu;
@@ -391,7 +403,7 @@ Type ChemModel<Type>::dEtdP_dEtdRhoi_FD(Type* rhoi, Type T, Type P, Type v2, Typ
       Xp[j] = rhoip[j]/rhop;
     }
     //compute new T based on equation of state used
-    Ppd = eos->GetP(Rmixp, rhop, T);
+    Ppd = eos[i]->GetP(Rmixp, rhop, T);
     //compute new total energy based on perturbed state
     Htpd = rhop*GetSpecificEnthalpy(Xp, T, hip) + rhop*momV2;
     Etpd = Htpd - Ppd;
@@ -401,8 +413,8 @@ Type ChemModel<Type>::dEtdP_dEtdRhoi_FD(Type* rhoi, Type T, Type P, Type v2, Typ
 
   Ppu = P+h;
   Ppd = P-h;
-  Tpu = eos->GetT(Rmix, rho, Ppu);
-  Tpd = eos->GetT(Rmix, rho, Ppd);
+  Tpu = eos[0]->GetT(Rmix, rho, Ppu);
+  Tpd = eos[0]->GetT(Rmix, rho, Ppd);
   Htpu = rho*GetSpecificEnthalpy(X, Tpu, hip) + rho*momV2;
   Htpd = rho*GetSpecificEnthalpy(X, Tpd, hip) + rho*momV2;
   Etpu = Htpu - Ppu;
@@ -423,8 +435,8 @@ Type ChemModel<Type>::dEtdT_dEtdRhoi(Type* rhoi, Type T, Type P, Type v2, Type* 
     Rmix += rhoi[i]*species[i].R;
   }
   Rmix /= rhomix;
-  Type dPdrhomix = eos->GetdP_dRho(Rmix, rhomix, P, T);
-  Type dPdRmix = eos->GetdP_dR(Rmix, rhomix, P, T);
+  Type dPdrhomix = eos[0]->GetdP_dRho(Rmix, rhomix, P, T);
+  Type dPdRmix = eos[0]->GetdP_dR(Rmix, rhomix, P, T);
 
   //chain rule F.T.W. at constant T -- pick (rho, T)
   for(Int i = 0; i < nspecies; i++){
@@ -433,7 +445,7 @@ Type ChemModel<Type>::dEtdT_dEtdRhoi(Type* rhoi, Type T, Type P, Type v2, Type* 
 
   //now we are perturbing T -- pick (P, rho)
   Type dEtdT = 0.0;
-  Type dPdT = eos->GetdP_dT(Rmix, rhomix, P, T);
+  Type dPdT = eos[0]->GetdP_dT(Rmix, rhomix, P, T);
   for(Int i = 0; i < nspecies; i++){
     dEtdT += rhoi[i]*(species[i].GetdHdT(T));
   }
@@ -453,8 +465,8 @@ Type ChemModel<Type>::dEtdP_dEtdRhoi(Type* rhoi, Type T, Type P, Type v2, Type* 
     Rmix += rhoi[i]*species[i].R;
   }
   Rmix /= rhomix;
-  Type dPdrhomix = eos->GetdP_dRho(Rmix, rhomix, P, T);
-  Type dPdRmix = eos->GetdP_dR(Rmix, rhomix, P, T);
+  Type dPdrhomix = eos[0]->GetdP_dRho(Rmix, rhomix, P, T);
+  Type dPdRmix = eos[0]->GetdP_dR(Rmix, rhomix, P, T);
 
   //chain rule F.T.W. at constant T -- pick (rho, T)
   for(Int i = 0; i < nspecies; i++){
@@ -465,7 +477,7 @@ Type ChemModel<Type>::dEtdP_dEtdRhoi(Type* rhoi, Type T, Type P, Type v2, Type* 
   
   //now we are perturbing P -- pick (rho, T)
   Type dEtdP = 0.0;
-  Type dTdP = eos->GetdT_dP(Rmix, rhomix, P, T);
+  Type dTdP = eos[0]->GetdT_dP(Rmix, rhomix, P, T);
   for(Int i = 0; i < nspecies; i++){
     dEtdP += rhoi[i]*(species[i].GetdHdT(T))*dTdP;
   }
