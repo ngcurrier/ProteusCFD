@@ -76,11 +76,18 @@ Proteus CFD has several depencies. An effort has been made to rely only on the s
 of required packages in order to make the compilation of this software simple for new users.
 The following packages are required for core functionality:
 
-* MPI (version dependent on local machine infrastructure, we suggest openMPI if you get a choice)
 * HDF5 (all output files are stored in this format, included in TPLs directory)
 * METIS (mesh partitioning for parallel runs, included in TPLs directory)
 * TINYXML (used for I/O in some places)
 * GTest (used for unit testing framework, included in TPLs directory)
+
+Dependencies for OS (you need to install these on the system prior to building)
+====================
+* Cmake for building Metis
+* Make for building Proteus
+* GNU/C/C++
+* GNU FORTRAN (gfortran)
+* MPI (version dependent on local machine infrastructure, we suggest openMPI if you get a choice)
 
 Dependencies for GUI
 ====================
