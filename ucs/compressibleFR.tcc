@@ -156,8 +156,8 @@ void CompressibleFREqnSet<Type>::Eigensystem(Type* Q, Type* avec, Type vdotn, Ty
   Type* cvi = &Q[nspecies+6];
   Type* c2i = new Type[nspecies];
 
-  Type R, cv, cp, c2;
-  GetFluidProperties(p, Temp, rho, rhoi, cvi, &cv, &cp, &R, &gamma, &c2);
+  Type cv, cp, R, gammaTrash, c2, RhoTrash, PTrash;
+  GetFluidProperties(rhoi, Temp, cvi, cv, cp, R, gammaTrash, c2, RhoTrash, PTrash);
 
   //these are the modified speeds from preconditioning
   Type thetaPrime = 0.5*bp1*theta;
@@ -165,6 +165,7 @@ void CompressibleFREqnSet<Type>::Eigensystem(Type* Q, Type* avec, Type vdotn, Ty
 
   //get individual species speed of sounds
   GetSpeciesSpeedOfSound(c2i, Q);
+  //TODO: is it required that we reset this for stability reasons... seems c2i should be individual not bulk
   for(Int i = 0; i < nspecies; i++){
     c2i[i] = c2;
   }
@@ -295,7 +296,6 @@ void CompressibleFREqnSet<Type>::HLLCFlux(Type* QL, Type* QR, Type* avec, Type v
   Int neqn = this->neqn;
 
   //get left state
-  Type cvL, cpL, RL, gammaL, c2L;
   Type* rhoiL = &QL[0];
   Type uL = QL[nspecies];
   Type vL = QL[nspecies+1];
@@ -305,7 +305,8 @@ void CompressibleFREqnSet<Type>::HLLCFlux(Type* QL, Type* QR, Type* avec, Type v
   Type pgL = pL - this->Pref;
   Type rhoL = QL[nspecies+5];
   Type* cviL = &QL[nspecies+6];
-  this->GetFluidProperties(pL, TL, rhoL, rhoiL, cviL, &cvL, &cpL, &RL, &gammaL, &c2L);
+  Type cvL, cpL, RL, gammaL, c2L, RhoTrashL, PTrashL;
+  GetFluidProperties(rhoiL, TL, cviL, cvL, cpL, RL, gammaL, c2L, RhoTrashL, PTrashL);
   Type HTL = GetTotalEnthalpy(QL);
   Type ETL = HTL - pL;
 #if 0
@@ -319,7 +320,6 @@ void CompressibleFREqnSet<Type>::HLLCFlux(Type* QL, Type* QR, Type* avec, Type v
   Type thetaL = GetTheta(QL, avec, vdotn);
 
   //get right state
-  Type cvR, cpR, RR, gammaR, c2R;
   Type* rhoiR = &QR[0];
   Type uR = QR[nspecies];
   Type vR = QR[nspecies+1];
@@ -329,7 +329,8 @@ void CompressibleFREqnSet<Type>::HLLCFlux(Type* QL, Type* QR, Type* avec, Type v
   Type pgR = pR - this->Pref;
   Type rhoR = QR[nspecies+5];
   Type* cviR = &QR[nspecies+6];
-  this->GetFluidProperties(pR, TR, rhoR, rhoiR, cviR, &cvR, &cpR, &RR, &gammaR, &c2R);
+  Type cvR, cpR, RR, gammaR, c2R, RhoTrashR, PTrashR;
+  GetFluidProperties(rhoiR, TR, cviR, cvR, cpR, RR, gammaR, c2R, RhoTrashR, PTrashR);
   Type HTR = GetTotalEnthalpy(QR);
   Type ETR = HTR - pR;
 #if 0
@@ -358,13 +359,13 @@ void CompressibleFREqnSet<Type>::HLLCFlux(Type* QL, Type* QR, Type* avec, Type v
 
   Type theta = GetTheta(roeQ, avec, vdotn);
   
-  Type cp, cv, R, c2;
   Type* rhoi = &roeQ[0];
   Type* cvi = &roeQ[nspecies+6];
   Type T = roeQ[nspecies+3];
   Type p = roeQ[nspecies+4];
   rho = roeQ[nspecies+5];
-  this->GetFluidProperties(p, T, rho, rhoi, cvi, &cv, &cp, &R, &gamma, &c2);
+  Type cv, cp, R, gammaTrash, c2, RhoTrash, PTrash;
+  GetFluidProperties(rhoi, T, cvi, cv, cp, R, gammaTrash, c2, RhoTrash, PTrash);
   //this can be done more accurately, like:
   //Type hV2 = 0.5*(u*u + v*v + w*w);
   //c2 = (gamma -1.0)*(h - hV2 + cv*T - specific_energy);
@@ -565,10 +566,8 @@ void CompressibleFREqnSet<Type>::ViscousFlux(Type* Q, Type* grad, Type* avec, Ty
   Type* cvi = &Q[nspecies+6];
   Type P = GetPressure(Q);
   Type T = GetTemperature(Q);
-  Type gamma;
-  Type cv, cp, c2;
-  Type R;
-  GetFluidProperties(P, T, rho, rhoi, cvi, &cv, &cp, &R, &gamma, &c2);
+  Type cv, cp, R, gamma, c2, RhoTrash, PTrash;
+  GetFluidProperties(rhoi, T, cvi, cv, cp, R, gamma, c2, RhoTrash, PTrash);
 
   //compute actual mixture viscosity and add turbulent viscosity
   Type mu = GetMolecularViscosity(rhoi, T);
@@ -754,6 +753,7 @@ void CompressibleFREqnSet<Type>::ComputeAuxiliaryVariables(Type* Q)
 
   //set P via EOS
   Type TDim = T*(this->param->ref_temperature);
+  //TODO: EOSUpdate
   Type pDim = this->chem->eos[0]->GetP(R, (*rho)*this->param->ref_density, TDim);
   Q[nspecies+4] = pDim/this->param->ref_pressure;
 
@@ -761,6 +761,7 @@ void CompressibleFREqnSet<Type>::ComputeAuxiliaryVariables(Type* Q)
   Type rhoDim = (*rho)*this->param->ref_density;
   for(i = 0; i < nspecies; i++){
     cvi[i] = this->chem->species[i].GetCp(TDim);
+    //TODO: EOSUpdate
     cvi[i] = chem->eos[i]->GetCv(cvi[i], chem->species[i].R, rhoDim, pDim, TDim) / 
       this->param->ref_velocity*this->param->ref_velocity/this->param->ref_temperature;
   }
@@ -796,6 +797,7 @@ Type CompressibleFREqnSet<Type>::ComputePressure(Type* Q, Type gamma)
 
   //set P via EOS
   Type TDim = T*(this->param->ref_temperature);
+  //TODO: EOSUpdate
   Type pDim = this->chem->eos[0]->GetP(R, rho*this->param->ref_density, TDim);
   return ( pDim/this->param->ref_pressure);
 }
@@ -982,6 +984,7 @@ void CompressibleFREqnSet<Type>::GetFarfieldBoundaryVariables(Type* QL, Type* QR
 	Rdim += chem->species[i].R*QR[i]*this->param->ref_density;
       }
       Rdim /= rhodim;
+      //TODO: EOSUpdate
       Type T = chem->eos[0]->GetT(Rdim, rhodim, QR[neqn-1]*this->param->ref_pressure);
       QR[neqn-1] = T/this->param->ref_temperature;
     }
@@ -1065,6 +1068,7 @@ void CompressibleFREqnSet<Type>::GetInviscidWallBoundaryVariables(Type* QL, Type
 	Rdim += chem->species[i].R*QR[i]*this->param->ref_density;
       }
       Rdim /= rhodim;
+      //TODO: EOSUpdate
       Type T = chem->eos[0]->GetT(Rdim, rhodim, QR[neqn-1]*this->param->ref_pressure);
       QR[neqn-1] = T/this->param->ref_temperature;
     }
@@ -1147,6 +1151,7 @@ void CompressibleFREqnSet<Type>::GetInternalInflowBoundaryVariables(Type* QL, Ty
     Rdim += chem->species[i].R*QR[i]*this->param->ref_density;
   }
   Rdim /= rhodim;
+  //TODO: EOSUpdate
   Type T = chem->eos[0]->GetT(Rdim, rhodim, PL*this->param->ref_pressure);
   QR[nspecies+3] = T/this->param->ref_temperature;
 
@@ -1314,10 +1319,10 @@ void CompressibleFREqnSet<Type>::ContributeTemporalTerms(Type* Q, Type vol, Type
   Type TDim, PDim;
   Type precond;
 
-  Type R, cv, cp, gammaMix, c2;
   Type* cvi = &Q[nspecies+6];
   Type* rhoi = &Q[0];
-  GetFluidProperties(P, T, rho, rhoi, cvi, &cv, &cp, &R, &gammaMix, &c2);
+  Type cv, cp, R, gamma, c2, RhoTrash, PTrash;
+  GetFluidProperties(rhoi, T, cvi, cv, cp, R, gamma, c2, RhoTrash, PTrash);
   Type c = sqrt(c2);
 
   Type s_ref = (this->param->ref_velocity * this->param->ref_velocity / 
@@ -1346,11 +1351,13 @@ void CompressibleFREqnSet<Type>::ContributeTemporalTerms(Type* Q, Type vol, Type
 
   Type ref_detdP = this->param->ref_enthalpy*this->param->ref_density/this->param->ref_pressure;
   dEtdP /= ref_detdP;
+  //TODO: EOSUpdate
   Type dPdT = chem->eos[0]->GetdP_dT(R*s_ref, rhoDim, PDim, TDim);
   dPdT /= (this->param->ref_pressure/this->param->ref_temperature);
 
   //Now, compute the value for our limiting parameter thetaprime & beta - Ashish Gupta dissertation
   //This not the same theta prime used above for defining modified eigenvalues Eriksson preconditioner
+  //TODO: is it required that we reset this for stability reasons... seems c2i should be individual not bulk
   GetSpeciesSpeedOfSound(c2i, Q);
   for(Int i = 0; i < nspecies; i++){
     c2i[i] = c2;
@@ -1467,6 +1474,7 @@ void CompressibleFREqnSet<Type>::UpdateQinf()
     Rmix += this->Qinf[i]*chem->species[i].R;
   }
 
+  //TODO: EOSUpdate
   Type r = chem->eos[0]->GetRho(Rmix, p, T*this->param->ref_temperature)/this->param->ref_density;
 
   //scale mass fractions by total density
@@ -1486,42 +1494,55 @@ void CompressibleFREqnSet<Type>::UpdateQinf()
   return;
 }
 
+// returns fluid properties given rhoi's and temperature
+// all variables passed back non-dimensional
 template <class Type>
-void CompressibleFREqnSet<Type>::GetFluidProperties(Type P, Type T, Type rho, Type* rhoi, Type* cvi, Type* cv, 
-						    Type* cp, Type* R, Type* gamma, Type* c2)
+void CompressibleFREqnSet<Type>::GetFluidProperties(const Type* rhoi, const Type T, const Type* cvi, Type& cv, 
+						    Type& cp, Type& R, Type& gamma, Type& c2, Type& rho, Type& P)  const
 {
   Int i;
   Type* rhoiDim = (Type*)alloca(sizeof(Type)*nspecies);
   Type* cviDim = (Type*)alloca(sizeof(Type)*nspecies);
-  Type rhoDim;
+  Type cvDim = 0.0;
+  Type cpDim = 0.0;
+  Type RDim = 0.0;
+  Type PDim = 0.0;
+  Type rhoDim = 0.0;
+  Type c2Dim = 0.0;
+
+  //initialize passed in outputs
+  rho = 0.0;
+  P = 0.0;
+  gamma = 0.0;
+  R = 0.0;
+  cv = 0.0;
+  cp = 0.0;
+  c2 = 0.0;
+  
+  // compute reference values for dimensionalization
   Type s_ref = (this->param->ref_velocity * this->param->ref_velocity / 
 		this->param->ref_temperature);
-  Type Tdim = T*this->param->ref_temperature;
+  Type rho_ref = this->param->ref_density;
+  Type p_ref = this->param->ref_pressure;
 
-  //dimensionalize
+  //dimensionalize rhoi and cvi and T
   #pragma ivdep
-  for(i = 0; i < nspecies; i++){
+  for(i = 0; i < nspecies; ++i){
     rhoiDim[i] = rhoi[i]*this->param->ref_density;
     cviDim[i] = cvi[i]*s_ref;
   }
-  rhoDim = rho*this->param->ref_density;
-
+  Type Tdim = T*this->param->ref_temperature;
+  
   //make chemistry call
-  this->chem->GetFluidProperties(rhoDim, rhoiDim, cviDim, cv, R);
-
-  *cp = chem->eos[0]->GetCp(*cv, *R, rhoDim, P*this->param->ref_pressure, Tdim);
-  *gamma = (*cp)/(*cv);
-
-  //we have to nondimensionalize speed of sound squared by the same reference velocity to be internally 
-  //consistent -- this simplification is done in Busby p.17
-  *c2 = (*gamma) * (*R) * Tdim;
-  *c2 /= (this->param->ref_velocity*this->param->ref_velocity);
-
-  *cv /= s_ref;
-  *cp /= s_ref;
-  *R /= s_ref;
-
-  return;
+  this->chem->GetFluidProperties(rhoiDim, Tdim, cviDim, cvDim, cpDim, RDim, PDim, rhoDim, c2Dim);
+  gamma = (cpDim)/(cvDim);
+  cv = cvDim/s_ref;
+  cp = cpDim/s_ref;
+  R = RDim/s_ref;
+  P = PDim/p_ref;
+  rho = rhoDim/rho_ref;
+  //we have to nondimensionalize speed of sound squared by the same reference velocity to be internally consistent
+  c2 = c2Dim/(this->param->ref_velocity*this->param->ref_velocity);
 }
 
 template <class Type>
@@ -1563,17 +1584,14 @@ Type CompressibleFREqnSet<Type>::MaxEigenvalue(Type* Q, Type* avec, Type vdotn, 
   Type T = Q[nspecies+3];
   Type* rhoi = &Q[0];
   Type* cvi = &Q[nspecies+6];
-  Type cv, cp;
-  Type R;
-  Type gammaMix;
-  Type c2, c;
   Type theta;
   Type eig4, eig5;
 
   Type P = GetPressure(Q);
-  
-  GetFluidProperties(P, T, rho, rhoi, cvi, &cv, &cp, &R, &gammaMix, &c2);
-  c = sqrt(c2);
+
+  Type cv, cp, R, gammaTrash, c2, RhoTrash, PTrash;
+  GetFluidProperties(rhoi, T, cvi, cv, cp, R, gammaTrash, c2, RhoTrash, PTrash);
+  Type c = sqrt(c2);
 
   theta = GetTheta(Q, avec, vdotn);
 
@@ -1621,6 +1639,7 @@ void CompressibleFREqnSet<Type>::GetInternalOutflowBoundaryVariables(Type* QL, T
     R += chem->species[i].R*rhoi[i]*this->param->ref_density;
   }
   R /= rho;
+  //TODO: EOSUpdate
   Type T = chem->eos[0]->GetT(R, rho, pressure*this->param->ref_pressure);
 
   QR[nspecies+3] = T/this->param->ref_temperature;
@@ -1681,10 +1700,8 @@ void CompressibleFREqnSet<Type>::ViscousJacobian(Type* QL, Type* QR, Type* dx, T
   Type RKT = RK*tmut;
 
   //compute cp for the mixture
-  Type gamma;
-  Type cv, cp, c2;
-  Type Rmix;
-  GetFluidProperties(P, T, rho, rhoi, cvi, &cv, &cp, &Rmix, &gamma, &c2);
+  Type cv, cp, R, gamma, c2, RhoTrash, PTrash;
+  GetFluidProperties(rhoi, T, cvi, cv, cp, R, gamma, c2, RhoTrash, PTrash);
 
   //compute some partial derivatives we need to continue
   //-------------------------------------------------------------------------
@@ -1699,25 +1716,25 @@ void CompressibleFREqnSet<Type>::ViscousJacobian(Type* QL, Type* QR, Type* dx, T
   Type* DxRrho = (Type*)alloca(sizeof(Type)*3);
 
   Type rhoL = GetDensity(QL);
+  Type* rhoiL = &QL[0];
   Type uL = QL[nspecies];
   Type vL = QL[nspecies+1];
   Type wL = QL[nspecies+2];
   Type PL = GetPressure(QL);
-
-  Type rhoR = GetDensity(QR);
+  Type* cviL = &QL[nspecies+6];
+   
+  Type rhoR = GetDensity(QR); 
+  Type* rhoiR = &QR[0];
   Type uR = QR[nspecies];
   Type vR = QR[nspecies+1];
   Type wR = QR[nspecies+2];
   Type PR = GetPressure(QR);
+  Type* cviR = &QR[nspecies+6];
 
-  Type gammaL, gammaR;
-  Type cvL, cvR;
-  Type cpL, cpR;
-  Type c2L, c2R;
-  Type RmixL, RmixR;
-
-  GetFluidProperties(PL, TL, rhoL, &QL[0], &QL[nspecies+6], &cvL, &cpL, &RmixL, &gammaL, &c2L);
-  GetFluidProperties(PR, TR, rhoR, &QR[0], &QR[nspecies+6], &cvR, &cpR, &RmixR, &gammaR, &c2R);
+  Type cvL, cpL, RL, gammaL, c2L, RhoTrashL, PTrashL;
+  GetFluidProperties(rhoiL, TL, cviL, cvL, cpL, RL, gammaL, c2L, RhoTrashL, PTrashL);
+  Type cvR, cpR, RR, gammaR, c2R, RhoTrashR, PTrashR;
+  GetFluidProperties(rhoiR, TR, cviR, cvR, cpR, RR, gammaR, c2R, RhoTrashR, PTrashR);
 
   Type u = 0.5*(uL + uR);
   Type v = 0.5*(vL + vR);
@@ -1839,9 +1856,10 @@ void CompressibleFREqnSet<Type>::ViscousJacobian(Type* QL, Type* QR, Type* dx, T
 
   Type v2L = (uL*uL + vL*vL + wL*wL);
   Type v2R = (uR*uR + vR*vR + wR*wR);
-  
-  Type dT_dPL = chem->eos[0]->GetdT_dP(RmixL, rhoL, PL, TL);
-  Type dT_dPR = chem->eos[0]->GetdT_dP(RmixR, rhoR, PR, TR);
+
+  //TODO: EOSUpdate
+  Type dT_dPL = chem->eos[0]->GetdT_dP(RL, rhoL, PL, TL);
+  Type dT_dPR = chem->eos[0]->GetdT_dP(RR, rhoR, PR, TR);
 
   Type* dTdRhoiL = new Type[nspecies];
   Type* dTdRhoiR = new Type[nspecies];
@@ -1850,15 +1868,15 @@ void CompressibleFREqnSet<Type>::ViscousJacobian(Type* QL, Type* QR, Type* dx, T
   chem->dTdRhoi(rhoiRdim, PR*this->param->ref_pressure, dTdRhoiR);
 
   //compute pressure derivatives
-  Type dP_druL  = RmixL/cvL*uL;
-  Type dP_drvL  = RmixL/cvL*vL;
-  Type dP_drwL  = RmixL/cvL*wL;
-  Type dP_dretL = RmixL/cvL;
+  Type dP_druL  = RL/cvL*uL;
+  Type dP_drvL  = RL/cvL*vL;
+  Type dP_drwL  = RL/cvL*wL;
+  Type dP_dretL = RL/cvL;
 
-  Type dP_druR  = RmixR/cvR*uR;
-  Type dP_drvR  = RmixR/cvR*vR;
-  Type dP_drwR  = RmixR/cvR*wR;
-  Type dP_dretR = RmixR/cvR;
+  Type dP_druR  = RR/cvR*uR;
+  Type dP_drvR  = RR/cvR*vR;
+  Type dP_drwR  = RR/cvR*wR;
+  Type dP_dretR = RR/cvR;
 
   //thermal conductivity
   Type k = GetThermalConductivity(rhoi, T);
@@ -2100,6 +2118,7 @@ void CompressibleFREqnSet<Type>::ConservativeToNative(Type* Q)
 
   //use last pressure stored to guess at T
   Type P = GetPressure(Q);
+  //TODO: EOSUpdate
   Type T = chem->eos[0]->GetT(R, rho*this->param->ref_density, P*this->param->ref_pressure)/
     this->param->ref_temperature;
   Type To = 1.0;
@@ -2111,6 +2130,7 @@ void CompressibleFREqnSet<Type>::ConservativeToNative(Type* Q)
 		  this->param->ref_enthalpy);
     Type Hp = rho*(chem->GetSpecificEnthalpy(Y, Tp*this->param->ref_temperature, hi)/
 		   this->param->ref_enthalpy);
+    //TODO: EOSUpdate
     Type P = chem->eos[0]->GetP(R, rho*this->param->ref_density, 
 			     T*this->param->ref_temperature)/this->param->ref_pressure;
     Type Pp = chem->eos[0]->GetP(R, rho*this->param->ref_density, 
@@ -2202,6 +2222,7 @@ void CompressibleFREqnSet<Type>::GetTotalTempPressureBoundaryVariables(Type* QL,
   Type pDim = Pressure*this->param->ref_pressure;
   
   //solve for rho*R
+  //TODO: EOSUpdate
   Type rhoR = chem->eos[0]->GetRhoR(pDim, TDim);
  
   //get massfractions
@@ -2229,10 +2250,12 @@ void CompressibleFREqnSet<Type>::GetTotalTempPressureBoundaryVariables(Type* QL,
 
   //compute cv
   Type* cvi = (Type*)alloca(sizeof(Type)*nspecies);
+  Type* cpi = (Type*)alloca(sizeof(Type)*nspecies);
   Type cv = 0.0;
+  //TODO: EOSUpdate
   for(Int i = 0; i < nspecies; i++){
-    cvi[i] = chem->species[i].GetCp(TDim);
-    cvi[i] = chem->eos[i]->GetCv(cvi[i], chem->species[i].R, rhoDim, pDim, TDim);
+    cpi[i] = chem->species[i].GetCp(TDim);
+    cvi[i] = chem->eos[i]->GetCv(cpi[i], chem->species[i].R, rhoDim, pDim, TDim);
     cv += cvi[i]*X[i];
   }
 
@@ -2263,6 +2286,7 @@ void CompressibleFREqnSet<Type>::GetTotalTempPressureBoundaryVariables(Type* QL,
 template <class Type>
 void CompressibleFREqnSet<Type>::GetSpeciesSpeedOfSound(Type* c2i, Type* Q)
 {
+  //by definition c^2 = dp_drho| constant entropy
   Type s_ref = (this->param->ref_velocity * this->param->ref_velocity / 
 		this->param->ref_temperature);
   Type v2_ref = this->param->ref_velocity*this->param->ref_velocity;
@@ -2274,6 +2298,7 @@ void CompressibleFREqnSet<Type>::GetSpeciesSpeedOfSound(Type* c2i, Type* Q)
   Type* cvi = &Q[nspecies+6];
   for(Int i = 0; i < nspecies; i++){
     Type Ri = chem->species[i].R;
+    //TODO: EOSUpdate
     Type cpi = chem->eos[i]->GetCp(cvi[i]*s_ref, Ri, rhoi[i]*this->param->ref_density, pdim, Tdim);
     Type gamma = cpi/(cvi[i]*s_ref);
     c2i[i] = gamma*Ri*Tdim;

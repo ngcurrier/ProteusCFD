@@ -48,8 +48,8 @@ class CompressibleFREqnSet : public EqnSet<Type>
   void SourceTerm(Type* Q, Type vol, Type* source);
   void ContributeTemporalTerms(Type* Q, Type vol, Type cnp1, Type dt, Type dtau, Type* A, Type beta);
   void UpdateQinf();
-  void GetFluidProperties(Type P, Type T, Type rho, Type* rhoi, Type* cvi, Type* cv, Type* cp, 
-			  Type* R, Type* gamma, Type* c2);
+  void GetFluidProperties(const Type* rhoi, const Type T, const Type* cvi, Type& cv,
+			  Type& cp, Type& R, Type& gamma, Type& c2, Type& rho, Type& P) const;
   Type ComputeViscosity(Type* Q);
   Type GetMolecularViscosity(Type* rhoi, Type T);
   Type GetThermalConductivity(Type* rhoi, Type T);

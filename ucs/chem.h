@@ -18,11 +18,14 @@
 //Time - seconds
 //Length - meters
 //Concentration - mole
+//Energy - Joule
+//Force - Newton
 
 //forward declarations
 template <class Type> class Reaction;
 template <class Type> class Species;
 
+//Note: all inputs are expect dimensional in SI, all outputs are dimensional in SI
 template <class Type>
 class ChemModel
 {
@@ -48,8 +51,8 @@ class ChemModel
   ~ChemModel();
 
   Int GetNumberOfReactionsFromFile();
-  //takes rho, rhoi, cvi and returns cv, and R
-  void GetFluidProperties(Type rho, Type* rhoi, Type* cvi, Type* cv, Type* R);
+  void GetFluidProperties(const Type* rhoi, const Type T, const Type* cvi,
+			  Type& cv, Type& cp, Type& R, Type& P, Type& rho, Type& c2) const;
   void GetMassProductionRates(Type* rhoi, Type T, Type* wdot); //get production rates for chemical reaction
   //finite difference implementation
   Type GetSpecificEnthalpy(Type* massfrac, Type T, Type * hi);

@@ -104,7 +104,7 @@ ChemModel<Type>::ChemModel(Int modelId_, Param<Type>& param)
   Int eosType = 0; //ideal gas
   this->modelId = modelId_;
   //setup equation of state objects
-  for(i = 0; i < nspecies; ++i){
+  for(Int i = 0; i < nspecies; ++i){
     EOS<Type>* eosTmp;
     CreateEOS(&eosTmp, eosType);
     eos.push_back(eosTmp);
@@ -177,22 +177,42 @@ Int ChemModel<Type>::GetNumberOfReactionsFromFile()
   return nreactions;
 }
 
+// returns fluid properties given rhoi's (kg/m^3), Temperature (K), and cvi's (J/kg.K)
+// all properties passed in dimensional (SI)
+// all properties passed back dimensional (SI)
 template <class Type>
-void ChemModel<Type>::GetFluidProperties(Type rho, Type* rhoi, Type* cvi, Type* cv, Type* R)
+void ChemModel<Type>::GetFluidProperties(const Type* rhoi, const Type T, const Type* cvi,
+					 Type& cv, Type& cp, Type& R, Type& P, Type& rho, Type& c2) const
 {
   Int i;
-  *R = 0.0;
-  *cv = 0.0;
+  cv = 0.0;
+  cp = 0.0;
+  R = 0.0;
+  P = 0.0;
+  rho = 0.0;
+  c2 = 0.0;
 
-  for(i = 0; i < this->nspecies; i++){
-    *R += rhoi[i]*species[i].R;
-    *cv += rhoi[i]*cvi[i];
+  for(i = 0; i < nspecies; ++i){
+    rho += rhoi[i];
   }
+  
+  for(i = 0; i < this->nspecies; i++){
+    Type Rs = species[i].R;
+    R += rhoi[i]*Rs;
+    cv += rhoi[i]*cvi[i];
+    // assumes that Dalton's law holds - P = sum_i (P_i)
+    P += eos[i]->GetP(Rs, rhoi[i], T);
+  }
+  cv /= rho;
+  R /= rho;
 
-  (*cv) /= rho;
-  (*R) /= rho;
-
-  return;
+  //TODO: generalize for non-ideal gases
+  cp = eos[0]->GetCp(cv, R, rho, P, T);
+  Type gamma = cp/cv;
+  
+  //TODO: generalize for non-ideal gas speed of sound
+  //this simplification is done in Busby p.17, only valid for ideal gases
+  c2 = gamma * R * T;
 }
 
 template <class Type>
@@ -206,8 +226,6 @@ void ChemModel<Type>::GetMassProductionRates(Type* rhoi, Type T, Type* wdot)
       wdot[i] += this->reactions[j].GetMassProductionRate(rhoi, T, i);
     }
   }
-
-  return;
 }
 
 template <class Type>
@@ -228,7 +246,7 @@ Type ChemModel<Type>::dEtdT_dEtdRhoi_FD(Type* rhoi, Type T, Type P, Type v2, Typ
   Type dEtdT;
   Type Ht, Htpu, Htpd, Et, Etpu, Etpd;
   Type momV2 = 0.5*v2;
-  Type h = 1.0e-8;
+  Type pert = 1.0e-8;
   Type rho;
   Type rhop;
   Type Rmix = 0.0;
@@ -238,7 +256,8 @@ Type ChemModel<Type>::dEtdT_dEtdRhoi_FD(Type* rhoi, Type T, Type P, Type v2, Typ
   Type* Xp = (Type*)alloca(sizeof(Type)*nspecies);
   Type* hi = (Type*)alloca(sizeof(Type)*nspecies);
   Type* hip = (Type*)alloca(sizeof(Type)*nspecies);
-  Type Tpu, Tpd;
+  Type Tpu = T + pert;
+  Type Tpd = T - pert;
   Type Ppu, Ppd;
   Type dEidP;
 
@@ -255,10 +274,10 @@ Type ChemModel<Type>::dEtdT_dEtdRhoi_FD(Type* rhoi, Type T, Type P, Type v2, Typ
   Et = Ht - P;
 
   //calculate the derivative of TotalEnergy w.r.t partial density
-  //at constant temperature
+  //at constant temperature - dEt_drho(Tconst)
   for(i = 0; i < nspecies; i++){
     memcpy(rhoip, rhoi, sizeof(Type)*nspecies);
-    rhoip[i] += h;
+    rhoip[i] += pert;
     rhop = 0.0;
     Rmixp = 0.0;
     //compute new mixture R and total density
@@ -277,7 +296,7 @@ Type ChemModel<Type>::dEtdT_dEtdRhoi_FD(Type* rhoi, Type T, Type P, Type v2, Typ
     Htpu = rhop*GetSpecificEnthalpy(Xp, T, hip) + rhop*momV2;
     Etpu = Htpu - Ppu;
     memcpy(rhoip, rhoi, sizeof(Type)*nspecies);
-    rhoip[i] -= h;
+    rhoip[i] -= pert;
     rhop = 0.0;
     Rmixp = 0.0;
     //compute new mixture R and total density
@@ -296,18 +315,16 @@ Type ChemModel<Type>::dEtdT_dEtdRhoi_FD(Type* rhoi, Type T, Type P, Type v2, Typ
     Htpd = rhop*GetSpecificEnthalpy(Xp, T, hip) + rhop*momV2;
     Etpd = Htpd - Ppd;
     //compute finite difference
-    dEtdRhoi[i] = (Etpu - Etpd)/(2.0*h);
+    dEtdRhoi[i] = (Etpu - Etpd)/(2.0*pert);
   }
 
-  Tpu = T+h;
-  Tpd = T-h;
   Htpu = rho*GetSpecificEnthalpy(X, Tpu, hip) + rho*momV2;
   Htpd = rho*GetSpecificEnthalpy(X, Tpd, hip) + rho*momV2;
   Ppu = eos[0]->GetP(Rmix, rho, Tpu);
   Ppd = eos[0]->GetP(Rmix, rho, Tpd);
   Etpu = Htpu - Ppu;
   Etpd = Htpd - Ppd;
-  dEtdT = (Etpu - Etpd)/(2.0*h);
+  dEtdT = (Etpu - Etpd)/(2.0*pert);
 
   return dEtdT;
 }
@@ -580,7 +597,6 @@ void ChemModel<Type>::MassFractionToMoleFraction(Type* massfrac, Type* molefrac)
     summ += molefrac[i];
   }
   molefrac[nspecies-1] = 1.0 - summ;
-  
 }
 
 
