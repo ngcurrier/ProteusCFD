@@ -52,22 +52,22 @@ Usage:
   We recommend Salome or GMSH as an opensource alternative to commercial gridding tools.
   Using Proteus with a given mesh involves:
   
-  1) Using ./decomp.x tool to decompose the geometry into multiple parallel partitions.
-     This tool currently expect .ugrid (MSU), .su2 (Stanford SU2) and .crunch mesh files. 
-     Others may be added in the future if there is a request and possibly user support (testers)
-     for them.
+  1) Use ./decomp.x <casename - i.e. test.ugrid would just bet 'test'> <number of processors> tool to 
+     decompose the geometry into multiple parallel partitions. This tool currently expects .ugrid (MSU), 
+     .su2 (Stanford SU2), .msh (GMSH), or .crunch mesh files. Other formats may be added in the future 
+     if there is a request and possibly user support (testers) for them.
   
-  2) Defining <casename>.bc and <casename>.param files (see ProteusTestSuite for examples)
+  2) Define <casename>.bc and <casename>.param files (see ProteusTestSuite for examples)
      This sets up boundary conditions and the solver runtime parameters for relevant physics.
   
   3) Run the solver with mpiexec -np <number of processors> ./ucs.x <casename>
      There is also a run script in the ./tools directory to modify should you need 
      parallel job scripts.
   
-  4) Using ./recomp.x tool to recompose the parallel geometry and solution to .vtk binary files.
+  4) Use ./recomp.x <casename> tool to recompose the parallel geometry and solution to .vtk binary files.
      VTK legacy files are the only supported output at this time.
   
-  5) Using paraview or visit (or any other VTK capable visualization tool) to view and query results.
+  5) Use paraview or visit (or any other VTK capable visualization tool) to view and query results.
 
 Dependencies
 ============
