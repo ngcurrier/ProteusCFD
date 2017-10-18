@@ -52,7 +52,7 @@ Usage:
   We recommend Salome or GMSH as an opensource alternative to commercial gridding tools.
   Using Proteus with a given mesh involves:
   
-  1) Use ./decomp.x <casename - i.e. test.ugrid would just bet 'test'> <number of processors> tool to 
+  1) Use ./decomp.x <casename - i.e. test.ugrid would just be 'test'> <number of processors/cores> tool to 
      decompose the geometry into multiple parallel partitions. This tool currently expects .ugrid (MSU), 
      .su2 (Stanford SU2), .msh (GMSH), or .crunch mesh files. Other formats may be added in the future 
      if there is a request and possibly user support (testers) for them.
