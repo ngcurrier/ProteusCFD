@@ -69,7 +69,7 @@ Type IdealGasEOS<Type>::GetdP_dT(Type Rmix, Type rho, Type P, Type T)
 }
 
 template <class Type>
-Type IdealGasEOS<Type>::GetCp(Type Cv, Type Rmix, Type rho, Type P, Type T)
+Type IdealGasEOS<Type>::GetCp(Type Cv, Type Rmix, Type /*rho*/, Type /*P*/, Type /*T*/)
 {
   //Mayer's relation
   return (Cv + Rmix);
