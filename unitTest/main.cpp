@@ -3,6 +3,7 @@
 //list of all of the headers which define the tests
 #include "meshTest.h"
 #include "newtonTest.h"
+#include "chemTest.h"
 
 int main(int argc, char** argv)
 {
