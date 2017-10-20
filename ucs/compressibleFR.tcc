@@ -12,17 +12,19 @@
 //rho_1
 //rho_2
 //...
-//rho_NS
+//rho_NScompute temperature from energy
 //u
 //v
 //w
-//T
+//T_static (not total)
 //Aux Variables
 //P
 //rho
 //cv_1
 //...
 //cv_NS
+
+#define N_SUBIT 10
 
 template <class Type>
 CompressibleFREqnSet<Type>::CompressibleFREqnSet(SolutionSpace<Type>* space, Param<Type>* p)
@@ -131,8 +133,7 @@ void CompressibleFREqnSet<Type>::InitEqnSet()
   //set Reynold's number - rho*v*d/mu
   Type rho = this->Qinf[nspecies+5];
   Type V = this->param->GetVelocity(this->space->iter);
-  Type Mach = V;
-  this->param->Re = (rho*this->param->ref_density)*(this->param->ref_velocity*Mach)*
+  this->param->Re = (rho*this->param->ref_density)*(this->param->ref_velocity*V)*
     this->param->ref_length/this->param->ref_viscosity;
 }
 
@@ -645,8 +646,15 @@ Type CompressibleFREqnSet<Type>::GetTemperature(Type* Q)
 template <class Type>
 Type CompressibleFREqnSet<Type>::GetGamma(Type* Q)
 {
-  //TODO: return actual gamma from chemistry
-  return (this->param->gamma);
+  Type* rhoi = &Q[0];
+  Type* rhoiDim = (Type*)alloca(sizeof(Type)*nspecies);
+  for(Int i = 0; i < nspecies; ++i){
+    rhoiDim[i] = rhoi[i]*this->param->ref_density;
+  }
+  Type TDim = GetTemperature(Q)*this->param->ref_temperature;
+  Type cpDim = this->chem->GetCp(rhoiDim, TDim);
+  Type cvDim = this->chem->GetCv(rhoiDim, TDim);
+  return (cpDim/cvDim);
 }
 
 template <class Type>
@@ -655,8 +663,7 @@ Type CompressibleFREqnSet<Type>::GetCp(Type* Q, Type gamma)
   Type P = GetPressure(Q);
   Type Pinf = GetPressure(this->Qinf);
   Type V = this->param->GetVelocity(this->space->iter);
-  Type Mach = V;
-  return  ((P - Pinf)/(0.5*Mach*Mach));
+  return  ((P - Pinf)/(0.5*V*V));
 }
 
 template <class Type>
@@ -741,11 +748,14 @@ void CompressibleFREqnSet<Type>::ComputeAuxiliaryVariables(Type* Q)
   Type* cvi = &Q[nspecies+6];
   Type T = Q[nspecies+3];
 
+  Type* rhoiDim = (Type*)alloca(sizeof(Type)*nspecies);
+  
   //compute rho and R
   *rho = 0.0;
   R = 0.0;
   for(i = 0; i < nspecies; i++){
     *rho += rhoi[i];
+    rhoiDim[i] = rhoi[i]*this->param->ref_density;
     R += this->chem->species[i].R*(rhoi[i]*this->param->ref_density);
   }
   //R is dimensional after this
@@ -753,17 +763,16 @@ void CompressibleFREqnSet<Type>::ComputeAuxiliaryVariables(Type* Q)
 
   //set P via EOS
   Type TDim = T*(this->param->ref_temperature);
-  //TODO: EOSUpdate
-  Type pDim = this->chem->eos[0]->GetP(R, (*rho)*this->param->ref_density, TDim);
+  Type pDim = this->chem->GetP(rhoiDim, TDim);
   Q[nspecies+4] = pDim/this->param->ref_pressure;
 
   //compute cvi
   Type rhoDim = (*rho)*this->param->ref_density;
+  Type* cpiDim = (Type*)alloca(sizeof(Type)*nspecies);
   for(i = 0; i < nspecies; i++){
-    cvi[i] = this->chem->species[i].GetCp(TDim);
-    //TODO: EOSUpdate
-    cvi[i] = chem->eos[i]->GetCv(cvi[i], chem->species[i].R, rhoDim, pDim, TDim) / 
-      this->param->ref_velocity*this->param->ref_velocity/this->param->ref_temperature;
+    cpiDim[i] = this->chem->species[i].GetCp(TDim);
+    cvi[i] = chem->eos[i]->GetCv(cpiDim[i], chem->species[i].R, rhoDim, pDim, TDim) / 
+      (this->param->ref_velocity*this->param->ref_velocity/this->param->ref_temperature);
   }
 
 #if 0
@@ -776,30 +785,20 @@ void CompressibleFREqnSet<Type>::ComputeAuxiliaryVariables(Type* Q)
   std::cout << "rhoDim: " << (*rho)*this->param->ref_density << std::endl;
   std::cout << "rho: " << (*rho) << std::endl;
 #endif
-
-  return;
 }
 
 template <class Type>
 Type CompressibleFREqnSet<Type>::ComputePressure(Type* Q, Type gamma)
 {
   Type* rhoi = &Q[0];
-  Type rho = 0.0;
-  Type T = Q[nspecies+3];
-  //compute rho and R
-  Type R = 0.0;
+  Type TDim = Q[nspecies+3]*this->param->ref_temperature;
+  Type* rhoiDim = (Type*)alloca(sizeof(Type)*nspecies);
   for(Int i = 0; i < nspecies; i++){
-    rho += rhoi[i];
-    R += this->chem->species[i].R*(rhoi[i]*this->param->ref_density);
+    rhoiDim[i] = rhoi[i]*this->param->ref_density;
   }
-  //R is dimensional after this
-  R /= (rho*this->param->ref_density);
-
   //set P via EOS
-  Type TDim = T*(this->param->ref_temperature);
-  //TODO: EOSUpdate
-  Type pDim = this->chem->eos[0]->GetP(R, rho*this->param->ref_density, TDim);
-  return ( pDim/this->param->ref_pressure);
+  Type pDim = this->chem->GetP(rhoiDim, TDim);
+  return pDim/this->param->ref_pressure;
 }
 
 
@@ -918,7 +917,7 @@ void CompressibleFREqnSet<Type>::GetFarfieldBoundaryVariables(Type* QL, Type* QR
 
   Type gamma = 0.0;
 
-  for(Int subit = 0; subit < 10; subit++){
+  for(Int subit = 0; subit < N_SUBIT; subit++){
     for(Int i = 0; i < neqn; i++){
       qavg[i] = 0.5*(QL[i] + QR[i]);
     }
@@ -941,6 +940,8 @@ void CompressibleFREqnSet<Type>::GetFarfieldBoundaryVariables(Type* QL, Type* QR
       //system for which this eigenspace was developed
       memcpy(ql, QL, sizeof(Type)*neqn);
       memcpy(qinf, Qinf, sizeof(Type)*neqn);
+      //store temperature as starting point for Newton solve
+      Type Tguess = ql[neqn-1];
       //change last row to pressure instead of temperature
       ql[neqn-1] = GetPressure(QL);
       qinf[neqn-1] = GetPressure(Qinf);
@@ -976,17 +977,12 @@ void CompressibleFREqnSet<Type>::GetFarfieldBoundaryVariables(Type* QL, Type* QR
 	}
       }
 
-      //change last value from pressure back to temperature
-      Type rhodim = 0.0;
-      Type Rdim = 0.0;
-      for(Int i = 0; i < nspecies; i++){
-	rhodim += QR[i]*this->param->ref_density; 
-	Rdim += chem->species[i].R*QR[i]*this->param->ref_density;
-      }
-      Rdim /= rhodim;
-      //TODO: EOSUpdate
-      Type T = chem->eos[0]->GetT(Rdim, rhodim, QR[neqn-1]*this->param->ref_pressure);
-      QR[neqn-1] = T/this->param->ref_temperature;
+      // convert pressure solution back to temperature for storage, use Newton's method
+      // to solve nonlinear mixture EOS
+      Type* rhoi = &QR[0];
+      Type pgoal = QR[neqn-1];
+      Type T = NewtonFindTGivenP(rhoi, pgoal, Tguess);
+      QR[neqn-1] = T;
     }
   }
 
@@ -1021,7 +1017,7 @@ void CompressibleFREqnSet<Type>::GetInviscidWallBoundaryVariables(Type* QL, Type
     Type* scr = new Type[neqn];
     Type* ql = new Type[neqn];
 
-    for(Int subit = 0; subit < 10; subit++){
+    for(Int subit = 0; subit < N_SUBIT; subit++){
       for(Int i = 0; i < neqn; i++){
 	qavg[i] = 0.5*(QL[i] + QR[i]);
       }
@@ -1029,9 +1025,11 @@ void CompressibleFREqnSet<Type>::GetInviscidWallBoundaryVariables(Type* QL, Type
       
       Eigensystem(qavg, avec, vdotn, gamma, eigenvals, T, Tinv, beta);
       
-      //build a vector of Ql which are in rho, u, P form which is the
+      //build a vector of Ql which are in [rho, u, v, w, P] form which is the
       //system for which this eigenspace was developed
       memcpy(ql, QL, sizeof(Type)*neqn);
+      //store temperature as starting point for Newton solve
+      Type Tguess = ql[neqn-1];
       //change last row to pressure instead of temperature
       ql[neqn-1] = GetPressure(QL);
       
@@ -1043,7 +1041,7 @@ void CompressibleFREqnSet<Type>::GetInviscidWallBoundaryVariables(Type* QL, Type
 	}
       }
       
-      //hard code the last equation to enforce theta = 0
+      //hard code the last equation to enforce theta = 0, wall velocity = flow velocity
       for(Int i = 0; i < nspecies; i++){
 	Tinv[(neqn-1)*neqn + i] = 0.0;
       }
@@ -1053,6 +1051,7 @@ void CompressibleFREqnSet<Type>::GetInviscidWallBoundaryVariables(Type* QL, Type
       Tinv[(neqn-1)*neqn + nspecies+3] = 0.0;
       rhs[neqn-1] = vdotn;
 
+      //solve the eigensystem for [rhoi, u, v, w, P] on boundary
       Int p[neqn];
       LU(Tinv, p, neqn);
       LuSolve(Tinv, rhs, p, scr, neqn);
@@ -1060,17 +1059,12 @@ void CompressibleFREqnSet<Type>::GetInviscidWallBoundaryVariables(Type* QL, Type
       memcpy(QR, rhs, neqn*sizeof(Type));
       //MatVecMult(T, rhs, QR, neqn);
 
-      //change last value from pressure back to temperature
-      Type rhodim = 0.0;
-      Type Rdim = 0.0;
-      for(Int i = 0; i < nspecies; i++){
-	rhodim += QR[i]*this->param->ref_density; 
-	Rdim += chem->species[i].R*QR[i]*this->param->ref_density;
-      }
-      Rdim /= rhodim;
-      //TODO: EOSUpdate
-      Type T = chem->eos[0]->GetT(Rdim, rhodim, QR[neqn-1]*this->param->ref_pressure);
-      QR[neqn-1] = T/this->param->ref_temperature;
+      // convert pressure solution back to temperature for storage, use Newton's method
+      // to solve nonlinear mixture EOS
+      Type* rhoi = &QR[0];
+      Type pgoal = QR[neqn-1];
+      Type T = NewtonFindTGivenP(rhoi, pgoal, Tguess);
+      QR[neqn-1] = T;
     }
 
     delete [] qavg;
@@ -1116,8 +1110,6 @@ void CompressibleFREqnSet<Type>::GetInviscidWallBoundaryVariables(Type* QL, Type
   std::cout << "theta " << GetTheta(tempspace, avec, vdotn) << std::endl;
   std::cout << std::endl;
 #endif  
-  
-  return;
 }
 
 template <class Type>
@@ -1142,20 +1134,13 @@ void CompressibleFREqnSet<Type>::GetInternalInflowBoundaryVariables(Type* QL, Ty
   QR[nspecies+1] = QL[nspecies+1] = flowDirection[1]*velocity;
   QR[nspecies+2] = QL[nspecies+2] = flowDirection[2]*velocity;
   //use the pressure from inside the domain, allow it to float
-  Type PL = GetPressure(QL);
-  //change last value from pressure back to temperature
-  Type rhodim = 0.0;
-  Type Rdim = 0.0;
-  for(Int i = 0; i < nspecies; i++){
-    rhodim += QR[i]*this->param->ref_density; 
-    Rdim += chem->species[i].R*QR[i]*this->param->ref_density;
-  }
-  Rdim /= rhodim;
-  //TODO: EOSUpdate
-  Type T = chem->eos[0]->GetT(Rdim, rhodim, PL*this->param->ref_pressure);
-  QR[nspecies+3] = T/this->param->ref_temperature;
-
-  return;
+  Type Pgoal = GetPressure(QL);
+  Type Tguess = GetTemperature(QL);
+  // convert pressure solution back to temperature for storage, use Newton's method
+  // to solve nonlinear mixture EOS
+  Type* rhoi = &QR[0];
+  Type T = NewtonFindTGivenP(rhoi, Pgoal, Tguess);
+  QR[nspecies+3] = T;
 }
 
 template <class Type>
@@ -1214,6 +1199,7 @@ Type CompressibleFREqnSet<Type>::GetTotalEnergy(Type* Q)
     this->param->ref_enthalpy;
 
   E = h*rho - P;
+  // add on the kinetic part for total energy
   Et = E + 0.5*rho*v2;
 
   return Et;
@@ -1442,10 +1428,9 @@ void CompressibleFREqnSet<Type>::UpdateQinf()
 
   //use GetVelocity() function for ramping
   Type V = this->param->GetVelocity(this->space->iter);
-  Type Mach = V;
-  Type u = this->param->flowdir[0]*Mach;
-  Type v = this->param->flowdir[1]*Mach;
-  Type w = this->param->flowdir[2]*Mach;
+  Type u = this->param->flowdir[0]*V;
+  Type v = this->param->flowdir[1]*V;
+  Type w = this->param->flowdir[2]*V;
 
   //set class variables to default initialization for Qinf
   if(this->param->massfractions.size() == nspecies){
@@ -1462,22 +1447,22 @@ void CompressibleFREqnSet<Type>::UpdateQinf()
 
   //we assume the pressure non-dimensionalization 
   //is set to be equal to state conditions
-  Type p = 1.0*this->param->ref_pressure;
+  Type pDim = 1.0*this->param->ref_pressure;
 
   //assume that the reference temperature we give is the 
   //farfield temperature, this is a reasonable assumption
   Type T = 1.0;
 
-  //compute mixture R
-  Type Rmix = 0.0;
-  for(Int i = 0; i < nspecies; i++){
-    Rmix += this->Qinf[i]*chem->species[i].R;
+  //Densities are additive in a fixed volume, sum them up
+  Type r = 0;
+  for(Int i = 0; i < nspecies; ++i){
+    Type Xi = this->Qinf[i];
+    Type piDim = pDim*Xi; //for ideal gases, Dalton's law applies, TODO: check for mixtures of phases
+    r += chem->eos[i]->GetRho(chem->species[i].R, piDim, T*this->param->ref_temperature);
   }
-
-  //TODO: EOSUpdate
-  Type r = chem->eos[0]->GetRho(Rmix, p, T*this->param->ref_temperature)/this->param->ref_density;
-
-  //scale mass fractions by total density
+  r /= this->param->ref_density;
+  
+  //scale mass fractions by total density, rhoi = rho*Xi
   for(Int i = 0; i < nspecies; i++){
     this->Qinf[i] *= r;
   }
@@ -1488,10 +1473,7 @@ void CompressibleFREqnSet<Type>::UpdateQinf()
   this->Qinf[nspecies+3] = T;
   
   ComputeAuxiliaryVariables(this->Qinf);
-
   this->Pref = GetPressure(this->Qinf);
-
-  return;
 }
 
 // returns fluid properties given rhoi's and temperature
@@ -1623,26 +1605,22 @@ Type CompressibleFREqnSet<Type>::GetTheta(Type* Q, Type* avec, Type vdotn)
 template <class Type>
 void CompressibleFREqnSet<Type>::GetInternalOutflowBoundaryVariables(Type* QL, Type* QR, Type pressure, Type gamma)
 {
-  Int i;
-  for(i = 0; i < nspecies; i++){
+  for(Int i = 0; i < nspecies; i++){
     QR[i] = QL[i];
   }
   QR[nspecies] = QL[nspecies];
   QR[nspecies+1] = QL[nspecies+1];
-  QR[nspecies+2] = QL[nspecies+2];
+  QR[nspecies+2] = QL[nspecies+2]; 
 
-  Type* rhoi = &QL[0];
-  Type rho = 0.0;
-  Type R = 0.0;
-  for(i = 0; i < nspecies; i++){
-    rho += rhoi[i]*this->param->ref_density; 
-    R += chem->species[i].R*rhoi[i]*this->param->ref_density;
-  }
-  R /= rho;
-  //TODO: EOSUpdate
-  Type T = chem->eos[0]->GetT(R, rho, pressure*this->param->ref_pressure);
-
-  QR[nspecies+3] = T/this->param->ref_temperature;
+  Type Tguess = QL[nspecies+3];
+  // set backpressure
+  Type pgoal = pressure;
+  
+  // convert pressure solution back to temperature for storage, use Newton's method
+  // to solve nonlinear mixture EOS
+  Type* rhoi = &QR[0];
+  Type T = NewtonFindTGivenP(rhoi, pgoal, Tguess);
+  QR[nspecies+3] = T;
 }
 
 template <class Type>
@@ -2024,8 +2002,6 @@ void CompressibleFREqnSet<Type>::GetViscousWallBoundaryVariables(Type* QL, Type*
   QR[nspecies] = QL[nspecies] = vel[0];
   QR[nspecies+1] = QL[nspecies+1] = vel[1];
   QR[nspecies+2] = QL[nspecies+2] = vel[2];
-
-  return;
 }
 
 template <class Type>
@@ -2092,6 +2068,8 @@ void CompressibleFREqnSet<Type>::NativeToConservative(Type* Q)
   return;
 }
 
+// Takes a vector of form [rhoi, rhou, rhov, rhow, rhoEt] and converts it back to
+// [rhoi, u, v, w, T] for convenience as stored in the solver
 template <class Type>
 void CompressibleFREqnSet<Type>::ConservativeToNative(Type* Q)
 {
@@ -2101,10 +2079,12 @@ void CompressibleFREqnSet<Type>::ConservativeToNative(Type* Q)
   Type* rhoi = &Q[0];
   Type* hi = (Type*)alloca(sizeof(Type)*nspecies);
   Type* Y = (Type*)alloca(sizeof(Type)*nspecies);
+  Type* rhoiDim = (Type*)alloca(sizeof(Type)*nspecies);
   Type R = 0.0;
   for(Int i = 0; i < nspecies; i++){
     rho += rhoi[i];
-    R += rhoi[i]*this->param->ref_density*chem->species[i].R;
+    rhoiDim[i] = rhoi[i]*this->param->ref_density;
+    R += rhoiDim[i]*chem->species[i].R;
   }
   R /= this->param->ref_density*rho;
   for(Int i = 0; i < nspecies; ++i){
@@ -2114,6 +2094,9 @@ void CompressibleFREqnSet<Type>::ConservativeToNative(Type* Q)
   Type v = Q[nspecies+1] / rho;
   Type w = Q[nspecies+2] / rho;
   Type v2 = u*u + v*v + w*w;
+  // Et -  0.5*rho*v^2
+  // look only at the static (internal) energy minus the kinematic part
+  // we store the total energy including kinematic
   Type res = Q[nspecies+3] - 0.5*v2*rho;
 
   //use last pressure stored to guess at T
@@ -2130,11 +2113,8 @@ void CompressibleFREqnSet<Type>::ConservativeToNative(Type* Q)
 		  this->param->ref_enthalpy);
     Type Hp = rho*(chem->GetSpecificEnthalpy(Y, Tp*this->param->ref_temperature, hi)/
 		   this->param->ref_enthalpy);
-    //TODO: EOSUpdate
-    Type P = chem->eos[0]->GetP(R, rho*this->param->ref_density, 
-			     T*this->param->ref_temperature)/this->param->ref_pressure;
-    Type Pp = chem->eos[0]->GetP(R, rho*this->param->ref_density, 
-			      Tp*this->param->ref_temperature)/this->param->ref_pressure;
+    Type P = chem->GetP(rhoiDim, T*(this->param->ref_temperature))/this->param->ref_pressure;
+    Type Pp = chem->GetP(rhoiDim, Tp*(this->param->ref_temperature))/this->param->ref_pressure;
     Type E = H - P;
     Type Ep = Hp - Pp;
     Type zpoint = res - E;
@@ -2157,8 +2137,6 @@ void CompressibleFREqnSet<Type>::ConservativeToNative(Type* Q)
   Q[nspecies+2] = w;
   //replace Et with temperature
   Q[nspecies+3] = T;
-
-  return;
 }
 
 template <class Type>
@@ -2209,8 +2187,7 @@ Type CompressibleFREqnSet<Type>::GetCf(Type tauw, Type rho)
 {
   //Is this correct?  Implementation from compressible perfect gas solver.
   Type V = this->param->GetVelocity(this->space->iter);
-  Type Mach = V;
-  return (tauw/(0.5*rho*Mach*Mach));
+  return (tauw/(0.5*rho*V*V));
 }
 
 template <class Type>
@@ -2224,7 +2201,7 @@ void CompressibleFREqnSet<Type>::GetTotalTempPressureBoundaryVariables(Type* QL,
   //solve for rho*R
   //TODO: EOSUpdate
   Type rhoR = chem->eos[0]->GetRhoR(pDim, TDim);
- 
+
   //get massfractions
   Type* X = (Type*)alloca(sizeof(Type)*nspecies);
   if(this->param->massfractions.size() == nspecies){
@@ -2248,16 +2225,13 @@ void CompressibleFREqnSet<Type>::GetTotalTempPressureBoundaryVariables(Type* QL,
   Type rhoDim = (rhoR/R);
   Type rho = rhoDim/this->param->ref_density;
 
-  //compute cv
-  Type* cvi = (Type*)alloca(sizeof(Type)*nspecies);
-  Type* cpi = (Type*)alloca(sizeof(Type)*nspecies);
-  Type cv = 0.0;
-  //TODO: EOSUpdate
-  for(Int i = 0; i < nspecies; i++){
-    cpi[i] = chem->species[i].GetCp(TDim);
-    cvi[i] = chem->eos[i]->GetCv(cpi[i], chem->species[i].R, rhoDim, pDim, TDim);
-    cv += cvi[i]*X[i];
+  Type* rhoiDim = (Type*)alloca(sizeof(Type)*nspecies);
+  for(Int i = 0; i < nspecies; ++i){
+    rhoiDim[i] = X[i]*rhoDim;
   }
+  
+  //compute cv
+  Type cv = this->chem->GetCv(rhoiDim, TDim) / (this->param->ref_velocity*this->param->ref_velocity/this->param->ref_temperature);
 
   //Get specific energy
   Type* hi = (Type*)alloca(sizeof(Type)*nspecies);
@@ -2304,4 +2278,46 @@ void CompressibleFREqnSet<Type>::GetSpeciesSpeedOfSound(Type* c2i, Type* Q)
     c2i[i] = gamma*Ri*Tdim;
     c2i[i] /= v2_ref;
   }
+}
+
+template <class Type>
+Type CompressibleFREqnSet<Type>::NewtonFindTGivenP(const Type* rhoi, const Type Pgoal, const Type Tinit) const
+{
+  Int maxit = 20;
+  Type tol = 1.0e-12;
+
+  std::cout << "TOL: " << tol << std::endl;
+  std::cout << "Tinit: " << Tinit << std::endl;
+  
+  Type TDim = Tinit * this->param->ref_temperature;
+  Type PgoalDim = Pgoal * this->param->ref_pressure;
+  Type* rhoiDim = (Type*)alloca(sizeof(Type)*nspecies);
+  for(Int i = 0; i < nspecies; ++i){
+    rhoiDim[i] = rhoi[i]*this->param->ref_density;
+  }
+  Int j = 0;
+  Type dT = 0.0;
+  // all dimensional values internal to the loop
+  for(j = 0; j < maxit; j++){
+    Type TpDim = TDim + 1.0e-8;
+    Type PDim = this->chem->GetP(rhoiDim, TDim);
+    Type PpDim = this->chem->GetP(rhoiDim, TpDim);
+    std::cout << "Run newton: " << std::endl;
+    std::cout << PDim << " " << PpDim << std::endl;
+    std::cout << "TDim: " << TDim << std::endl;
+    Type zpoint = PgoalDim - PDim;
+    Type zpointp = PgoalDim - PpDim;
+    Type dzdT = (zpointp - zpoint)/(TpDim - TDim);
+    dT = -zpoint/dzdT;
+    TDim += dT;
+    if (real(CAbs(dT)) < real(tol)) break;
+  }
+
+  if(j == maxit){
+    std::cerr << "WARNING: Newton iteration did not converge on a temperature in NewtonFindTGivenP()" 
+	      << std::endl;
+    std::cerr << "Last dT = " << dT << std::endl;
+  }
+  
+  return TDim/this->param->ref_temperature;
 }

@@ -69,6 +69,10 @@ class ChemModel
   Type GetThermalConductivity(Type* rhoi, Type T);
   void MassFractionToMoleFraction(Type* massfrac, Type* molefrac);
   void MoleFractionToMassFraction(Type* molefrac, Type* massfrac);
+
+  Type GetP(const Type* rhoi, const Type T) const;
+  Type GetCp(const Type* rhoi, const Type T) const;
+  Type GetCv(const Type* rhoi, const Type T) const;
   
  private:
 };

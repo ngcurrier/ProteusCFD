@@ -81,12 +81,13 @@ ChemModel<Type>::ChemModel(Param<Type>& param)
     species[i].Print();
   }
 
+  eos.resize(nspecies);
   for(i = 0; i < nspecies; ++i){
     EOS<Type>* eosTmp;
     CreateEOS(&eosTmp, eosType);
-    eos.push_back(eosTmp);
+    eos[i] = eosTmp;
   }
-
+ 
   
   for(i = 0; i < nreactions; i++){
     reactions[i].Print();
@@ -104,10 +105,11 @@ ChemModel<Type>::ChemModel(Int modelId_, Param<Type>& param)
   Int eosType = 0; //ideal gas
   this->modelId = modelId_;
   //setup equation of state objects
+  eos.resize(nspecies);
   for(Int i = 0; i < nspecies; ++i){
     EOS<Type>* eosTmp;
     CreateEOS(&eosTmp, eosType);
-    eos.push_back(eosTmp);
+    eos[i] = eosTmp;
   }
   species = new Species<Type>[2];
   reactions = new Reaction<Type>[2];
@@ -617,3 +619,59 @@ void ChemModel<Type>::MoleFractionToMassFraction(Type* molefrac, Type* massfrac)
   }
   massfrac[nspecies-1] = 1.0 - summ;
 }
+
+
+template <class Type>
+Type ChemModel<Type>::GetP(const Type* rhoi, const Type T) const
+{
+  Type P = 0.0;
+  for(Int i = 0; i < this->nspecies; i++){
+    Type Rs = species[i].R;
+    // assumes that Dalton's law holds - P = sum_i (P_i)
+    P += eos[i]->GetP(Rs, rhoi[i], T);
+  }
+  return P;
+}
+
+template <class Type>
+Type ChemModel<Type>::GetCp(const Type* rhoi, const Type T) const
+{
+  Type rho = 0.0;
+  Type* X = (Type*)alloca(sizeof(Type)*nspecies);
+  for(Int i = 0; i < nspecies; ++i){
+    rho += rhoi[i];
+  }
+  for(Int i = 0; i < nspecies; ++i){
+    X[i] += rhoi[i]/rho;
+  }
+  
+  Type cp = 0.0;
+  for(Int i = 0; i < nspecies; i++){
+    cp += species[i].GetCp(T)*X[i];
+  }
+  return cp;
+}
+
+template <class Type>
+Type ChemModel<Type>::GetCv(const Type* rhoi, const Type T) const
+{
+  Type rho = 0.0;
+  Type* X = (Type*)alloca(sizeof(Type)*nspecies);
+  Type* cvi = (Type*)alloca(sizeof(Type)*nspecies);
+  for(Int i = 0; i < nspecies; ++i){
+    rho += rhoi[i];
+  }
+  for(Int i = 0; i < nspecies; ++i){
+    X[i] += rhoi[i]/rho;
+  }
+  
+  Type cv = 0.0;
+  Type P = 0.0;
+  for(Int i = 0; i < nspecies; i++){
+    Type cpi = species[i].GetCp(T);
+    Type Ri = species[i].R;
+    cv += X[i]*(eos[i]->GetCv(cpi, Ri, rhoi[i], P, T));
+  }
+  return cv;
+}
+  

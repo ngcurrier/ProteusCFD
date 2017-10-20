@@ -77,6 +77,7 @@ class CompressibleFREqnSet : public EqnSet<Type>
   void Eigensystem(Type* Q, Type* avec, Type vdotn, Type gamma,
 		   Type* eigenvalues, Type* T, Type* Tinv, Type beta);
   void GetSpeciesSpeedOfSound(Type* c2i, Type* Q);
+  Type NewtonFindTGivenP(const Type* rhoi, const Type Pgoal, const Type Tinit) const;
  private:  
   CompressibleFREqnSet();
 };
