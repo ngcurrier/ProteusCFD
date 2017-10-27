@@ -862,12 +862,13 @@ void SolutionSpace<Type>::NewtonIterate()
   
   param->time += real(dtmin_global);
   if(std::isnan(real(residGlobal)) || std::isinf(real(residGlobal))){
-    std::cerr << "Solution residual divergent!! " << std::endl;
-    std::cerr << "Coordinates of max residual: " << m->xyz[resnode*3 + 0] 
+    std::stringstream ss;
+    ss << "Solution residual divergent!! " << std::endl;
+    ss << "Coordinates of max residual: " << m->xyz[resnode*3 + 0] 
 	      << " " << m->xyz[resnode*3 + 1] << " " << m->xyz[resnode*3 + 2] << std::endl;
-    std::cerr << "Coordinates of max dq: " << m->xyz[qnode*3 + 0] 
+    ss << "Coordinates of max dq: " << m->xyz[qnode*3 + 0] 
 	      << " " << m->xyz[qnode*3 + 1] << " " << m->xyz[qnode*3 + 2] << std::endl;
-    Abort << "Infinite residual -- I'm OUT!";
+    Abort << ss.str();
     nanflag = 1;
   }
 
@@ -973,7 +974,9 @@ void SolutionSpace<Type>::OpenOutFiles()
       residOutFile.open(residualFileName.c_str(), std::ios::app);
     }
     if(!residOutFile.is_open()){
-      std::cerr << "Residual file: " << residualFileName << " NOT opened!" << std::endl;
+      std::stringstream ss;
+      ss << "Residual file: " << residualFileName << " NOT opened!" << std::endl;
+      Abort << ss.str();
     }
     //todo: print residual headers to file for plotting purposes
     residOutFile << "iter\tresGlobal\t";
@@ -994,7 +997,9 @@ void SolutionSpace<Type>::OpenOutFiles()
       timerOutFile.open(timerFile.c_str(), std::ios::app);
     }
     if(!timerOutFile.is_open()){
-      std::cerr << "Timer file: " << timerFile << " NOT opened!" << std::endl;
+      std::stringstream ss;
+      ss << "Timer file: " << timerFile << " NOT opened!" << std::endl;
+      Abort << ss.str();
     }
   }
 

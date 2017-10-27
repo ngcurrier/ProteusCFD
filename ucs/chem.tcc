@@ -1,10 +1,15 @@
 template <class Type>
-ChemModel<Type>::ChemModel(Param<Type>& param)
+ChemModel<Type>::ChemModel()
+{
+
+}
+
+template <class Type>
+ChemModel<Type>::ChemModel(std::string casestring, Int isViscous, std::string databaseFile):
+  caseString(casestring), nespecies(0), nspecies(0), reactions(0)
 {
   Int i, j, k;
   Int eosType = 0; //ideal gas
-  
-  caseString = param.casestring;
 
   nreactions = GetNumberOfReactionsFromFile();
   reactions = new Reaction<Type>[nreactions];
@@ -64,12 +69,15 @@ ChemModel<Type>::ChemModel(Param<Type>& param)
   species = new Species<Type>[nspecies];
   //initialize species we need
   for(i = 0; i < nspecies; i++){
-    species[i].Init(speciesList[i], param.viscous, param.chemDB);
+    species[i].Init(speciesList[i], isViscous, databaseFile);
   }
   for(i = 0; i < nreactions; i++){
     reactions[i].SetSpeciesPointer(species, nspecies);
   }
 
+  //todo: count total elemental species in model
+  //nespecies = ???
+  
   std::cout << "SPECIES IN MODEL: " << std::endl;
   std::cout << "================= " << std::endl;
   for(i = 0; i < nspecies; i++){
@@ -81,40 +89,24 @@ ChemModel<Type>::ChemModel(Param<Type>& param)
     species[i].Print();
   }
 
+  // setup one EOS model for each specie
   eos.resize(nspecies);
+  std::cout << "Setting up EOSs:\n";
+  std::cout << "-------------------------------------\n";
   for(i = 0; i < nspecies; ++i){
     EOS<Type>* eosTmp;
     CreateEOS(&eosTmp, eosType);
     eos[i] = eosTmp;
+    std::cout << i << ": " << eos[i]->myType() << std::endl;
   }
- 
-  
+  std::cout << "\n";
+   
   for(i = 0; i < nreactions; i++){
     reactions[i].Print();
     std::cout << std::endl;
   }
 
   delete [] speciesList;
-
-  return;
-}
-
-template <class Type>
-ChemModel<Type>::ChemModel(Int modelId_, Param<Type>& param)
-{
-  Int eosType = 0; //ideal gas
-  this->modelId = modelId_;
-  //setup equation of state objects
-  eos.resize(nspecies);
-  for(Int i = 0; i < nspecies; ++i){
-    EOS<Type>* eosTmp;
-    CreateEOS(&eosTmp, eosType);
-    eos[i] = eosTmp;
-  }
-  species = new Species<Type>[2];
-  reactions = new Reaction<Type>[2];
-
-  std::cerr << "WARNING: This is NOT finished... stubout only! ChemModel non-default constructor!" << std::endl;
 
   return;
 }
@@ -143,7 +135,6 @@ Int ChemModel<Type>::GetNumberOfReactionsFromFile()
   size_t loc;
   char c;
 
-
   std::string rxnKey = "rxnInModel";
   
   fin.open(fileName.c_str());
@@ -170,10 +161,10 @@ Int ChemModel<Type>::GetNumberOfReactionsFromFile()
     }
   }
   else{
-    std::cerr << "CHEM_RXN READFILE: Cannot open reaction file --> " << fileName 
-	      << std::endl;
-    return (0);
-
+    std::stringstream ss;
+    ss << "CHEM_RXN READFILE: Cannot open reaction file --> " << fileName << std::endl;
+    Abort << ss.str();
+    return (1);
   }
 
   return nreactions;
@@ -642,7 +633,7 @@ Type ChemModel<Type>::GetCp(const Type* rhoi, const Type T) const
     rho += rhoi[i];
   }
   for(Int i = 0; i < nspecies; ++i){
-    X[i] += rhoi[i]/rho;
+    X[i] = rhoi[i]/rho;
   }
   
   Type cp = 0.0;
@@ -662,11 +653,11 @@ Type ChemModel<Type>::GetCv(const Type* rhoi, const Type T) const
     rho += rhoi[i];
   }
   for(Int i = 0; i < nspecies; ++i){
-    X[i] += rhoi[i]/rho;
+    X[i] = rhoi[i]/rho;
   }
   
   Type cv = 0.0;
-  Type P = 0.0;
+  Type P = 0.0; //dummy variable
   for(Int i = 0; i < nspecies; i++){
     Type cpi = species[i].GetCp(T);
     Type Ri = species[i].R;

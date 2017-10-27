@@ -30,6 +30,18 @@ Species<Type>::~Species()
 }
 
 template <class Type>
+void Species<Type>::Init(std::string name, Bool requireViscousProps, std::string database)
+{
+  //set the name of the species
+  this->symbol = name;
+  //look up info in the DB
+  std::cout << "SPECIES: Reading chemical database " << database << " for species " << symbol << std::endl;
+  GetDBInfo(requireViscousProps, database);
+
+  return;
+}
+
+template <class Type>
 Type Species<Type>::GetCp(Type T)
 {
   Type a[7];
@@ -118,29 +130,16 @@ void Species<Type>::GetThermoCoeff(Type T, Type* a)
 }
 
 template <class Type>
-void Species<Type>::Init(std::string name, Bool requireViscousProps, std::string database)
-{
-  //set the name of the species
-  this->symbol = name;
-  //look up info in the DB
-  std::cout << "SPECIES: Reading chemical database " << database << " for species " << symbol << std::endl;
-  GetDBInfo(requireViscousProps, database);
-
-  return;
-}
-
-template <class Type>
 Int Species<Type>::GetDBInfo(Bool requireViscousProps, std::string database)
 {
-  Int i;
-  Int err;
+  Int i = 0;
+  Int err = 0;
   hid_t file_id = -1;
   std::string directory;
   std::string filename = database;
 
   file_id = HDF_OpenFile(filename, 0);
   if(file_id < 0){
-    std::cerr << "Species::GetDBInfo() could not open file -- " << filename << std::endl;
     Abort << "Species::GetDBInfo() could not open file --" + filename;
     return file_id;
   }
@@ -171,24 +170,42 @@ Int Species<Type>::GetDBInfo(Bool requireViscousProps, std::string database)
   variable = "NASA7_burcat1";
   err = HDF_ReadArray(file_id, directory, variable, &ctemp, &n); 
   if(err){
+    err = 0;
     variable = "NASA7_gupta1";
-    err = HDF_ReadArray(file_id, directory, variable, &ctemp, &n); 
+    err = HDF_ReadArray(file_id, directory, variable, &ctemp, &n);
+    if(err){
+      std::stringstream ss;
+      ss << "Could not read species coefficients " << this->symbol << std::endl;
+      Abort << ss.str();
+    }
   }
   for(i = 0; i < n; i++) this->thermo_coeff[0][i] = ctemp[i];
   
   variable = "NASA7_burcat2";
   err = HDF_ReadArray(file_id, directory, variable, &ctemp, &n); 
   if(err){
+    err = 0;
     variable = "NASA7_gupta2";
     err = HDF_ReadArray(file_id, directory, variable, &ctemp, &n); 
+    if(err){
+      std::stringstream ss;
+      ss << "Could not read species coefficients " << this->symbol << std::endl;
+      Abort << ss.str();
+    }
   }
   for(i = 0; i < n; i++) this->thermo_coeff[1][i] = ctemp[i];
   
   variable = "NASA7_burcat2";
   err = HDF_ReadArray(file_id, directory, variable, &ctemp, &n); 
   if(err){
+    err = 0;
     variable = "NASA7_gupta3";
-    err = HDF_ReadArray(file_id, directory, variable, &ctemp, &n); 
+    err = HDF_ReadArray(file_id, directory, variable, &ctemp, &n);
+    if(err){
+      std::stringstream ss;
+      ss << "Could not read species coefficients " << this->symbol << std::endl;
+      Abort << ss.str();
+    }
   }
   for(i = 0; i < n; i++) this->thermo_coeff[2][i] = ctemp[i];
   delete [] ctemp;

@@ -31,7 +31,7 @@ CompressibleFREqnSet<Type>::CompressibleFREqnSet(SolutionSpace<Type>* space, Par
 {
   this->space = space;
   this->param = p;
-  this->chem = new ChemModel<Type>(*this->param);
+  this->chem = new ChemModel<Type>(this->param->casestring, this->param->viscous, this->param->chemDB);
   this->ownChem = true;
   
   nspecies = chem->nspecies;
@@ -62,12 +62,13 @@ CompressibleFREqnSet<Type>::CompressibleFREqnSet(SolutionSpace<Type>* space, Par
     //do nothing, we want to get massfractions
   }
   else{
-    std::cerr << "Massfractions/molefractions were read in but do not match ";
-    std::cerr << "the number of species in the model" << std::endl;
-    std::cerr << "NSPECIES: " << this->nspecies 
-	      << " NMASSFRACTIONS: " << this->param->massfractions.size() << std::endl;
-    std::cerr << "Defaulting to equal distribution of density among species" << std::endl;
-    Abort << "Mass fractions were read in but do not match the number of species in model";
+    std::stringstream ss;
+    ss << "Massfractions/molefractions were read in but do not match ";
+    ss << "the number of species in the model" << std::endl;
+    ss << "NSPECIES: " << this->nspecies 
+       << " NMASSFRACTIONS: " << this->param->massfractions.size() << std::endl;
+    ss << "Defaulting to equal distribution of density among species" << std::endl;
+    Abort << ss.str();
   }
 
 
@@ -2126,9 +2127,11 @@ void CompressibleFREqnSet<Type>::ConservativeToNative(Type* Q)
   }
 
   if(j == maxit){
-    std::cerr << "WARNING: Newton iteration did not converge on a temperature in ConservativeToNative()" 
+    std::stringstream ss;
+    ss << "WARNING: Newton iteration did not converge on a temperature in ConservativeToNative()" 
 	      << std::endl;
-    std::cerr << "Last dT = " << dT << std::endl;
+    ss << "Last dT = " << dT << std::endl;
+    Abort << ss.str();
   }
   
   //compute u, v, w
@@ -2314,9 +2317,10 @@ Type CompressibleFREqnSet<Type>::NewtonFindTGivenP(const Type* rhoi, const Type 
   }
 
   if(j == maxit){
-    std::cerr << "WARNING: Newton iteration did not converge on a temperature in NewtonFindTGivenP()" 
-	      << std::endl;
-    std::cerr << "Last dT = " << dT << std::endl;
+    std::stringstream ss;
+    ss << "WARNING: Newton iteration did not converge on a temperature in NewtonFindTGivenP()" << std::endl;
+    ss << "Last dT = " << dT << std::endl;
+    Abort << ss.str();
   }
   
   return TDim/this->param->ref_temperature;

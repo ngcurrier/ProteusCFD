@@ -37,7 +37,7 @@ hid_t HDF_ReadScalar(hid_t fileId, std::string directory, std::string dataName, 
   H5Dclose(dset);
   H5Sclose(space);
   H5Gclose(group);
-  H5Tclose(t_id);
+  //H5Tclose(t_id);
 
   return err;
 }
@@ -121,7 +121,7 @@ hid_t HDF_ReadArray(hid_t fileId, std::string directory, std::string dataName, T
 
   if(*data == NULL){
     //return after getting number of cols and rows for allocations
-    H5Tclose(ht_id);
+    //H5Tclose(ht_id);
     H5Dclose(d_id);
     H5Sclose(ds_id);
     H5Gclose(group);
@@ -173,7 +173,7 @@ hid_t HDF_ReadArray(hid_t fileId, std::string directory, std::string dataName, T
   //clean up
   H5Pclose(xfer_plist);
   H5Sclose(ms_id);
-  H5Tclose(ht_id);
+  //H5Tclose(ht_id);
   H5Dclose(d_id);
   H5Sclose(ds_id);
   H5Gclose(group);
@@ -448,7 +448,7 @@ hid_t HDF_ReadArrayAttribute(hid_t fileId, std::string directory, std::string da
   H5Dclose(dset);
   H5Sclose(aspace);
   H5Aclose(attribute);
-  H5Tclose(atype2);
+  //H5Tclose(atype2);
   delete [] data;
 
   return err;

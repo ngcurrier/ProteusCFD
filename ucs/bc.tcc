@@ -905,7 +905,6 @@ void Bkernel_BC_Jac_Modify(B_KERNEL_ARGS)
       }
       Type flowDirection[3];
       //Type mag = Normalize(vel, flowDirection);
-      Type pressure = 0.0;
       flowDirection[0] = flowDirection[1] = 0.0;
       flowDirection[2] = 1.0;
       eqnset->ModifyInternalInflowJacobian(cvid, space->crs, densities, flowDirection, vel[2]);

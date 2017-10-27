@@ -1,19 +1,23 @@
-template <class Type>
-Reaction<Type>::Reaction() :
-  TBEff(NULL), ncatalysts(0), ntbodies(0), nspecies(0), backwardRateGiven(false), catSymbols(NULL), 
-  rxnType(999), rxnTypeBackward(999)
-{ }
-
 //used to create an individual reaction
 template <class Type>
-Reaction<Type>::Reaction(Int reactionId) :
-  TBEff(NULL), ncatalysts(0), ntbodies(0), nspecies(0), backwardRateGiven(false), catSymbols(NULL), 
-  rxnType(999), rxnTypeBackward(999)
+Reaction<Type>::Reaction() :
+  ncatalysts(0), ntbodies(0), nspecies(0), backwardRateGiven(false),
+  rxnType(999), rxnTypeBackward(999), TBEff(NULL), species(NULL), globalIndx(NULL), speciesSymbols(NULL),
+  catSymbols(NULL), Nup(NULL), Nupp(NULL)
 {
-  TBEff = NULL;
-  std::string filename = "master.rxn";
-  ReadReactionFromFile(filename, reactionId);
-  return;
+}
+
+template <class Type>
+Reaction<Type>::~Reaction()
+{
+  delete [] Nup;
+  delete [] Nupp;
+  delete [] speciesSymbols;
+  delete [] catSymbols;
+  if(TBEff != NULL){
+    delete [] TBEff;
+  }
+  delete [] globalIndx;
 }
 
 template <class Type>
@@ -26,14 +30,14 @@ void Reaction<Type>::Print()
   std::cout << "REACTION INITIALIZED: " << std::endl;
   std::cout << "( " << GetFormattedReaction() << " )" << std::endl;
   if(rxnType >= NUM_RXN_TYPES){
-    std::cout << "Reaction type " << rxnType << " not valid" << std::endl;
-    std::cerr << "Reaction type " << rxnType << " not valid" << std::endl;
-    Abort << "REACTION TYPE NOT VALID";
+    std::stringstream ss;
+    ss << "Reaction type " << rxnType << " not valid" << std::endl;
+    Abort << ss.str();
   }
   if(backwardRateGiven && rxnTypeBackward >= NUM_RXN_TYPES){
-    std::cout << "Backward reaction type " << rxnTypeBackward << " not valid" << std::endl;
-    std::cerr << "Backward reaction type " << rxnTypeBackward << " not valid" << std::endl;
-    Abort << "BACKWARD REACTION TYPE NOT VALID";
+    std::stringstream ss;
+    ss << "Backward reaction type " << rxnTypeBackward << " not valid" << std::endl;
+    Abort << ss.str();
   }
 
   std::cout << "========================" << std::endl;
@@ -65,22 +69,7 @@ void Reaction<Type>::Print()
     std::cout << "Backward rate given in " << rxnTypeNames[rxnTypeBackward] << std::endl;
   }
   std::cout << "***************************************************************" << std::endl;
-  std::cout.setf(std::ios::floatfield);
-
-  return;
-}
-
-template <class Type>
-Reaction<Type>::~Reaction()
-{
-  delete [] Nup;
-  delete [] Nupp;
-  delete [] speciesSymbols;
-  delete [] catSymbols;
-  if(TBEff != NULL){
-    delete [] TBEff;
-  }
-  delete [] globalIndx;
+  std::cout.unsetf(std::ios::floatfield);
 
   return;
 }
@@ -129,8 +118,9 @@ Int Reaction<Type>::ReadReactionFromFile(std::string fileName, Int reactionId)
 	while(loc == std::string::npos && !fin.eof());
 	
 	if(fin.eof()){
-	  std::cout << "CHEM_RXN: Reached end of file before finding rxn " << reactionId 
-		    << std::endl;
+	  std::stringstream ss;
+	  ss << "CHEM_RXN: Reached end of file before finding rxn " << reactionId << std::endl;
+	  Abort << ss.str();
 	  err = 2;
 	  return err;
 	}
@@ -148,7 +138,7 @@ Int Reaction<Type>::ReadReactionFromFile(std::string fileName, Int reactionId)
 	  }
 	  getline(fin, line);
 	  loc = line.find(rxnKey);
-	  err = ParseLine(line);
+	  err = ParseReactionBlockLine(line);
 	  if(err != 0 && err != 1){
 	    Abort << "CHEM_RXN: could not parse line -- " + line + " in file " 
 		  + fileName + "\nCHEM_RXN: check that correct keyword is used";
@@ -175,8 +165,20 @@ Int Reaction<Type>::ReadReactionFromFile(std::string fileName, Int reactionId)
   return err2;
 }
 
+// This parse a general line found in a reaction block based on keyword
+// An example of such a block is
+// REACTION 1
+// rxnType = 2
+// catPresent = 1
+// reactantsAsCat = 1
+// O2 + M <==> 2O + M
+// A = 3.618E12
+// EA = 5.94E+4
+// n = -1.000
+// M = N[1.0], N2[2.0], O2[9.0], NO[1.0], O[25.0]
+// This block builds up a reaction
 template <class Type>
-Int Reaction<Type>::ParseLine(std::string& line)
+Int Reaction<Type>::ParseReactionBlockLine(std::string& line)
 {
   size_t loc;
 
@@ -329,6 +331,11 @@ Int Reaction<Type>::ParseLine(std::string& line)
   return (2);
 }
 
+// Function parses the reaction format which looks like
+// O2 + M <==> 2O + M
+// OR
+// O + M <==> O(+) + E(-) + M
+// where (+) (-) indicate ionized species and M is a third-body catalyst
 template <class Type>
 Int Reaction<Type>::ParseReaction(std::string& rxn)
 {
@@ -631,6 +638,8 @@ void Reaction<Type>::SetSpeciesPointer(Species<Type>* globalSpecies, Int globalC
   return;
 }
 
+//the function maps the species id from the global list (all reactions) to the
+//list that is specific to this reaction only
 template <class Type>
 Int Reaction<Type>::GetLocalSpeciesFromGlobal(Int speciesId)
 {
@@ -705,7 +714,7 @@ Type Reaction<Type>::GetEquilibriumReactionRate(Type T)
   
   // compute the equilibrium constant based on concentration.  Equation 9.91, Kee
   Type Kc = Kp;
-  if(!(abs(real(nu)) < 1.0e-15)){
+  if(!(CAbs(real(nu)) < 1.0e-15)){
     Type Pref = 101325.0;
     //attempt to use the pow(Type, int) version if possible - much faster
     if(isWholeNumber(nu)){

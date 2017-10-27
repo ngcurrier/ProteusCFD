@@ -35,11 +35,7 @@ class Reaction
 {
  public:
 
-
   Reaction();
-  //public constructor.. read data from reaction file
-  Reaction(Int reactionId);
-
   ~Reaction();
   
   std::string name;             //descriptor of reaction -- plain text
@@ -60,7 +56,6 @@ class Reaction
   Type* Nup;                     //stoich. coeff. left side
   Type* Nupp;                    //stoich. coeff. right side
 
-
   //Arrhenius reaction rate curve fit coefficients
   Type A;                            
   Type EA;
@@ -76,7 +71,7 @@ class Reaction
   
   //will read reaction from file and will complete a reaction object to pass back
   Int ReadReactionFromFile(std::string fileName, Int ReactionId);
-  Int ParseLine(std::string& line);
+  Int ParseReactionBlockLine(std::string& line);
   Int ParseReaction(std::string& rxn);
   Int ParseCatalysts(std::string& line);
   void SetSpeciesPointer(Species<Type>* globalSpecies, Int globalCount);

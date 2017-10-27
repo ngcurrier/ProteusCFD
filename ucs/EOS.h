@@ -33,6 +33,8 @@ public:
   virtual Type GetCv(Type Cp, Type Rmix, Type rho, Type P, Type T) = 0;
   virtual Type GetRhoR(Type P, Type T) = 0;
 
+  virtual std::string myType(){return "NotInitializedEOs";}; 
+  
 private:
 };
 
@@ -57,6 +59,7 @@ public:
   Type GetCv(Type Cp, Type Rmix, Type rho, Type P, Type T);
   Type GetRhoR(Type P, Type T);
 
+  virtual std::string myType(){return "IdealGasEOS";}; 
 
 private:
 
@@ -66,7 +69,7 @@ template <class Type>
 void CreateEOS(EOS<Type>** eos, Int eosType)
 {
   if(eosType == 0){
-    *eos = new IdealGasEOS<Type>();
+    (*eos) = new IdealGasEOS<Type>();
   }
   else{
     std::cerr << "WARNING: EOS type " << eosType << " not defined!" << std::endl;

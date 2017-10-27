@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
 
   //read reaction file
   Bool viscous = true;
-  ChemModel<double> chem(param);
+  ChemModel<double> chem(param.casestring, param.viscous, param.chemDB);
 
   rhoi = new Real[chem.nspecies];
   wdot = new Real[chem.nspecies];
@@ -107,62 +107,46 @@ int main(int argc, char* argv[])
   }
   //R is dimensional after this
   R /= rho;
-  double P = chem.eos->GetP(R, rho, TGiven);
+  double P = chem.GetP(rhoi, TGiven);
   double gamma = 0.0;
   double cv = 0.0;
   double cp = 0.0;
   double hi[chem.nspecies];
-  if(param.massfractions.size() == chem.nspecies){
-    int Tlevels = (int)3500/100.0;
-    std::cout << std::endl;
-    std::cout << "Temp(K)" << "\t" << std::setw(10) << "Cv(J/kg.K)"
-	      << "\t" << std::setw(8) << "Cp(J/kg.K)"
-	      << "\t" << std::setw(8) << "Cp/R"
-	      << "\t" << std::setw(8) << "H(J/kg)"
-	      << "\t" << std::setw(8) << "h/RT"
-	      << "\t" << std::setw(8) << "mu(Pa.s)"
-	      << "\t" << std::setw(8) << "k(W/m.K)" << std::endl;
-    std::cout << "----------------------------------------------------------------------------------------------------------------------" << std::endl;
-    for(j = 0; j < Tlevels; j++){
-      cv = 0.0;
-      cp = 0.0;
-      double Ti = (double)(j*100.0 + 100.0);
-      for(i = 0; i < chem.nspecies; i++){
-	X[i] = rhoi[i]/rho;
-	double cpi = chem.species[i].GetCp(Ti);
-	double cvi = chem.eos->GetCv(cpi, R, rho, P, Ti);
-	cp += param.massfractions[i]*cpi;
-	cv += param.massfractions[i]*cvi;
-      }
-      double h = chem.GetSpecificEnthalpy(X, Ti, hi);
-      double mu = chem.GetViscosity(rhoi, Ti);
-      double k = chem.GetThermalConductivity(rhoi, Ti);
-      std::cout << Ti
-		<< "\t" << std::setw(10) << cv
-		<< "\t" << std::setw(10) << cp
-		<< "\t" << std::setw(10) << cp/R
-		<< "\t" << std::setw(10) << h
-		<< "\t" << std::setw(10) << h/R/Ti
-		<< "\t" << std::setw(10) << mu
-		<< "\t" << std::setw(10) << k << std::endl;
-    }
-    std::cout << std::endl;
-    cv = 0.0;
-    cp = 0.0;
-    for(i = 0; i < chem.nspecies; i++){
-      double cpi = chem.species[i].GetCp(TGiven);
-      double cvi = chem.eos->GetCv(cpi, R, rho, P, TGiven);
-      std::cout << "cv[" << chem.species[i].symbol << "]: " 
-		<<  cvi << " (J/kg.K)" << std::endl;
-      cv += param.massfractions[i]*cvi;
-      cp += param.massfractions[i]*cpi;
-    }
-  }
-  else{
+  if(param.massfractions.size() != chem.nspecies){
     std::cerr << "Number of species defined in param file does not match chem model" << std::endl;
     return(-1);
   }
-
+  int Tlevels = (int)3500/100.0;
+  std::cout << std::endl;
+  std::cout << "Temp(K)" << "\t" << std::setw(10) << "Cv(J/kg.K)"
+	    << "\t" << std::setw(8) << "Cp(J/kg.K)"
+	    << "\t" << std::setw(8) << "Cp/R"
+	    << "\t" << std::setw(8) << "H(J/kg)"
+	    << "\t" << std::setw(8) << "h/RT"
+	    << "\t" << std::setw(8) << "mu(Pa.s)"
+	    << "\t" << std::setw(8) << "k(W/m.K)" << std::endl;
+  std::cout << "----------------------------------------------------------------------------------------------------------------------" << std::endl;
+  for(j = 0; j < Tlevels; j++){
+    double Ti = (double)(j*100.0 + 100.0);
+    double cp = chem.GetCp(rhoi, Ti);
+    double cv = chem.GetCv(rhoi, Ti);
+    double h = chem.GetSpecificEnthalpy(X, Ti, hi);
+    double mu = chem.GetViscosity(rhoi, Ti);
+    double k = chem.GetThermalConductivity(rhoi, Ti);
+    std::cout << Ti
+	      << "\t" << std::setw(10) << cv
+	      << "\t" << std::setw(10) << cp
+	      << "\t" << std::setw(10) << cp/R
+	      << "\t" << std::setw(10) << h
+	      << "\t" << std::setw(10) << h/R/Ti
+	      << "\t" << std::setw(10) << mu
+	      << "\t" << std::setw(10) << k << std::endl;
+  }
+  std::cout << std::endl;
+  cv = chem.GetCv(rhoi, TGiven);
+  cp = chem.GetCp(rhoi, TGiven);
+  gamma = cp/cv;
+  
   //compute mol fractions and MW_mix
   double MWmix = 0.0;
   std::cout << "\nMole fractions" << std::endl;
@@ -192,8 +176,6 @@ int main(int argc, char* argv[])
   std::cout << "cvmix: " << cv << " (J/kg.K)" << std::endl;
   std::cout << "cpmix: " << cp << " (J/kg.K)" << std::endl;
   std::cout << "mwmix: " << MWmix << " (kg/mol)" << std::endl;
-  cp = chem.eos->GetCp(cv, R, rho, P, TGiven);
-  gamma = cp/cv;
   std::cout << "gammamix: " << gamma << std::endl;
   std::cout << "Thermal conductivity: " << chem.GetThermalConductivity(rhoi, TGiven) << " (W/m.K)" << std::endl;
   std::cout << "Viscosity: " << chem.GetThermalConductivity(rhoi, TGiven) << " (Pa.s)" << std::endl;
@@ -233,7 +215,7 @@ int main(int argc, char* argv[])
   std::cout << "\nDerivatives at given temp: " << TGiven << std::endl;
   std::cout << "===================================================" << std::endl;
   double* dEtdRhoi = new double[chem.nspecies];
-  double Pt = chem.eos->GetP(R, rho, TGiven);
+  double Pt = chem.GetP(rhoi, TGiven);
   double dEtdP = chem.dEtdP_dEtdRhoi(rhoi, TGiven, Pt, v2, dEtdRhoi);
   std::cout << "dEtdP: " << dEtdP << std::endl;
   for(Int i = 0; i < chem.nspecies; i++){

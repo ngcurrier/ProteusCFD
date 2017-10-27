@@ -178,7 +178,7 @@ hid_t HDF_WriteStringAttribute(hid_t fileId, std::string directory, std::string 
   H5Dclose(dset);
   H5Aclose(attribute);
   H5Sclose(aspace);
-  H5Tclose(a_type);
+  //H5Tclose(a_type);
 
   return err;
 }
@@ -237,7 +237,7 @@ hid_t HDF_ReadStringAttribute(hid_t fileId, std::string directory, std::string d
   H5Dclose(dset);
   H5Aclose(attribute);
   H5Sclose(aspace);
-  H5Tclose(atype2);
+  //H5Tclose(atype2);
 
   delete [] concat;
 

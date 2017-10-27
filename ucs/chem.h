@@ -30,7 +30,6 @@ template <class Type>
 class ChemModel
 {
  public:
-  Int modelId;    //chem model id
   Int nespecies;  //number of elemental species total
   Int nspecies;   //number of species total
   Int nreactions; //number of reactions total
@@ -43,11 +42,11 @@ class ChemModel
 
   //equation of state class, one for each species
   std::vector<EOS<Type>* > eos;
-  
+
+  //used for testing and bootstrapping
+  ChemModel();
   //used for general file defined models
-  ChemModel(Param<Type>& param);
-  //used for hard-coded models... 
-  ChemModel(Int modelId_, Param<Type>& param);
+  ChemModel(std::string casestring, Int isViscous, std::string databaseFile);
   ~ChemModel();
 
   Int GetNumberOfReactionsFromFile();

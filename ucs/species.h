@@ -48,6 +48,9 @@ class Species
                        // [*][0] - [*][1] low temp range - high temp range for fit
                        //          [*][2-5] A, B, C, D, parameters
 
+  //set name of species for lookup
+  void Init(std::string name, Bool requireViscousProps, std::string database);
+  
   Type GetCp(Type T); //specific heat constant pressure
   Type GetH(Type T, Bool shiftCurve = true);  //specific enthalpy
   Type GetG(Type T);  //Gibbs free energy
@@ -60,7 +63,6 @@ class Species
 
   void GetThermoCoeff(Type T, Type* a);
 
-  void Init(std::string name, Bool requireViscousProps, std::string database);  //set name of species for lookup
 
   void Print(); 
 

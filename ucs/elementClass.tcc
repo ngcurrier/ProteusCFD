@@ -368,9 +368,9 @@ template <class Type>
 void Triangle<Type>::EvaluateShapeFunctions(Type* elemXYZ, Type xi, Type eta, Type& det, Type* sfunc) const
 {
   Type J[2][2];
-  Type Jinv[2][2];
   Type dsf[this->nnodes][2];
 
+#if 0
   //node locations in "master" quad
   Type xnode[this->nnodes][2];
 
@@ -382,7 +382,8 @@ void Triangle<Type>::EvaluateShapeFunctions(Type* elemXYZ, Type xi, Type eta, Ty
 
   xnode[2][0] =  0.0;
   xnode[2][1] =  1.0;
-
+#endif
+  
   //using linear lagrange interpolation on three nodes
   sfunc[0] = 1.0 - xi - eta;
   sfunc[1] = xi;
@@ -410,10 +411,14 @@ void Triangle<Type>::EvaluateShapeFunctions(Type* elemXYZ, Type xi, Type eta, Ty
   
   det = J[0][0]*J[1][1] - J[0][1]*J[1][0];
 
+#if 0
+  //turned off to reduce computation
+  Type Jinv[2][2];
   Jinv[0][0] =  J[1][1]/det;
   Jinv[1][1] =  J[0][0]/det;
   Jinv[0][1] = -J[0][1]/det;
   Jinv[1][0] = -J[1][0]/det;
+#endif
 }
 
 template <class Type>
@@ -500,7 +505,7 @@ void Quadrilateral<Type>::EvaluateShapeFunctions(Type* elemXYZ, Type xi, Type et
 
   xnode[3][0] = -1.0;
   xnode[3][1] =  1.0;
-
+  
   //using linear lagrange interpolation on four nodes
   for(Int inode = 0; inode < this->nnodes; inode++){
     //these are just used to get the sign right for the basis functions
