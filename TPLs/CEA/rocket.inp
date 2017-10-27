@@ -23,7 +23,7 @@ reac
    name MgO(cr)  wt%= .2   t(k)=298.15 
    name H2O(L)  wt%=.16   t(k)=298.15
  
-prob    case=5, hp   p,psia=500,250,125,50,5,
+prob    case=5, hp   p,psia={PressureKey}
 
 outp   calories
 
