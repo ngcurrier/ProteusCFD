@@ -42,12 +42,11 @@ Compilation targets:
   * make TARGET=papertape (with infiniband support)
   
   Also, you must build the decomposition/recomposition tools to write files Proteus understands.
-  "make tools"  will build these for you
-  All executable code will be built in the ProteusCFD/bin directory. All executables are meant to 
+  "make tools"  will build these for you. All executable code will be built in the ProteusCFD/bin directory. All executables are meant to 
   be run via command line and will output usage information if you run the executable with no arguments.
 
 Installation instructions:
-  * install openmpi to your machine
+  * Install dependencies for OS (list below) to your machine - openMPI is the big one (you need the devel package with headers).
   * Build ucs.x, udecomp.x, urecomp.x and tools required to run
   * make TARGET=local all (on some machines you may have to try this several times to complete all tasks)
   * Build the chemical database
@@ -55,7 +54,7 @@ Installation instructions:
       * ./chemDB.py
       * cp chemdb.hdf5 /usr/local/database/chemdb.hdf5
 
-  * Check that the tests pass after the installtion
+  * Check that the tests pass after the installation
       * cd bin
       * ./tests.x
 
@@ -82,12 +81,12 @@ Usage:
   
   5) Use paraview or visit (or any other VTK capable visualization tool) to view and query results.
 
-Dependencies
-============
+Dependencies included with repository
+=====================================
 
 Proteus CFD has several depencies. An effort has been made to rely only on the smallest subset
 of required packages in order to make the compilation of this software simple for new users.
-The following packages are required for core functionality:
+The following packages are required for core functionality (and are distributed with the tool):
 
 * HDF5 (all output files are stored in this format, included in TPLs directory)
 * METIS (mesh partitioning for parallel runs, included in TPLs directory)
@@ -97,7 +96,7 @@ The following packages are required for core functionality:
 Dependencies for OS (you need to install these on the system prior to building)
 ====================
 * Cmake for building Metis
-* Make for building Proteus
+* Make for building ProteusCFD and tools
 * GNU/C/C++
 * GNU FORTRAN (gfortran)
 * MPI (version dependent on local machine infrastructure, we suggest openMPI if you get a choice)
