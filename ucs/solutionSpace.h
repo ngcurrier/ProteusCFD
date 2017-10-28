@@ -3,9 +3,9 @@
 
 #include "general.h"
 #include "bc.h"
+#include "dataInfo.h"
 #include "solutionSpaceBase.h"
 #include "timer.h"
-#include "dataInfo.h"
 #include "gradient.h"
 #include "temporalControl.h"
 #include "gaussian.h"

@@ -1,0 +1,52 @@
+<<<BEGIN TEMPORAL CONTROL>>>
+numTimeSteps = 300
+newtonIterations = 1
+<<<END TEMPORAL CONTROL>>>
+
+<<<BEGIN SOLUTION ORDERING>>>
+Iterate flatplate
+<<<END SOLUTION ORDERING>>>
+
+<<<BEGIN SPACE flatplate>>>
+equationSet = compressibleNSFR
+fluxType = roeFlux
+reorderMesh = 1
+localTimeStepping = 1
+pseudoTimeStepping = 0
+CFL = 100.0
+timeOrder = 0
+spatialOrder = 2
+firstOrderSteps = 20
+limiter = 3  #0 - OFF, 1 - Barth, 2 - Venkat, 3 - mod Venkat
+limiterRefresh = 1 #how many timesteps to wait before recalculating limiter, 1 - every step
+limiterFreeze = 999
+jacobianUpdateFrequency = 1
+jacobianFieldType = 0     #0 - upwind, 1 - central, 2 - complex		  
+jacobianBoundaryType = 0  #0 - upwind, 1 - central, 2 - complex		  
+jacobianBoundaryEval = 1
+numberSGS = 5
+gamma = 1.4
+velocity = 0.5
+flowDirection = [1.0, 0.0, 0.0]
+liftDirection = [0.0, 1.0, 0.0]
+solutionWrite = 10
+solutionTagStep = 0
+useRestart = 0
+restartWrite = 0
+fieldsRequested = [limiter_variableQ, partition]
+turbulenceModel = 0
+massFractions = [0.21, 0.0, 0.79, 0.0, 0.0]
+reactionsOn = 1
+symmetry2D = 2
+
+#these numbers are for air at 20C
+refDensity = 1.153
+refVelocity = 382.2
+refLength = 0.01
+refViscosity = 1.98E-3
+refTemperature = 2800
+
+#The default chemdb location is here, change this line if installed in another location
+#chemicalDatabase = /usr/local/database/chemdb.hdf5
+
+<<<END SPACE>>>

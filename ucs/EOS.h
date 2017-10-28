@@ -33,7 +33,7 @@ public:
   virtual Type GetCv(Type Cp, Type Rmix, Type rho, Type P, Type T) = 0;
   virtual Type GetRhoR(Type P, Type T) = 0;
 
-  virtual std::string myType(){return "NotInitializedEOs";}; 
+  virtual std::string myType(){return "NotInitializedEOS";}; 
   
 private:
 };

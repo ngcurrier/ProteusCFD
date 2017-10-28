@@ -7,6 +7,7 @@ Species<Type>::Species()
   hasViscousProps = false;
   k_coeff_curves = 0;
   mu_coeff_curves = 0;
+  charge = 0;
 
   //set these to air standard, this will be used when other curvefits don't extend low enough
   //From White Viscous Fluid Flow p.29 and p.32

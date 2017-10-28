@@ -482,7 +482,8 @@ void CompressibleFREqnSet<Type>::HLLCFlux(Type* QL, Type* QR, Type* avec, Type v
     ss << "rho = " << QL[nspecies+5] << std::endl;
     for(i = 0; i < nspecies; i++){
       ss << "cvi[" << i << "] = " << QL[nspecies+6+i] << std::endl;
-    } 
+    }
+    ss << "c2: " << c2L << std::endl;
     ss << "Right state: " << std::endl;
     for(i = 0; i < nspecies; i++){
       ss << "rhoi[" << i << "] = " << QR[i] << std::endl;
@@ -496,6 +497,7 @@ void CompressibleFREqnSet<Type>::HLLCFlux(Type* QL, Type* QR, Type* avec, Type v
     for(i = 0; i < nspecies; i++){
       ss << "cvi[" << i << "] = " << QR[nspecies+6+i] << std::endl;
     }
+    ss << "c2: " << c2R << std::endl;
     ss << "WARNING: HLLC died\n";
     Abort.SetSoftAbort(ss.str());
   }
@@ -763,17 +765,26 @@ void CompressibleFREqnSet<Type>::ComputeAuxiliaryVariables(Type* Q)
   R /= (*rho)*this->param->ref_density;
 
   //set P via EOS
-  Type TDim = T*(this->param->ref_temperature);
+  Type TDim = T*this->param->ref_temperature;
   Type pDim = this->chem->GetP(rhoiDim, TDim);
   Q[nspecies+4] = pDim/this->param->ref_pressure;
 
   //compute cvi
   Type rhoDim = (*rho)*this->param->ref_density;
   Type* cpiDim = (Type*)alloca(sizeof(Type)*nspecies);
+  Type s_ref = (this->param->ref_velocity * this->param->ref_velocity / 
+		this->param->ref_temperature);
   for(i = 0; i < nspecies; i++){
-    cpiDim[i] = this->chem->species[i].GetCp(TDim);
-    cvi[i] = chem->eos[i]->GetCv(cpiDim[i], chem->species[i].R, rhoDim, pDim, TDim) / 
-      (this->param->ref_velocity*this->param->ref_velocity/this->param->ref_temperature);
+    cpiDim[i] = chem->species[i].GetCp(TDim);
+    cvi[i] = chem->eos[i]->GetCv(cpiDim[i], chem->species[i].R, rhoDim, pDim, TDim) / s_ref;
+    if(real(cvi[i]) < real(0.0)){
+      std::cerr << "WARNING: negative Cv computed" << std::endl;
+      std::cerr << "Species: " << chem->species[i].symbol << std::endl;
+      std::cerr << "Rspecific: " << chem->species[i].R << std::endl;
+      std::cerr << "Cp: " << cpiDim[i] << std::endl;
+      std::cerr << "Cv: " << cvi[i]*s_ref << std::endl;
+      std::cerr << "T (K): " << TDim << std::endl;
+    }
   }
 
 #if 0
@@ -2286,11 +2297,11 @@ void CompressibleFREqnSet<Type>::GetSpeciesSpeedOfSound(Type* c2i, Type* Q)
 template <class Type>
 Type CompressibleFREqnSet<Type>::NewtonFindTGivenP(const Type* rhoi, const Type Pgoal, const Type Tinit) const
 {
-  Int maxit = 20;
-  Type tol = 1.0e-12;
+  Int maxit = 28;
+  Type tol = 1.0e-15;
 
   std::cout << "TOL: " << tol << std::endl;
-  std::cout << "Tinit: " << Tinit << std::endl;
+  std::cout << "Tinit: " << Tinit*this->param->ref_temperature << std::endl;
   
   Type TDim = Tinit * this->param->ref_temperature;
   Type PgoalDim = Pgoal * this->param->ref_pressure;
@@ -2305,23 +2316,26 @@ Type CompressibleFREqnSet<Type>::NewtonFindTGivenP(const Type* rhoi, const Type 
     Type TpDim = TDim + 1.0e-8;
     Type PDim = this->chem->GetP(rhoiDim, TDim);
     Type PpDim = this->chem->GetP(rhoiDim, TpDim);
-    std::cout << "Run newton: " << std::endl;
+    std::cout << j << ": ";
     std::cout << PDim << " " << PpDim << std::endl;
     std::cout << "TDim: " << TDim << std::endl;
     Type zpoint = PgoalDim - PDim;
     Type zpointp = PgoalDim - PpDim;
     Type dzdT = (zpointp - zpoint)/(TpDim - TDim);
     dT = -zpoint/dzdT;
+    std::cout << "dt: " << dT << std::endl;
     TDim += dT;
-    if (real(CAbs(dT)) < real(tol)) break;
+    if (real(CAbs(dT/this->param->ref_temperature)) < real(tol)) break;
   }
 
   if(j == maxit){
     std::stringstream ss;
     ss << "WARNING: Newton iteration did not converge on a temperature in NewtonFindTGivenP()" << std::endl;
     ss << "Last dT = " << dT << std::endl;
-    Abort << ss.str();
+    std::cerr << ss.str() << std::endl;
+    //Abort << ss.str();
   }
+  std::cout << "Converged\n\n" << std::endl;
   
   return TDim/this->param->ref_temperature;
 }

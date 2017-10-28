@@ -178,8 +178,6 @@ void ChemModel<Type>::GetFluidProperties(const Type* rhoi, const Type T, const T
 					 Type& cv, Type& cp, Type& R, Type& P, Type& rho, Type& c2) const
 {
   Int i;
-  cv = 0.0;
-  cp = 0.0;
   R = 0.0;
   P = 0.0;
   rho = 0.0;
@@ -192,15 +190,13 @@ void ChemModel<Type>::GetFluidProperties(const Type* rhoi, const Type T, const T
   for(i = 0; i < this->nspecies; i++){
     Type Rs = species[i].R;
     R += rhoi[i]*Rs;
-    cv += rhoi[i]*cvi[i];
     // assumes that Dalton's law holds - P = sum_i (P_i)
     P += eos[i]->GetP(Rs, rhoi[i], T);
   }
-  cv /= rho;
   R /= rho;
 
-  //TODO: generalize for non-ideal gases
-  cp = eos[0]->GetCp(cv, R, rho, P, T);
+  cp = GetCp(rhoi, T);
+  cv = GetCv(rhoi, T);
   Type gamma = cp/cv;
   
   //TODO: generalize for non-ideal gas speed of sound

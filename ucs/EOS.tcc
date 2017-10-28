@@ -76,7 +76,7 @@ Type IdealGasEOS<Type>::GetCp(Type Cv, Type Rmix, Type /*rho*/, Type /*P*/, Type
 }
 
 template <class Type>
-Type IdealGasEOS<Type>::GetCv(Type Cp, Type Rmix, Type rho, Type P, Type T)
+Type IdealGasEOS<Type>::GetCv(Type Cp, Type Rmix, Type /*rho*/, Type /*P*/, Type /*T*/)
 {
   //Mayer's relation
   return (Cp - Rmix);

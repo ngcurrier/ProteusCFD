@@ -1,5 +1,10 @@
 # Compiled Object files
 bin/*
+# metis build
+TPLs/metis/metis-5.0.2/build/Linux-x86_64/CMakeFiles/*
+TPLs/metis/metis-5.0.2/build/*
+# chem lib
+chemdata/chemdb.hdf5
 Make.depend
 *.slo
 *.lo

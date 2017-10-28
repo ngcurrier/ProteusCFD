@@ -10,6 +10,7 @@
 #include "mesh.h"
 #include "param.h"
 #include "exceptions.h"
+#include "solutionSpace.h"
 
 template <class Type>
 Int CreateEqnSet(SolutionSpace<Type>* space)

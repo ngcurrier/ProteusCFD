@@ -33,7 +33,7 @@ Gradient Based Design Methodologies", Ph.D. dissertation,
 University of Tennessee at Chattanooga, Chattanooga, Tennessee, August 2014.
 
 
-Compilation instructions:
+Compilation targets:
   In the root directory type - "make TARGET=local"
   This should work for most installs as long as the above libraries are
   in your execution path. Other options are
@@ -45,6 +45,19 @@ Compilation instructions:
   "make tools"  will build these for you
   All executable code will be built in the ProteusCFD/bin directory. All executables are meant to 
   be run via command line and will output usage information if you run the executable with no arguments.
+
+Installation instructions:
+  * install openmpi to your machine
+  * Build ucs.x, udecomp.x, urecomp.x and tools required to run
+  * make TARGET=local all (on some machines you may have to try this several times to complete all tasks)
+  * Build the chemical database
+  ** cd chemdata
+  ** ./chemDB.py
+  ** cp chemdb.hdf5 /usr/local/database/chemdb.hdf5
+
+  * Check that the tests pass after the installtion
+  ** cd bin
+  ** ./tests.x
 
 Usage:
   Proteus (like most CFD solvers) requires a volume grid of a geometry. The grid in this

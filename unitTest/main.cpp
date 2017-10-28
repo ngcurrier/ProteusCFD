@@ -4,6 +4,7 @@
 #include "meshTest.h"
 #include "newtonTest.h"
 #include "chemTest.h"
+#include "compressibleFRTest.h"
 
 int main(int argc, char** argv)
 {

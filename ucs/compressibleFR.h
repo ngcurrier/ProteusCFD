@@ -2,6 +2,7 @@
 #define COMPRESSIBLE_FR_H__
 
 #include "eqnset.h"
+#include "dataInfo.h"
 
 //forward declarations
 template <class Type> class Param;
