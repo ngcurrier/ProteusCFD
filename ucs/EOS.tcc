@@ -79,6 +79,14 @@ template <class Type>
 Type IdealGasEOS<Type>::GetCv(Type Cp, Type Rmix, Type /*rho*/, Type /*P*/, Type /*T*/)
 {
   //Mayer's relation
+  Type Cv = Cp - Rmix;
+  if(real(CAbs(Cv)) < 0.0) {
+    std::stringstream ss;
+    ss << "IdealGasEOS::GetCv() computed a negative cv\n";
+    ss << "Rmixture: " << Rmix << "\n";
+    ss << "Cp: " << Cp << "\n";
+    Abort << ss.str();
+  }
   return (Cp - Rmix);
 }
 

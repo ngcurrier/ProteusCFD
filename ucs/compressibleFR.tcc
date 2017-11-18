@@ -480,6 +480,7 @@ void CompressibleFREqnSet<Type>::HLLCFlux(Type* QL, Type* QR, Type* avec, Type v
     ss << "T = " << QL[nspecies+3] << std::endl;
     ss << "P = " << QL[nspecies+4] << std::endl;
     ss << "rho = " << QL[nspecies+5] << std::endl;
+    ss << "R = " << RL << std::endl;
     for(i = 0; i < nspecies; i++){
       ss << "cvi[" << i << "] = " << QL[nspecies+6+i] << std::endl;
     }
@@ -494,6 +495,7 @@ void CompressibleFREqnSet<Type>::HLLCFlux(Type* QL, Type* QR, Type* avec, Type v
     ss << "T = " << QR[nspecies+3] << std::endl;
     ss << "P = " << QR[nspecies+4] << std::endl;
     ss << "rho = " << QR[nspecies+5] << std::endl;
+    ss << "R = " << RR << std::endl;
     for(i = 0; i < nspecies; i++){
       ss << "cvi[" << i << "] = " << QR[nspecies+6+i] << std::endl;
     }
@@ -2300,9 +2302,6 @@ Type CompressibleFREqnSet<Type>::NewtonFindTGivenP(const Type* rhoi, const Type 
   Int maxit = 28;
   Type tol = 1.0e-15;
 
-  std::cout << "TOL: " << tol << std::endl;
-  std::cout << "Tinit: " << Tinit*this->param->ref_temperature << std::endl;
-  
   Type TDim = Tinit * this->param->ref_temperature;
   Type PgoalDim = Pgoal * this->param->ref_pressure;
   Type* rhoiDim = (Type*)alloca(sizeof(Type)*nspecies);
@@ -2316,14 +2315,10 @@ Type CompressibleFREqnSet<Type>::NewtonFindTGivenP(const Type* rhoi, const Type 
     Type TpDim = TDim + 1.0e-8;
     Type PDim = this->chem->GetP(rhoiDim, TDim);
     Type PpDim = this->chem->GetP(rhoiDim, TpDim);
-    std::cout << j << ": ";
-    std::cout << PDim << " " << PpDim << std::endl;
-    std::cout << "TDim: " << TDim << std::endl;
     Type zpoint = PgoalDim - PDim;
     Type zpointp = PgoalDim - PpDim;
     Type dzdT = (zpointp - zpoint)/(TpDim - TDim);
     dT = -zpoint/dzdT;
-    std::cout << "dt: " << dT << std::endl;
     TDim += dT;
     if (real(CAbs(dT/this->param->ref_temperature)) < real(tol)) break;
   }
@@ -2333,9 +2328,8 @@ Type CompressibleFREqnSet<Type>::NewtonFindTGivenP(const Type* rhoi, const Type 
     ss << "WARNING: Newton iteration did not converge on a temperature in NewtonFindTGivenP()" << std::endl;
     ss << "Last dT = " << dT << std::endl;
     std::cerr << ss.str() << std::endl;
-    //Abort << ss.str();
+    Abort << ss.str();
   }
-  std::cout << "Converged\n\n" << std::endl;
-  
+
   return TDim/this->param->ref_temperature;
 }
