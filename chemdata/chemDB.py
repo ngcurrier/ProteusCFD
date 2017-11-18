@@ -35,6 +35,11 @@ def main():
    
    h5.close()
 
+   #Install to the correct location in home directory
+   os.system("mkdir %s" % "~/.proteusCFD")
+   os.system("mkdir %s" % "~/.proteusCFD/database")
+   os.system("cp %s %s" % (dbfile, "~/.proteusCFD/database/"+dbfile))
+   
    return
 
 

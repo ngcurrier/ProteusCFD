@@ -6,6 +6,7 @@
 #include "portFileio.h"
 #include "macros.h"
 #include <sstream>
+#include <stdlib.h>
 
 #define REF_PRESSURE_DEFAULT 1.0
 #define REF_DENSITY_DEFAULT 1.0
@@ -93,7 +94,9 @@ void Param<Type>::SetupParams()
   this->Re = 1.0;
   this->viscous = 0;
 
-  defaultChemDB = "/usr/local/database/chemdb.hdf5";
+  const char* homeDir = getenv("HOME");
+  std::string homeStr(homeDir);
+  defaultChemDB = homeStr + "/.proteusCFD/database/chemdb.hdf5";
 
   //SET THE STRING VALUED PARAMETERS
   paramListString.push_back(ParameterString("chemicalDatabase", &chemDB, defaultChemDB));

@@ -193,9 +193,13 @@ dist:
 cleanucs:
 	rm $(OBJS_ALL) $(EXE_ALL) $(DEPS_ALL)
 
+~/.proteusCFD/database/chemdb.hdf5:
+	@orig=$$PWD;\
+	cd ./chemdata;\
+	./chemDB.py
 
 all: $(EXE_SOLVER) $(EXE_DECOMP) $(EXE_RECOMP) $(EXE_FINDPOINT) $(EXE_TESTS)\
-	$(EXE_CHEMPROPS) $(EXE_STRUCT_SOLVER) $(EXE_STRUCT_ERROR)
+	$(EXE_CHEMPROPS) $(EXE_STRUCT_SOLVER) $(EXE_STRUCT_ERROR) database
 
 tools: $(EXE_DECOMP) $(EXE_RECOMP) $(EXE_CHEMPROPS) $(EXE_FINDPOINT)
 tests: $(EXE_TESTS)
@@ -203,8 +207,9 @@ chemprops: $(EXE_CHEMPROPS)
 ucs: $(EXE_SOLVER)
 decomp: $(EXE_DECOMP)
 recomp: $(EXE_RECOMP)
+database: ~/.proteusCFD/database/chemdb.hdf5
 
-.PHONY: tests chemprops all tools ucs decomp recomp
+.PHONY: tests chemprops all tools ucs decomp recomp database
 
 -include $(DEPS_ALL)
 
