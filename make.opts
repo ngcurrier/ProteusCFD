@@ -27,8 +27,8 @@ endif
 #GNU
 ifeq ($(TOOLCHAIN),GNU)
 	CXX = g++
-	CXX_OPTS = -O3 -g
-	#CXX_OPTS = -fopenmp 
+	CXX_OPTS = -O3 -g 
+	#CXX_OPTS = -fopenmp -D_DEBUG
 	#CXX_OPTS = -O0 -g
 	LINK_OPTS = 
 	FXX = gfortran
