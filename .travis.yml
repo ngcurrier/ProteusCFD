@@ -8,6 +8,8 @@ before_install:
  - test -n $CXX && unset CXX
  - eval "${MATRIX_EVAL}"
 
+script: make && make tests
+
 env:
   global:
   matrix:
