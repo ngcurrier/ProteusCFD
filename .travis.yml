@@ -14,14 +14,6 @@ env:
     - MPI=mpich
     - MPI=openmpi
 
-matrix:
-  include:
-    - os: linux
-      addons:
-        apt:
-	  packages:
-	    - libopenmpi
-	    - openmpi-common
 
 branches:
   only:
