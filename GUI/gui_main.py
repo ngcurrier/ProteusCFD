@@ -22,7 +22,7 @@ class MainWindow(QtGui.QMainWindow):
         self.vtkActorList = []
          
         self.frame = QtGui.QFrame()
-        self.resize(1000,600)
+        self.resize(1400,1200)
         self.setWindowTitle('ProteusCFD')
         self.move(100,100)
 
@@ -60,16 +60,16 @@ class MainWindow(QtGui.QMainWindow):
         exitAction.setStatusTip('Exit application')
         exitAction.triggered.connect(self.close)
 
-        saveAction = QtGui.QAction('Save', self)
+        saveAction = QtGui.QAction('Save Case', self)
         saveAction.setShortcut('Ctril+S')
         saveAction.setStatusTip('Save config')
         saveAction.triggered.connect(self.save)
 
-        loadAction = QtGui.QAction('Load', self)
+        loadAction = QtGui.QAction('Load Case', self)
         loadAction.setStatusTip('Load config')
         loadAction.triggered.connect(self.load)
 
-        openFileAction = QtGui.QAction('Import', self)
+        openFileAction = QtGui.QAction('Import Mesh', self)
         openFileAction.setStatusTip('Import Grid')
         openFileAction.triggered.connect(self.selectFile)
         
@@ -167,11 +167,16 @@ class MainWindow(QtGui.QMainWindow):
     def selectFile(self):
         meshFile = str(QtGui.QFileDialog.getOpenFileName())
         input = meshFile.split('.')
-        parts = input[0].split('/')
+        # The last decimal is before the h5 trailing name
+        # The second to last is before the processor id
+        # concatenate everything up to there
+        string = '/'
+        for part in input[0:-2]:
+            string = string + '.' + part
+        parts = string.split('/')
         self.casename = parts[-1]
-        parts = parts[0:-1]
-        path = "/"
-        for item in parts:
+        path = ""
+        for item in parts[0:-1]:
             path = path + item + '/'
         print 'Selected casename ' + self.casename
         print 'Case path ' + path

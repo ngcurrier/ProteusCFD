@@ -5,8 +5,6 @@ import numpy as np
 import vtk
 from defines import *
 
-#todo: glob all files with correct filename pattern for parallel read
-
 def uniqify(seq): 
    seen = {}
    result = []
@@ -19,11 +17,18 @@ def uniqify(seq):
        seen[marker] = 1
        result.append(int(seq[i]))
    return result
-        
-def loadHDF5File(path, casename):
+
+def checkNumberPartitions(path, casename):
     filename = path + casename + '.0.h5'
     h5f = h5.File(filename, "r")
+    
+    return h5f['/Number Of Processors'][:]
+ 
+def loadHDF5File(path, casename, indx):
+    filename = path + casename + '.' + str(indx) +'.h5'
+    h5f = h5.File(filename, "r")
 
+    print '\n\nReading mesh processor: ' + str(indx)
     m = Mesh();
 
     m.nelem = h5f['Global Number Of Elements'][:]
@@ -36,7 +41,7 @@ def loadHDF5File(path, casename):
     m.npyramid = h5f['Mesh/Number Of Pyramids'][:]
     m.nquad = h5f['Mesh/Number Of Quadrilaterals'][:]
     m.ntet = h5f['Mesh/Number Of Tetrahedron'][:]
-    m.ntri = h5f['Mesh/Number Of Prisms'][:]
+    m.ntri = h5f['Mesh/Number Of Triangles'][:]
     m.nhex = h5f['Mesh/Number Of Hexahedron'][:]
     
     m.printElemCounts()
@@ -56,6 +61,7 @@ def loadHDF5File(path, casename):
         if elemData[i] == eTypes.TRI:
             i = i + 3 + 1
             m.elements.append(Tri())
+            m.elements[-1].partition = indx
             m.elements[-1].nodes = elemData[i+1:i+4]
             m.elements[-1].factag = m.factags[icell]
             triCount = triCount + 1
@@ -64,6 +70,7 @@ def loadHDF5File(path, casename):
         elif elemData[i] == eTypes.QUAD:
             i = i + 4 +1
             m.elements.append(Quad())
+            m.elements[-1].partition = indx
             m.elements[-1].nodes = elemData[i+1:i+5]
             m.elements[-1].factag = m.factags[icell]
             quadCount = quadCount + 1
@@ -72,6 +79,7 @@ def loadHDF5File(path, casename):
         elif elemData[i] == eTypes.TET:
             i = i + 4 +1
             m.elements.append(Tet())
+            m.elements[-1].partition = indx
             m.elements[-1].nodes = elemData[i+1:i+5]
             m.elements[-1].factag = m.factags[icell]
             tetCount = tetCount + 1
@@ -80,6 +88,7 @@ def loadHDF5File(path, casename):
         elif elemData[i] == eTypes.PYRAMID:
             i = i + 5 + 1
             m.elements.append(Pyramid())
+            m.elements[-1].partition = indx
             m.elements[-1].nodes = elemData[i+1:i+6]
             m.elements[-1].factag = m.factags[icell]
             pyramidCount = pyramidCount + 1
@@ -88,6 +97,7 @@ def loadHDF5File(path, casename):
         elif elemData[i] == eTypes.PRISM:
             i = i + 6 + 1
             m.elements.append(Prism())
+            m.elements[-1].partition = indx
             m.elements[-1].nodes = elemData[i+1:i+7]
             m.elements[-1].factag = m.factags[icell]
             prismCount = prismCount + 1
@@ -96,6 +106,7 @@ def loadHDF5File(path, casename):
         elif elemData[i] == eTypes.HEX:
             i = i + 8 + 1
             m.elements.append(Hex())
+            m.elements[-1].partition = indx
             m.elements[-1].nodes = elemData[i+1:i+9]
             m.elements[-1].factag = m.factags[icell]
             hexCount = hexCount + 1
@@ -107,17 +118,23 @@ def loadHDF5File(path, casename):
     print 'Unique element groups -- (+) boundaries, (-) volumes: ' + str(m.nfactags)
     m.elementGroups = uniqify(m.factags);
     print m.elementGroups
-    
+    m.nnodes = len(m.coords)/3
+
+    # check that we read the correct number of elements
+    totalRead = (triCount + quadCount + tetCount + pyramidCount + prismCount + hexCount)
+    totalExpected = m.ntri + m.nquad + m.ntet + m.npyramid + m.nprism + m.nhex
+    if totalExpected != totalRead:
+       raise ValueError('Did not read number of expected elements. Found ' + str(totalRead) + ' expected ' + str(totalExpected))
+
+    print 'Found ' + str(m.nnodes) + ' Nodes'
     print 'Found ' + str(triCount) + ' Tri'
     print 'Found ' + str(quadCount) + ' Quad'
     print 'Found: ' + str(tetCount) + ' Tet'
     print 'Found: ' + str(pyramidCount) + ' Pyramid'
     print 'Found: ' + str(prismCount) + ' Prism'
     print 'Found: ' + str(hexCount) + ' Hex'
+    print 'Found: ' + str(len(m.coords)) + ' unique coordinate values'
 
-    #for elm in elements:
-    #    print elm.getName()
-    #    print elm.nodes
     return m
 
 class Mesh():
@@ -151,10 +168,16 @@ class Elem():
         self.nnodes = 0
         self.factag = -999
         self.nodes = []
+        self.partition = -999
 
     def getNnodes(self):
-        return self.nnodes;
+        return self.nnodes
 
+    def setNodes(self, nodes):
+       if len(nodes) != self.nnodes:
+          raise ValueError('Elem.setNodes() number is incorrect ' + str(len(nodes)) + ' ' + str(self.nnodes))
+       self.nodes = nodes
+     
     def getFactag(self):
         return factag
 
