@@ -198,6 +198,10 @@ void Param<Type>::SetupParams()
   paramListReal.push_back(Parameter<Type>("betaMin", &this->betaMin, 0.0, 0.0, 999.0));
   paramListReal.push_back(Parameter<Type>("beta", &this->beta, 15.0, 0.0, 999.0)); 
   paramListReal.push_back(Parameter<Type>("prandtlNumber", &this->Pr, 0.72, 0.0, 999.0));
+  paramListReal.push_back(Parameter<Type>("thermalConductivity", &this->kThermalConductivity, 1.0, 0, 99999.0));
+  paramListReal.push_back(Parameter<Type>("specificHeat", &this->cpSpecificHeat, 1.0, 0, 9999.0)); 
+  paramListReal.push_back(Parameter<Type>("density", &this->rhoDensity, 1.0, 0, 9999.0)); 
+  
   //no non-dimensionalization default
   paramListReal.push_back(Parameter<Type>("refPressure", &this->ref_pressure, REF_PRESSURE_DEFAULT, 0.0, 300000.0));
   paramListReal.push_back(Parameter<Type>("refDensity", &this->ref_density, REF_DENSITY_DEFAULT, 0.0, 300.0));

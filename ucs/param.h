@@ -77,6 +77,10 @@ public:
   Type Pr;            // Prandtl number - Cp*Mu/k
   Type PrT;           // Turbulent prandtl number ~0.7-0.9
 
+  Type kThermalConductivity;  // Thermal conductivity - W/(m.K)
+  Type cpSpecificHeat;        // Specific heat of material J/kg.K
+  Type rhoDensity;            // Density of material kg/m^3
+  
   Bool scaleMesh;     // If set true, we scale the mesh by ref_length before computation
 
   Type gamma;         // ratio of specific heats

@@ -1650,8 +1650,6 @@ void CompressibleFREqnSet<Type>::Dimensionalize(Type* Q)
   Q[nspecies+3] *= this->param->ref_temperature;
   Q[nspecies+4] *= this->param->ref_pressure;
   Q[nspecies+5] *= this->param->ref_density;
-
-  return;
 }
 
 template <class Type>

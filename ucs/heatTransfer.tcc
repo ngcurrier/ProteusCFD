@@ -25,6 +25,7 @@ HeatTransferEqnSet<Type>::HeatTransferEqnSet(SolutionSpace<Type>* space, Param<T
   
   this->Qinf = new Type[this->neqn + this->nauxvars];
   this->param = p;
+  this->thermalDiffusivity = this->param->kThermalConductivity/(this->param->cpSpecificHeat*this->param->rhoDensity);
 }
 
 template <class Type>
@@ -93,6 +94,12 @@ void HeatTransferEqnSet<Type>::SetInitialConditions()
      }
      ComputeAuxiliaryVariables(&this->space->q[i*(neqn+nauxvars)]);
    }
+}
+
+template <class Type>
+void HeatTransferEqnSet<Type>::Dimensionalize(Type* Q)
+{
+  Q[0] = Q[0] * this->param->ref_temperature;
 }
 
 template <class Type>
@@ -195,11 +202,12 @@ void HeatTransferEqnSet<Type>::GetHeatFluxBoundaryVariables(Type* QL, Type* QR, 
 
   //heat flux is defined as q = -k*(dT/dx) = -k * grad(T) - units are W/m^2, and others
   // q(+) is a flux into the solid, q(-) is out of the solid
-
-  Type k = 1.0;
-  //normaldx points from the wall to the infield point nearest to normal
-    Type dist = sqrt(normaldx[0]*normaldx[0] + normaldx[1]*normaldx[1] + normaldx[2]*normaldx[2]);
+  // W/m^2 = -(W/(m.K))*(K/m)
   
+  Type k = this->param->kThermalConductivity;
+  //normaldx points from the wall to the infield point nearest to normal
+  Type dist = sqrt(normaldx[0]*normaldx[0] + normaldx[1]*normaldx[1] + normaldx[2]*normaldx[2]);
+
   Type Twall = flux*dist/k + normalQ[0];
 
   //this is a hard set BC, set the surface and boundary condition both to the appropriate value to
