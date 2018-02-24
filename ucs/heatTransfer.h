@@ -14,6 +14,7 @@ public:
   void InitEqnSet();
   void RoeFlux(Type* QL , Type* QR, Type* avec, Type at, Type gamma, Type* flux, Type beta);
   void UpdateQinf();
+  void ApplyDQ(Type* dQ, Type* Q, Type* xyz);
   void ViscousFlux(Type* Q, Type* grad, Type* avec, Type mut, Type* flux);
   void ViscousJacobian(Type* QL, Type* QR, Type* dx, Type s2,
 		       Type* avec, Type mut, Type* aL, Type* aR);

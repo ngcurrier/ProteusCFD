@@ -26,6 +26,7 @@ HeatTransferEqnSet<Type>::HeatTransferEqnSet(SolutionSpace<Type>* space, Param<T
   this->Qinf = new Type[this->neqn + this->nauxvars];
   this->param = p;
   this->thermalDiffusivity = this->param->kThermalConductivity/(this->param->cpSpecificHeat*this->param->rhoDensity);
+  std::cout << "Heat transfer EqnSet running - alpha is: " << this->thermalDiffusivity << " m^2/s" << std::endl;
 }
 
 template <class Type>
@@ -60,7 +61,21 @@ template <class Type>
 void HeatTransferEqnSet<Type>::UpdateQinf()
 {
   //assume everything starts at equilibrium with reference temperature
-  this->Qinf[0] = 1.0;
+  this->Qinf[0] = this->param->ref_temperature;
+}
+
+template <class Type>
+void HeatTransferEqnSet<Type>::ApplyDQ(Type* dQ, Type* Q, Type* xyz)
+{
+  //try to apply delta update
+  Type update = Q[0] + dQ[0];
+  //clip to positive temperature
+  if(real(update) < 0.0){
+    std::cerr << "WARNING: rolling back temperature update" << std::endl;
+  }
+  else{
+    Q[0] = update;
+  }
 }
 
 template <class Type>
@@ -130,10 +145,7 @@ void HeatTransferEqnSet<Type>::ViscousFlux(Type* Q, Type* grad, Type* avec, Type
   Type Ty = grad[1];
   Type Tz = grad[2];
   
-  //thermal conductivity
-  Type k = 1.0;
-
-  flux[0] = avec[3]*k*(Tx*avec[0] + Ty*avec[1] + Tz*avec[2]);
+  flux[0] = -avec[3]*this->thermalDiffusivity*(Tx*avec[0] + Ty*avec[1] + Tz*avec[2]);
 }
 
 template <class Type>
@@ -141,14 +153,13 @@ void HeatTransferEqnSet<Type>::ViscousJacobian(Type* QL, Type* QR, Type* dx, Typ
 					       Type* avec, Type mut, Type* aL, Type* aR)
 {
   Int neqn = this->neqn;
-  Type k = 1.0;
   Type dxnx = dx[0]*avec[0];
   Type dyny = dx[1]*avec[1];
   Type dznz = dx[2]*avec[2];
 
-  Type c1 = k*avec[3]/s2;
+  Type c1 = this->thermalDiffusivity*avec[3]/s2;
 
-  aL[0] = c1*(dxnx + dyny + dznz);
+  aL[0] = -c1*(dxnx + dyny + dznz);
 
   for(Int i = 0; i < neqn*neqn; i++){
     aR[i] = aL[i];
@@ -209,6 +220,21 @@ void HeatTransferEqnSet<Type>::GetHeatFluxBoundaryVariables(Type* QL, Type* QR, 
   Type dist = sqrt(normaldx[0]*normaldx[0] + normaldx[1]*normaldx[1] + normaldx[2]*normaldx[2]);
 
   Type Twall = flux*dist/k + normalQ[0];
+
+  std::cout << "Twall: " << Twall << " flux: " << flux << " dist: " << dist << std::endl;
+  
+  //clip to 0.0 temperature
+  if(real(Twall) < 0.0){
+    std::cerr << "WARNING: clipping temperature on flux boundary to be zero" << std::endl;
+    Twall = 0.0;
+  }
+ 
+  if((real(flux)) > 0.0 && (real(Twall) < real(normalQ[0]))){
+    std::cerr << "WARNING: flux positive and Twall computed to be less than normal point " << Twall << " vs. " << normalQ[0] << std::endl;
+  }
+  if((real(flux)) < 0.0 && (real(Twall) > real(normalQ[0]))){
+    std::cerr << "WARNING: flux negative and Twall computed to be greater than normal point " << Twall << " vs. " << normalQ[0] << std::endl;
+  }
 
   //this is a hard set BC, set the surface and boundary condition both to the appropriate value to
   //recover the correct heat flux into the solid

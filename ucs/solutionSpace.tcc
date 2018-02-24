@@ -106,6 +106,9 @@ SolutionSpace<Type>::SolutionSpace(Param<Type>* param, PObj<Real>* p, std::strin
   //this finishes all of the internal initialization not related to the mesh (which
   //might be copied later
   Init();
+
+  //Write solution of zeroth time step to check BCs, initialization, etc.
+  WriteSolution();
 }
 
 template <class Type>
