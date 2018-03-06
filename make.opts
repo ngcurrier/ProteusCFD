@@ -1,4 +1,6 @@
 TOOLCHAIN = INTEL
+HAS_PYTHON = TRUE
+#HAS_PYTHON = FALSE
 
 ifndef TARGET
        $(warning TARGET must be defined on command line. Try make TARGET=home)
@@ -17,6 +19,7 @@ ifeq ($(TOOLCHAIN),INTEL)
 	CXX_OPTS = -O3 -g
 	#CXX_OPTS = -O0 -g -D_DEBUG -guide 
 	#CXX_OPTS += -opt-report[3] -march=core2
+
 	LINK_OPTS = 
 	FXX = ifort
 	FXX_OPTS = -O3
@@ -48,6 +51,7 @@ ifeq ($(TOOLCHAIN),IBM)
 	FXX_OPTS = -O2
 	FXX_LINK_OPTS = 
 endif
+
 
 TINYXMLDIR = ./TPLs/tinyxml/tinyxml-2.6.2
 TINYXML_INCLUDES = ./TPLs/tinyxml/tinyxml-2.6.2
@@ -87,3 +91,15 @@ CXXLIBS = $(HDF5_LIB)/libhdf5.a -lcommon -lz
 #more mpi stuff from running mpiCC --showme
 CXXLIBS += -lstdc++ 
 FXXLIBS = -lstdc++
+
+ifdef HAS_PYTHON
+      PYTHONDIR = /usr/lib/python2.7
+      # Find this by running python2.7-config --cflags
+      PYTHON_INCLUDES = /usr/include/python2.7
+      # Find this by running python2.7-config --ldflags
+      PYTHON_LIB = /usr/lib/python2.7/config-x86-64-linux-gnu
+      INCLUDES += -I$(PYTHON_INCLUDES)
+      LCXXFLAGS += -L$(PYTHON_LIB)
+      CXXLIBS += -lpython2.7 -lpthread -ldl -lutil
+      CXX_OPTS += -D_HAS_PYTHON
+endif

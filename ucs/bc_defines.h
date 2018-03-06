@@ -24,6 +24,7 @@ enum BCTypes
     TotalTempAndPressure,
     HeatFlux,
     Isothermal,
+    PythonBC,
     NUM_BC_TYPES
   };
 const std::string BCs[] =
@@ -46,7 +47,8 @@ const std::string BCs[] =
     "pitchingFarField",
     "totalTempAndPressure",
     "heatFlux",
-    "isothermal"
+    "isothermal",
+    "pythonBC"
   }; 
 
 enum BCvarsId

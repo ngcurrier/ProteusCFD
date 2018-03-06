@@ -21,7 +21,7 @@ DEPS_COMMON = $(SRCS_COMMON:.cpp=.d)
 
 SRCS_SOLVER = ./ucs/main.cpp ./ucs/eqnset.cpp ./ucs/etypes.cpp ./ucs/threaded.cpp ./ucs/parallel.cpp \
 	./ucs/customics.cpp ./ucs/oddsNends.cpp ./ucs/portFileio.cpp \
-	./ucs/elements.cpp ./ucs/dataInfo.cpp ./ucs/derivatives.cpp
+	./ucs/elements.cpp ./ucs/dataInfo.cpp ./ucs/derivatives.cpp ./ucs/pythonInterface.cpp
 SRCS_DECOMP = ./ucs/decomp.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/parallel.cpp \
 	./ucs/oddsNends.cpp ./ucs/dataInfo.cpp
 SRCS_RECOMP = ./ucs/recomp.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/parallel.cpp \
