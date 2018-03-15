@@ -2,10 +2,17 @@
 
 #ifdef _HAS_PYTHON
 
-PythonWrapper::PythonWrapper(std::string fileRoot, std::string functionName)
+PythonWrapper::PythonWrapper(std::string path, std::string fileRoot, std::string functionName)
 {
   Py_Initialize();
 
+  //import the python path we need
+  char *cstr = new char[path.length() + 1];
+  strcpy(cstr, path.c_str());
+  // do stuff
+  PySys_SetPath(cstr);
+  delete [] cstr;
+  
   pName = PyString_FromString(fileRoot.c_str());
   pModule = PyImport_Import(pName);
 
@@ -75,11 +82,11 @@ std::vector<double> PythonWrapper::CallDoubleVectorFunction(std::vector<double>&
   return returnVec;
 }
 
-double PythonWrapper::CallTwoIntFunction(int a, int b)
+int PythonWrapper::CallTwoIntFunction(int a, int b)
 {
   PyObject* pArgs;
   PyObject* pValue;
-  double returnVal;
+  int returnVal = -11111;
 
   pArgs = PyTuple_New(2);
   pValue = PyInt_FromLong(a);
@@ -98,7 +105,7 @@ double PythonWrapper::CallTwoIntFunction(int a, int b)
     Py_DECREF(pArgs);
     std::cerr << "Cannot convert argument in PythonWrapper" << std::endl;
     //TODO: call throwerror()
-    return -999;
+    return -998;
   }
   else{
     PyTuple_SetItem(pArgs, 1, pValue);
@@ -110,12 +117,12 @@ double PythonWrapper::CallTwoIntFunction(int a, int b)
   if(pValue == NULL){
     PyErr_Print();
     std::cerr << "PythonWrapper call did not return anything" << std::endl;
-    return -999;
+    return -997;
   }
 
   //we expect back a float
-  //PyInt_AsLong(pValue);
-  PyFloat_AsDouble(pValue);
+  returnVal = PyInt_AsLong(pValue);
+  //returnVal = PyFloat_AsDouble(pValue);
 
   Py_DECREF(pValue);
   Py_DECREF(pArgs);

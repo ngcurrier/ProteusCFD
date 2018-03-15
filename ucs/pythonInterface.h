@@ -11,12 +11,12 @@
 class PythonWrapper
 {
  public:
-  PythonWrapper(std::string fileRoot, std::string functionName);
+  PythonWrapper(std::string path, std::string fileRoot, std::string functionName);
   ~PythonWrapper();
 
   //These are demo stubouts to build from
   std::vector<double> CallDoubleVectorFunction(std::vector<double>& input);
-  double CallTwoIntFunction(int a, int b);
+  int CallTwoIntFunction(int a, int b);
   
  protected:
 

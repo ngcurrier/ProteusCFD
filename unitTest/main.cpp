@@ -5,6 +5,7 @@
 #include "newtonTest.h"
 #include "chemTest.h"
 #include "compressibleFRTest.h"
+#include "pythonTest.h"
 
 int main(int argc, char** argv)
 {

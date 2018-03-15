@@ -66,7 +66,7 @@ OBJS_ALL = $(SRCS_ALL:.cpp=.o)
 DEPS_ALL = $(SRCS_ALL:.cpp=.d)
 
 # --------- BEGIN TEST SECTION
-SRCS_TEST = ./unitTest/main.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/parallel.cpp ./ucs/dataInfo.cpp
+SRCS_TEST = ./unitTest/main.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/parallel.cpp ./ucs/dataInfo.cpp ./ucs/pythonInterface.cpp
 OBJS_TEST = $(SRCS_TEST:.cpp=.o) 
 DEPS_TEST = $(SRCS_TEST:.cpp=.d)
 

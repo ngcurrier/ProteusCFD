@@ -1,4 +1,4 @@
-TOOLCHAIN = INTEL
+TOOLCHAIN = GNU
 HAS_PYTHON = TRUE
 #HAS_PYTHON = FALSE
 
@@ -16,7 +16,8 @@ endif
 #intel
 ifeq ($(TOOLCHAIN),INTEL)
 	CXX = icc
-	CXX_OPTS = -O3 -g
+	MPICXX = mpicxx
+	CXX_OPTS = -O3 -g 
 	#CXX_OPTS = -O0 -g -D_DEBUG -guide 
 	#CXX_OPTS += -opt-report[3] -march=core2
 
@@ -30,6 +31,7 @@ endif
 #GNU
 ifeq ($(TOOLCHAIN),GNU)
 	CXX = g++
+	MPICXX = mpicxx
 	CXX_OPTS = -O3 -g 
 	#CXX_OPTS = -fopenmp -D_DEBUG
 	#CXX_OPTS = -O0 -g
@@ -42,7 +44,8 @@ endif
 #IBM XLC
 ifeq ($(TOOLCHAIN),IBM)
 	CXX = xlc++
-	CXX_OPTS = -q64 -O5 -Wall
+	MPICXX = mpicxx
+	CXX_OPTS = -q64 -O5 -Wall 
 	#may use up to level 7 here for vectorizer reports
 	#CXX_OPTS += -Wall -ftree-vectorizer-verbose=5 -fdump-tree-vect -std=c++0x
 	LINK_OPTS = -q64
@@ -79,7 +82,6 @@ ifeq ($(TARGET),papertape)
      CXX_OPTS += -xAVX
 endif
 
-MPICXX = mpicxx
 
 INCLUDES = -I$(METIS_INCLUDES) -I$(HDF5_INCLUDES) -I$(TINYXML_INCLUDES) -I$(GTEST_INCLUDES)\
 	  -I$(LAPACK_INCLUDES) -I./structuralDynamics -I./ucs
