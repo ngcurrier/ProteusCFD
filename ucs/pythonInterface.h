@@ -14,6 +14,9 @@ class PythonWrapper
   PythonWrapper(std::string path, std::string fileRoot, std::string functionName);
   ~PythonWrapper();
 
+  //Utilities
+  void AddToPath(std::string path);
+  
   //These are demo stubouts to build from
   std::vector<double> CallDoubleVectorFunction(std::vector<double>& input);
   int CallTwoIntFunction(int a, int b);

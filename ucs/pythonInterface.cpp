@@ -1,4 +1,5 @@
 #include "pythonInterface.h"
+#include "exceptions.h"
 
 #ifdef _HAS_PYTHON
 
@@ -6,12 +7,7 @@ PythonWrapper::PythonWrapper(std::string path, std::string fileRoot, std::string
 {
   Py_Initialize();
 
-  //import the python path we need
-  char *cstr = new char[path.length() + 1];
-  strcpy(cstr, path.c_str());
-  // do stuff
-  PySys_SetPath(cstr);
-  delete [] cstr;
+  AddToPath(path);
   
   pName = PyString_FromString(fileRoot.c_str());
   pModule = PyImport_Import(pName);
@@ -34,8 +30,9 @@ PythonWrapper::PythonWrapper(std::string path, std::string fileRoot, std::string
     PyErr_Print();
     std::cerr << "PythonWrapper failed to load " << fileRoot << std::endl;
   }
-  
-  import_array(); //this is so we can use Numpy arrays
+
+  //this is so we can use Numpy arrays
+  import_array(); 
 }
 
 PythonWrapper::~PythonWrapper()
@@ -128,6 +125,16 @@ int PythonWrapper::CallTwoIntFunction(int a, int b)
   Py_DECREF(pArgs);
   
   return returnVal;
+}
+
+void PythonWrapper::AddToPath(std::string path)
+{
+  //import the python path we need, append to current path
+  std::string base("import sys\nsys.path.append('");
+  std::string end("')\n");
+  std::string command = base + path + end;
+
+  PyRun_SimpleString(command.c_str());
 }
 
 #endif
