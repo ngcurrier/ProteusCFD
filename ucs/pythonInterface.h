@@ -10,7 +10,11 @@
 
 class PythonWrapper
 {
+  
  public:
+  static int refCounter;
+  static int numpyLoaded;
+  
   PythonWrapper(std::string path, std::string fileRoot, std::string functionName);
   ~PythonWrapper();
 
@@ -20,7 +24,8 @@ class PythonWrapper
   //These are demo stubouts to build from
   std::vector<double> CallDoubleVectorFunction(std::vector<double>& input);
   int CallTwoIntFunction(int a, int b);
-  
+
+
  protected:
 
  private:
@@ -29,8 +34,6 @@ class PythonWrapper
   PyObject* pModule; //This is the python module loaded of that file
   PyObject* pFunc;   //This is the active python function handle for calling out
 };
-
-
 
 #endif // end HAS_PYTHON
 

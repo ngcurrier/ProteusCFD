@@ -1,17 +1,30 @@
 #include "pythonInterface.h"
 #include "exceptions.h"
+#include <sstream>
 
 #ifdef _HAS_PYTHON
+
+int PythonWrapper::refCounter = 0;
+int PythonWrapper::numpyLoaded = 0;
 
 PythonWrapper::PythonWrapper(std::string path, std::string fileRoot, std::string functionName)
 {
   Py_Initialize();
+  refCounter++;
+  //This is a hack b/c numpy never really cleans up if you try to unload it... so we just let it ride
+  //It probably leaks memory but upstream won't fix...
+  if(!numpyLoaded){ 
+    numpyLoaded = 1;
+    import_array();
+  }
 
   AddToPath(path);
   
   pName = PyString_FromString(fileRoot.c_str());
   pModule = PyImport_Import(pName);
 
+  std::cout << "PythonWrapper:: imported" << std::endl;
+  
   if(pModule != NULL){
     pFunc = PyObject_GetAttrString(pModule, functionName.c_str());
 
@@ -22,8 +35,9 @@ PythonWrapper::PythonWrapper(std::string path, std::string fileRoot, std::string
       if(PyErr_Occurred()){
 	PyErr_Print();
       }
-      std::cerr << "Cannot load function in PythonWrapper " << functionName << " from file " << fileRoot << std::endl;
-      //TODO: throwerror
+      std::stringstream ss;
+      ss << "Cannot load function in PythonWrapper " << functionName << " from file " << fileRoot << std::endl;
+      Abort << ss.str();
     }
   }
   else{
@@ -32,17 +46,25 @@ PythonWrapper::PythonWrapper(std::string path, std::string fileRoot, std::string
   }
 
   //this is so we can use Numpy arrays
-  import_array(); 
+  std::cout << "PythonWrapper:: initialized for " << fileRoot << ":"<< functionName << std::endl;
 }
 
 PythonWrapper::~PythonWrapper()
 {
-  //call xdecref in case any of these failed with a NULL return
-  // DECREF() requires a valid pointer
+
+  
+  //call xdecref in case any of these failed with a NULL return DECREF() requires a valid pointer
   Py_XDECREF(pFunc);
   Py_XDECREF(pModule);
   Py_XDECREF(pName);
-  Py_Finalize();
+  refCounter--;
+  //WARNING, If I call py_finalize after numpy is imported and then py_initialize then the tool
+  //segfaults, it should not work this way so we just never call py_finalize.
+  //This is a well documented issue that just hasn't been fixed https://github.com/numpy/numpy/issues/8097
+  if(refCounter == 0 && false){
+    std::cout << "PythonWrapper:: last reference deleted, calling Py_Finalize()" << std::endl;
+    Py_Finalize();
+  }
 }
 
 //The python function is expected to accept a numpy array
@@ -74,7 +96,8 @@ std::vector<double> PythonWrapper::CallDoubleVectorFunction(std::vector<double>&
   //free references
   Py_DECREF(pValue);
   Py_DECREF(pArgs);
-  Py_DECREF(numpyarray);
+  //Do Not delete numpyarray since it is simply a cast of the memory for the vector
+  //Py_DECREF(numpyarray);
     
   return returnVec;
 }
@@ -135,6 +158,7 @@ void PythonWrapper::AddToPath(std::string path)
   std::string command = base + path + end;
 
   PyRun_SimpleString(command.c_str());
+  std::cout << "PythonWrapper:: added " << path << " to PYTHONPATH" << std::endl;
 }
 
 #endif
