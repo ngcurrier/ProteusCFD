@@ -25,7 +25,10 @@ class PythonWrapper
   std::vector<double> CallDoubleVectorFunction(std::vector<double>& input);
   int CallTwoIntFunction(int a, int b);
 
-
+  //These are the real solver interfaces
+  template <class Type>
+  void SetInitialConditions(const Type* Qinf, int neqn, int nauxvars, Type* Qreturn, const Type* coordsXYZ);
+  
  protected:
 
  private:
@@ -34,6 +37,8 @@ class PythonWrapper
   PyObject* pModule; //This is the python module loaded of that file
   PyObject* pFunc;   //This is the active python function handle for calling out
 };
+
+#include "pythonInterface.tcc"
 
 #endif // end HAS_PYTHON
 

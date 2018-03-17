@@ -3,6 +3,7 @@
 #include "matrix.h"
 #include "solutionSpace.h"
 #include "solutionField.h"
+#include "pythonInterface.h"
 
 template <class Type>
 HeatTransferEqnSet<Type>::HeatTransferEqnSet(SolutionSpace<Type>* space, Param<Type>* p)
@@ -94,7 +95,7 @@ void HeatTransferEqnSet<Type>::SetInitialConditions()
    std::cout.setf(std::ios::scientific);
    std::cout.precision(6);
 
-   std::cout << "Initializing flow field: " << std::endl;
+   std::cout << "Initializing heat field: " << std::endl;
    std::cout << "========================" << std::endl;
    for(i = 0; i < neqn+nauxvars; i ++){
      std::cout << "\tQinf[" << i << "] = " << this->Qinf[i] 
@@ -102,13 +103,29 @@ void HeatTransferEqnSet<Type>::SetInitialConditions()
    }
    std::cout << std::endl;
 
-   //set all the nodes interior and phantom
-   for(i = 0; i < (nnode+gnode+nbnode); i++){
-     for(j = 0; j < neqn; j++){
-       this->space->q[i*(neqn+nauxvars) + j] = this->Qinf[j];
+   //check for setInitialConditions.py
+   std::ifstream pyscript("setInitialConditions.py");
+   if(pyscript){
+     std::cout << "Attempting to use python interface to set initial conditions" << std::endl;
+     #ifdef _HAS_PYTHON
+     PythonWrapper pywrap("./", "setInitialConditions.py", "setInitialConditions");
+     for(i = 0; i < (nnode+gnode+nbnode); ++i){
+       pywrap.SetInitialConditions(this->Qinf, neqn, nauxvars, &this->space->q[i*(neqn+nauxvars)], &m->xyz[i*3]);
+       ComputeAuxiliaryVariables(&this->space->q[i*(neqn+nauxvars)]);
      }
-     ComputeAuxiliaryVariables(&this->space->q[i*(neqn+nauxvars)]);
+     #endif
    }
+   else{
+     //set all the nodes interior and phantom to Qinf
+     for(i = 0; i < (nnode+gnode+nbnode); i++){
+       for(j = 0; j < neqn; j++){
+	 this->space->q[i*(neqn+nauxvars) + j] = this->Qinf[j];
+       }
+       ComputeAuxiliaryVariables(&this->space->q[i*(neqn+nauxvars)]);
+     }
+   }
+
+
 }
 
 template <class Type>
