@@ -109,12 +109,12 @@ void HeatTransferEqnSet<Type>::SetInitialConditions()
      pyscript.close();
      std::cout << "Attempting to use python interface to set initial conditions" << std::endl;
      #ifdef _HAS_PYTHON
-     PythonWrapper pywrap("./", "setInitialConditions.py", "setInitialConditions");
+     PythonWrapper pywrap("./", "setInitialConditions", "setInitialConditions");
      for(i = 0; i < (nnode+gnode+nbnode); ++i){
        pywrap.SetInitialConditions(this->Qinf, neqn, nauxvars, &this->space->q[i*(neqn+nauxvars)], &m->xyz[i*3]);
        ComputeAuxiliaryVariables(&this->space->q[i*(neqn+nauxvars)]);
      }
-     #elif
+     #else
      Abort << "Python not built with solver";
      #endif
    }
@@ -241,8 +241,6 @@ void HeatTransferEqnSet<Type>::GetHeatFluxBoundaryVariables(Type* QL, Type* QR, 
 
   Type Twall = flux*dist/k + normalQ[0];
 
-  std::cout << "Twall: " << Twall << " flux: " << flux << " dist: " << dist << std::endl;
-  
   //clip to 0.0 temperature
   if(real(Twall) < 0.0){
     std::cerr << "WARNING: clipping temperature on flux boundary to be zero" << std::endl;
