@@ -24,10 +24,11 @@ class PythonWrapper
   //These are demo stubouts to build from
   std::vector<double> CallDoubleVectorFunction(std::vector<double>& input);
   int CallTwoIntFunction(int a, int b);
+  void CallBlank();
 
   //These are the real solver interfaces
   template <class Type>
-  void SetInitialConditions(const Type* Qinf, int neqn, int nauxvars, Type* Qreturn, const Type* coordsXYZ);
+  void SetInitialConditions(Type* Qinf, int neqn, int nauxvars, Type* Qreturn, Type* coordsXYZ);
   
  protected:
 

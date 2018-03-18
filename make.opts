@@ -1,6 +1,8 @@
+# Uncomment any below to change compiler behavior
 TOOLCHAIN = GNU
 HAS_PYTHON = TRUE
-#HAS_PYTHON = FALSE
+DEBUG = TRUE
+#EFENCE = TRUE
 
 ifndef TARGET
        $(warning TARGET must be defined on command line. Try make TARGET=home)
@@ -17,7 +19,7 @@ endif
 ifeq ($(TOOLCHAIN),INTEL)
 	CXX = icc
 	MPICXX = mpicxx
-	CXX_OPTS = -O3 -g 
+	CXX_OPTS = -O3  -g 
 	#CXX_OPTS = -O0 -g -D_DEBUG -guide 
 	#CXX_OPTS += -opt-report[3] -march=core2
 
@@ -32,7 +34,7 @@ endif
 ifeq ($(TOOLCHAIN),GNU)
 	CXX = g++
 	MPICXX = mpicxx
-	CXX_OPTS = -O3 -g 
+	CXX_OPTS = -O0 -g 
 	#CXX_OPTS = -fopenmp -D_DEBUG
 	#CXX_OPTS = -O0 -g
 	LINK_OPTS = 
@@ -88,11 +90,20 @@ INCLUDES = -I$(METIS_INCLUDES) -I$(HDF5_INCLUDES) -I$(TINYXML_INCLUDES) -I$(GTES
 LCXXFLAGS = -L$(HDF5_LIB) -L./structuralDynamics -L$(TINYXML_LIB) -L$(GTEST_LIB) -L$(LAPACK_LIB) -L./ucs
 LFXXFLAGS = 
 
-#LIBS = -lmetis -lgomp -lmpi_cxx -lmpi -lefence
+#CXXLIBS = -lmetis -lgomp -lmpi_cxx -lmpi -lefence
 CXXLIBS = $(HDF5_LIB)/libhdf5.a -lcommon -lz 
 #more mpi stuff from running mpiCC --showme
 CXXLIBS += -lstdc++ 
 FXXLIBS = -lstdc++
+
+ifdef DEBUG
+      CXX_OPTS += -g
+endif
+
+ifdef EFENCE
+      CXXLIBS += -lefence
+endif
+
 
 ifdef HAS_PYTHON
       PYTHONDIR = /usr/lib/python2.7

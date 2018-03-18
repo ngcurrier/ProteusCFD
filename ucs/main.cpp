@@ -19,6 +19,7 @@
 #include "solutionOperations.h"
 #include "fluid_structure.h"
 #include "temporalControl.h"
+#include "pythonInterface.h"
 #include <fenv.h>
 #include <mpi.h>
 #include <fstream>

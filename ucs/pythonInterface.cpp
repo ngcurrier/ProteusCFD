@@ -13,8 +13,9 @@ PythonWrapper::PythonWrapper(std::string path, std::string fileRoot, std::string
   refCounter++;
   //This is a hack b/c numpy never really cleans up if you try to unload it... so we just let it ride
   //It probably leaks memory but upstream won't fix...
-  if(!numpyLoaded){ 
-    numpyLoaded = 1;
+  if(!numpyLoaded){
+    std::cout << "PythonWrapper:: loading NumPy" << std::endl;
+    numpyLoaded++;
     import_array();
   }
 
@@ -42,7 +43,9 @@ PythonWrapper::PythonWrapper(std::string path, std::string fileRoot, std::string
   }
   else{
     PyErr_Print();
-    std::cerr << "PythonWrapper failed to load " << fileRoot << std::endl;
+    std::stringstream  ss;
+    ss << "PythonWrapper failed to load " << fileRoot << std::endl;
+    Abort << ss.str();
   }
 
   //this is so we can use Numpy arrays
@@ -148,6 +151,14 @@ int PythonWrapper::CallTwoIntFunction(int a, int b)
   Py_DECREF(pArgs);
   
   return returnVal;
+}
+
+void PythonWrapper::CallBlank()
+{
+  std::cout << "Calling Blank Python module" << std::endl;
+  PyObject* pValue;
+  PyObject* pArgs = PyTuple_New(1);
+  pValue = PyObject_CallObject(pFunc, pArgs);
 }
 
 void PythonWrapper::AddToPath(std::string path)

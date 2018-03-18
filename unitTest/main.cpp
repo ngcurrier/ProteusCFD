@@ -6,6 +6,7 @@
 #include "chemTest.h"
 #include "compressibleFRTest.h"
 #include "pythonTest.h"
+#include "pythonInterface.h"
 
 int main(int argc, char** argv)
 {

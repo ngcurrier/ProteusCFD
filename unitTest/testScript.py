@@ -12,3 +12,22 @@ def arraytest(*npArray):
 def multiply(a,b):
     print "Will compute", a, "times", b
     return a*b
+
+def setInitialConditions(Qinf, neqn, naux, Qset, CoordsXYZ):
+    
+    #Qinf is the raw value of farfield variables (non-dimensional) - DO NOT MODIFY
+    qinfSize = np.shape(Qinf)[1]
+    print 'Vector size' + str(qinfsize)
+    
+    #Coords array(non-dimensional) [x,y,z]
+    x = Coords[0]
+    y = Coords[1]
+    z = Coords[2]
+    print x,y,z
+
+    #Note that computeAuxiliaryVariables() is called after the set to ensure consistency
+    #You do not have to set those locations to anything meaningfu
+    naux = qinfSize - neqn
+
+    #Qset should be set to desired values (non-dimensional)
+    Qset[0] = 10.0

@@ -13,7 +13,7 @@ EXE_TESTS = ./bin/tests.x
 # --------- BEGIN COMMON LIBRARY SECTION
 
 SRCS_COMMON = ./ucs/timer.cpp ./ucs/endian_util.cpp ./ucs/strings_util.cpp \
-	./ucs/h5layer.cpp ./ucs/parameterParser.cpp
+	./ucs/h5layer.cpp ./ucs/parameterParser.cpp 
 OBJS_COMMON = $(SRCS_COMMON:.cpp=.o)
 DEPS_COMMON = $(SRCS_COMMON:.cpp=.d)
 
@@ -157,6 +157,7 @@ clean:
 	rm $(EXE_FINDPOINT); \
 	rm $(EXE_PORTOPT); \
 	rm $(EXE_CHEMPROPS); \
+	rm $(EXE_TESTS); \
 	rm $(EXE_STRUCT_SOLVER); \
 	rm $(EXE_STRUCT_ERROR); \
 	rm ./structuralDynamics/error.o; \
