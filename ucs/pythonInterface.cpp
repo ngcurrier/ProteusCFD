@@ -2,6 +2,8 @@
 #include "exceptions.h"
 #include <sstream>
 
+#define PY_ARRAY_UNIQUE_SYMBOL py_ARRAY_API
+
 #ifdef _HAS_PYTHON
 
 int PythonWrapper::refCounter = 0;
@@ -75,18 +77,18 @@ PythonWrapper::~PythonWrapper()
 std::vector<double> PythonWrapper::CallDoubleVectorFunction(std::vector<double>& input)
 {
   npy_intp inputsize = input.size();
-  PyObject* numpyarray = (PyObject*)PyArray_SimpleNewFromData(1, &inputsize, PyArray_DOUBLE, (double*)input.data());
+  PyObject* numpyarray = (PyObject*)PyArray_SimpleNewFromData(1, &inputsize, NPY_DOUBLE, (double*)input.data());
   PyObject* pArgs = PyTuple_New(1);
   PyTuple_SetItem(pArgs, 0, numpyarray);
    
   PyObject* pValue = PyObject_CallObject(pFunc, pArgs);
 
   PyArrayObject *np_ret = reinterpret_cast<PyArrayObject*>(pValue);
-  int size = PyArray_DIMS(pValue)[0];
+  int size = PyArray_DIMS(reinterpret_cast<PyArrayObject*>(pValue))[0];
   std::cout << "Received array with dimensions " << size << std::endl;
 
   // Convert back to C++ array and print.
-  double* c_out = reinterpret_cast<double*>(PyArray_DATA(pValue));
+  double* c_out = reinterpret_cast<double*>(PyArray_DATA(reinterpret_cast<PyArrayObject*>(pValue)));
   std::vector<double> returnVec(size);
   //print and load up vector
   std::cout << "Printing output array" << std::endl;

@@ -1,19 +1,26 @@
+#define NO_IMPORT_ARRAY
+#define PY_ARRAY_UNIQUE_SYMBOL py_ARRAY_API
+
 template <class Type>
 void PythonWrapper::SetInitialConditions(Type* Qinf, int neqn, int nauxvars, Type* Qreturn, Type* coordsXYZ)
 {
+  //I'm not sure why but if I remove this import we segfault, it appears numpy is being
+  //unloaded somehow from initialization
+  import_array();
+
   //This routine assumes that Qinf and Qreturn are the same size... be warned
   //This routine is not yet generalized to deal with complex variables
+  size_t neqns = neqn;
+  size_t nauxvarss = nauxvars;
   size_t tot = neqn+nauxvars;
-  std::cout << "Size input is: " << tot << std::endl;
-  npy_intp inputsize = tot;
+  npy_intp inputsize = 1;
   PyObject *npqinf,*npeqn,*npauxvars,*npq,*npxyz; 
-  std::cout << Qinf << " " << neqn << " " << nauxvars << " "  << Qreturn<< " "  << coordsXYZ << " " << &inputsize << std::endl;
-  npqinf = (PyObject*)PyArray_SimpleNewFromData(1, &inputsize, PyArray_DOUBLE, (double*)Qinf);
-  npeqn = PyInt_FromLong(neqn);
-  npauxvars = PyInt_FromLong(nauxvars);
-  npq = (PyObject*)PyArray_SimpleNewFromData(1, &inputsize, PyArray_DOUBLE, (double*)Qreturn);
+  npqinf = (PyObject*)PyArray_SimpleNewFromData(1, &inputsize, NPY_DOUBLE, (double*)Qinf);
+  npeqn = PyInt_FromSize_t(neqns);
+  npauxvars = PyInt_FromSize_t(nauxvarss);
+  npq = (PyObject*)PyArray_SimpleNewFromData(1, &inputsize, NPY_DOUBLE, (double*)Qreturn);
   npy_intp dim = 3;
-  npxyz = (PyObject*)PyArray_SimpleNewFromData(1, &dim, PyArray_DOUBLE, coordsXYZ);
+  npxyz = (PyObject*)PyArray_SimpleNewFromData(1, &dim, NPY_DOUBLE, coordsXYZ);
   PyObject* pArgs = PyTuple_New(5);
   PyTuple_SetItem(pArgs, 0, npqinf);
   PyTuple_SetItem(pArgs, 1, npeqn);

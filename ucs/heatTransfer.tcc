@@ -106,6 +106,7 @@ void HeatTransferEqnSet<Type>::SetInitialConditions()
    //check for setInitialConditions.py
    std::ifstream pyscript("setInitialConditions.py");
    if(pyscript){
+     pyscript.close();
      std::cout << "Attempting to use python interface to set initial conditions" << std::endl;
      #ifdef _HAS_PYTHON
      PythonWrapper pywrap("./", "setInitialConditions.py", "setInitialConditions");
@@ -113,6 +114,8 @@ void HeatTransferEqnSet<Type>::SetInitialConditions()
        pywrap.SetInitialConditions(this->Qinf, neqn, nauxvars, &this->space->q[i*(neqn+nauxvars)], &m->xyz[i*3]);
        ComputeAuxiliaryVariables(&this->space->q[i*(neqn+nauxvars)]);
      }
+     #elif
+     Abort << "Python not built with solver";
      #endif
    }
    else{
