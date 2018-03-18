@@ -113,6 +113,9 @@ void HeatTransferEqnSet<Type>::SetInitialConditions()
      for(i = 0; i < (nnode+gnode+nbnode); ++i){
        pywrap.SetInitialConditions(this->Qinf, neqn, nauxvars, &this->space->q[i*(neqn+nauxvars)], &m->xyz[i*3]);
        ComputeAuxiliaryVariables(&this->space->q[i*(neqn+nauxvars)]);
+       if(real(this->space->q[i*(neqn+nauxvars)]) < 0.0){
+	 Abort << "HeatTransferEqnSet:: initial temperature cannot be < 0.0";
+       }
      }
      #else
      Abort << "Python not built with solver";
