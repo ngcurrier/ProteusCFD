@@ -1,20 +1,72 @@
 template <class Type>
 ChemModel<Type>::ChemModel()
 {
-
 }
 
 template <class Type>
-ChemModel<Type>::ChemModel(std::string casestring, Int isViscous, std::string databaseFile):
-  caseString(casestring), nespecies(0), nspecies(0), reactions(0)
+ChemModel<Type>::ChemModel(std::string casestring, std::string databaseFile):
+  caseString(casestring), nespecies(0), nspecies(0), reactions(0), databaseFile(databaseFile)
 {
   Int i, j, k;
   Int eosType = 0; //ideal gas
 
-  nreactions = GetNumberOfReactionsFromFile();
+  std::string rxnfile = caseString + ".rxn";
+  //TODO: check for a chemkin file as well
+  if(!ReadReactionsFile(rxnfile)){
+    std::stringstream ss;
+    ss << "Error reading chemical reaction file " << rxnfile;
+    Abort << ss.str();
+  }
+  
+  //count total elements in model
+  std::vector<std::string> nespeciesList = GetElementsInModel();
+  nespecies = nespeciesList.size();
+  
+  std::cout << "SPECIES IN MODEL: " << std::endl;
+  std::cout << "================= " << std::endl;
+  for(i = 0; i < nspecies; i++){
+    std::cout << i << ": " << species[i].symbol << std::endl;
+  }
+  std::cout << std::endl;
+
+  for(i = 0; i < nspecies; i++){
+    species[i].Print();
+  }
+
+  // setup one EOS model for each specie
+  eos.resize(nspecies);
+  std::cout << "Setting up EOSs:\n";
+  std::cout << "-------------------------------------\n";
+  for(i = 0; i < nspecies; ++i){
+    EOS<Type>* eosTmp;
+    CreateEOS(&eosTmp, eosType);
+    eos[i] = eosTmp;
+    std::cout << i << ": " << eos[i]->myType() << std::endl;
+  }
+  std::cout << "\n";
+   
+  for(i = 0; i < nreactions; i++){
+    reactions[i].Print();
+    std::cout << std::endl;
+  }
+
+}
+
+template <class Type>
+std::vector<std::string> ChemModel<Type>::GetElementsInModel()
+{
+  std::vector<std::string> vnespecies;
+  //TODO: Fill in elemental species counter
+  return vnespecies;
+}
+
+template <class Type>
+Int ChemModel<Type>::ReadReactionsFile(std::string rxnfile)
+{
+  Int i, j, k;
+  nreactions = ReadNumberOfReactionsFromFile(rxnfile);
   reactions = new Reaction<Type>[nreactions];
 
-  std::string rxnfile = caseString + ".rxn";
   std::cout << "CHEM_RXN: Reading " << nreactions << " reactions from file " << rxnfile 
 	    << std::endl;
   Int SpeciesCount = 0;
@@ -69,46 +121,19 @@ ChemModel<Type>::ChemModel(std::string casestring, Int isViscous, std::string da
   species = new Species<Type>[nspecies];
   //initialize species we need
   for(i = 0; i < nspecies; i++){
-    species[i].Init(speciesList[i], isViscous, databaseFile);
+    species[i].Init(speciesList[i],databaseFile);
   }
   for(i = 0; i < nreactions; i++){
     reactions[i].SetSpeciesPointer(species, nspecies);
   }
-
-  //todo: count total elemental species in model
-  //nespecies = ???
-  
-  std::cout << "SPECIES IN MODEL: " << std::endl;
-  std::cout << "================= " << std::endl;
-  for(i = 0; i < nspecies; i++){
-    std::cout << i << ": " << species[i].symbol << std::endl;
-  }
-  std::cout << std::endl;
-
-  for(i = 0; i < nspecies; i++){
-    species[i].Print();
-  }
-
-  // setup one EOS model for each specie
-  eos.resize(nspecies);
-  std::cout << "Setting up EOSs:\n";
-  std::cout << "-------------------------------------\n";
-  for(i = 0; i < nspecies; ++i){
-    EOS<Type>* eosTmp;
-    CreateEOS(&eosTmp, eosType);
-    eos[i] = eosTmp;
-    std::cout << i << ": " << eos[i]->myType() << std::endl;
-  }
-  std::cout << "\n";
-   
-  for(i = 0; i < nreactions; i++){
-    reactions[i].Print();
-    std::cout << std::endl;
-  }
-
   delete [] speciesList;
 
-  return;
+}
+
+template <class Type>
+Int ChemModel<Type>::ReadChemkinReactionsFile(std::string rxnfile)
+{
+
 }
 
 template <class Type>
@@ -124,10 +149,10 @@ ChemModel<Type>::~ChemModel()
 }
 
 template <class Type>
-Int ChemModel<Type>::GetNumberOfReactionsFromFile()
+Int ChemModel<Type>::ReadNumberOfReactionsFromFile(std::string rxnfile)
 {
   Int nreactions = 0;
-  std::string fileName = this->caseString + ".rxn";
+  std::string fileName = rxnfile;
   std::ifstream fin;
 
   std::stringstream ss;

@@ -4,6 +4,8 @@
 #include <string>
 #include <iostream>
 #include <cmath>
+#include <vector>
+#include <sstream>
 #include "general.h"
 #include "species.h"
 #include "reaction.h"
@@ -40,16 +42,18 @@ class ChemModel
   //store casestring
   std::string caseString;
 
+  //store database filename
+  std::string databaseFile;
+  
   //equation of state class, one for each species
   std::vector<EOS<Type>* > eos;
 
   //used for testing and bootstrapping
   ChemModel();
   //used for general file defined models
-  ChemModel(std::string casestring, Int isViscous, std::string databaseFile);
+  ChemModel(std::string casestring, std::string databaseFile);
   ~ChemModel();
 
-  Int GetNumberOfReactionsFromFile();
   void GetFluidProperties(const Type* rhoi, const Type T, const Type* cvi,
 			  Type& cv, Type& cp, Type& R, Type& P, Type& rho, Type& c2) const;
   void GetMassProductionRates(Type* rhoi, Type T, Type* wdot); //get production rates for chemical reaction
@@ -74,6 +78,11 @@ class ChemModel
   Type GetCv(const Type* rhoi, const Type T) const;
   
  private:
+  std::vector<std::string> GetElementsInModel();
+  Int ReadReactionsFile(std::string rxnfile);
+  Int ReadNumberOfReactionsFromFile(std::string rxnfile);
+  Int ReadChemkinReactionsFile(std::string rxnfile);
+  Int ReadNumberOfReactionsFromFileChemkin(std::string rxnfile);
 };
 
 //include implementations

@@ -39,9 +39,8 @@ class ChemTestRead : public ChemSetup
 
 TEST_F(ChemTestRead, testChemRxnFileRead)
 {
-  Int isViscous = true;
   std::string chemdb = homePath + "/.proteusCFD/database/chemdb.hdf5";
-  ChemModel<double> chem("../unitTest/chemResources/11speciesAir", isViscous, chemdb);
+  ChemModel<double> chem("../unitTest/chemResources/11speciesAir", chemdb);
   EXPECT_EQ(11, chem.nspecies);
   EXPECT_EQ(20, chem.nreactions);
   EXPECT_EQ(0, chem.nespecies);
@@ -68,7 +67,7 @@ TEST_F(testSpeciesN2, testProps)
 {
   Species<double> n2;
   std::string chemdb = homePath + "/.proteusCFD/database/chemdb.hdf5";
-  n2.Init("N2", true, chemdb);
+  n2.Init("N2", chemdb);
  
   //1.039 kj/kg.K
   EXPECT_NEAR(1039.6, n2.GetCp(300), 1.0e-1);
@@ -94,7 +93,7 @@ TEST_F(testIdealGasEOS, testCalls)
 {
   Species<double> n2;
   std::string chemdb = homePath + "/.proteusCFD/database/chemdb.hdf5";
-  n2.Init("N2", true, chemdb);
+  n2.Init("N2", chemdb);
 
   IdealGasEOS<double> eos;
 

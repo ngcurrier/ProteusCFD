@@ -59,8 +59,7 @@ int main(int argc, char* argv[])
   ss >> TGiven;
 
   //read reaction file
-  Bool viscous = true;
-  ChemModel<double> chem(param.casestring, param.viscous, param.chemDB);
+  ChemModel<double> chem(param.casestring, param.chemDB);
 
   rhoi = new Real[chem.nspecies];
   wdot = new Real[chem.nspecies];

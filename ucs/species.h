@@ -49,7 +49,7 @@ class Species
                        //          [*][2-5] A, B, C, D, parameters
 
   //set name of species for lookup
-  void Init(std::string name, Bool requireViscousProps, std::string database);
+  void Init(std::string name, std::string database);
   
   Type GetCp(Type T); //specific heat constant pressure
   Type GetH(Type T, Bool shiftCurve = true);  //specific enthalpy
@@ -67,7 +67,7 @@ class Species
   void Print(); 
 
  private:
-  Int GetDBInfo(Bool requireViscousProps, std::string database);  //get info contained in database
+  Int GetDBInfo(std::string database);  //get info contained in database
 };
 
 //include implementations

@@ -31,7 +31,7 @@ CompressibleFREqnSet<Type>::CompressibleFREqnSet(SolutionSpace<Type>* space, Par
 {
   this->space = space;
   this->param = p;
-  this->chem = new ChemModel<Type>(this->param->casestring, this->param->viscous, this->param->chemDB);
+  this->chem = new ChemModel<Type>(this->param->casestring, this->param->chemDB);
   this->ownChem = true;
   
   nspecies = chem->nspecies;

@@ -71,6 +71,7 @@ class Reaction
   
   //will read reaction from file and will complete a reaction object to pass back
   Int ReadReactionFromFile(std::string fileName, Int ReactionId);
+  Int ReadReactionFromFileChemkin(std::string fileName, Int ReadtionId);
   Int ParseReactionBlockLine(std::string& line);
   Int ParseReaction(std::string& rxn);
   Int ParseCatalysts(std::string& line);

@@ -27,19 +27,16 @@ Species<Type>::Species()
 template <class Type>
 Species<Type>::~Species()
 {
-  return;
 }
 
 template <class Type>
-void Species<Type>::Init(std::string name, Bool requireViscousProps, std::string database)
+void Species<Type>::Init(std::string name, std::string database)
 {
   //set the name of the species
   this->symbol = name;
   //look up info in the DB
   std::cout << "SPECIES: Reading chemical database " << database << " for species " << symbol << std::endl;
-  GetDBInfo(requireViscousProps, database);
-
-  return;
+  GetDBInfo(database);
 }
 
 template <class Type>
@@ -131,7 +128,7 @@ void Species<Type>::GetThermoCoeff(Type T, Type* a)
 }
 
 template <class Type>
-Int Species<Type>::GetDBInfo(Bool requireViscousProps, std::string database)
+Int Species<Type>::GetDBInfo(std::string database)
 {
   Int i = 0;
   Int err = 0;
@@ -211,88 +208,86 @@ Int Species<Type>::GetDBInfo(Bool requireViscousProps, std::string database)
   for(i = 0; i < n; i++) this->thermo_coeff[2][i] = ctemp[i];
   delete [] ctemp;
 
-  if(requireViscousProps){
-    hasViscousProps = true;
-    //read in thermal conductivity curvefit
-    variable = "k";
-    Int ncols = -1;
-    Int nrows = -1;
-    ctemp = NULL;
+  hasViscousProps = true;
+  //read in thermal conductivity curvefit
+  variable = "k";
+  Int ncols = -1;
+  Int nrows = -1;
+  ctemp = NULL;
+  //read to get array size
+  err = HDF_ReadArray(file_id, directory, variable, &ctemp, &nrows, &ncols);
+  if(err){
+    std::cout << "WARNING: Thermal conductivity not found for species " << this->symbol << std::endl;
+    std::cout << "WARNING: Using thermal conductivity from N2 instead" << std::endl;
+    std::cerr << "WARNING: Thermal conductivity not found for species " << this->symbol << std::endl;
+    std::cerr << "WARNING: Using thermal conductivity from N2 instead" << std::endl;
+    std::string tempDirectory = "/species/N2";
+    err = HDF_ReadArray(file_id, tempDirectory, variable, &ctemp, &nrows, &ncols);
+    //allocate tempspace
+    ctemp = new Real[nrows*ncols];
+    //read data
+    err = HDF_ReadArray(file_id, tempDirectory, variable, &ctemp, &nrows, &ncols); 
+    for(i = 0; i < nrows; i++){
+      for(Int j = 0; j < ncols; j++){
+	k_coeff[i][j] = ctemp[i*ncols + j];
+      }
+    }
+    k_coeff_curves = nrows;
+    delete [] ctemp;
+  }
+  else{
+    //allocate tempspace
+    ctemp = new Real[nrows*ncols];
+    //read data
+    err = HDF_ReadArray(file_id, directory, variable, &ctemp, &nrows, &ncols); 
+    for(i = 0; i < nrows; i++){
+      for(Int j = 0; j < ncols; j++){
+	k_coeff[i][j] = ctemp[i*ncols + j];
+      }
+    }
+    k_coeff_curves = nrows;
+    delete [] ctemp;
+  }
+  
+  //read in visosity curvefit
+  variable = "mu";
+  ncols = -1;
+  nrows = -1;
+  ctemp = NULL;
+  //read to get array size
+  err = HDF_ReadArray(file_id, directory, variable, &ctemp, &nrows, &ncols);
+  if(err){
+    std::cout << "WARNING: Molecular viscosity not found for species " << this->symbol << std::endl;
+    std::cout << "WARNING: Using molecular viscosity from N2 instead" << std::endl;
+    std::cerr << "WARNING: Molecular viscosity not found for species " << this->symbol << std::endl;
+    std::cerr << "WARNING: Using molecular viscosity from N2 instead" << std::endl;
+    std::string tempDirectory = "/species/N2";
     //read to get array size
+    err = HDF_ReadArray(file_id, tempDirectory, variable, &ctemp, &nrows, &ncols);
+    //allocate tempspace
+    ctemp = new Real[nrows*ncols];
+    //read data
+    err = HDF_ReadArray(file_id, tempDirectory, variable, &ctemp, &nrows, &ncols);
+    for(i = 0; i < nrows; i++){
+      for(Int j = 0; j < ncols; j++){
+	mu_coeff[i][j] = ctemp[i*ncols + j];
+      }
+    }
+    mu_coeff_curves = nrows;
+    delete [] ctemp;
+  }
+  else{
+    //allocate tempspace
+    ctemp = new Real[nrows*ncols];
+    //read data
     err = HDF_ReadArray(file_id, directory, variable, &ctemp, &nrows, &ncols);
-    if(err){
-      std::cout << "WARNING: Thermal conductivity not found for species " << this->symbol << std::endl;
-      std::cout << "WARNING: Using thermal conductivity from N2 instead" << std::endl;
-      std::cerr << "WARNING: Thermal conductivity not found for species " << this->symbol << std::endl;
-      std::cerr << "WARNING: Using thermal conductivity from N2 instead" << std::endl;
-      std::string tempDirectory = "/species/N2";
-      err = HDF_ReadArray(file_id, tempDirectory, variable, &ctemp, &nrows, &ncols);
-      //allocate tempspace
-      ctemp = new Real[nrows*ncols];
-      //read data
-      err = HDF_ReadArray(file_id, tempDirectory, variable, &ctemp, &nrows, &ncols); 
-      for(i = 0; i < nrows; i++){
-	for(Int j = 0; j < ncols; j++){
-	  k_coeff[i][j] = ctemp[i*ncols + j];
-	}
+    for(i = 0; i < nrows; i++){
+      for(Int j = 0; j < ncols; j++){
+	mu_coeff[i][j] = ctemp[i*ncols + j];
       }
-      k_coeff_curves = nrows;
-      delete [] ctemp;
     }
-    else{
-      //allocate tempspace
-      ctemp = new Real[nrows*ncols];
-      //read data
-      err = HDF_ReadArray(file_id, directory, variable, &ctemp, &nrows, &ncols); 
-      for(i = 0; i < nrows; i++){
-	for(Int j = 0; j < ncols; j++){
-	  k_coeff[i][j] = ctemp[i*ncols + j];
-	}
-      }
-      k_coeff_curves = nrows;
-      delete [] ctemp;
-    }
-    
-    //read in visosity curvefit
-    variable = "mu";
-    ncols = -1;
-    nrows = -1;
-    ctemp = NULL;
-    //read to get array size
-    err = HDF_ReadArray(file_id, directory, variable, &ctemp, &nrows, &ncols);
-    if(err){
-      std::cout << "WARNING: Molecular viscosity not found for species " << this->symbol << std::endl;
-      std::cout << "WARNING: Using molecular viscosity from N2 instead" << std::endl;
-      std::cerr << "WARNING: Molecular viscosity not found for species " << this->symbol << std::endl;
-      std::cerr << "WARNING: Using molecular viscosity from N2 instead" << std::endl;
-      std::string tempDirectory = "/species/N2";
-      //read to get array size
-      err = HDF_ReadArray(file_id, tempDirectory, variable, &ctemp, &nrows, &ncols);
-      //allocate tempspace
-      ctemp = new Real[nrows*ncols];
-      //read data
-      err = HDF_ReadArray(file_id, tempDirectory, variable, &ctemp, &nrows, &ncols);
-      for(i = 0; i < nrows; i++){
-	for(Int j = 0; j < ncols; j++){
-	  mu_coeff[i][j] = ctemp[i*ncols + j];
-	}
-      }
-      mu_coeff_curves = nrows;
-      delete [] ctemp;
-    }
-    else{
-      //allocate tempspace
-      ctemp = new Real[nrows*ncols];
-      //read data
-      err = HDF_ReadArray(file_id, directory, variable, &ctemp, &nrows, &ncols);
-      for(i = 0; i < nrows; i++){
-	for(Int j = 0; j < ncols; j++){
-	  mu_coeff[i][j] = ctemp[i*ncols + j];
-	}
-      }
-      mu_coeff_curves = nrows;
-      delete [] ctemp;
-    }
+    mu_coeff_curves = nrows;
+    delete [] ctemp;
   }
   
   //compute R
