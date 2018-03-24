@@ -83,6 +83,7 @@ class ChemModel
   Int ReadNumberOfReactionsFromFile(std::string rxnfile);
   Int ReadChemkinReactionsFile(std::string rxnfile);
   Int ReadNumberOfReactionsFromFileChemkin(std::string rxnfile);
+  void BuildGlobalSpeciesList();
 };
 
 //include implementations

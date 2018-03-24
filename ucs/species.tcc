@@ -172,9 +172,13 @@ Int Species<Type>::GetDBInfo(std::string database)
     variable = "NASA7_gupta1";
     err = HDF_ReadArray(file_id, directory, variable, &ctemp, &n);
     if(err){
-      std::stringstream ss;
-      ss << "Could not read species coefficients " << this->symbol << std::endl;
-      Abort << ss.str();
+      variable = "NASA7_grimech1";
+      err = HDF_ReadArray(file_id, directory, variable, &ctemp, &n);
+      if(err){
+	std::stringstream ss;
+	ss << "Could not read species coefficients " << this->symbol << std::endl;
+	Abort << ss.str();
+      }
     }
   }
   for(i = 0; i < n; i++) this->thermo_coeff[0][i] = ctemp[i];
@@ -186,9 +190,13 @@ Int Species<Type>::GetDBInfo(std::string database)
     variable = "NASA7_gupta2";
     err = HDF_ReadArray(file_id, directory, variable, &ctemp, &n); 
     if(err){
-      std::stringstream ss;
-      ss << "Could not read species coefficients " << this->symbol << std::endl;
-      Abort << ss.str();
+      variable = "NASA7_grimech2";
+      err = HDF_ReadArray(file_id, directory, variable, &ctemp, &n);
+      if(err){
+	std::stringstream ss;
+	ss << "Could not read species coefficients " << this->symbol << std::endl;
+	Abort << ss.str();
+      }
     }
   }
   for(i = 0; i < n; i++) this->thermo_coeff[1][i] = ctemp[i];
@@ -200,9 +208,13 @@ Int Species<Type>::GetDBInfo(std::string database)
     variable = "NASA7_gupta3";
     err = HDF_ReadArray(file_id, directory, variable, &ctemp, &n);
     if(err){
-      std::stringstream ss;
-      ss << "Could not read species coefficients " << this->symbol << std::endl;
-      Abort << ss.str();
+      variable = "NASA7_grimech2";
+      err = HDF_ReadArray(file_id, directory, variable, &ctemp, &n);
+      if(err){
+	std::stringstream ss;
+	ss << "Could not read species coefficients " << this->symbol << std::endl;
+	Abort << ss.str();
+      }
     }
   }
   for(i = 0; i < n; i++) this->thermo_coeff[2][i] = ctemp[i];

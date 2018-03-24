@@ -1,3 +1,5 @@
+#include "strings_util.h"
+
 template <class Type>
 ChemModel<Type>::ChemModel()
 {
@@ -10,12 +12,31 @@ ChemModel<Type>::ChemModel(std::string casestring, std::string databaseFile):
   Int i, j, k;
   Int eosType = 0; //ideal gas
 
+  //check if we can open .rxn file first
   std::string rxnfile = caseString + ".rxn";
-  //TODO: check for a chemkin file as well
-  if(!ReadReactionsFile(rxnfile)){
-    std::stringstream ss;
-    ss << "Error reading chemical reaction file " << rxnfile;
-    Abort << ss.str();
+  std::ifstream rtest;
+  rtest.open(rxnfile.c_str());
+  if(rtest.is_open()){
+    rtest.close();
+    if(ReadReactionsFile(rxnfile)){
+      std::stringstream ss;
+      ss << "Error reading chemical reaction file " << rxnfile;
+      Abort << ss.str();
+    }
+  }
+  else{
+    //check if we can open .ck file
+    std::ifstream ctest;
+    std::string filename = caseString + ".ck";
+    ctest.open(filename.c_str());
+    if(ctest.is_open()){
+      ctest.close();
+      if(ReadChemkinReactionsFile(filename)){
+	std::stringstream ss;
+	ss << "Error reading Chemkin chemical reaction file " << filename;
+	Abort << ss.str();
+      }
+    }
   }
   
   //count total elements in model
@@ -69,25 +90,40 @@ Int ChemModel<Type>::ReadReactionsFile(std::string rxnfile)
 
   std::cout << "CHEM_RXN: Reading " << nreactions << " reactions from file " << rxnfile 
 	    << std::endl;
+
+  for(Int i = 1; i <= nreactions; i++){
+    reactions[i-1].ReadReactionFromFile(rxnfile,i);
+  }
+  
+  BuildGlobalSpeciesList();
+  
+  return 0;
+
+}
+
+template <class Type>
+void ChemModel<Type>::BuildGlobalSpeciesList()
+{
+  std::cout << "CHEM_RXN: Building global species list" << std::endl;
+  
   Int SpeciesCount = 0;
   Int CatCount = 0;
-  for(i = 1; i <= nreactions; i++){
-    reactions[i-1].ReadReactionFromFile(rxnfile,i);
+  for(Int i = 1; i <= nreactions; i++){
     SpeciesCount += reactions[i-1].nspecies;
     CatCount += reactions[i-1].ncatalysts;
   }
-
+  
   //from species information now contained in each reaction object
   //build a global list of all unique species
-  std::string* speciesList = new std::string[SpeciesCount+CatCount];
+  std::vector<std::string> speciesList(SpeciesCount+CatCount);
   
   Int listSize = 0;
   Bool inList;
   //create a unique list using reactants
-  for(i = 0; i < nreactions; i++){
-    for(j = 0; j < reactions[i].nspecies; j++){
+  for(Int i = 0; i < nreactions; i++){
+    for(Int j = 0; j < reactions[i].nspecies; j++){
       inList = false;
-      for(k = 0; k < listSize; k++){
+      for(Int k = 0; k < listSize; k++){
 	if(reactions[i].speciesSymbols[j] == speciesList[k]){
 	  inList = true;
 	  break;
@@ -100,10 +136,10 @@ Int ChemModel<Type>::ReadReactionsFile(std::string rxnfile)
     }
   }
   //add catalysts to the list
-  for(i = 0; i < nreactions; i++){
-    for(j = 0; j < reactions[i].ncatalysts+reactions[i].ntbodies; j++){
+  for(Int i = 0; i < nreactions; i++){
+    for(Int j = 0; j < reactions[i].ncatalysts+reactions[i].ntbodies; j++){
       inList = false;
-      for(k = 0; k < listSize; k++){
+      for(Int k = 0; k < listSize; k++){
 	if(reactions[i].catSymbols[j] == speciesList[k]){
 	  inList = true;
 	  break;
@@ -120,20 +156,210 @@ Int ChemModel<Type>::ReadReactionsFile(std::string rxnfile)
   nspecies = listSize;
   species = new Species<Type>[nspecies];
   //initialize species we need
-  for(i = 0; i < nspecies; i++){
+  for(Int i = 0; i < nspecies; i++){
     species[i].Init(speciesList[i],databaseFile);
   }
-  for(i = 0; i < nreactions; i++){
+  for(Int i = 0; i < nreactions; i++){
     reactions[i].SetSpeciesPointer(species, nspecies);
   }
-  delete [] speciesList;
 
 }
 
 template <class Type>
 Int ChemModel<Type>::ReadChemkinReactionsFile(std::string rxnfile)
 {
+  std::ifstream fin;
+  std::string line, trash;
+  size_t loc;
 
+  nreactions = ReadNumberOfReactionsFromFileChemkin(rxnfile);
+  std::cout << "CHEM_RXN CHEMKIN: Reading " << nreactions << " reactions from file " << rxnfile 
+	    << std::endl;
+
+  reactions = new Reaction<Type>[nreactions];
+  
+  //states for our state machine reader
+  enum{
+    stateFindingRXNS,
+    stateReadingRXNSList,
+    stateReadingRXNItem1,
+    stateReadingRXNItem2,
+    stateReadingRXNItem3,
+    stateFoundEND,
+    NSTATES
+  };
+
+  Int state = stateFindingRXNS;
+  Int ireaction = 0;
+  
+  fin.open(rxnfile.c_str());
+  if(fin.is_open()){
+    //We simply look through all lines knowing that =, =>, AND <=> represent a reaction, count 'em
+    //Ignore anything past a ! in each line
+    while(!fin.eof()){
+      getline(fin, trash);
+      // tokenize based on !, take everything before it
+      std::vector<std::string> tokens = Tokenize(trash, '!');
+      std::vector<std::string> itokens, ctokens;
+      std::vector<double> values;
+      std::string LHS, RHS, coeffs, LOW, TROE;
+      std::string proteusEquation;
+      std::string proteusCatalysts;
+      bool hascat = false;
+      bool haspdep = false;
+      bool haslow, hastroe;
+      trash.clear();
+      std::string line = tokens[0];
+      double A, b, Ea;
+      std::stringstream ss;
+      
+      if(line.find("REACTIONS") != std::string::npos) state = stateReadingRXNSList;
+      else if((line.find("END") != std::string::npos) && state == stateReadingRXNSList) state = stateFoundEND;
+      else if(line.find("=") != std::string::npos) state = stateReadingRXNItem1;
+      else if(line.find("=>") != std::string::npos) state = stateReadingRXNItem2;
+      else if(line.find("<=>") != std::string::npos) state = stateReadingRXNItem3;
+      else{
+	//do nothing just skip
+      }
+      switch(state){
+      case stateFindingRXNS:
+	// just ignore and keep reading
+	break;
+      case stateReadingRXNSList:
+	break;
+      case stateReadingRXNItem1:
+      case stateReadingRXNItem2: //we ignore irreversible reactions and treat as reversible
+      case stateReadingRXNItem3:
+	//All chemkin reactions are modified arrhenius form -- ModArrhenius k = A T^n exp(-Ea/RT)
+	reactions[ireaction].rxnType = ModArrheniusCoeff;
+	
+	// jump down a state to read next reaction
+	// Get left and right of equation
+	itokens = Split(line, "=");
+	StripFromString(itokens[0], "<", itokens[0]);
+	StripFromString(itokens[1], ">", itokens[1]);
+	LHS = itokens[0];
+	RHS = itokens[1];
+	//This is questionable but normally works since most users space the Arrhenius coefficients far right
+	// and don't normaly space out the equation more than one space
+	itokens = Split(RHS, "  ");
+	RHS = itokens[0];
+	coeffs = itokens[1];
+	values = TokenizeToDoubles(coeffs, ' ');
+	A = values[0];
+	b = values[1];
+	Ea = values[2];
+
+	reactions[ireaction].A = A;
+	reactions[ireaction].EA = Ea;
+	reactions[ireaction].n = b; // difference in notation, temperature exponent
+	std::cout << ireaction << ": " << LHS << " <==> " << RHS << std::endl;
+	std::cout << "\tA: " << A << " b: " << b << " Ea: " << Ea << std::endl;
+	
+	RemoveWhitespace(LHS);
+	RemoveWhitespace(RHS);
+	if(LHS.find("(+M)") != std::string::npos){
+	  haspdep = true;
+	  hascat = true;
+	  //replace any (M+) values with M
+	  Replace(LHS, "(+M)", "+M");
+	  Replace(RHS, "(+M)", "+M");
+	}
+	else if(LHS.find("M") != std::string::npos){
+	  hascat = true;
+	}
+
+	//parser currently expects spaces separating operators, make it so!
+	itokens = Tokenize(LHS, '+');
+	LHS = itokens[0];
+	for(Int i = 1; i < itokens.size(); ++i){
+	  LHS += " + " + itokens[i];
+	}
+	itokens = Tokenize(RHS, '+');
+	RHS = itokens[0];
+	for(Int i = 1; i < itokens.size(); ++i){
+	  RHS += " + " + itokens[i];
+	}
+	
+	//create the equation proteus expects to see for parsing
+	proteusEquation = LHS + "<==>" + RHS;
+	reactions[ireaction].ParseReaction(proteusEquation);
+	
+	// If the letter M appears by itself in a reaction the next line must be catalysts
+	// i.e. the rate constant is assumed to be in the low pressure limiting region
+	if(hascat){
+	  std::cout << "WARNING: " << LHS << " has catalysts\n";
+	  std::cerr << "WARNING: " << LHS << " has catalysts\n";
+	  getline(fin, trash);
+	  haslow = hastroe = false;
+	  if(trash.find("LOW") != std::string::npos){
+	    coeffs = GetStringBetween("/", "/", trash, LOW);
+	    getline(fin,trash);
+	    haslow = true;
+	  }
+	  if(trash.find("TROE") != std::string::npos){
+	    coeffs = GetStringBetween("/", "/", trash, TROE);
+	    getline(fin,trash);
+	    hastroe = true;
+	  }
+	  if(trash.find("PLOG") != std::string::npos){
+	    //should continue to getline until it fails.. TODO: fix PLOG reading
+	  }
+	  std::vector<std::string> cats = Tokenize(trash, '/');
+	  reactions[ireaction].catalysts = true;
+	  reactions[ireaction].ncatalysts = cats.size();
+	  //TODO: reactions[ireaction].thirdBodies = false?
+	  //we need to put the catalysts in the following form for parsing
+	  //M = NO(+)[1.0], O2(+)[1.0], N2(+)[1.0], O(+)[1.0], N(+)[1.0]
+	  proteusCatalysts = "M =";
+	  for(int i = 0; i < cats.size(); i = i + 2){
+	    proteusCatalysts += " " + cats[i] + "[" + cats[i+1] + "],";
+	  }
+	  proteusCatalysts = proteusCatalysts.substr(0, proteusCatalysts.size()-1);
+	  reactions[ireaction].ParseCatalysts(proteusCatalysts);
+	}
+	// If (+M) appears then the rate constant is in the fall off region
+	// -- If only LOW/ follows then this is the Lindemann formula
+	// -- If LOW/ then a line with TROE/ follows then this is Troe's formula
+	if(haspdep){
+	  std::cout << "\tWARNING: pressure dependent reaction\n";       
+	  std::cerr << "\tWARNING: pressure dependent reaction\n";
+	  std::cout << "\tWARNING: Proteus does not support pressure dependence at this time -- ignoring" << std::endl;
+	  if(haslow)  std::cout << "\tLOW: " << LOW << std::endl;
+	  if(hastroe) std::cout << "\tTROE: " << TROE << std::endl;
+	}
+
+	// If the next line contains the PLOG keyword then this may be used to express
+	// pressure dependence at these tabuluar pressures
+	ireaction++;
+	state = stateReadingRXNSList;
+	break;
+      case stateFoundEND:
+	// we're done, just close out the file
+	fin.close();
+	BuildGlobalSpeciesList();
+	return 0;
+	break;
+      default:
+	std::cerr << "State not defined reading Chemkin" << std::endl;
+	break;
+      };
+      // wait until we get to line REACTIONS to start looking for reactions
+      
+      // read reactions until we see END as well
+    }
+  }
+  else{
+    std::stringstream ss;
+    ss << "CHEM_RXN CHEMKIN READFILE: Cannot open reaction file --> " << rxnfile << std::endl;
+    Abort << ss.str();
+    return 1;
+  }
+  fin.close();
+
+  BuildGlobalSpeciesList();
+
+  return 0;
 }
 
 template <class Type>
@@ -189,10 +415,86 @@ Int ChemModel<Type>::ReadNumberOfReactionsFromFile(std::string rxnfile)
     std::stringstream ss;
     ss << "CHEM_RXN READFILE: Cannot open reaction file --> " << fileName << std::endl;
     Abort << ss.str();
-    return (1);
+    return 1;
   }
 
   return nreactions;
+}
+
+//This function is just an empty state machine which serves as a counter for Chemkin files
+template <class Type>
+Int ChemModel<Type>::ReadNumberOfReactionsFromFileChemkin(std::string rxnfile)
+{
+
+  std::ifstream fin;
+  std::string line, trash;
+
+  //states for our state machine reader
+  enum{
+    stateFindingRXNS,
+    stateReadingRXNSList,
+    stateReadingRXNItem1,
+    stateReadingRXNItem2,
+    stateReadingRXNItem3,
+    stateFoundEND,
+    NSTATES
+  };
+
+  Int state = stateFindingRXNS;
+  Int nreactions = 0;
+  
+  fin.open(rxnfile.c_str());
+  if(fin.is_open()){
+    //We simply look through all lines knowing that =, =>, AND <=> represent a reaction, count 'em
+    //Ignore anything past a ! in each line
+    while(!fin.eof()){
+      getline(fin, trash);
+      // tokenize based on !, take everything before it
+      std::vector<std::string> tokens = Tokenize(trash, '!');
+      trash.clear();
+      std::string line = tokens[0];
+
+      if(line.find("REACTIONS") != std::string::npos) state = stateReadingRXNSList;
+      else if((line.find("END") != std::string::npos) && state == stateReadingRXNSList) state = stateFoundEND;
+      else if(line.find("=") != std::string::npos) state = stateReadingRXNItem1;
+      else if(line.find("=>") != std::string::npos) state = stateReadingRXNItem2;
+      else if(line.find("<=>") != std::string::npos) state = stateReadingRXNItem3;
+      else{
+	//do nothing just skip
+      }
+      switch(state){
+      case stateFindingRXNS:
+	// just ignore and keep reading
+	break;
+      case stateReadingRXNSList:
+	break;
+      case stateReadingRXNItem1:
+      case stateReadingRXNItem2: //NOTE: we ignore irreversible reactions and treat them as reversible
+      case stateReadingRXNItem3:
+	nreactions++;
+	state = stateReadingRXNSList;
+	break;
+      case stateFoundEND:
+	return nreactions;
+	break;
+      default:
+	std::cerr << "State not defined reading Chemkin" << std::endl;
+	break;
+      };
+      // wait until we get to line REACTIONS to start looking for reactions
+
+      // read reactions until we see END as well
+    }
+  }
+  else{
+    std::stringstream ss;
+    ss << "CHEM_RXN CHEMKIN READFILE: Cannot open reaction file --> " << rxnfile << std::endl;
+    Abort << ss.str();
+    return -1;
+  }
+  fin.close();
+  return nreactions;
+  
 }
 
 // returns fluid properties given rhoi's (kg/m^3), Temperature (K), and cvi's (J/kg.K)

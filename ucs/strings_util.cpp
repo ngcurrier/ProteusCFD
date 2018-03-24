@@ -117,17 +117,67 @@ Int CountCSV(const std::string str)
   return count+1;
 }
 
+//Removes whitespace from a string
+void RemoveWhitespace(std::string& s)
+{
+  std::string out;
+  for(size_t i = 0; i < s.size(); ++i){
+    if(s[i] != ' '){
+      out.push_back(s[i]);
+    }
+  }
+  s = out;
+}
+
+//You should not pass in ' ' as the split feature, use tokenize if you'd like to do that here
+std::vector<std::string> Split(const std::string str, const std::string splitOn)
+{
+  std::vector<std::string> v;
+  size_t loc = str.find(splitOn);
+  size_t l = splitOn.size();
+  if(loc != std::string::npos){
+    v.push_back(str.substr(0,loc));
+    v.push_back(str.substr(loc+l,str.size()-loc)); 
+  }
+  else{
+    std::stringstream ss;
+    ss << "Split() could not split on values passed : " << str << " -- " << splitOn << std::endl;
+    throw std::invalid_argument(ss.str());
+  }
+		     
+  return v;
+}
+
+void Replace(std::string& in, const std::string replaceThis, const std::string withThis)
+{
+  std::string tmp("");
+  size_t loc = in.find(replaceThis);
+  size_t l = replaceThis.size();
+  if(loc != std::string::npos){
+    tmp += in.substr(0, loc);
+    tmp += withThis;
+    tmp += in.substr(loc+l, in.size() - loc);
+    in = tmp;
+  }
+  else{
+    std::stringstream ss;
+    ss << "Replace() could not split on values passed : " << in << " -- " << replaceThis << std::endl;
+    throw std::invalid_argument(ss.str());
+  }
+}
+
 std::vector<std::string> Tokenize(const std::string str, const char delimiter)
 {
   std::vector<std::string> tokens;
   std::string token;
   std::string workingStr = str;
   size_t loc1;
-  
+
   //get rid of the first character if it is a delimiter
   if(workingStr[0] == delimiter){
     workingStr = workingStr.substr(1);
   }
+  
   //place a delimiter at the end of the string if it is not there
   //the back() member function is not portable yet, sigh...
   size_t last = workingStr.size()-1;
@@ -138,6 +188,13 @@ std::vector<std::string> Tokenize(const std::string str, const char delimiter)
   while(workingStr.size() != 0){
     loc1 = workingStr.find(delimiter, 0);
     token = workingStr.substr(0, loc1);
+    workingStr = workingStr.substr(loc1+1);
+    //do not return empty tokens
+    bool allwhite = true;
+    for(size_t i = 0; i < token.size(); ++i){
+      if(token[i] != ' ') allwhite = false;
+    }
+    if(allwhite) continue;
     //attempt to eliminate any leading spaces
     size_t loc2 = 0;
     while(loc2 != std::string::npos){
@@ -149,9 +206,20 @@ std::vector<std::string> Tokenize(const std::string str, const char delimiter)
       break;
     }
     tokens.push_back(token);
-    workingStr = workingStr.substr(loc1+1);
   }
   return tokens;
+}
+
+std::vector<double> TokenizeToDoubles(const std::string str, const char delimiter){
+  std::stringstream ss;
+  std::vector<std::string> sv = Tokenize(str, delimiter);
+  std::vector<double> v(sv.size(), 0.0);
+  for(size_t i = 0; i < sv.size(); ++i){
+    ss << sv[i];
+    ss >> v[i];
+    ss.clear();
+  }
+  return v;
 }
 
 unsigned int stringHash(std::string str){

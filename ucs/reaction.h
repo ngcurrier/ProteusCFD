@@ -11,6 +11,7 @@
 #include <sstream>
 #include <algorithm>
 #include <string>
+#include <vector>
 
 enum reactionType
 {
@@ -21,9 +22,14 @@ enum reactionType
   NUM_RXN_TYPES
 };
 
+// Arrhenius k = A exp(-Ea/RT)
+// ModArrhenius k = A T^n exp(-Ea/RT)
+// GuptaModArrhenius  k = A T^n exp(-Ea/T)
+// Power k = A T^n
+
 const std::string rxnTypeNames[] = 
   {
-    "Arrhenius form",
+    "Arrhenius form",        
     "modified Arrhenius form",
     "Gupta modified Arrhenius form",
     "power form",
@@ -44,17 +50,17 @@ class Reaction
   Int nspecies;                 //number of species involved
   Int ntbodies;                 //number of rxn species which also act as catalysts
   Int ncatalysts;               //number of species acting as catalysts ONLY
-  Int catalysts;                //1 - if any species act as catalysts, 0 - turn catalyst action off
-  Int thirdBodies;              //1 - rxn species act as catalysts,0 - pure catalysts only
-  Type* TBEff;                  //third body efficiencies including catalysts and species in reaction
+  bool catalysts;                //1 - if any species act as catalysts, 0 - turn catalyst action off
+  bool thirdBodies;              //1 - rxn species act as catalysts,0 - pure catalysts only
+  std::vector<Type> TBEff;                  //third body efficiencies including catalysts and species in reaction
   Species<Type>* species;       //pointers to species in reaction
   Int* globalIndx;              //global index of species needed by this reaction 
                                 //(in order - rxn species, then catalysts and thirdbodies)
 
-  std::string* speciesSymbols;  //list of species involved in reaction
-  std::string* catSymbols;
-  Type* Nup;                     //stoich. coeff. left side
-  Type* Nupp;                    //stoich. coeff. right side
+  std::vector<std::string> speciesSymbols;  //list of species involved in reaction
+  std::vector<std::string> catSymbols;
+  std::vector<Type> Nup;                     //stoich. coeff. left side
+  std::vector<Type> Nupp;                    //stoich. coeff. right side
 
   //Arrhenius reaction rate curve fit coefficients
   Type A;                            
@@ -77,6 +83,8 @@ class Reaction
   Int ParseCatalysts(std::string& line);
   void SetSpeciesPointer(Species<Type>* globalSpecies, Int globalCount);
 
+  void SetCatalysts(std::vector<std::string>, std::vector<double> TBEff);
+  
   Int GetLocalSpeciesFromGlobal(Int speciesId);
 
   Type GetForwardReactionRate(Type T);     //forward reaction rate
