@@ -8,7 +8,7 @@
    7 *                                                                     *
    8 *                                                                     *
    9 *                                                                     *
-  10 *                                                                     *
+  10 * https://engineering.purdue.edu/~propulsi/propulsion/comb/propellants.html *
   11 *                                                                     *
   12 *                                                                     *
   13 *                                                                     *
