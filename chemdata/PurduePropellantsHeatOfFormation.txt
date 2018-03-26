@@ -1,0 +1,1129 @@
+
+   1 *  this is the propellant ingredient data file for pep thermochemical *
+   2 *  program.  it provides a nice database of propellant ingredients    *
+   3 *  one should be forewarned that the units for heats of formation are *
+   4 *  different than those used in the NASA thermochemistry code - you   *
+   5 *  will need to convert from cal/gm to cal/mol by multiplying these   *
+   6 *  values by the molecular weight of the species of interest.         *
+   7 *                                                                     *
+   8 *                                                                     *
+   9 *                                                                     *
+  10 *                                                                     *
+  11 *                                                                     *
+  12 *                                                                     *
+  13 *                                                                     *
+  14 *                                                                     *
+  15 *                                                        heat of 
+  16 *                                                     formation  density
+  23 *                                                      in  cal/g lbm/in^3
+  24 acan  mae chan                  9c  16h  10o   8n            -776 .1032
+  25 acetamide                       2c   5h   1o   1n           -1310 .0360
+  26 acetonitrile solid              2c   3h   1n                  309 .0283
+  27 acetyl triethyl citrate        22h  14c   8o                -1257 .0408
+  28 acetylene                       2c   2h                      1892 .0220
+  29 acetylene                       2c   2h                      1846 .0263
+  30 acetylene (gaseous)*            2h   2c                      2081     0
+  31 acetyltributyl citrate         20c  34h   8o                -1097     0
+  32 acrylamide                      3c   5h   1o   1n            -753     0
+  33 acrylic acid         -hc-       4h   3c   2o                -1282 .0384
+  34 acrylic nitrile                 3c   3h   1n                  682     0
+  35 acrylonitrile                 575c 609h   8o 169n             334     0
+  36 acrylonitrile (substituted)    18c  15h   2o   1n            -103     0
+  37 adamantine                     10c  16h                      -340     0
+  38 adhg                          149c 516h 214n 293o           -1272 .0623
+  39 adipic acid                     6c  10h   4o                          0
+  40 adt                             3c   2h  10n                  931 .0584
+  41 air (dry at sea level)        835n 224o   5ar                         0
+  42 air (350 k)                   835n 224o   5ar                  10     0
+  43 air (400 k)                   835n 224o   5ar                  23     0
+  44 air (450 k)                   835n 224o   5ar                  36     0
+  45 air (500 k) (900 r)           835n 224o   5ar                  49     0
+  46 air (555.56 k) (1000 r)       835n 224o   5ar                  63     0
+  47 air (600 k)                   835n 224o   5ar                  75     0
+  48 air (650 k)                   835n 224o   5ar                  88     0
+  49 air (700 k)                   835n 224o   5ar                 101     0
+  50 air (750 k) (1350 r)          835n 224o   5ar                 113     0
+  51 air (800 k)                   835n 224o   5ar                 127     0
+  52 air (833.33 k) (1500 r)       835n 224o   5ar                 135     0
+  53 air (875 k)                   835n 224o   5ar                 147     0
+  54 air (925 k)                   835n 224o   5ar                 160     0
+  55 air (1000 k) (1800r)          835n 224o   5ar                 180     0
+  56 air (1111.1 k) (2000 r)       835n 224o   5ar                 201     0
+  57 air (1250 k) (2250 r)         835n 224o   5ar                 249     0
+  58 aluminum  flouride              3f   1al                     -844     0
+  59 aluminum (non-reactive)         1u4                               .0976
+  60 aluminum (pure crystaline)      1al                               .0976
+  61 aluminum beryllium (alloy)      3be  1al                          .0795
+  62 aluminum beryllium (alloy)      1be  1al                          .0874
+  63 aluminum boride                12b   1al                     -314 .0921
+  64 aluminum borohydride            1al  3b  12h                 -301 .0199
+  65 aluminum borohydride            1al  3b  12h                 -208     0
+  66 aluminum boron (alloy)         12b   1al                     -600 .0978
+  67 aluminum carbide                4al  3c                      -215 .0852
+  68 aluminum diboride               2b   1al                    -1632 .1152
+  69 aluminum hydride                1al  3h                       -92 .0516
+  70 aluminum nitride                1n   1al                    -1407 .1170
+  71 aluminum oxide                  2al  3o                     -4000 .0670
+  72 aluminum perchlorate           12o   1al  3cl                -614 .0939
+  73 aluminum trioxide trihydrate    2al  6o   6h                -3934 .0874
+  74 aluminumborohydridedimethylam   2c  19h   1al  3b   1n       -468 .0265
+  75 amine terminated polybutadiene  6h   4c                        56 .0360
+  76 amino tetrozole                 3h   1c   5n                  585 .0595
+  77 amino tetrozole perchlorate     4h   1c   5n   4o   1cl       204 .0668
+  78 aminoguanidium biterazole       3c  10h  14n                  526 .0562
+  79 aminoxylene (xylidene)         11h   8c   1n                  -65     0
+  80 ammonia                         3h   1n                     -1004 .0244
+  81 ammonia (gaseous)*              3h   1n                      -649     0
+  82 ammonia triborane               3b  10h   1n                 -867     0
+  83 ammoniated aluminum iodide      1al  3i  20n  60h            -782     0
+  84 ammoniated aluminum iodide      1al  3i   3n   9h            -454     0
+  85 ammoniated aluminum iodide      1al  3i   6n  18h            -622     0
+  86 ammoniated aluminum iodide      1al  3i   5n  15h            -592     0
+  87 ammoniated aluminum iodide      1al  3i   7n  21h            -645     0
+  88 ammoniated aluminum iodide      1al  3i   1n   3h            -282     0
+  89 ammoniated aluminum iodide      1al  3i   9n  27h            -676     0
+  90 ammoniated aluminum iodide      1al  3i  13n  39h            -722     0
+  91 ammoniated beryllium iodide     1be  2i   4n  12h            -642     0
+  92 ammoniated beryllium iodide     1be  2i  13n  39h            -792     0
+  93 ammoniated beryllium iodide     1be  2i   6n  18h            -690     0
+  94 ammoniated calcium iodide       1ca  2i   2n   6h            -570     0
+  95 ammoniated calcium iodide       1ca  2i   1n   3h            -507     0
+  96 ammoniated calcium iodide       1ca  2i   6n  18h            -720     0
+  97 ammoniated calcium iodide       1ca  2i   8n  24h            -735     0
+  98 ammoniated copper nitrate       1cu  6n   6o  12h            -769     0
+  99 ammoniated copper nitrate       1cu  8n   6o  18h            -822     0
+ 100 ammoniated copper nitrate       1cu  4n   6o   6h            -630     0
+ 101 ammoniated lithium iodide       1li  1i   2n   6h            -691     0
+ 102 ammoniated lithium iodide       1li  1i   4n  12h            -799     0
+ 103 ammoniated lithium iodide       2li  2i  11n  33h            -417     0
+ 104 ammoniated lithium iodide       1li  1i   3n   9h            -751     0
+ 105 ammoniated lithium iodide       1li  1i   7n  21h            -857     0
+ 106 ammoniated lithium iodide       1li  1i   1n   3h            -608     0
+ 107 ammoniated lithium iodide       1li  1i   5n  15h            -825     0
+ 108 ammoniated magnesium iodide     1mg  2i   2n   6h            -500     0
+ 109 ammonium 5-nitraminotetrazole   1c   7n   5h   2o             222 .0538
+ 110 ammonium acetate                2c   7h   2o   1n           -1820 .0422
+ 111 ammonium aluminum perchlorate  12h   3n  24o   1al  6cl      -514 .0756
+ 112 ammonium azide                  4h   4n                       452 .0486
+ 113 ammonium azide                  4h   4n                       452 .0486
+ 114 ammonium biborate (h15n2b4o10) 15h   2n   4b  10o            -271 .0939
+ 115 ammonium bicarbonate            1c   5h   3o   1n           -2580 .0570
+ 116 ammonium biflouride(af+liq hf)  5h   1n   2f                -3189     0
+ 117 ammonium borofluoride           4h   1b   1n   4f           -2860 .0668
+ 118 ammonium bromide                4h   1n   1br                -659 .0878
+ 119 ammonium carbonate              1c   8h   2n   3o           -2340     0
+ 120 ammonium chloride               1n   4h   1cl               -1410 .0551
+ 121 ammonium cyanate                1c   4h   1o   2n           -1245 .0484
+ 122 ammonium cyanide                2n   4h   1c                          0
+ 123 ammonium dichromate*            8h   2n   7o   2cr          -1688 .0776
+ 124 ammonium dicyanamide            2c   4h   4n                  121     0
+ 125 ammonium flouride               4h   1n   1f                -1287     0
+ 126 ammonium flouride               4h   1n   1f                -3000 .0364
+ 127 ammonium flourosilicate         2n   8h   1si  6f           -3530 .0726
+ 128 ammonium formate                5h   1c   1n   2o           -2108     0
+ 129 ammonium formate                1c   5h   2o   1n           -2105 .0462
+ 130 ammonium glycollate             2c   7h   3o   1n           -1410     0
+ 131 ammonium glyoxallate            2c   7h   4o   1n           -2100     0
+ 132 ammonium iodide                 4h   1n   1i                 -334     0
+ 133 ammonium iodide                 3h   1n   1i                 -336     0
+ 134 ammonium nitrate                4h   2n   3o                -1090 .0623
+ 135 ammonium oxalate                8h   2c   2n   4o           -2160 .0542
+ 136 ammonium oxalate (hydrated)     2c  10h   5o   1n           -2400 .0542
+ 137 ammonium perchlorate          340h 340o  85n  85cl           -590 .0704
+ 138 ammonium perchlorate (ap)       1cl  4h   1n   4o            -602 .0704
+ 139 ammonium periodate              4h   1n   4o   1i            -360 .1270
+ 140 ammonium sulfate                2n   8h   1s   4o           -2140 .0639
+ 141 ammonium sulphate               8h   2n   4o   1s           -2133 .0643
+ 142 ammoniumtrinitroimidazole(atni  3c   6o   4h   6n             -16 .0662
+ 143 amsco 140h solvent              6c  12h                      -437 .0292
+ 144 amyl ferrocene                 20h  15c   1fe                 -81 .0422
+ 145 an                              4h   2n   3o                -1085 .0623
+ 146 aniline                         7h   6c   1n                   79 .0367
+ 147 anthracene                     10h  14c                       152 .0451
+ 148 argon                           1ar                               .0644
+ 149 astrogell                      30h  15c   1o   1al           -436 .0540
+ 150 azo'bis'isobutyronitrile'2,2    8c  12h   4n                  333     0
+ 151 azodicarbonamide                2c   4h   2o   4n            -602     0
+ 152 b-2000                         55c 111h  14o                 -833 .0349
+ 153 bamo-thf gumstock             370c 648h  83o 255n              83     0
+ 154 bamo/ammo(50/50)               50c  85h  45n  10o             244 .0451
+ 155 bamo/azox(50/50)               40c  65h  45n  10o             318 .0480
+ 156 bamo/bnmo                       5c   8h   4o   4n              24 .0523
+ 157 bamo/thf(53/47)               453c 800h 317n 100o             211 .0427
+ 158 barium chomate                  1cr  4o                     -1347     0
+ 159 barium chromate                 1ba  1cr  4o                -1347 .1625
+ 160 barium nitrate *                2n   6o   1ba                -907 .1170
+ 161 barium peroxide                 1ba  2o                      -889 .1791
+ 162 basic lead carbonate            3pb  2c   8o   2h                     0
+ 163 benzene                         6h   6c                       143 .0317
+ 164 benzotrifuroxane (btf)          6c   6o   6n                  571 .0686
+ 165 beryllium (non-reactive)        1u2                               .0668
+ 166 beryllium (pure crystaline)     1be                               .0668
+ 167 beryllium borohydride           2b   1be  8h                 -666 .0218
+ 168 beryllium hydride               1be  2h                      -399     0
+ 169 beryllium nitride               3be  2n                     -2464     0
+ 170 bis triaminoguanidiniumdecabor  2c  28h  10b  12n             180     0
+ 171 bis(2,2,2-trintroethyl)sebalat 14c  20h  16o   6n            -409     0
+ 172 bis(2-fluoro-2,2-dinitroethyl)  4c   4h  10o   6n   2f       -361     0
+ 173      nitramine                                                        0
+ 174 bis(2-fluoro-2,2-dinitroethyl)  4c   5h   8o   5n   2f       -439     0
+ 175      amine                                                            0
+ 176 bis(2-fluoro-2,2-dinitroethyl)  4c   4h   9o   6n   2f       -321     0
+ 177      nitrosamine                                                      0
+ 178 bis(2-fluoro-2,2-dinitroethyl)  6c   6h  10o   6n   2f       -645     0
+ 179      oxamide                                                          0
+ 180 bis(2-fluoro-2,2-dinitroethyl)  6c   4h  12o   4n   2f       -798     0
+ 181      oxalate                                                          0
+ 182 bis(cmethylhydrazino)decabora   4c  26h  10b   6n             100 .0404
+ 183 bis(difluoroamino)butane'2,3    4c   8h   4f   2n            -353 .0437
+ 184 bis(difluoroamino)butane'2,3    4c   8h   4f   2n            -348 .0438
+ 185 bis(difluoroamino)difluorometh  1c   6f   2n                 -698     0
+ 186 bis(difluoroamino)methylpentan  6c  12h   4f   2n            -309     0
+ 187 bis(difluoroamino)methylpentan  6c  12h   4f   2n            -363 .0415
+ 188 bis(difluoroamino)octane'2,2    8c  16h   4f   2n            -347 .0397
+ 189 bis(dinitro) fluoropropane      3c   5h   1f   2n   4o       -530     0
+ 190 bis(dinitrofluorethyl)formal    5c   6h   2f   4n  10o       -559 .0576
+ 191 bis(dinitropropyl)acetal bdnpa  8c  14h   4n  10o            -485 .0491
+ 192 bis(dinitropropyl)acetal bdnpa  8c  14h   4n  10o            -470 .0485
+ 193 bis(dinitropropyl)formal bdnpf  7c  12h   4n  10o            -475 .0516
+ 194 bis(dinitropropyl)formal bdnpf  7c  12h   4n  10o            -457 .0511
+ 195 bis(fluoroxy)difluoromethane    1c   4f   2o                -1122     0
+ 196 bis(fluoroxy)difluoromethane    1c   4f   2o                -1159 .0433
+ 197 bis(methylhydrazino)decaborane  2c  24h  10b   4n            -470     0
+ 198 bis(triaminoguanidium)5.5-azo   4c  18h  22n                  710 .0543
+ 199 bis(trinitroethyl)nitramine     4c   4h   8n  14o              13 .0008
+ 200 bis22methoxyethoxy ethyl ether 10c  22h   5o                 -966     0
+ 201 bisdifluoroaminoheptane         7c  14h   4f   2n            -320 .0426
+ 202 bistetrazole                    2c   2h   8n                 1093 .0576
+ 203 bitetrazole                     2c   8n   2h                  797     0
+ 204 bitretrazole                    2c   2h   9n                  725     0
+ 205 borine ammoniate                1b   6h   1n                -1340 .0264
+ 206 boron (amorphous)               1b                             37 .0856
+ 207 boron (pure crystaline)         1b                                .0845
+ 208 boron (trona)                  67b   3o                      -358 .0845
+ 209 boron carbide                   4b   1c                      -221 .0905
+ 210 boron nitride                   1b   1n                     -2430 .0795
+ 211 boron oxide                     2b   3o                     -4339 .0656
+ 212 boron slurry                  553h 881b 252c  45o   2al      -425 .0536
+ 213 bromine (gas)                   2br                            46     0
+ 214 bromine pentafluoride           1br  5f                      -627 .0888
+ 215 bromine pentafluoride           1br  5f                      -586     0
+ 216 bromine trifluoride             1br  3f                      -446     0
+ 217 bromine trifluoride             1br  3f                      -530 .1012
+ 218 bromotrifluoromethane           1c   1br  3f                -1301     0
+ 219 bsx                             8c  14h  10o   6n           -1082 .0650
+ 220 btnec                           4h   5c   6n  15o            -430 .0680
+ 221 btnen                           4h   4c   8n  14o              39 .0704
+ 222 btnev                           5c  13o   6h   8n            -187 .0675
+ 223 butane(2,2-bisdifluoroamino)    4c   8h   4f   2n            -318     0
+ 224 butane(2,3-bisdifluoroamino)    4c   8h   4f   2n            -348     0
+ 225 butarez (phillips info)       519h 347c   8o                  -21 .0325
+ 226 butarez (phillips info)       519h 347c   8o                  -21 .0325
+ 227 butyl rubber                    8h   4c                      -376 .0332
+ 228 butyl silane                   12h   4c   1si                 357     0
+ 229 butylnitramine (normal)         4c  10h   2n   2o            -264 .0385
+ 230 c2h7n (carroz)                  2c   7h   1n                          0
+ 231 c5h10n14o8  (reed)              5c  10h  14n   8o            2479     0
+ 232 calcium bitetrazole             1ca  8n   2c                  284     0
+ 233 calcium boride                519h 347c   8o                  -21 .0325
+ 234 calcium carbide                 2c   1ca                     -234 .0801
+ 235 calcium carbonate (caco3)       1c   3o   1ca               -2895     0
+ 236 calcium chloride                2cl  1ca                    -1710 .0775
+ 237 calcium chromate                1ca  1cr  4o                -2111 .1044
+ 238 calcium fluoride                2f   1ca                    -3722 .1149
+ 239 calcium formate                 2h   2c   4o   1ca          -2488 .0728
+ 240 calcium hydride                 2h   1ca                    -1092 .0614
+ 241 calcium hydroxide               1ca  2o   2h                -3182 .0809
+ 242 calcium nitrate                 1ca  2n   6o                -1365 .0852
+ 243 calcium oxide (cao)             1o   1ca                    -2710 .1217
+ 244 calcium perchlorate             1ca  2cl  8o                 -749 .0957
+ 245 calcium peroxide                1ca  2o                     -2185     0
+ 246 candelilla wax                  2c   4h                      -453 .0325
+ 247 candellia wax                  69c 122h   3o                 -142     0
+ 248 carbon (amorphous)              1c                            917 .0637
+ 249 carbon (graphite)               1c                                .0818
+ 250 carbon black                    1c                                .0637
+ 251 carbon dioxide                  1c   2o                     -2137 .0398
+ 252 carbon disulfide (whew)         1c   2s                       276 .0456
+ 253 carbon monoxide                 1c   1o                      -943 .5721
+ 254 carbon subnitride               4c   2n                      1970 .0350
+ 255 carbon tetrachloride            1ca  4cl                     -216     0
+ 256 carbon tetraflouride (gas)      1c   4f                     -2505     0
+ 257 carboxy term. polybutadiene    72c 108h   1o                  160     0
+ 258 carboxy term. polybutadiene    73c 105h   1o                  117     0
+ 259 carboxy term. polybutadiene    69c 103h  19o  30n             -29     0
+ 260      nitrile                                                          0
+ 261 carboxy term. polybutadiene   680c 962h  53n                 -143     0
+ 262      nitrile                                                          0
+ 263 carboxy term. polybutadiene   688c 999h  13o  34n              33     0
+ 264      nitrile                                                          0
+ 265 carboxy term. polybutadiene   691c 928h   1o   5n             -56     0
+ 266      nitrile                                                          0
+ 267 carboxy term. polyisobutylene  70c 135h   1o                 -450     0
+ 268 carnauba wax                   67c 127h   4o                 -460     0
+ 269 castor diol(hydroxy no.270-295059c 111h 112h                 -671     0
+ 270 castor oil                     62c 111h   9o                 -626 .0346
+ 271 catocene                       27c  32h   2fe                 115 .0414
+ 272 cellulose                       6c  10h   5o                -1417 .0458
+ 273 cellulose acetate (2)         149h 109c  74o                -1183 .0539
+ 274 cellulose acetate (carbopol)  149h 109c  74o                -1079 .0448
+ 275 cellulose dinitrate             6c   8h   2n   9o           -7144 .0599
+ 276 cellulose trinitrate            6c   7h   3n  11o            -524 .0599
+ 277 celogen                         2c   4h   2o   4n           -1001     0
+ 278 cerium                          1ce                               .2419
+ 279 cerium nitride                  1ce  1n                      -508     0
+ 280 cesium  (pure crystaline)       1cs                               .0676
+ 281 cesium azide                    1cs  3n                       -12     0
+ 282 cesium carbonate                1c   3o   2cs                -821 .1521
+ 283 cesium hydride                  1cs  1h                       217 .1231
+ 284 cesium nitrate                  1cs  1n   3o                 -625 .1331
+ 285 cesium perchlorate              1cs  1cl  4o                 -447 .1201
+ 286 cesium tungsten fluoride        6f   1cs  1w                -1160 .1770
+ 287 chlorine                        2cl                           -76 .0536
+ 288 chlorine heptoxide              2cl  7o                       300     0
+ 289 chlorine monofluoride           1cl  1f                      -222     0
+ 290 chlorine pentafluoride (clf5)   1cl  5f                      -464 .0642
+ 291 chlorine pentafluoride (gas)    1cl  5f                      -427     0
+ 292 chlorine trifluoride            1cl  3f                      -410     0
+ 293 chlorine trifluoride            1cl  3f                      -480 .0652
+ 294 chromium                        1cr                               .2599
+ 295 chromium carbonyl   jax78/5168  1cr  6c   6o                -1170     0
+ 296 chromium octoate                1cr 24c  45h   6o            -506 .0361
+ 297 circo light process oil        32h  15c                      -320 .0250
+ 298 cl15                            6c   2h  10o  12n             466 .0715
+ 299 commercial fluorocarbon       249c 139h   2o 360f           -1858     0
+ 300 copper (pure crystaline)        1cu                               .3223
+ 301 copper chloride                 2cl  2cu                     -328 .1270
+ 302 copper chromite                 1cr  1cu  3o                 -164 .2148
+ 303 copper hydroxide                2h   2o   1cu               -1099 .1216
+ 304 copper oxide                    1o   2cu                     -278 .2160
+ 305 copper oxide (hydrated)         2h   2o   1cu               -1099 .1216
+ 306 copper sulfide                  1cu  1s                      -133 .1662
+ 307 ctpb(arc icrpg/aiaa paper)    579c 984h  22o   5n   1p       -342 .0324
+ 308 cumene hydroperoxide           62c 830h  94o                 -471     0
+ 309 cupric oxide                    1cu  1o                      -439     0
+ 310 cyanamide                       1c   2h   2n                  219     0
+ 311 cyanogaunyl azide               2c   2h   6n                  881     0
+ 312 cyanogen (gaseous)              2c   2n                      1414     0
+ 313 cyclohexyl azide                6c  11h   3n                  207 .0356
+ 314 cyclopentyl azide               5c   9h   3n                  385 .0353
+ 315 cyclotetramethylene tetra hmx   8h   4c   8n   8o              61 .0686
+ 316 datb (diaminitro benzene)       6c   4h   6n   8o            -101     0
+ 317 dcda                            2c   4h   4n                   71 .0505
+ 318 decaborane                     10b  14h                      -129 .0339
+ 319 decaborane a                   10b  18h   2n                -1198     0
+ 320 decaborane b                    2cs 10b  10h                 -624     0
+ 321 decacylene                     18h  36c                       117 .0596
+ 322 decadiborane                    6h   2b                           .0079
+ 323 decahydronapthalene            18h  10c                      -421 .0319
+ 324 decalin-tetralin (80-20)      999h 596c                      -339     0
+ 325 dekadiazene                    10b  22h   4n                 -381     0
+ 326 delrin                          1c   2h   1o                -1373 .0509
+ 327 delrin                        334c 664h  33o                -1373     0
+ 328 delrin                          1c   2h   1o                -1373 .0397
+ 329 deta (diethylene triamine,     13h   4c   3n                 -149 .0344
+ 330      diethyl triamine)                                                0
+ 331 dhtt                            4c  10h  16n                  647 .0572
+ 332 dhtt                            4c  10h  16n                  647 .0597
+ 333 di iso cyanate (ddi)           38c  72h   2n   2o            -354 .0315
+ 334 di-isobutyl acelate            17c  32h   4o                 -925     0
+ 335 di-n-propyl adipate            12c  22h   4o                -1184     0
+ 336 diamino diborane                2b  12h   2n                 -745     0
+ 337 diaminoguanidine nitrate        1c   8h   6n   3o            -239     0
+ 338 diaminoguanidinium azide(dazal  2c   8h   8n                  741 .0513
+ 339 diammonium decaborane          10b  18h   2n                 -450     0
+ 340 diazidotetranitrotetrazonone    5c  10h   8o  14n             415 .0603
+ 341 diazidotrinitrazaheptanedath    4c   8h  12n   6o             458     0
+ 342 dibasic lead phthalate          8c   4h   6o   3pb           -292     0
+ 343 diborane                        2b   6h                       179 .0158
+ 344 diborane                        2b   6h                       354     0
+ 345 dibutyl phthalate              22h  16c   4o                 -733 .0378
+ 346 dibutyl pthalate              575c 790h 144o                 -754 .0378
+ 347 dibutyl tin maleate            20h  12c   4o   1sn           -931 .0528
+ 348 dicyandiamide                   2c   4h   4n                   85 .0505
+ 349 dicyano'2'butyne'1,4            6c   4h   2n                  841 .0415
+ 350 diesel oil                     22h  12c                      -476 .0254
+ 351 diethyl phthalate              14h  12c   4o                 -832     0
+ 352 diethyl phthalate              12c  14h   4o                 -733     0
+ 353 diethyl phthalate              14h  12c   4o                 -832     0
+ 354 diethyl phthalate              12c  14h   4o                 -810     0
+ 355 diethyl triamine deta          13h   4c   3n                 -149 .0344
+ 356 diethylene glycol dinitrate     4c   8h   2n   7o            -520 .0497
+ 357 diethylene glycol monobutyleth 10c  20h   4o                -1055     0
+ 358      eracetate                                                        0
+ 359 diethylene glycol dimethyl      6c  14h   3o                -1014     0
+ 360      ether                                                            0
+ 361 diethyleneglycol dinitrate      4c   8h   7o   2n            -580     0
+ 362 diethyloxalate                  6c  10h   4o                -1324     0
+ 363 difluoroamine                   2f   1h   1n                 -600     0
+ 364 difluoromethylenebisoxyfluorid  1c   4f   2o                -1121 .0433
+ 365 dihydronitronitriminopyridine   5c   4h   4n   4o             143 .0650
+ 366 dihydroxyglyoxime               2c   4h   4o   2n           -1080     0
+ 367 dimer acid/epoxol9s new binder 95c 174h  15o                 -500 .0343
+ 368 dimethyl ammon lithium iodide   1li  1i  10c  31h   1n       -463     0
+ 369 dimethyl ammon lithium iodide   1li  1i   6c  19h   1n       -473     0
+ 370 dimethyl ammon lithium iodide   1li  1i   4c  13h   1n       -477     0
+ 371 dimethylacetamide               4c   9h   1o   1n            -819     0
+ 372 dimethylamine-borane adduct     2c  10h   1b   1n            -516     0
+ 373 dinitro toluene                 6h   7c   2n   4o           -8200     0
+ 374 dinitrophenoxy ethanol         98h 104c  26n  75o            -271 .0565
+ 375 dinitropropyl acrylate          8h   6c   2n   6o            -514 .0471
+ 376 dioctyl adipate                42h  22c   4o                 -733 .0332
+ 377 dioctyl azelate                48h  25c   4o                 -855     0
+ 378 dioxane                       442c  74h  37o                 -935     0
+ 379 dipropylene glycol ester of    63c 864h  67o                 -893     0
+ 380      sebacic and malic acids                                          0
+ 381 ditrisdifluoroaminomethylurea   3c   2h  12f   8n   1o       -203 .0679
+ 382 dodecahydrodecaboratediammine  10b  18h   2n                 -564 .0361
+ 383 dulcitol                        6c  14h   6o                -1740 .0530
+ 384 dynamar 732/740               970h 549c  11n 143o           -1420 .0376
+ 385 dynamar hx-730                754h 445c 244o                -1200 .0420
+ 386 dynamar hx-743                942h 554c  80n  81o            -380 .0360
+ 387 e107  (a mixture)             441h 133c  52n 232o   6al 49cl -552 .0604
+ 388 eg-gap (100-456)                3c   5h   3n   1o             250 .0467
+ 389 eg-gap gumstock               331c 559h 106o 268n              27     0
+ 390 epon 828                       24h  21c   4o                          0
+ 391 epoxy 201                      24h  16c   4o                 -661 .0404
+ 392 erl-0510                       19h  15c   1n   4o            -188 .0444
+ 393 erythritol tetranitrate         4c   6h   4n  12o            -395     0
+ 394 estane                        987h 536c  12n 140o            -910 .0379
+ 395 estane b                       55h 302c   1n  10o            -940 .0376
+ 396 ethane(1,1,1-trinitro)          2c   3h   3n   6o            -166 .0552
+ 397 ethane(1,1-dinitro)             2c   4h   2n   4o            -289     0
+ 398 ethane(1,2-bis difluoroamino)g  2c   4h   4f   2n            -310     0
+ 399 ethane(1,2-bis difluoroamino)l  2c   4h   4f   2n            -356     0
+ 400 ethane(1,2-di tetrazolyl)       4c   6h   8n                  639     0
+ 401 ethanethiol                     2c   6h   1s                 -258     0
+ 402 ethanol                         2c   6h   1o                -1440     0
+ 403 ethanolamine                    2c   7h   1o   1n           -1986     0
+ 404 ethyl acrylate                  5c   8h   2o                 -877     0
+ 405 ethyl centralite               17c  20h   2n   1o            -127     0
+ 406 ethyl cyclohexane               8c  16h                      -453     0
+ 407 ethylacrylate acrylic acid    495c 786h 204o                -1087     0
+ 408 ethylene                        2c   4h                       289 .0205
+ 409 ethylene carbonate              3c   4h   3o                -1576     0
+ 410 ethylene dihydrazine           12h   2c   4n                  346 .0396
+ 411 ethylene dinitramine (edna)     2c   6h   4n   4o            -158 .0632
+ 412 ethylene oxide (gas)            2c   4h   1o                 -286     0
+ 413 ethylene oxide (liquid)         2c   4h   1o                 -420 .0320
+ 414 ethylenebis(aminoguanidineazid  5c  16h  14n                  496     0
+ 415 ethylenediamine diperchlorate   2c  10h   8o   2n   2cl      -439     0
+ 416 ethytene vinyl acetate          6c  10h   2o                -1683 .0345
+ 417 exo-thdc (jp10,exo             10c  16h                      -185 .0336
+ 418      tetrahydrodicyclopentadiene)                                     0
+ 419 exo-thtc (exo-tetrahydro       15c  22h                       -66 .0375
+ 420      thtricyclopentadiene) liquid                                     0
+ 421 f17-47   (sieg)                10c   5o  16h                -1390 .0444
+ 422 f1780                         160c 255h 100o                -1297 .0433
+ 423 fapetrin                        6c   8h   6f   6n  10o       -318     0
+ 424 fapetrin                        6c   8h   6f   6n  10o       -268     0
+ 425 fefo                            6h   5c   4n  10o   2f       -557 .0578
+ 426 ferric fluoride                 1fe  3f                     -1772 .1271
+ 427 ferric oxide (anhydrous)*       3o   2fe                    -1230 .1818
+ 428 ferric oxide hematite           2fe  3o                     -1235 .1848
+ 429 florox (clf3o)                  1o   3f   1cl                -371 .0686
+ 430 fluorine                        2f                            -82 .0543
+ 431 fluorine (liquid)               2f                            -76 .0543
+ 432 fluorine nitrate                1f   1n   3o                   31     0
+ 433 fluoro'2,2'dinitroethanol'2     2c   3h   1f   2n   5o       -741     0
+ 434 fluoroethane(1,1-dinitro-1-)    2c   3h   1f   2n   4o       -488     0
+ 435 fluorotrinitromethide           1c   1f   3n   6o            -221 .0573
+ 436 fluoroxytrifluoromethane        1c   4f   1o                -1769     0
+ 437 fog                           885n  14h 231o   5ar            -33     0
+ 438 formamide                       3h   1c   1n   1o           -1370 .0410
+ 439 freon 116  (rogers)             2c   6f                     -2195     0
+ 440 gan(guanylazide nitrate)        1c   4h   6n   3o              35 .0542
+ 441 gap (arc calc)                 60c 102h  60n  21o             309 .0470
+ 442 gap (heat of comb dtmn)        60c 102h  60n  21o             282 .0467
+ 443 gap gumstock                  328c 545h 102o 279n              79 .0455
+ 444 gasoline (liquid)              46h  21c                      -794 .0257
+ 445 ge-rtv-615/a+b                  2c   6h   1si  1o           -1888 .0372
+ 446 genpol a-20                    75h 555c 370o                -1110     0
+ 447 gilsinite                     866h 744c   6n   6s            -400 .0384
+ 448 glutamic acid                   5c   9h   4o   1n           -1610 .0555
+ 449 glycidyl azide                  3c   7h   1o   3n             564 .0470
+ 450 glycidyl azide(smith)           3c   5h   1o   3n             575 .0467
+ 451 glyoxal hydrazine polymer       2c   2h   2n                  278 .0358
+ 452 gn                              1c   6h   4n   3o            -758 .0519
+ 453 graphite (nonburning)           1u5                               .0812
+ 454 guanadine carbonate             3c  10h   3o   6n           -1290     0
+ 455 guanidine                       5h   1c   3n                 -288     0
+ 456 guanidine nitrate               6h   1c   4n   3o            -843 .0503
+ 457 guanidinium nitrate             1c   6h   3o   4n            -750     0
+ 458 guanidinium5nitraminotetrazole  2c   7h   2o   9n              58     0
+ 459 guanidiniumnitraminotetrazlat   2c   7h   9n   2o             141     0
+ 460 guanidium bitetrazole           3c   7h  11n                  369 .0566
+ 461 guanylaminotetrazole nitrate    2c   6h   8n   3o              95 .0591
+ 462 guanylaminotetrazole(gat)       2c   5h   7n                  255 .0509
+ 463 guanylazide nitrate             1c   4h   6n   3o              26     0
+     hadn  nh3 oh n(no2)2            4n   4h   5o                -34.5 .0625
+ 464 h c binder (paul)             106h  71c   8n                 -102     0
+ 465 hc 434  victor                 75h  50c   1o                  134     0
+ 466 hc434                         669c 999h   1n  13o             -16 .0327
+ 467 helium                          1he                               .0012
+ 468 heptadyne                       8h   7c                     -1127 .0293
+ 469 hexachloroethane                2c   6cl                     -336     0
+ 470 hexacyano'3'hexene             12c   6h   6n                  862 .0444
+ 471 hexacyano'3'hexyne             12c   4h   6n                 1045 .0437
+ 472 hexacyano'3,5'octadiyne        14c   4h   6n                 1146 .0466
+ 473 hexakis difluoroamino dipropyl  8h  12f   6n   1o   6c       -315 .0596
+ 474 hexane                         14h   6c                      -464 .0235
+ 475 hexane (2,2,5 trimethyl)       20h   9c                      -537 .0246
+ 476 hexanetrinitrate                6c  11h   9o   3n            -420     0
+ 477 hexanitrobenzene                6c   6n  12o                   12 .0717
+ 478 hexanitroethane (hne)           2c   6n  12o                   95 .0812
+ 479 hmdi                            8c  12h   2o   2n            -717 .0375
+ 480 hmx                             4c   8h   8n   8o              61 .0686
+ 481 homo azox                       3c   5h   3n   1o             286 .0483
+ 482 htpb (afapl variant)          654c 988h   8n  20o             123 .0332
+ 483 htpb (sinclair)               103h  73c   1o                   13 .0332
+ 484 htpb/curative   (jos)         656c 978h   5n  13o            -498 .0329
+ 485 hycar                         139h  70c   1o                 -121 .0339
+ 486 hycat (bennett)                36h  29c   2fe                  40 .0441
+ 487 hycat (bennett)                36h  29c   2fe                  40 .0441
+ 488 hydrated ammonium phosphate     3n  18h   7o   1p           -3010     0
+ 489 hydrazine                       4h   2n                       376 .0364
+ 490 hydrazine azide                 5h   5n                       727 .0470
+ 491 hydrazine cyanoformate          4c   5h   5n                  579 .0462
+ 492 hydrazine diborane              2b  10h   2n                 -500 .0339
+ 493 hydrazine diborane (jos)        2b  10h   2n                 -502 .0343
+ 494 hydrazine diperchlorate         6h   2n   8o   2cl           -309 .0797
+ 495 hydrazine hydrate (n2h4.h2o)    6h   2n   1o                -2900 .0378
+ 496 hydrazine nitrate               5h   3n   3o                 -531 .0595
+ 497 hydrazine nitroform             5h   1c   5n   6o             -95 .0676
+ 498 hydrazine(1,1-methylcyanoethy   4c   9h   3n                  339 .0353
+ 499 hydrazine(2)borane(8)compound   8b  28h   4n                  -60     0
+ 500 hydrazine(3)borane(10)compound 10b  24h   6n                 -108     0
+ 501 hydrazine(4)borane(10)compound 10b  28h   8n                  -92     0
+ 502 hydrazinium diperchlorate       2cl  6h   2n   8o            -296 .0361
+ 503 hydrazinium nitroformate(hnf)   1c   5h   5n   6o             -94 .0671
+ 504 hydrazinium perchlorate         1cl  5h   2n   4o            -320 .0700
+ 505 hydrazobisisobutyronitrile      8c  14h   4n                  172     0
+ 506 hydrazoic acid (gaseous)        1h   3n                      1635     0
+ 507 hydrazotetrazole'5,5            2c   4h  10n                  804     0
+ 508 hydrocarbon oil                 1c   2h                      -756     0
+ 509 hydrocarbon polymer             2h   1c                      -339 .0332
+ 510 hydrogen (cryogenic)            2h                          -1068 .0026
+ 511 hydrogen (gaseous)              2h                                    0
+ 512 hydrogen azide                  1h   3n                      1460 .0394
+ 513 hydrogen azide                  1h   3n                      1630     0
+ 514 hydrogen bromide  (gas)         1h   1br                     -108     0
+ 515 hydrogen cyanide (gaseous)      1h   1c   1n                  932 .0248
+ 516 hydrogen cyanide (liquid)       1h   1c   1n                 1154 .0325
+ 517 hydrogen fluoride               1h   1f                     -3581 .0357
+ 518 hydrogen free radical           1h                          52090     0
+ 519 hydrogen peroxide (100 pc)      2h   2o                     -1319 .0508
+ 520 hydrogen peroxide (50 pc)     850h 572o                     -1927 .0430
+ 521 hydrogen peroxide (70 pc)     746h 579o                     -1684 .0464
+ 522 hydrogen peroxide (90 pc)     642h 586o                     -1439 .0501
+ 523 hydrogen peroxide (gaseous)     2h   2o                      -958     0
+ 524 hydrogen sulfide                2h   1s                      -141 .0768
+ 525 hydrogenated hydroxyterminated 71c 120h   2o                 -295     0
+ 526      /polybutadiene                                                   0
+ 527 hydroxy term. polybutadiene    73c 110h   6o                  -30     0
+ 528 hydroxy term. polybutadiene    67c   6h   1o   4n            -116     0
+ 529      nitrile                                                          0
+ 530 hydroxyethyl cellulose         35h  22c  14o                -1200 .0484
+ 531 hydroxyethyl methacrylate      10h   6c   3o                -1260 .0420
+ 532 hydroxyethylmethacrylate        6c  10h   3o                -1153     0
+ 533 hydroxyl ammonium nitrate(nbs)  2n   3h   4o                 -908     0
+ 534 hydroxyl radical                1h   1o                       591     0
+ 535 hydroxylamine                   3h   1n   1o                 -793     0
+ 536 hydroxylammonium nitrate        4h   4o   2n                 -843     0
+ 537 hydroxylammonium perchlorate    4h   5o   1cl                -496     0
+ 538 hydroxylammoniumperchlorate     1cl  4h   1n   5o            -497 .0767
+ 539 hydroxyterminat polybutadiene 103h  73c   1o                   13 .0332
+ 540 hylene w  (hf estimated)       15c  22h   2n   2o            -150 .0386
+ 541 idp (b. lee)                   38h  19c   2o                 -908 .0312
+ 542 iodic acid                      1h   1i   3o                 -324 .1671
+ 543 iodine                          2i                                .1780
+ 544 iodine pentafluoride            5f   1i                      -928 .1140
+ 545 iodine pentoxide                5o   2i                      -127 .1732
+ 546 iodine trichloride              1i   3cl                      -90 .1125
+ 547 iodoform  (chi3)                1h   1c   3i                  -85 .1443
+ 548 ipdi                           12c  18h   2n   2o            -501 .0384
+ 549 irfna 82.8ac 14no2 2.5h2o .7hf  4f 186h 185n 536o            -541 .0567
+ 550 iron                            1fe                               .2837
+ 551 iron carbonate                  1fe  1c   3o                -1623     0
+ 552 iron oxide                      3o   2fe                    -1230 .1840
+ 553 iron oxide (yellow)             2h   4o   2fe               -1490 .1318
+ 554 iron pentacarbonyl              1fe  5c   5o                 -958     0
+ 555 iso octane                     18h   8c                      -470     0
+ 556 isobutylbenzene                10c  14h                      -124 .0313
+ 557 isobutylbenzene (use 1054)     10c  14h                       -12 .0313
+ 558 isodecyl pelargonate           19c  38h   2o                 -714     0
+ 559 isopropyl alcohol               3c   8h   1o                -1265 .0284
+ 560 isopropylammonium nitrate       3c  10h   3o   2n            -813     0
+ 561 jp 10 (exo-thdc,exo-           10c  16h                      -185 .0336
+ 562      tetrahydrodicyclopentadiene)                                     0
+ 563 jp4 (liquid turbojet fuel)     17h   9c                      -281 .0254
+ 564 jp5 (bert stull)               19h  10c                      -411 .0296
+ 565 jp5 (mont stevens standard)    19h  10c                      -387 .0296
+ 566 jp5 (old, see mont stevens)    16h   9c                      -278 .0296
+ 567 kraton                          4h   3c                     -1073 .0340
+ 568 kraton (co-polymer)             6h   4c                      -100 .0342
+ 569 kraton styrene butadiene        4h   3c                     -1073 .0340
+ 570 lacquer nitrocellulose        600c 774h 226n 952o            -663 .0599
+ 571 laminac                         5c   5h   1o                 -835 .0436
+ 572 laminac 4116                  555h 558c 171o                 -574     0
+ 573 lauryl methacrylate            32h  17c   2o                 -700 .0314
+ 574 lead (pure crystaline)          1pb                               .4096
+ 575 lead 2-ethyl hexoate           34h  16c   4o   1pb                    0
+ 576 lead acetyl salicylate         14h  18c   8o   1pb           -857     0
+ 577 lead azide                      6n   1pb                      397     0
+ 578 lead beta recorcylate          21h   7c   7o   1pb                    0
+ 579 lead dioxide                    2o   1pb                     -276 .3384
+ 580 lead iodate                     1pb  2i   6o                 -267 .1913
+ 581 lead nitrate (lee)              2n   6o   1pb                -324 .1637
+ 582 lead oxide                      1pb  1o                      -235 .3440
+ 583 lead oxide (litharge)           1o   1pb                     -235 .3440
+ 584 lead oxide (massicot)           1o   1pb                     -235 .2888
+ 585 lead oxide (minium)             4o   3pb                     -262 .3286
+ 586 lead oxide (plattnerite)        2o   1pb                      -66 .3384
+ 587 lead salicylate                10h  14c   6o   1pb            -84 .0337
+ 588 lead salicylate                10h  14c   6o   1pb            -84 .0337
+ 589 lead styphnate                  1pb  6c   3h   3n   9o       -205 .1091
+ 590 lead-4,4-diacetomido salicylat 18c  16h   8o   2n   1pb      -709     0
+ 591 lithium (pure crystaline)       1li                               .0193
+ 592 lithium aluminum hexa hydride   1al  6h   3li               -1417 .0401
+ 593 lithium aluminum perchlorate    3li 24o   1al  6cl           -645 .0897
+ 594 lithium aluminum tetra hydride  1al  4h   1li                -690 .0331
+ 595 lithium amide*                  2h   1li  1n                -1894 .0329
+ 596 lithium azide                   1li  3n                        57     0
+ 597 lithium beryllium hydride       1be  4h   2li               -2968     0
+ 598 lithium borohydride             1b   4h   1li               -2131 .0246
+ 599 lithium carbide                 2li  2c                      -375 .0596
+ 600 lithium carbonate               2li  1c   3o                -3900 .0762
+ 601 lithium chloride                1li  1cl                    -1247 .0747
+ 602 lithium dicyanamide             2c   1li  3n                 -120     0
+ 603 lithium fluoride                1li  1f                     -5620 .0939
+ 604 lithium hydride                 1h   1li                    -2726 .0296
+ 605 lithium hydroxide               1h   1li  1o                -4868 .0917
+ 606 lithium nitrate                 1li  1n   3o                -1670 .0859
+ 607 lithium nitride                 3li  1n                     -1355 .0498
+ 608 lithium perchlorate (liclo4)    1cl  1li  4o                 -854 .0877
+ 609 lithium periodate               1li  4o   1i                 -490 .1520
+ 610 lithium peroxide                2li  2o                     -3307 .0853
+ 611 low acetyl cellulose acetate  428c 572h 267o                -1275     0
+ 612 lp-205                        416c 846h  85o  87s            -720 .0408
+ 613 lp-33                         314c 655h 107o 121s            -696 .0458
+ 614 lp-33                         314c 655h 107o 121s            -696 .0458
+ 615 magnesium (non-reactive)        1u3                               .0628
+ 616 magnesium (pure crystaline)     1mg                               .0628
+ 617 magnesium aluminum hydride      2al  8h   1mg                -365 .0378
+ 618 magnesium boride                2b   1mg                     -478 .0970
+ 619 magnesium cyanamide             1mg  1c   2n                 -937     0
+ 620 magnesium fluoride              2f   1mg                    -2862 .1083
+ 621 magnesium hydride               2h   1mg                     -645 .0524
+ 622 magnesium nitrate               1mg  2n   6o                -1272 .0731
+ 623 magnesium oxide               248mg248o                     -3567 .1292
+ 624 magnesium oxide                 1o   1mg                    -3610 .1300
+ 625 magnesium perchlorate           8o   1mg  2cl                -630 .0939
+ 626 manganese                       1mn                               .2599
+ 627 manganese dioxide               1mn  2o                     -1430 .1816
+ 628 mapo (arc)                     18h   9c   1o   3n   1p       -266     0
+ 629 mar 658                        40c  46h   8o                 -696 .0419
+ 630 melamine                        6c   6h   6n                 -165     0
+ 631 mercapto term. polybutadine   669c 941h   4o   1s              47     0
+ 632      nitrile                                                          0
+ 633 mercuric fluoride               2f   1hg                     -398 .3216
+ 634 mercuric oxide                  1o   1hg                     -100 .4023
+ 635 mercurous azide                 2hg  6n                       292     0
+ 636 mercury (liquid)                1hg                               .4873
+ 637 methane                         1c   4h                     -1271 .0153
+ 638 methanol                        4h   1c   1o                -1780 .0287
+ 639 methoxy-di-(batoxydiethylene   52c 111h  16o                -1229     0
+ 640      glycol)                                                          0
+ 641 methoxyamine                    1c   5h   1n   1o            -276     0
+ 642 methyl acrylate (liq.)  -hc-    6h   4c   2o                 -954 .0384
+ 643 methyl alcohol                  4h   1c   1o                -1781 .0285
+ 644 methyl ammonia                  5h   1c   1n                 -216 .0236
+ 645 methyl napthalene (1-)         10h  11c                         9 .0370
+ 646 methylin-tetralin  (70-30)    106h 107c                         2 .0365
+ 647 methylnitroacetate              3c   5h   1n   4o            -922     0
+ 648 mixed hydrazine fuel 3        647h  93c 231n                  297 .0323
+ 649 mixed hydrazine fuel 5        114h  12c  46n   6o             149 .0361
+ 650 mixed oxides of nitrogen       63n 101o                        43 .0520
+ 651 mna                             7c   8h   2n   2o             -49 .0433
+ 652 molybdenum carbonyl jax78/5168  1mo  6c   6o                 -889     0
+ 653 molybdenum trioxide             1mo  3o                     -1253     0
+ 654 mon 25'75                     175n 325o                        69 .0498
+ 655 monobasic ammonium phosphate    1n   6h   1p   4o           -3020 .0651
+ 656 monobasic cupric resorcylate   14c  10h   9o   2cu          -2782     0
+ 657 monobasic cupric salicylate    14c  10h   7o   2cu           -700     0
+ 658 monobasic lead resorcylate     14c  10h   9o   2pb          -1900     0
+ 659 monobasic lead salicylat       14c  10h   9o   2pb           -332     0
+ 660 monomethyl hydrazine (mmh)      6h   1c   2n                  276 .0316
+ 661 monomethylhydrazine nitrate     1c   7h   3o   3n            -565     0
+ 662 n p amine                       7h   6c   1n                -1287 .0329
+ 663 n,n dinitrosopentamethylenetet  5c  10h   6n   2o             269 .0545
+ 664      ramine                                                           0
+ 665 n,n,n'-trifluorohexaneamidine   6c  11h   2n   3f            -307     0
+ 666 n,n-dinitro-n-butylamine (dnba  4c   9h   3n   4o             -13 .0433
+ 667 n-100                           3c   5h   1o   3n             576 .0470
+ 668 n-amyl alcohol                  5c  12h   1o                 -922 .0509
+ 669 n-butane  (gas)                10h   4c                      -513     0
+ 670 n-butyl acrylate                7c  12h   2o                 -799     0
+ 671 n-butyl benzene  (benson)      10c  14h                      -119 .0313
+ 672 n-butyl benzene  (lange)       10c  14h                      -139 .0313
+ 673 n-butyl ferrocene              18h  14c   1fe                  10 .0430
+ 674 n-fluoro-n-butylnitramine       4c   9h   2o   2n   1f       -288     0
+ 675 n-fluoro-sec-butylnitramine     4c   9h   2o   2n   1f       -279     0
+ 676 n-fluoro-tert-butylnitramine    4c   9h   2o   2n   1f       -225     0
+ 677 n-phenylmorpholine             13h  10c   1n   1o            -123 .0409
+ 678 n1,n1,0-tris(2-fluoro-2,2-dini  7c   6h  14o   7n   3f       -568     0
+ 679      troethyl)-carbamate                                              0
+ 680 n2o4 (nto nisc)                 2n   4o                       -51 .0517
+ 681 naphthenic type oil            73c 117h                      -167     0
+ 682 napthalene                     10c   8h                       184 .0413
+ 683 nf4bf4                          1b   1n   8f                -1640 .0853
+ 684 nga (ct)                      545c 946h 159o                -1088 .0379
+ 685 nickel                          1ni                               .3215
+ 686 nickel carbide                  3ni  1c                        58 .2872
+ 687 nickel chloride                 2cl  1ni                     -580 .1280
+ 688 nickel oxide                    1o   1ni                     -782 .2708
+ 689 nielsen compound               13c  26h   4n                 -104     0
+ 690 nitrate                         5h   3n   3o                 -932     0
+ 691 nitric acid  (gas)              1h   1n   3o                 -509     0
+ 692 nitric acid  (liq)              1h   1n   3o                 -658 .0542
+ 693 nitroaminoguanidine             1c   5h   5n   2o              45     0
+ 694 nitrocellulose (12.6percent n)755h 600c 245n 990o            -617 .0560
+ 695 nitroethane                     2c   5h   1n   2o            -442 .0376
+ 696 nitrogen                        2n                           -104 .0292
+ 697 nitrogen (gaseous)              2n                                    0
+ 698 nitrogen (liq)                  2n                            -73     0
+ 699 nitrogen gas                    2n                                    0
+ 700 nitrogen pentoxide              2n   5o                       -93 .0593
+ 701 nitrogen tetroxide (gaseous)    2n   4o                        24     0
+ 702 nitrogen tetroxide (n2o4) liq   2n   4o                           .0517
+ 703 nitrogen trifluoride            3f   1n                      -480 .0562
+ 704 nitrogen trifluoride            3f   1n                      -416     0
+ 705 nitroglycerin                   3c   5h   3n   9o            -400 .0578
+ 706 nitroguanidine                  1c   4h   4n   2o            -209 .0625
+ 707 nitroguanyl azide               1c   2h   6n   2o             548     0
+ 708 nitromethane                    1c   3h   1n   2o            -443     0
+ 709 nitronitraminopyridiniumclo4    5c   5h   1cl  4n   8o          7 .0650
+ 710 nitronium aluminum perchlorat   1al  6cl  3n  30o            -160     0
+ 711 nitronium perchlorate           1cl  1n   6o                   61 .0794
+ 712 nitropropene polymer            3c   5h   1n   2o            -353     0
+ 713 nitrosoamine(n,n-dimethyl)      2c   6h   2n   1o              16 .0036
+ 714 nitrosol binder               143h 105c  46n 164o            -476 .0515
+ 715 nitrostarch                    60c  75h 101o  25n            -613     0
+ 716 nitrosyl fluoride               1f   1n   1o                 -324     0
+ 717 nitrosyl perchlorate            1cl  1n   5o                 -284 .0783
+ 718 nitrosyltetrafluorochlorate     1cl  4f   1n   1o            -489 .1029
+ 719 nitrourea                       1c   3h   3n   3o            -611     0
+ 720 nitrous oxide                   2n   1o                       443 .0714
+ 721 nitryl fluoride                 1f   1n   2o                 -290     0
+ 722 nitryltetrafluorochlorate       1cl  4f   1n   2o            -305     0
+ 723 no2 (gas)                       1n   2o                       174     0
+ 724 nonfunctional polybutadiene     4c   6h                        25     0
+ 725 nonfunctional polybutadiene     4c   6h                        88     0
+ 726 normal heptane                 16h   7c                      -448     0
+ 727 normal hexyl carborane          8c  24h  10b                 -398 .0379
+ 728 nos 283                        54c 459h 307o 150n           -1570 .0531
+ 729 nos365                         58c 476h 320o 161n           -1421 .0560
+ 730 noset-a                       326c 644h 401o 100n            -640 .0469
+ 731 nq                              1c   4h   4n   2o            -212 .0620
+ 732 nwc-gap-2(mw)                 114c 192h 112n  39o             250 .0467
+ 733 nylon 6   polyamide             6c  11h   1o   1n             143     0
+ 734 nylon 6/6 polyamide            12c  22h   2o   2n             231     0
+ 735 o2/h2   (o/f =1 .6058)        889h 594o                               0
+ 736 octane                         18h   8c                      -470     0
+ 737 oleic acid (vegetable oil)-hc- 34h  18c   2o                 -723 .0323
+ 738 otto ii                       471c 876h 552o 155n            -696 .0452
+ 739 otto ii                       274c 526h 306o  94n            -696 .0452
+ 740 otto ii  gary                 295c 565h 328o 100n            -526 .0448
+ 741 oxalic acid                     2c   4o   2h                -2195 .0686
+ 742 oxalic acid dihydrate           2c   6o   6h                -2704 .0597
+ 743 oxamid (b. lee)                 4h   2c   2n   2o           -1376 .0602
+ 744 oxsol i                       370h 410o 100n  70cl          -1081 .0618
+ 745 oxsol ii                      396h 404o 109n  65cl           -934 .0618
+ 746 oxychlorine trifluoride         1o   3f   1cl                -371 .0686
+ 747 oxychlorine trifluoride         1o   3f   1cl                -360 .0669
+ 748 oxygen (gas)                    2o                                    0
+ 749 oxygen (liquid)                 2o                            -97 .0412
+ 750 oxygen difluoride               2f   1o                       -81     0
+ 751 oxygen difluoride               2f   1o                      -155 .0549
+ 752 ozone                           3o                            631 .0523
+ 753 p-quinonedioxime              434c 434h 145o 145n            -700 .0505
+ 754 papi                          224c 155h  27o  27n            -202 .0448
+ 755 paraffinic oil                 73c 124h                      -367     0
+ 756 pcde                            2h   3c   2n   1o   2f       -198 .0549
+ 757 pcl polymer    (o,neill)        9o  26c   1n  42h           -1278 .0419
+ 758 pcp0240                       564c 999h 217o                -1393 .0395
+ 759 pcp0301                       564c 999h 217o                -1393 .0396
+ 760 peg4000 (carbowax)              2c   4h   1o                -1058 .0435
+ 761 pentaborane  (gaseous)          5b   9h                       237 .0231
+ 762 pentaborane  (liquid)           5b   9h                       122     0
+ 763 pentaerithritol                 5c  12h   4o                -1609 .0523
+ 764 pentaerythritol tetranitrate    5c   8h   4n  12o            -401 .0640
+ 765 pentakis(hydrazine)decaborane  10b  34h  10n                   40     0
+ 766 perchloric acid (anhydrous)     1cl  1h   4o                 -110 .0639
+ 767 perchloryl fluoride (clo3f)     1cl  1f   3o                  -50     0
+ 768 perfluoro methacrylate          6h   8c   2o   8f           -1800 .0650
+ 769 perfluoroformamidine (pff)      1c   4f   2n                 -290     0
+ 770 perfluoroguanidine (pfg) (gas)  1c   5f   3n                  162     0
+ 771 perfluoroguanidine (pfg) (liq)  1c   5f   3n                  127     0
+ 772 perfluoropiperidine             5c  11f   1n                -1703     0
+ 773 perfluoropiperidine             5c  11f   1n                -1728 .0625
+ 774 petrin                          9h   5c   3n  10o            -513 .0557
+ 775 petrolatum(technical)          71c 131h                      -325     0
+ 776 petroleum jelly                72c 130h                      -161     0
+ 777 phenoxy                        98h 104c  26n  75o             271 .0565
+ 778 phenyl azide                    6c   5h   3n                  694 .0393
+ 779 phosphited polyalkylpolyphenol 67c 109h   4o    n            -388     0
+ 780 phosphorus (red)                1p                           -136 .0794
+ 781 plasticizer(ester of fat acid) 64c 128h   6o                 -615     0
+ 782 plastisol nitrocellulose      755h 600c 245n 990o            -586 .0599
+ 783 plexiglass                      8h   5c   2o                 -906 .0426
+ 784 pnc                           755h 600c 245n 990o            -586 .0599
+ 785 poly 3 floro 3 nitro oxetane   48c  66h  49o  16n  16f       -938     0
+ 786 poly glycidyl nitride           3c   5h   4o   1n            -546 .0534
+ 787 poly-1,4-butylene glycol       54c 110h  15o                 -781     0
+ 788 polyacrylamide                  3c   5h   1n   1o           -1590     0
+ 789 polyacrylonitrile               3h   3c   1n                   74 .0398
+ 790 polyamine composite            30c 105h  25n                 -316 .0342
+ 791 polybutadiene/acrylonitrile co653c 854h  19o  72n             314     0
+ 792      polymer                                                          0
+ 793 polybutadiene/acrylonitrile co654c 848h   4o  89n             156     0
+ 794      polymer                                                          0
+ 795 polybutadiene/acrylonitrile co664c 881h   8o  66n             138     0
+ 796      polymer                                                          0
+ 797 polybutadiene (see butarez)     6h   4c                        55 .0364
+ 798 polybutadiene acr a (thiokol) 999h 671c  19n  16o            -160 .0330
+ 799 polybutadiene acrylic acid    104h  70c   4o                  -84 .0337
+ 800 polybutadiene diol             73c 110h   5o                   86     0
+ 801 polybutene-6                   72c 141h                      -315     0
+ 802 polyethylen glycol              2c   4h   1o                -1058 .0435
+ 803 polyethylene                    2c   4h                      -453 .0325
+ 804 polyethylene (film)             2c   4h                      -491     0
+ 805 polyethylene (pellets)          2c   4h                      -478     0
+ 806 polyethyleneammonium nitrate  322c 827h 199o 151n            -675     0
+ 807 polyethylenehydrazine (peh)     2c   6h   2n                    4     0
+ 808 polyglyceryl oleate           565c 851h 148o                   10     0
+ 809 polymeg 1000                    4c   8h   1o                 -874 .0355
+ 810 polymeg 2000                    4c   8h   1o                 -874 .0354
+ 811 polymerized formaldehyde        2h   1c   1o                -1343 .0509
+ 812 polymethyl vinyltetrazole       6h   4c   4n                  470 .0462
+ 813 polymethylene polyphenylisocya  8c   6h   1o   1n            -278     0
+ 814      nate                                                             0
+ 815 polyoxyethylene sorbitan monol 50c 103h  19o                -1132     0
+ 816      laurcite                                                         0
+ 817 polypropylen glycol            12h   6c   2o                 -855     0
+ 818 polypropylene film              3c   6h                      -471     0
+ 819 polypropylene glycol           52c 108h  17o                -1088 .0361
+ 820 polystyrene                     8c   8h                       106 .0379
+ 821 polysulphide  lp2             120c 242h  48o  48s            -589 .0458
+ 822 polytetrafluoroethylene         2c   4f                     -1952 .0834
+ 823 polytetramethyleneether glycol 54c 114h  15o                 -516     0
+ 824 polyurethane binder           987h 536c  12n 140o            -910 .0379
+ 825 polyvinylpyrrolidine          520c 788h 109o  88n            -331     0
+ 826 potassium                       1k                                .0500
+ 827 potassium amalgam               1k   1hg                      -48     0
+ 828 potassium azide                 1k   3n                        -5 .0736
+ 829 potassium carbonate             1c   3o   2k                -1495 .0877
+ 830 potassium chloride              1cl  1k                     -1397 .0717
+ 831 potassium ferricynanide         3k   1fe  6c   6n            -126 .0684
+ 832 potassium hydride               1k   1h                      -339 .0516
+ 833 potassium iodate (kio3)         1k   1i   3o                 -568 .1405
+ 834 potassium nitrate               1n   3o   1k                -1167 .0767
+ 835 potassium perchlorate (kclo4)   1cl  1k   4o                 -742 .0910
+ 836 potassium peroxide              2k   2o                     -1071     0
+ 837 potassium sulfate               4o   1s   2k                -1966 .0962
+ 838 potassium sulfide               2k   1s                      -907 .0652
+ 839 pp-4 (poly n-methylnitramine   46c  94h  22n  35o            -404 .0491
+ 840      glycidyl ether)                                                  0
+ 841 propane                         8h   3c                      -591     0
+ 842 propane(1,1,1,3-tetranitro)     3c   4h   4n   8o            -172     0
+ 843 propane(1,1,1-trinitro)         3c   5h   3n   6o            -157     0
+ 844 propane(1,1-dinitro) (gaseous)  3c   6h   2n   4o            -186     0
+ 845 propane(1,1-dinitro) (liquid)   3c   6h   2n   4o            -297 .0455
+ 846 propane(1,2-bis difluoroamino)  3c   6h   4f   2n            -294     0
+ 847 propane(1,2-bis difluoroamino)  3c   6h   4f   2n            -349     0
+ 848 propane(1,3-dinitro)            3c   6h   2n   4o            -399 .0489
+ 849 propane(1-nitro)                3c   7h   1n   2o            -448 .0358
+ 850 propane(2,2-dinitro)            3c   6h   2n   4o            -338 .0469
+ 851 propane(2-nitro)                3c   7h   1n   2o            -491 .0355
+ 852 propylene                       3c   6h                       116     0
+ 853 propylene poly glycol diacryl 102h  54c  19o                -1000 .0379
+ 854 propyne                         3c   4h                      1106     0
+ 855 pyromellitic dianhydride       10c   2h   6o                -1148     0
+ 856 r-18                          624c 999h 374o                -1364 .0326
+ 857 r45                           661c 999h   1n   9o              40 .0325
+ 858 r45 htpb (utc)                981h 654c   6o                    5 .0336
+ 859 r45m                          667c 999h   5o                  -30 .0433
+ 860 rdx(hexahydrotrinitrotriazine)  3c   6h   6n   6o              66 .0656
+ 861 red fuming nitric acid (14no2)151h 165n 471o                 -654 .0567
+ 862 red fuming nitric acid (20no2) 85h 114n 314o                 -544 .0567
+ 863 resorcinol                      6h   6c   2o                 -784 .0463
+ 864 rex-1                           6c   8h   2f   8n  12o       -294 .0646
+ 865 rj4(mil-f-82522a,th-dimer)     20h  12c                      -198 .0334
+ 866 rj5 (shelldyne-h)             184h 140c                       107 .0390
+ 867 rp-1                            2h   1c                     -1340 .0289
+ 868 rp-1 (rpl)                    195h 100c                      -361     0
+ 869 rubidium                        1rb                               .0553
+ 870 s-02                          141c 704h 352o 141n           -2397 .0542
+ 871 s-06                          368c 884h 295o                -1145 .0523
+ 872 sea water                     998h 499o   3na  1mg  5cl     -3792 .0361
+ 873 shell epon 815                 21c  24h   4o                 -327 .0409
+ 874 shelldyne h(rj5)              184h 140c                       107 .0390
+ 875 shelldyne-butylbenzene (9-1)  991h 749c                        84 .0382
+ 876 silicon (pure crystaline)       1si                               .0874
+ 877 silicon dioxide (pure mojave)   2o   1si                    -3418 .0759
+ 878 silicon tetrachloride           1si  4cl                     -901 .0535
+ 879 silicone                        6h   2c   1o   1si          -1820 .0361
+ 880 silver iodate                   3o   1i   1ag                -149 .2010
+ 881 silver iodide                   1ag  1i                       -64 .2049
+ 882 silver metal                    1ag                               .3791
+ 883 silver nitrate                  1ag  1n   3o                 -173 .1571
+ 884 silver oxide                    2ag  1o                       -32 .2581
+ 885 sodium (pure crystaline)        1na                               .0350
+ 886 sodium aluminum amide           1al  8h   4n   1na          -1520     0
+ 887 sodium azide                    3n   1na                       80 .0668
+ 888 sodium azide +teflon (stoich)   1c   6n   2f   2na           -478     0
+ 889 sodium barbiturate              3h   4c   2n   3o   1na     -1393 .0793
+ 890 sodium borohydride              1b   4h   1na               -1206 .0390
+ 891 sodium carbonate                1c   3o   2na                -821 .0914
+ 892 sodium chlorate                 1na  1cl  3o                 -805 .0899
+ 893 sodium chloride                 1na  1cl                    -1672 .0782
+ 894 sodium fluoride                 1f   1na                    -3245 .1008
+ 895 sodium hydride                  1na  1h                      -571 .0504
+ 896 sodium hydroxide                1na  1o   1h                -2548 .0769
+ 897 sodium iodate (aq - dhskio3)    1na  1i   3o                 -535 .1544
+ 898 sodium iodide                   1na  1i                      -459 .1324
+ 899 sodium nitrate                  1n   3o   1na               -1312 .0816
+ 900 sodium perchlorate              4o   1na  1cl                -750     0
+ 901 sodium peroxide                 2na  2o                     -1546 .1011
+ 902 sodium potassium liq alloy      3k   1na                      -43     0
+ 903 sodium thiocyanate              1na  1c   1n   1s            -515     0
+ 904 sorbitol pentanitrate           6c   9h  16o   5n            -463     0
+ 905 span 85                        30h  15c   1o                 -685 .0540
+ 906 staboxol p                     13c  10h   2n                  -41 .0379
+ 907 steam                           2h   1o                     -3208     0
+ 908 styrene                         8h   8c                        80 .0388
+ 909 succinic acid                   4c   6h   4o                -1900 .0567
+ 910 sucrose (table sugar)          22h  12c  11o                -1550 .0574
+ 911 sulfur                          1s                                .0747
+ 912 sulfur (monoclinic)             1s                              2 .0708
+ 913 sulfur dioxide                  1s   2o                     -1108 .1057
+ 914 sulfur hexaflouride             1s   6f                       699 .0679
+ 915 sulfur trioxide                 1s   3o                     -1307 .0993
+ 916 sulfuric acid                   2h   1s   4o                -1977 .0662
+ 917 sulphur                         1s                                .0730
+ 918 syfo                           14h  11c   8n  10o  10f       -441 .0592
+ 919 sylgard                         1si  1o   6h   2c           -1860     0
+ 920 tagn                            1c   9h   7n   3o             -84 .0569
+ 921 tagn                            1c   9h   7n   3o             -69 .0556
+ 922 talc (dh est from forsterite)   4si 11o   2h   3mg          -3470 .3470
+ 923 tatb                            6c   6n   6o   6h            -143 .0698
+ 924 tedgn                           6c  12h   8o   2n            -645 .0480
+ 925 teflon                          1c   2f                     -1930 .0794
+ 926 tepa.no3                        8c  28h  15o  10n            -605 .0592
+ 927 teracol te2000                111c 222h  37o                -1897 .0379
+ 928 tetracyanocyclopropane1,1,2,2   7c   2h   4n                 1007 .0495
+ 929 tetracyanoethylene              6c   4n                      1174 .0469
+ 930 tetraethyl lead                20h   8c   1pb                 161 .0599
+ 931 tetraethylammonium nitrate      8c  20h   3o   2n            -600     0
+ 932 tetraethylpentamineperchlorate 28h   8c   5n  20o   5cl      -545 .0470
+ 933 tetrafluorohydrazine (n2f4)     4f   2n                       -19     0
+ 934 tetraformaltrisazine            4c  12h   6n                  583 .0472
+ 935 tetrahydronapthalene           12h  10c                       -13 .0354
+ 936 tetrakis amly acrylate (taa)    8c  10h   8f   4n   2o       -396 .0530
+ 937 tetrakis(difluoroamino) (thf)   4c   4h   8f   4n   1o       -266 .0579
+ 938 tetrakis(hydrazine)decaborane  10b  30h   8n                  -10     0
+ 939 tetrakisdifluoroaminomethane    1c   8f   4n                   18 .0631
+ 940 tetralin-decalin (70-30)      999h 726c                      -135 .0342
+ 941 tetramethyl lead               12h   4c   1pb                 202 .0721
+ 942 tetramethylaminotriborohydride  4c  20h   3b   1n            -293     0
+ 943 tetramethylammonium nitrate   293c 871h 220o 147n            -624     0
+ 944 tetramethylammoniumbitetrazole  6c  13h   9n                  118 .0488
+ 945 tetramethyltricyclodecylenedia 14c  26h   2n                 -145 .0352
+ 946 tetranitro difluoroethane       2c   2f   4n   8o            -368     0
+ 947 tetranitro methane              1c   4n   8o                   45 .0593
+ 948 tetranitroethylenediamine       2c   4h   6n   8o             198 .0632
+ 949 tetranitromethane               1c   4n   8o                   45 .0592
+ 950 tetrazole                       1c   2h   4n                  809     0
+ 951 tetrazole plasticizer           5c  10h   4n   1o             300 .0467
+ 952 tetrazole polyurethane        999h 523c 133o 243n            -390 .0410
+ 953 tetrazole(2-methyl-5-amino)     2c   5h   5n                  500     0
+ 954 tetrazole(5,5-hydrazo)          2c   4h  10n                  800     0
+ 955 tetrazole(5-amino)              1c   3h   5n                  585 .0596
+ 956 tetrazole(5-cyano)              2c   1h   5n                 1010     0
+ 957 tetrazole(5-hydroxy)            1c   2h   4n   1o             -17     0
+ 958 th-dimer (rj4)                 20h  12c                      -198 .0334
+ 959 thermax                         1c                                .0704
+ 960 thiokol tp-h-3314 (no fe)     760h 352o 231c 105n  68cl 18s  -735 .0549
+ 961 thorium                         1th                               .4043
+ 962 tin (grey)                      1sn                               .2076
+ 963 titanium hydride                1ti  2h                      -691 .1409
+ 964 titanium boride                 2b   1ti                    -1000 .1626
+ 965 titanium diboride               2b   1ti                     -973 .1625
+ 966 titanium dioxide                1ti  2o                     -2551     0
+ 967 tmetn                           5c   9h   3n   9o            -415 .0537
+ 968 tmhn(trimethylhydrazinenitrate  3c  11h   3n   3o            -554 .0484
+ 969 tneng                           3c   8o   5h   7n             -63 .0704
+ 970 tnsd                            6c  10h   8o   8n              85 .0614
+ 971 tnsu                            7c  12h   8o   8n              15 .0621
+ 972 tnt                             7c   5h   3n   6o             -48 .0597
+ 973 tnt                             7c   3n   6o   5h              79 .0597
+ 974 tntad                           6c  10h   8o   8n              54 .0650
+ 975 toluene diamine                13h   7c   2n                  -16 .0449
+ 976 toluene dirsocyanate            6h   9c   2n   2o            -855     0
+ 977 tp-4040                        52c 108h  17o                -1089 .0361
+ 978 trans-dimethyl-azotetrazole     4c   6h  10n                  975     0
+ 979 triacetin                      14h   9c   6o                -1334 .0419
+ 980 triaminoguanidine               8h   1c   6n                  553 .0564
+ 981 triaminoguanidine (tag)         1c   8h   6n                  553 .0563
+ 982 triaminoguanidine nitrate tagn  1c   9h   7n   3o             -69 .0555
+ 983 triaminoguanidinecyanoformate   5c   9h   9n                  603 .0516
+ 984 triaminoguanidinedicyanamide    3c   9h   9n                  591 .0505
+ 985 triaminoguanidinium azide(taz)  1c   9h   9n                  718 .0520
+ 986 triaminoguanidinium decaborohy  1c  26h  10b   8n             120     0
+ 987 triaminoguanidinium nonaborohy  1c  23h   9b   6n             131     0
+ 988 triaminoguanidinium triborohyd  1c  17h   3b   6n             329     0
+ 989 triaminomelamine                9h   3c   9n                  550 .0589
+ 990 triazoethanol'2                 2c   5h   3n   1o             258 .0415
+ 991 tributyrin                     14c  26h   6o                -1084 .0373
+ 992 tricalcium phosphate            8o   3ca  2p                -3156     0
+ 993 tricyano'3'butene'1,1,1         7c   5h   3n                  846 .0433
+ 994 tricyano'3'butyne'1,1,1         7c   3h   3n                 1128 .0433
+ 995 tricyanoethane'1,1,1            5c   3h   3n                  807 .0430
+ 996 tricyanoethylene                5c   1h   3n                 1019 .0433
+ 997 tricyanotriazine's              6c   6n                      1006 .0502
+ 998 tricyclodecylinediamine        10c  18h   2n                 -173 .0390
+ 999 triethyl citrate               12c  20h   7o                -1291     0
+1000 triethylamine                  15h   6c   1n                 -667     0
+1001 triethylamine                   6c  15h   1n                 -400     0
+1002 triethylene glycol dinitrate    6c  12h   8o   2n            -654     0
+1003 triethyleneglycoldinitrate     12h   6c   2n   8o            -645 .0487
+1004 trifluoroamine oxide            3f   1n   1o                 -413     0
+1005 trifluoromethyl hypofluorite    1c   4f   1o                -1733     0
+1006 trimethylamineborane            3c  12h   1b   1n            -468 .0296
+1007 trimethylammonium nitrate       3c  10h   3o   2n            -678     0
+1008 trimethylene alanf              3c  12h   1al  1n            -285     0
+1009 trimethylolethanetrinitrate     9h   5c   3n   9o            -397 .0557
+1010 trimethylolpropane              6c  14h   3o                -1330     0
+1011 trinitro'3'hydroxybutanol       4c   7h   3n   8o            -373     0
+1012 trinitrobromemethane            1c   6o   3n   1br            -14     0
+1013 trinitrochloromethane           1c   6o   3n   1cl            -30     0
+1014 trinitroethydnitroxyethylnitra  4c   6h  11o   6n             -75     0
+1015      mine                                                             0
+1016 trinitroethyl nitrate (tnen)    2c   2h   4n   9o            -138 .0596
+1017 trinitroethylorthocarbonate     9c   8h  12n  28o            -250 .0664
+1018 trinitrofluoromethane           1c   6o   3n   1f            -311     0
+1019 trinitrohydroxybutyricacid      4c   5h   3n   9o            -678     0
+1020 trinitromethane                 1c   1h   6o   3n            -108     0
+1021 trinitromethane (nitroform)     1c   1h   3n   6o             -61 .0576
+1022 trinitrophenylmethylnitramine   7c   5h   5n   8o              16     0
+1023 tris(1-(2-ethyl)-aziridinyl)   21c  27h   3o   3n            -154     0
+1024      benzene                                                          0
+1025 tris(ammonia)decaborane(14)    10b  23h   3n                 -530     0
+1026 tris(difluoramino)propane      14h   9c   6n   3o  12f       -411 .0556
+1027 tris(difluoroamino)butane       4c   7h   6f   3n            -273 .0433
+1028 tris(difluoroamino)fluorometha  1c   7f   3n                 -248     0
+1029 trisdifluoroaminofluoromethan   1c   7f   3n                 -281 .0563
+1030 tungsten (pure crystaline)      1w                                .6969
+1031 tungsten carbonyl   jax78/5168  1w   6c   6o                 -645     0
+1032 tungsten oxide                  1w   3o                      -831     0
+1033 turpentine                     16h  10c                      -118 .0298
+1034 unicel-100                      5c  10h   2o   6n             500 .0546
+1035 unsym-difluorourea (udfu)       1c   2h   2f   2n   1o       -705     0
+1036 unsym-dimethylhydrazine (udmh)  2c   8h   2n                  198 .0283
+1037 uranium                         1u                                .6751
+1038 uranium aluminum (alloy)        2al  1u                       -76 .2939
+1039 uranium aluminum (alloy)        3al  1u                      -105 .2461
+1040 uranium aluminum (alloy)        4al  1u                      -129 .2163
+1041 urea                            1c   4h   1o   2n           -1326 .0482
+1042 urea oxalate                    4c  10h   6o   4n           -1740     0
+1043 vanadium oxide                  5o   2v                     -2488 .1212
+1044 vitel  (diebold)               35h  28c  10o                -1720 .0439
+1045 vitel 207 (lee)                35h  28c  10o                 -729 .2240
+1046 viton a                       206h 274c 342f                -1890 .0658
+1047 viton-teflon (1/3 mixture)     22h 100c 178f                -1895 .0730
+1048 vitona                         10c   7h  13f                -1801 .0650
+1049 water                           2h   1o                     -3792 .0361
+1050 witco f17-47 (jos)             10c   5o  16h                -1310 .0430
+1051 xylidine                        8c  11h   1n                 -144     0
+1052 yellow iron oxide               2h   4o   2fe                         0
+1053 zinc                            1zn                               .2578
+1054 zirconium                       1zr                               .2311
+1055 zirconium boride                2b   1zr                     -634 .2199
+1056 zirconium carbide               1zr  1c                      -436 .2430
+1057 zirconium diboride              2b   1zr                     -680 .2200
+1058 zirconium hydride               2h   1zr                     -444 .2024
+1059 zl 320                        606c 969h  22n  90o            -579 .0373
+1060 1,1,1-trinitro-2-hydroxybutyri  4c   5h   9o   3n            -684     0
+1061      c acid                                                           0
+1062 1,1,1-trintro-4,4-bis(difluoro  5c   7h   6o   5n   4f       -197     0
+1063      amion)pentane                                                    0
+1064 1,1,1trinitro-2-hydroxybutanol  4c   7h   8o   3n            -373     0
+1065 1,1-dimethyl hydrazine nitrate  2c   9h   3o   3n            -470     0
+1066 1,2,4-butanetriol trinitrate    4c   7h   9o   3n            -386 .0538
+1067 1,2-bis(difluoroamino)-2-methy  4c   8h   2n   4f            -389     0
+1068      propane                                                          0
+1069 1,2-bis(difluoroamino)butane    4c   8h   2n   4f            -341     0
+1070 1,3,5-nitroxy-2-nitroamino-dia  4c   7h   5o   5n            -156     0
+1071      zacyclohexene                                                    0
+1072 1-difluoroamino-2,4,6-trinitro  6c   2h   6o   4n   2f         19     0
+1073      benzene                                                          0
+1074 100der321/43deh14             810h 596c  22n 108o            -661     0
+1075 1ea-5-85 (victor)             378h 243c 102n  86o 205f       -5381.4630
+1076 2 nitro diphenyl amine         10h  12c   2o   2n             135 .0535
+1077 2 nitro diphenyl amine         10h  12c   2o   2n             135 .0535
+1078 2'tdmeclo4 (info 635p)          3c   7h   1cl  6f   4n   5o  -345 .0650
+1079 2'tdmehcl (info 631c)           3c   7h   1cl  6f   4n   1o  -448 .0650
+1080 2,2-4,4-6,6hexanitroazobenzene 12c   4h  12o   8n             135     0
+1081 2,2-dinitro-2-chloroethanol     2c   3h   5o   2n   1cl      -348     0
+1082 2,3-butanediol                  4c  10h   2o                -1445     0
+1083 2,3difluoroamino-2methylbutane  5c  10h   2n   4f            -336     0
+1084 2,4-dinitrophenoxy ethanol      8c   8h   6o   2n            -418     0
+1085 2-fluoro-2,3-dinitroethanol     2c   3h   5o   2n   1f       -741     0
+1086 2-hydroxy-4(2-hydroxy-3-methac 20c  20h   6o                 -722     0
+1087      rylyloxy)-propoxybenzophonone                                    0
+1088 2-methyl-5-vinyltetrazole       4c   6h   4n                  586     0
+1089 2-methyl-5-vinyltetrazole     363c 541h  18o 341n             357     0
+1090      acrylic acid copolymer(15:1)                                     0
+1091 2-methyl-5-vinyltetrazole/hydr377c 580h  33o 311n             252     0
+1092      oxy-ethyl-methacrylate                                           0
+1093      ccpolymer (10:1)                                                 0
+1094 222fluorodinitroethyl)acrylate  5c   5h   6o   2n   1f       -668     0
+1095 2methyl5methoxyethyletetrazole358c 745h  57o 288n            -166     0
+1096 2nitro-5-hydroxy-1,2,4triazole  2c   2h   3o   4n            -238     0
+1097 3-difluoroamino-2,4,6-trinitro  7c   4h   6o   4n   2f         -7     0
+1098      toluene                                                          0
+1099 5-aminotetrazole nitrate        1c   4h   3o   6n             130     0
+1100 5-aminotetrazole perchlorate    1c   4h   4o   5n   1cl       204     0
+1101 5-nitrobarbitaric acid        176c 390h 320o 169n           -1625     0
+1102 5hydroxyethyl11methyltetrazole  4c   8h   1o   4n               7     0
+1103 8c8h18f10n6o (fapemon)          8c   8h  18f  10n   6o       -273     0
+1104 8c8h18f10n6o (fapemon)          8c   8h  18f  10n   6o       -240     0
+1105 9c14h12f6n3o (tvopa)            9c  14h  12f   6n   3o       -385     0
+1106 9c14h12f6n3o(tvopa)             9c  14h  12f   6n   3o       -430 .0554
+1107 ***********************************************************************
+1108 *                                                                     *
+1109 *            these ingredients were added after 3-may-1983            *
+1110 *                                                                     *
+1111 ***********************************************************************
+1112 bttn                            4c   7h   3n   9o            -386 .0549
+1113 dnnc                            4c   6h   6n   8o             -44 .0657
+1114 pga                            10c  16h   5o                -1200 .0430
+1115 dffefo         (russ/may)       5c   4h   4n  10o   4f       -773 .0603
+1116 gap (aerojet)  (russ/may)       3c   5h   3n   1o             340 .0469
+1117 formal polymer (russ/may)       9c  14h   6n  12o            -326 .0523
+1118 nc (13.45%n)   (russ/may)      48c  58h  22n  84o            -568 .0599
+1119 dox            (russ/may)       5c   4h   4n   2f  10o       -613 .0614
+1120 bdnpf/a        (russ/may)      15c  26h   8n  20o            -473 .0500
+1121 bamo           (russ/may)       5c   8h   6n   1o             607 .0469
+1122 bman           (russ/may)       4c   6h   4n   4o            23.4 .0570
+1123 brand a        (russ/may)      12c  14h   8n  22o   2f       -553 .0599
+1124 brand b        (russ/may)      32c  56h  18n  51o            -523 .0572
+1125 tegdn          (russ/may)       6c  12h   2n   8o            -645 .0487
+1126 ht/ctbn        (o'neill)      271c 377h  20n   6o            +176 .0347
+1127 malori blue                     4h   1c   7n   2fe           +394 .0665
+1128 hydroxylamine sulfate           8h   2n   6o   1s           -1721 .0701
+1129 dimethyltriazanium nitrate     10h   2c   4n   3o            -360 .0500
+1130 hydrazine sulfate               6h   2n   4o   1s           -1780 .0495
+1131 dihydrazine sulfate            10h   4n   4o   1s           -1382 .0400
+1132 water vapor, 79 deg. f          2h   1o                     -3210     0
+1133 titanium                        1ti                               .1624
