@@ -48,7 +48,15 @@ TEST_F(ChemTestRead, testChemRxnFileRead)
   double rhoi[11];
 
   //TODO: check speed of sound and mixture properties
-  
+}
+
+TEST_F(ChemTestRead, testChemkinFileRead)
+{
+  std::string chemdb = homePath + "/.proteusCFD/database/chemdb.hdf5";
+  ChemModel<double> chem("../unitTest/chemResources/CH4_19Species", chemdb);
+  EXPECT_EQ(21, chem.nspecies);
+  EXPECT_EQ(84, chem.nreactions);
+  EXPECT_EQ(0, chem.nespecies); //actually 5 once read is implemented
 }
 
 class testSpeciesN2 : public ChemSetup

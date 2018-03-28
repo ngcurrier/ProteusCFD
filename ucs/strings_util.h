@@ -8,6 +8,8 @@
 #include <cstdlib>
 #include <sstream>
 #include <vector>
+#include <stdexcept>
+#include <sstream>
 
 std::string UpperToLower(std::string str);
 std::string LowerToUpper(std::string str);
@@ -29,8 +31,16 @@ Int CountSubstring(const std::string& str, const std::string& sub);
 
 Int CountCSV(const std::string str);
 
+std::vector<std::string> Split(const std::string str, const std::string splitOn);
+
+void Replace(std::string& in, const std::string replaceThis, const std::string withThis);
+
 //takes a string and a delimiter and returns a vector of string tokens
 std::vector<std::string> Tokenize(const std::string str, const char delimiter);
+
+std::vector<double> TokenizeToDoubles(const std::string str, const char delimiter);
+
+void RemoveWhitespace(std::string& s);
 
 //strips comma separated data, allocates memory and stores it
 template <class theType>

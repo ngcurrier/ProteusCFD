@@ -2,21 +2,13 @@
 template <class Type>
 Reaction<Type>::Reaction() :
   ncatalysts(0), ntbodies(0), nspecies(0), backwardRateGiven(false),
-  rxnType(999), rxnTypeBackward(999), TBEff(NULL), species(NULL), globalIndx(NULL), speciesSymbols(NULL),
-  catSymbols(NULL), Nup(NULL), Nupp(NULL)
+  rxnType(999), rxnTypeBackward(999),species(NULL), globalIndx(NULL)
 {
 }
 
 template <class Type>
 Reaction<Type>::~Reaction()
 {
-  delete [] Nup;
-  delete [] Nupp;
-  delete [] speciesSymbols;
-  delete [] catSymbols;
-  if(TBEff != NULL){
-    delete [] TBEff;
-  }
   delete [] globalIndx;
 }
 
@@ -74,6 +66,8 @@ void Reaction<Type>::Print()
   return;
 }
 
+// This function looks for reactionId given and passes the block off
+// to ParseReactionBlockLine() for parsing
 template <class Type>
 Int Reaction<Type>::ReadReactionFromFile(std::string fileName, Int reactionId)
 {
@@ -165,7 +159,7 @@ Int Reaction<Type>::ReadReactionFromFile(std::string fileName, Int reactionId)
   return err2;
 }
 
-// This parse a general line found in a reaction block based on keyword
+// This parses a general line found in a reaction block based on keyword
 // An example of such a block is
 // REACTION 1
 // rxnType = 2
@@ -320,10 +314,7 @@ Int Reaction<Type>::ParseReactionBlockLine(std::string& line)
   }
   loc = line.find(Catalyst);
   if(loc != std::string::npos){
-    loc = line.find('=');
-    loc += 1;
-    subline = line.substr(loc);
-    ParseCatalysts(subline);
+    ParseCatalysts(line);
     ss.clear();
     return(0);
   }
@@ -331,7 +322,7 @@ Int Reaction<Type>::ParseReactionBlockLine(std::string& line)
   return (2);
 }
 
-// Function parses the reaction format which looks like
+// Function parses the reaction format which looks like (spaces allowed and also not)
 // O2 + M <==> 2O + M
 // OR
 // O + M <==> O(+) + E(-) + M
@@ -341,7 +332,6 @@ Int Reaction<Type>::ParseReaction(std::string& rxn)
 {
   Int err = 0;
   Int i, j, k;
-  size_t loc;
   Int nlhs, nrhs;
   std::string lhs, rhs;
 
@@ -351,17 +341,18 @@ Int Reaction<Type>::ParseReaction(std::string& rxn)
   std::stringstream ss;
   std::string iff = "<==>";
   std::string elem;
-  loc = rxn.find(iff);
 
+  std::vector<std::string> tokens = Split(rxn, iff);
+  lhs = tokens[0];
+  rhs = tokens[1];
+  
   //count species on lhs
-  lhs = rxn.substr(0, loc);
   nlhs = std::count(lhs.begin(), lhs.end(), '+') + 1;
   nlhs -= std::count(lhs.begin(), lhs.end(), 'M');
   //subtract off the (+) signs which are referencing ions
   nlhs -= CountSubstring(lhs, "(+)");
 
   //count species on rhs
-  rhs = rxn.substr(loc+iff.size());
   nrhs = std::count(rhs.begin(), rhs.end(), '+') + 1;
   nrhs -= std::count(rhs.begin(), rhs.end(), 'M');
   //subtract off the (+) signs which are referencing ions
@@ -372,11 +363,11 @@ Int Reaction<Type>::ParseReaction(std::string& rxn)
   nspecies = nrhs+nlhs;
 
   //allocate nupp and nup temporarily
-  Type* NupTemp = new Type[nspecies];
-  Type* NuppTemp = new Type[nspecies];
+  std::vector<Type> NupTemp(nspecies);
+  std::vector<Type> NuppTemp(nspecies);
 
   //allocate room for species symbols
-  std::string* speciesSymbolsTemp = new std::string[nspecies];
+  std::vector<std::string> speciesSymbolsTemp(nspecies);
 
   std::vector<std::string> tlhstokens = Tokenize(lhs, ' ');
   std::vector<std::string> trhstokens = Tokenize(rhs, ' ');
@@ -478,9 +469,9 @@ Int Reaction<Type>::ParseReaction(std::string& rxn)
   }
 
   //allocate final value for species symbols
-  speciesSymbols = new std::string[unique];
-  Nup = new Type[unique];
-  Nupp = new Type[unique];
+  speciesSymbols.resize(unique);
+  Nup.resize(unique);
+  Nupp.resize(unique);
   
 
   //move unique values to beginning of list
@@ -508,13 +499,11 @@ Int Reaction<Type>::ParseReaction(std::string& rxn)
   //now set total number of species which are unique
   nspecies = unique;
 
-  delete [] speciesSymbolsTemp;
-  delete [] NupTemp;
-  delete [] NuppTemp;
-
   return err;
 }
 
+//we need to put the catalysts in the following form for parsing
+//M = NO(+)[1.0], O2(+)[1.0], N2(+)[1.0], O(+)[1.0], N(+)[1.0]
 template <class Type>
 Int Reaction<Type>::ParseCatalysts(std::string& line)
 {
@@ -527,12 +516,14 @@ Int Reaction<Type>::ParseCatalysts(std::string& line)
   Int ions;
   std::string ionp = "(+)";
   std::string ionn = "(-)";
+
+  line = Split(line, "=")[1];
   
   //count number of csv 
   Int ncat = std::count(line.begin(), line.end(), ',') + 1;
   
   //strip off third bodies, i.e. rxn species acting as catalysts
-  //we want a list of strict catatlysts ONLY
+  //we want a list of strict catalysts ONLY
   ntbodies = 0;
   for(i = 0; i < nspecies; i++){
     //attempt to idiot proof the format in case spaces
@@ -547,16 +538,16 @@ Int Reaction<Type>::ParseCatalysts(std::string& line)
       ntbodies++;
     }
   }
-  if(!thirdBodies && ntbodies){
-    Abort << "WARNING: third bodies switch is off but third bodies found in list!" +
-      thirdBodies;
-    err = 1;
+  if(ntbodies){
+    thirdBodies = true;
+    std::cerr << "WARNING: third bodies switch is off but third bodies found in list!\n";
   }
 
   //set ncatalysts equal to efficiencies found minus third bodies
+  //this prevents doubly adding species to the list
   ncatalysts = ncat - ntbodies;
-  catSymbols = new std::string[ncatalysts+ntbodies];
-  TBEff = new Type[ncatalysts+ntbodies];
+  catSymbols.resize(ncatalysts+ntbodies);
+  TBEff.resize(ncatalysts+ntbodies);
 
   i = 0;
   Int count = 0;
@@ -584,7 +575,7 @@ Int Reaction<Type>::ParseCatalysts(std::string& line)
       catSymbols[count] = catSym;
       catSym = "";
       
-      //skip to next brackets and read out the values
+      //skip to next brackets and read out the values to TBefficiency array
       loc = line.find('[', i-1);
       loc += 1;
       loc2 = line.find(']', i-1);
@@ -602,9 +593,9 @@ Int Reaction<Type>::ParseCatalysts(std::string& line)
 
 
   
-  //for(i = 0; i < ncatalysts+ntbodies; i++){
-  //  std::cout << catSymbols[i] << " " << TBEff[i] << std::endl;
-  //}
+  for(i = 0; i < ncatalysts+ntbodies; i++){
+    std::cout << "III : " << i << " " << catSymbols[i] << " " << TBEff[i] << std::endl;
+  }
 
   return err;
 }

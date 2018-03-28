@@ -200,8 +200,8 @@ Int Mesh<Type>::ReorderC2nMap()
       nodeorig = nodes[i];
       //make sure we are only moving interior nodes
       if(IsInteriorNode(nodeorig)){
-				nodenew = ordering[nodeorig];
-				nodes[i] = nodenew;
+	nodenew = ordering[nodeorig];
+	nodes[i] = nodenew;
       }
     }
   }
@@ -375,7 +375,7 @@ Int Mesh<Type>::BuildElsp()
       node = nodes[j];
       ielsp[node+1]++;
       if(type == TRI || type == QUAD){
-				iselsp[node+1]++;
+	iselsp[node+1]++;
       }
     }
   }
@@ -409,9 +409,9 @@ Int Mesh<Type>::BuildElsp()
       elsp[indx] = gelem;
       ielsp[node]++;
       if(type == TRI || type == QUAD){
-				indxs = iselsp[node];
-				selsp[indxs] = gelem;
-				iselsp[node]++;
+	indxs = iselsp[node];
+	selsp[indxs] = gelem;
+	iselsp[node]++;
       }
     }
     gelem++;
@@ -573,25 +573,25 @@ Int Mesh<Type>::BuildPsp()
       Int nnodes = element.GetNodes(&nodes);
       //find location of node i in ielem
       for(k = 0; k < nnodes; k++){
-				if(i == nodes[k]){
-					lnode = k;
-					break;
-				}
+	if(i == nodes[k]){
+	  lnode = k;
+	  break;
+	}
       }
       if(k == nnodes){
-				std::cerr << "WARNING: In BuildPsp[] node " << i << " not found in element " << gelem << std::endl;
+	std::cerr << "WARNING: In BuildPsp[] node " << i << " not found in element " << gelem << std::endl;
       }
       //find nodes connected to current node in own element
       //using connection lookup table cl, cli
       if((cli[e][lnode+1] - cli[e][lnode])+count2 >= memsize){
-				MemResize(&psp, memsize, memsize+(memmult*memcount*memjump));
-				memsize += (memmult*memcount*memjump);
-				memcount++;
+	MemResize(&psp, memsize, memsize+(memmult*memcount*memjump));
+	memsize += (memmult*memcount*memjump);
+	memcount++;
       }
       for(k = cli[e][lnode]; k < cli[e][lnode+1]; k++){
-				jnode = nodes[cl[k]];
-				psp[count2] = jnode;
-				count2++;
+	jnode = nodes[cl[k]];
+	psp[count2] = jnode;
+	count2++;
       }
     }
     //eliminate duplicates from the list
@@ -622,23 +622,23 @@ Int Mesh<Type>::BuildPsp()
     for(j = indx1; j < indx2; j++){
       //if reverse map on node isn't fully verified.. check it
       if(checked[psp[j]] == 0){
-				indx3 = ipsp[psp[j]];
-				indx4 = ipsp[psp[j]+1];
-				for(k = indx3; k < indx4; k++){
-					if(psp[k] == i){
-						count1++;
-						break;
-					}
-				}
+	indx3 = ipsp[psp[j]];
+	indx4 = ipsp[psp[j]+1];
+	for(k = indx3; k < indx4; k++){
+	  if(psp[k] == i){
+	    count1++;
+	    break;
+	  }
+	}
       }
       //if reverse map on node is verified.. we've already checked it
       else{
-				count1++;
+	count1++;
       }
     }
     if(count1 != (indx2-indx1)){
       std::cout << "MESH UTILITY: WARNING!!! Psp[] map failed sanity check on node " 
-								<< i << std::endl;
+		<< i << std::endl;
     }
     else{
       checked[i] = 1;
@@ -764,21 +764,21 @@ Int Mesh<Type>::BuildEl2el()
       indx1 = ielsp[inode];
       indx2 = ielsp[inode+1];
       for(j = indx1; j < indx2; j++){
-				jelem = elsp[j];
-				if(jelem != gelem){
-					Element<Type>& element2 = *elementList[jelem];
-					check = CheckSharedFace(element, element2, knodes);
-					if(check > 0){
-						face = CheckFaceLocation(fli, fl, e, facenum[e], knodes, check);
-						if(face < 0){
-							std::cerr << "WARNING!!! Face connectivity not found -- element " << 
-								gelem << " likely broken, type " << e << std::endl;
-						}
-						else{
-							el2el[iel2el[gelem] + face] = jelem;
-						}
-					}
-				}
+	jelem = elsp[j];
+	if(jelem != gelem){
+	  Element<Type>& element2 = *elementList[jelem];
+	  check = CheckSharedFace(element, element2, knodes);
+	  if(check > 0){
+	    face = CheckFaceLocation(fli, fl, e, facenum[e], knodes, check);
+	    if(face < 0){
+	      std::cerr << "WARNING!!! Face connectivity not found -- element " << 
+		gelem << " likely broken, type " << e << std::endl;
+	    }
+	    else{
+	      el2el[iel2el[gelem] + face] = jelem;
+	    }
+	  }
+	}
       }
     }
     gelem++;
@@ -800,28 +800,28 @@ Int Mesh<Type>::BuildEl2el()
       //if connection is to another domain set as okay
       //this technically only means the connecting element was never found
       if(el2el[j] == -1){
-				count1++;
-				continue;
+	count1++;
+	continue;
       }
       //if reverse map on elem isn't fully verified.. check it
       if(checked[el2el[j]] == 0){
-				indx3 = iel2el[el2el[j]];
-				indx4 = iel2el[el2el[j]+1];
-				for(k = indx3; k < indx4; k++){
-					if(el2el[k] == i){
-						count1++;
-						break;
-					}
-				}
+	indx3 = iel2el[el2el[j]];
+	indx4 = iel2el[el2el[j]+1];
+	for(k = indx3; k < indx4; k++){
+	  if(el2el[k] == i){
+	    count1++;
+	    break;
+	  }
+	}
       }
       //if reverse map on elem is verified.. we've already checked it
       else{
-				count1++;
+	count1++;
       }
     }
     if(count1 != (indx2-indx1)){
       std::cout << "MESH UTILITY: WARNING!!! El2el[] map failed sanity check on element " 
-								<< i << std::endl;
+		<< i << std::endl;
     }
     else{
       checked[i] = 1;
@@ -906,28 +906,28 @@ Int Mesh<Type>::BuildSel2el()
       Int* nodes = NULL;
       Int nnodes = element.GetNodes(&nodes);
       for(Int i = 0; i < nnodes; i++){
-				inode = nodes[i];
-				indx1 = ielsp[inode];
-				indx2 = ielsp[inode+1];
-				for(Int j = indx1; j < indx2; j++){
-					jelem = elsp[j];
-					Element<Type>& element2 = *elementList[jelem];
-					Int e2 = element2.GetType();
-					//ensure element is a boundary element 
-					if(jelem != gelem && (e2 == TRI || e2 == QUAD)){
-						check = CheckSharedEdge(element, element2, knodes);
-						if(check > 0){
-							edgeid = CheckEdgeLocationSurf(eli, el, e, edgenum[e], knodes, check);
-							if(edgeid < 0){
-								std::cerr << "WARNING!!! Edge connectivity not found -- element " << 
-									gelem << " to element " << jelem << " likely broken, type " << e << std::endl;
-							}
-							else{
-								sel2el[isel2el[gelem] + edgeid] = jelem;
-							}
-						}
-					}
-				}
+	inode = nodes[i];
+	indx1 = ielsp[inode];
+	indx2 = ielsp[inode+1];
+	for(Int j = indx1; j < indx2; j++){
+	  jelem = elsp[j];
+	  Element<Type>& element2 = *elementList[jelem];
+	  Int e2 = element2.GetType();
+	  //ensure element is a boundary element 
+	  if(jelem != gelem && (e2 == TRI || e2 == QUAD)){
+	    check = CheckSharedEdge(element, element2, knodes);
+	    if(check > 0){
+	      edgeid = CheckEdgeLocationSurf(eli, el, e, edgenum[e], knodes, check);
+	      if(edgeid < 0){
+		std::cerr << "WARNING!!! Edge connectivity not found -- element " << 
+		  gelem << " to element " << jelem << " likely broken, type " << e << std::endl;
+	      }
+	      else{
+		sel2el[isel2el[gelem] + edgeid] = jelem;
+	      }
+	    }
+	  }
+	}
       }
     }
     gelem++;
@@ -950,28 +950,28 @@ Int Mesh<Type>::BuildSel2el()
       //if connection is to another domain set as okay
       //this technically only means the connecting element was never found
       if(sel2el[j] == -1){
-				count1++;
-				continue;
+	count1++;
+	continue;
       }
       //if reverse map on elem isn't fully verified.. check it
       if(checked[sel2el[j]] == 0){
-				indx3 = isel2el[sel2el[j]];
-				indx4 = isel2el[sel2el[j]+1];
-				for(Int k = indx3; k < indx4; k++){
-					if(sel2el[k] == i){
-						count1++;
-						break;
-					}
-				}
+	indx3 = isel2el[sel2el[j]];
+	indx4 = isel2el[sel2el[j]+1];
+	for(Int k = indx3; k < indx4; k++){
+	  if(sel2el[k] == i){
+	    count1++;
+	    break;
+	  }
+	}
       }
       //if reverse map on elem is verified.. we've already checked it
       else{
-				count1++;
+	count1++;
       }
     }
     if(count1 != (indx2-indx1)){
       std::cout << "MESH UTILITY: WARNING!!! Sel2el[] map failed sanity check on element " 
-								<< i << std::endl;
+		<< i << std::endl;
     }
     else{
       checked[i] = 1;
@@ -1012,13 +1012,13 @@ Int Mesh<Type>::BuildEdges()
     indx2 = ipsp[i+1];
     for(j = indx1; j < indx2; j++){
       if(psp[j] >= nnode){
-				ghostEdgeCount++;
-				continue;
+	ghostEdgeCount++;
+	continue;
       }
       if(psp[j] > i){
-				edges[nedge].n[0] = i;
-				edges[nedge].n[1] = psp[j];
-				nedge++;
+	edges[nedge].n[0] = i;
+	edges[nedge].n[1] = psp[j];
+	nedge++;
       }
     }
   }
@@ -1042,20 +1042,20 @@ Int Mesh<Type>::BuildEdges()
       Int* nodes;
       Int nnodes = element.GetNodes(&nodes);
       for(j = 0; j < nnodes; j++){
-				inode = nodes[j];
-				//do not create a boundary edge if the boundary face
-				//is split and we are on a non-local node
-				if(IsInteriorNode(inode)){
-					bedges[k].elem = gelem;
-					//first node is part of the mesh
-					//second node is phantom/ghost node
-					//with no coordinates
-					bedges[k].n[0] = inode;
-					bedges[k].n[1] = jj;
-					bedges[k].factag = element.GetFactag();
-					k++;
-					jj++;
-				}
+	inode = nodes[j];
+	//do not create a boundary edge if the boundary face
+	//is split and we are on a non-local node
+	if(IsInteriorNode(inode)){
+	  bedges[k].elem = gelem;
+	  //first node is part of the mesh
+	  //second node is phantom/ghost node
+	  //with no coordinates
+	  bedges[k].n[0] = inode;
+	  bedges[k].n[1] = jj;
+	  bedges[k].factag = element.GetFactag();
+	  k++;
+	  jj++;
+	}
       }
     }
     gelem++;
@@ -1072,14 +1072,14 @@ Int Mesh<Type>::BuildEdges()
       //this check implies that a ghost node is
       //attached to an interior node...
       if(psp[j] >= nnode){
-				bedges[k].elem = -1;
-				bedges[k].n[0] = i;
-				bedges[k].n[1] = psp[j];
-				//note that this is dependent on bc.h
-				//though not explicitly done here...
-				//be careful changing the factag
-				bedges[k].factag = 0;
-				k++;
+	bedges[k].elem = -1;
+	bedges[k].n[0] = i;
+	bedges[k].n[1] = psp[j];
+	//note that this is dependent on bc.h
+	//though not explicitly done here...
+	//be careful changing the factag
+	bedges[k].factag = 0;
+	k++;
       }
     }
   }
@@ -1136,7 +1136,7 @@ Int Mesh<Type>::BuildEsp()
     for(j = indx1; j < indx2; j++){
       //if connected to a ghost node add a bedge
       if(psp[j] >= nnode){
-				ibesp[i+1]++;
+	ibesp[i+1]++;
       }
     }
   }
@@ -1170,7 +1170,7 @@ Int Mesh<Type>::BuildEsp()
     for(j = indx1; j < indx2; j++){
       //if point connected is not a ghost node
       if(psp[j] < nnode){
-				iesp[i+1]++;
+	iesp[i+1]++;
       }
     }
   }
@@ -1253,9 +1253,9 @@ Int Mesh<Type>::EliminateRepeats(Int* array, Int n)
     //for deletion -- avoid repetitive checks
     if(flag[i] == 1){
       for(j = i+1; j < n; j++){
-				if(array[i] == array[j]){
-					flag[j] = 0;
-				}
+	if(array[i] == array[j]){
+	  flag[j] = 0;
+	}
       }
     }
   }
@@ -1291,8 +1291,8 @@ Int Mesh<Type>::CheckSharedFace(Element<Type>& elem1, Element<Type>& elem2, Int*
   for(Int i = 0; i < nn1; i++){
     for(Int j = 0; j < nn2; j++){
       if(nodes1[i] == nodes2[j]){
-				knodes[nodes] = i;
-				nodes++;
+	knodes[nodes] = i;
+	nodes++;
       }
     }
   }
@@ -1321,9 +1321,9 @@ Int Mesh<Type>::CheckSharedEdge(Element<Type>& elem1, Element<Type>& elem2, Int*
   for(Int i = 0; i < nn1; i++){
     for(Int j = 0; j < nn2; j++){
       if(nodes1[i] == nodes2[j]){
-				knodes[nodes] = i;
-				nodes++;
-				break;
+	knodes[nodes] = i;
+	nodes++;
+	break;
       }
     }
   }
@@ -1349,12 +1349,12 @@ Int Mesh<Type>::CheckFaceLocation(Int** fli, Int* fl, Int etype, Int facenum, In
     Int indx2 = fli[etype][i+1];
     for(Int j = indx1; j < indx2; j++){
       for(Int k = 0; k < nodes; k++){
-				if(knodes[k] == fl[j]){
-					count++;
-				}
-				if(count >= 3){
-					return(i);
-				}
+	if(knodes[k] == fl[j]){
+	  count++;
+	}
+	if(count >= 3){
+	  return(i);
+	}
       }
     }
   }
@@ -1377,12 +1377,12 @@ Int Mesh<Type>::CheckEdgeLocationSurf(Int** eli, Int* el, Int etype, Int ednum, 
     Int indx2 = eli[etype][i+1];
     for(Int j = indx1; j < indx2; j++){
       for(Int k = 0; k < nodes; k++){
-				if(knodes[k] == el[j]){
-					count++;
-				}
-				if(count >= 2){
-					return(i);
-				}
+	if(knodes[k] == el[j]){
+	  count++;
+	}
+	if(count >= 2){
+	  return(i);
+	}
       }
     }
   }
@@ -1488,9 +1488,9 @@ Int Mesh<Type>::CalcExtents()
   extentsMin[2] = realExMin[2];
 
   std::cout << "MESH UTILITY: Maximum mesh extents: " << extentsMax[0] << " " 
-						<< extentsMax[1] << " " << extentsMax[2] <<std::endl;
+	    << extentsMax[1] << " " << extentsMax[2] <<std::endl;
   std::cout << "MESH UTILITY: Minimum mesh extents: " << extentsMin[0] << " " 
-						<< extentsMin[1] << " " << extentsMin[2] <<std::endl;
+	    << extentsMin[1] << " " << extentsMin[2] <<std::endl;
 
   return(0);
 }
@@ -1680,14 +1680,14 @@ Int Mesh<Type>::CalcAreasVolumes()
       //since a bface lies coincident with some volume
       //element face anyway
       if(!(jtype == TRI || jtype == QUAD)){
-				if(EdgeInElem(n1, n2, jelem)){
-					elems[count] = jelem;
-					count++;
-					if(count == size){
-						MemResize(&elems, size, 2*size);
-						size += size;
-					}
-				}
+	if(EdgeInElem(n1, n2, jelem)){
+	  elems[count] = jelem;
+	  count++;
+	  if(count == size){
+	    MemResize(&elems, size, 2*size);
+	    size += size;
+	  }
+	}
       }
     }
     for(j = 0; j < count; j++){
@@ -1697,30 +1697,30 @@ Int Mesh<Type>::CalcAreasVolumes()
       Int nnodes = element.GetNodes(&nodes);
       Int jtype = element.GetType();
       for(k = 0; k < nnodes; k++){
-				jnode = nodes[k];
-				if(n1 == jnode){
-					nloc[0] = k;
-					hits++;
-				}
-				else if(n2 == jnode){
-					nloc[1] = k;
-					hits++;
-				}
-				if(hits == 2){
-					orientation = CheckEdgeOrientation(ieorder, eorder, jtype, numedges[jtype], nloc, eid);
-					if(orientation == 0){
-						std::cerr << "WARNING: cannot determine edge orientation -- Mesh::CalcMetrics() " 
-											<< "for element " << jelem << std::endl;
-					}
-					else{
-						face1 = e2f[ie2f[jtype][eid]];
-						face2 = e2f[ie2f[jtype][eid]+1];
-					}
-					break;
-				}
+	jnode = nodes[k];
+	if(n1 == jnode){
+	  nloc[0] = k;
+	  hits++;
+	}
+	else if(n2 == jnode){
+	  nloc[1] = k;
+	  hits++;
+	}
+	if(hits == 2){
+	  orientation = CheckEdgeOrientation(ieorder, eorder, jtype, numedges[jtype], nloc, eid);
+	  if(orientation == 0){
+	    std::cerr << "WARNING: cannot determine edge orientation -- Mesh::CalcMetrics() " 
+		      << "for element " << jelem << std::endl;
+	  }
+	  else{
+	    face1 = e2f[ie2f[jtype][eid]];
+	    face2 = e2f[ie2f[jtype][eid]+1];
+	  }
+	  break;
+	}
       }
       if(hits != 2){
-				std::cerr << "WARNING: CalcMetrics() -- edge orientation not found, element " << jelem << std::endl;
+	std::cerr << "WARNING: CalcMetrics() -- edge orientation not found, element " << jelem << std::endl;
       }
 
       //calculate edge midpoint
@@ -1731,20 +1731,20 @@ Int Mesh<Type>::CalcAreasVolumes()
       indx2 = fli[jtype][face1+1];
       jj = 0;
       for(kk = indx1; kk < indx2; kk++){
-				nodef[jj] = nodes[fl[kk]];
-				jj++;
+	nodef[jj] = nodes[fl[kk]];
+	jj++;
       }
       if(indx2 - indx1 == 3){
-				Centroid(&xyz[nodef[0]*3], &xyz[nodef[1]*3], &xyz[nodef[2]*3], 
-								 face1pt);
+	Centroid(&xyz[nodef[0]*3], &xyz[nodef[1]*3], &xyz[nodef[2]*3], 
+		 face1pt);
       }
       else if(indx2 - indx1 == 4){
-				Centroid(&xyz[nodef[0]*3], &xyz[nodef[1]*3], &xyz[nodef[2]*3], 
-								 &xyz[nodef[3]*3], face1pt);
+	Centroid(&xyz[nodef[0]*3], &xyz[nodef[1]*3], &xyz[nodef[2]*3], 
+		 &xyz[nodef[3]*3], face1pt);
       }
       else{
-				std::cerr << "WARNING!!! CalcMetrics() -- odd face detected with " 
-									<< indx2-indx1 << " nodes - in element " << jelem << std::endl;
+	std::cerr << "WARNING!!! CalcMetrics() -- odd face detected with " 
+		  << indx2-indx1 << " nodes - in element " << jelem << std::endl;
       }
       
       //calculate face2 centroid
@@ -1752,20 +1752,20 @@ Int Mesh<Type>::CalcAreasVolumes()
       indx4 = fli[jtype][face2+1];
       jj = 0;
       for(kk = indx3; kk < indx4; kk++){
-				nodef[jj] = nodes[fl[kk]];
-				jj++;
+	nodef[jj] = nodes[fl[kk]];
+	jj++;
       }
       if(indx4 - indx3 == 3){
-				Centroid(&xyz[nodef[0]*3], &xyz[nodef[1]*3], &xyz[nodef[2]*3], 
-								 face2pt);
+	Centroid(&xyz[nodef[0]*3], &xyz[nodef[1]*3], &xyz[nodef[2]*3], 
+		 face2pt);
       }
       else if(indx4 - indx3 == 4){
-				Centroid(&xyz[nodef[0]*3], &xyz[nodef[1]*3], &xyz[nodef[2]*3], 
-								 &xyz[nodef[3]*3], face2pt);
+	Centroid(&xyz[nodef[0]*3], &xyz[nodef[1]*3], &xyz[nodef[2]*3], 
+		 &xyz[nodef[3]*3], face2pt);
       }
       else{
-				std::cerr << "WARNING!!! CalcMetrics() -- odd face detected with " 
-									<< indx4-indx3 << " nodes in element " << jelem << std::endl;
+	std::cerr << "WARNING!!! CalcMetrics() -- odd face detected with " 
+		  << indx4-indx3 << " nodes in element " << jelem << std::endl;
       }
 
       //calculate element centroid
@@ -1794,27 +1794,27 @@ Int Mesh<Type>::CalcAreasVolumes()
 
       //weight each partial cg coordinate by volume of partial CV
       for(nn = 0; nn < 4; nn++){
-				for(kk = 0; kk < 3; kk++){
-					tcg[nn*3 + kk] *= tv[nn];
-				}
+	for(kk = 0; kk < 3; kk++){
+	  tcg[nn*3 + kk] *= tv[nn];
+	}
       }
       for(kk = 0; kk < 4; kk++){
-				if(real(tv[kk]) < 0.0 ){//&& Abs(tv[kk]) > 1.0e-15){
-					std::cout << "Negative volume detected in element " << jelem << " of type " << ETypeToName(jtype)
-										<< " -- volume " << tv[kk] << " # " << kk << std::endl;
-				}
+	if(real(tv[kk]) < 0.0 ){//&& Abs(tv[kk]) > 1.0e-15){
+	  std::cout << "Negative volume detected in element " << jelem << " of type " << ETypeToName(jtype)
+		    << " -- volume " << tv[kk] << " # " << kk << std::endl;
+	}
       }
       vol[n1] += tv[0];
       vol[n1] += tv[1];
       vol[n2] += tv[2];
       vol[n2] += tv[3];
       for(kk = 0; kk < 3; kk++){
-				cg[n1*3 + kk] += tcg[0*3 + kk];
-				cg[n1*3 + kk] += tcg[1*3 + kk];
+	cg[n1*3 + kk] += tcg[0*3 + kk];
+	cg[n1*3 + kk] += tcg[1*3 + kk];
       }
       for(kk = 0; kk < 3; kk++){
-				cg[n2*3 + kk] += tcg[2*3 + kk];
-				cg[n2*3 + kk] += tcg[3*3 + kk];
+	cg[n2*3 + kk] += tcg[2*3 + kk];
+	cg[n2*3 + kk] += tcg[3*3 + kk];
       }
     }
   }
@@ -1836,14 +1836,14 @@ Int Mesh<Type>::CalcAreasVolumes()
       //since a bface lies coincident with some volume
       //element face anyway
       if(!(jtype == TRI || jtype == QUAD)){
-				if(EdgeInElem(n1, n2, jelem)){
-					elems[count] = jelem;
-					count++;
-					if(count == size){
-						MemResize(&elems, size, 2*size);
-						size += size;
-					}
-				}
+	if(EdgeInElem(n1, n2, jelem)){
+	  elems[count] = jelem;
+	  count++;
+	  if(count == size){
+	    MemResize(&elems, size, 2*size);
+	    size += size;
+	  }
+	}
       }
     }
     for(j = 0; j < count; j++){
@@ -1853,30 +1853,30 @@ Int Mesh<Type>::CalcAreasVolumes()
       Int nnodes = element.GetNodes(&nodes);
       Int jtype = element.GetType();
       for(k = 0; k < nnodes; k++){
-				jnode = nodes[k];
-				if(n1 == jnode){
-					nloc[0] = k;
-					hits++;
-				}
-				else if(n2 == jnode){
-					nloc[1] = k;
-					hits++;
-				}
-				if(hits == 2){
-					orientation = CheckEdgeOrientation(ieorder, eorder, jtype, numedges[jtype], nloc, eid);
-					if(orientation == 0){
-						std::cerr << "WARNING: cannot determine edge orientation -- Mesh::CalcMetrics() " 
-											<< "for element " << jelem << std::endl;
-					}
-					else{
-						face1 = e2f[ie2f[jtype][eid]];
-						face2 = e2f[ie2f[jtype][eid]+1];
-					}
-					break;
-				}
+	jnode = nodes[k];
+	if(n1 == jnode){
+	  nloc[0] = k;
+	  hits++;
+	}
+	else if(n2 == jnode){
+	  nloc[1] = k;
+	  hits++;
+	}
+	if(hits == 2){
+	  orientation = CheckEdgeOrientation(ieorder, eorder, jtype, numedges[jtype], nloc, eid);
+	  if(orientation == 0){
+	    std::cerr << "WARNING: cannot determine edge orientation -- Mesh::CalcMetrics() " 
+		      << "for element " << jelem << std::endl;
+	  }
+	  else{
+	    face1 = e2f[ie2f[jtype][eid]];
+	    face2 = e2f[ie2f[jtype][eid]+1];
+	  }
+	  break;
+	}
       }
       if(hits != 2){
-				std::cerr << "WARNING: CalcMetrics() -- edge orientation not found, element " << jelem << std::endl;
+	std::cerr << "WARNING: CalcMetrics() -- edge orientation not found, element " << jelem << std::endl;
       }
 
       //calculate edge midpoint
@@ -1887,20 +1887,20 @@ Int Mesh<Type>::CalcAreasVolumes()
       indx2 = fli[jtype][face1+1];
       jj = 0;
       for(kk = indx1; kk < indx2; kk++){
-				nodef[jj] = nodes[fl[kk]];
-				jj++;
+	nodef[jj] = nodes[fl[kk]];
+	jj++;
       }
       if(indx2 - indx1 == 3){
-				Centroid(&xyz[nodef[0]*3], &xyz[nodef[1]*3], &xyz[nodef[2]*3], 
-								 face1pt);
+	Centroid(&xyz[nodef[0]*3], &xyz[nodef[1]*3], &xyz[nodef[2]*3], 
+		 face1pt);
       }
       else if(indx2 - indx1 == 4){
-				Centroid(&xyz[nodef[0]*3], &xyz[nodef[1]*3], &xyz[nodef[2]*3], 
-								 &xyz[nodef[3]*3], face1pt);
+	Centroid(&xyz[nodef[0]*3], &xyz[nodef[1]*3], &xyz[nodef[2]*3], 
+		 &xyz[nodef[3]*3], face1pt);
       }
       else{
-				std::cerr << "WARNING!!! CalcMetrics() -- odd face detected with " 
-									<< indx2-indx1 << " nodes - in element " << jelem << std::endl;
+	std::cerr << "WARNING!!! CalcMetrics() -- odd face detected with " 
+		  << indx2-indx1 << " nodes - in element " << jelem << std::endl;
       }
       
       //calculate face2 centroid
@@ -1908,20 +1908,20 @@ Int Mesh<Type>::CalcAreasVolumes()
       indx4 = fli[jtype][face2+1];
       jj = 0;
       for(kk = indx3; kk < indx4; kk++){
-				nodef[jj] = nodes[fl[kk]];
-				jj++;
+	nodef[jj] = nodes[fl[kk]];
+	jj++;
       }
       if(indx4 - indx3 == 3){
-				Centroid(&xyz[nodef[0]*3], &xyz[nodef[1]*3], &xyz[nodef[2]*3], 
-								 face2pt);
+	Centroid(&xyz[nodef[0]*3], &xyz[nodef[1]*3], &xyz[nodef[2]*3], 
+		 face2pt);
       }
       else if(indx4 - indx3 == 4){
-				Centroid(&xyz[nodef[0]*3], &xyz[nodef[1]*3], &xyz[nodef[2]*3], 
-								 &xyz[nodef[3]*3], face2pt);
+	Centroid(&xyz[nodef[0]*3], &xyz[nodef[1]*3], &xyz[nodef[2]*3], 
+		 &xyz[nodef[3]*3], face2pt);
       }
       else{
-				std::cerr << "WARNING!!! CalcMetrics() -- odd face detected with " 
-									<< indx4-indx3 << " nodes in element " << jelem << std::endl;
+	std::cerr << "WARNING!!! CalcMetrics() -- odd face detected with " 
+		  << indx4-indx3 << " nodes in element " << jelem << std::endl;
       }
 
       //calculate element centroid
@@ -1946,21 +1946,21 @@ Int Mesh<Type>::CalcAreasVolumes()
 
       //weight each partial cg coordinate by volume of partial CV
       for(nn = 0; nn < 2; nn++){
-				for(kk = 0; kk < 3; kk++){
-					tcg[nn*3 + kk] *= tv[nn];
-				}
+	for(kk = 0; kk < 3; kk++){
+	  tcg[nn*3 + kk] *= tv[nn];
+	}
       }
       for(kk = 0; kk < 2; kk++){
-				if(real(tv[kk]) < 0.0 ){//&& Abs(tv[kk]) > 1.0e-15){
-					std::cout << "Negative volume detected in element " << jelem << " of type " << ETypeToName(jtype) 
-										<< " -- volume " << tv[kk] << " # " << kk << std::endl;
-				}
+	if(real(tv[kk]) < 0.0 ){//&& Abs(tv[kk]) > 1.0e-15){
+	  std::cout << "Negative volume detected in element " << jelem << " of type " << ETypeToName(jtype) 
+		    << " -- volume " << tv[kk] << " # " << kk << std::endl;
+	}
       }
       vol[n1] += tv[0];
       vol[n1] += tv[1];
       for(kk = 0; kk < 3; kk++){
-				cg[n1*3 + kk] += tcg[0*3 + kk];
-				cg[n1*3 + kk] += tcg[1*3 + kk];
+	cg[n1*3 + kk] += tcg[0*3 + kk];
+	cg[n1*3 + kk] += tcg[1*3 + kk];
       }
     }
   }
@@ -2003,7 +2003,7 @@ Int Mesh<Type>::CalcAreasVolumes()
     Int jtype = element.GetType();
     for(k = 0; k < nnodes; k++){
       if(nodes[k] == n1){
-				nid = k;
+	nid = k;
       }
     }
     ElementCentroid(nodes, xyz, jtype, elempt);
@@ -2060,7 +2060,7 @@ Int Mesh<Type>::CalcAreasVolumes()
     meshCg[i] /= sum;
   }
   std::cout << "MESH UTILITY: Enclosed volume center of mass: " 
-						<< meshCg[0] << " " << meshCg[1] << " " << meshCg[2] << std::endl;
+	    << meshCg[0] << " " << meshCg[1] << " " << meshCg[2] << std::endl;
 
   std::cout << "MESH UTILITY: Total enclosed volume: " << sum << std::endl;
 
@@ -2072,7 +2072,7 @@ Int Mesh<Type>::CalcAreasVolumes()
   }
   sum = Magnitude(area);
   std::cout << "MESH UTILITY: Component surface area leakage: " << area[0] 
-						<< " " << area[1] << " " << area[2] << std::endl;
+	    << " " << area[1] << " " << area[2] << std::endl;
   std::cout << "MESH UTILITY: Total surface area leakage: " << sum << std::endl;
 
   delete [] elems;
@@ -2097,7 +2097,7 @@ Int Mesh<Type>::CalcAreasVolumes()
 /****************************************************/
 template <class Type>
 Int Mesh<Type>::CheckEdgeOrientation(Int** ieorder, Int* eorder, Int etype, Int numedges, 
-																		 Int* tested, Int& edgeid){
+				     Int* tested, Int& edgeid){
   Int j;
   for(j = 0; j < numedges; j++){
     if(eorder[ieorder[etype][j]] == tested[0] && eorder[ieorder[etype][j]+1] == tested[1]){
@@ -2150,9 +2150,9 @@ Int Mesh<Type>::CheckForClosure()
     if(real(Magnitude(&areasum[i*3])) > real(smallnum)){
       fail = 1;
       std::cout << "WARNING!!! Dual CV based on node " << i << " not closed. Open by (" << areasum[i*3 + 0]
-								<< ", " << areasum[i*3 + 1] << ", " << areasum[i*3 + 2] << ") -- position ("
-								<< areasum[i*3 + 0] << " " << areasum[i*3 + 1] << " " 
-								<< areasum[i*3 + 2] << ")" << std::endl;
+		<< ", " << areasum[i*3 + 1] << ", " << areasum[i*3 + 2] << ") -- position ("
+		<< areasum[i*3 + 0] << " " << areasum[i*3 + 1] << " " 
+		<< areasum[i*3 + 2] << ")" << std::endl;
       count++;
     }
   }
@@ -2200,16 +2200,16 @@ Int Mesh<Type>::FixBoundaryWindings()
       indx1 = iel2el[gelem];
       indx2 = iel2el[gelem+1];
       if(indx2 - indx1 != 1){
-				std::cerr << "WARNING!!! Boundary face # " << gelem << " of type " 
-									<< ETypeToName(itype) << " connected to " 
-									<< "multiple volume elements Mesh::FixBoundaryWindings()" 
-									<< std::endl;
-				std::cerr << "Element list: " << std::endl;
-				for(k = indx1; k < indx2; k++){
-					std::cerr << el2el[k] << " ";
-				}
-				std::cerr << std::endl;
-				return (-1);
+	std::cerr << "WARNING!!! Boundary face # " << gelem << " of type " 
+		  << ETypeToName(itype) << " connected to " 
+		  << "multiple volume elements Mesh::FixBoundaryWindings()" 
+		  << std::endl;
+	std::cerr << "Element list: " << std::endl;
+	for(k = indx1; k < indx2; k++){
+	  std::cerr << el2el[k] << " ";
+	}
+	std::cerr << std::endl;
+	return (-1);
       }
       elementi.GetNodes(&nodesi);
       ElementCentroid(nodesi, xyz, itype, bpt);
@@ -2226,24 +2226,24 @@ Int Mesh<Type>::FixBoundaryWindings()
       //reverse winding if normal doesn't face correct direction
       //that is, wind all face normals outward
       if(!(real(dot) > 0.0)){
-				if(itype == TRI){
-					nodesitemp[0] = nodesi[2];	
-					nodesitemp[1] = nodesi[1];
-					nodesitemp[2] = nodesi[0];
-					elementi.Init(nodesitemp);
-				} 
-				else if(itype == QUAD){
-					nodesitemp[0] = nodesi[3];	
-					nodesitemp[1] = nodesi[2];
-					nodesitemp[2] = nodesi[1];
-					nodesitemp[3] = nodesi[0];
-					elementi.Init(nodesitemp);
-				}
-				else{
-					std::cerr << "WARNING!!! Unable to rewind element " << gelem << " Unknown type" << std::endl;
-					return (-1);
-				}
-				count++;
+	if(itype == TRI){
+	  nodesitemp[0] = nodesi[2];	
+	  nodesitemp[1] = nodesi[1];
+	  nodesitemp[2] = nodesi[0];
+	  elementi.Init(nodesitemp);
+	} 
+	else if(itype == QUAD){
+	  nodesitemp[0] = nodesi[3];	
+	  nodesitemp[1] = nodesi[2];
+	  nodesitemp[2] = nodesi[1];
+	  nodesitemp[3] = nodesi[0];
+	  elementi.Init(nodesitemp);
+	}
+	else{
+	  std::cerr << "WARNING!!! Unable to rewind element " << gelem << " Unknown type" << std::endl;
+	  return (-1);
+	}
+	count++;
       }
       //std::cout << dot << std::endl;
     }
@@ -2295,11 +2295,11 @@ Int Mesh<Type>::ReorderMeshCuthillMcKee(Int reverse)
     for(k = indx1; k < indx2; k++){
       //check if used
       if(psp[k] < nnode){
-				if(Q[psp[k]].a >= 0){
-					R.push_back(Q[psp[k]]);
-					//set as used vertex
-					Q[psp[k]].a = -1;
-				}
+	if(Q[psp[k]].a >= 0){
+	  R.push_back(Q[psp[k]]);
+	  //set as used vertex
+	  Q[psp[k]].a = -1;
+	}
       }
     }
     sort(R.begin(), R.end(), DegreeCompare);
@@ -2317,10 +2317,10 @@ Int Mesh<Type>::ReorderMeshCuthillMcKee(Int reverse)
       //Queue empty prematurely, pick a new seed
       //for now pick the first non-used seed in list Q
       for(j = 0; j < nnode; j++){
-				if(Q[j].a >= 0){
-					z = j;
-					break;
-				}
+	if(Q[j].a >= 0){
+	  z = j;
+	  break;
+	}
       }
     }
   }
@@ -2362,10 +2362,10 @@ Int Mesh<Type>::ReorderMeshCuthillMcKee(Int reverse)
     for(k = indx1; k < indx2; k++){
       fo2 << i+1 << " " ;
       for(kk = 0; kk < nnode; kk++){
-				if(ordering[kk] == psp[k]){
-					fo2 << kk+1 << endl;
-					break;
-				}
+	if(ordering[kk] == psp[k]){
+	  fo2 << kk+1 << endl;
+	  break;
+	}
       }
     }
   }
@@ -2462,15 +2462,15 @@ Int Mesh<Type>::FindPointsWithFactag(Int** pts, Int factag)
     for(indx = indx1; indx < indx2; indx++){
       bedge = besp[indx];
       if(bedges[bedge].factag == factag){
-				if(memsize <= n){
-					MemResize(pts, memsize, memsize+memjump);
-					memsize += memjump;
-				}
-				//make sure we don't accidentally add a ghost node to the list
-				if(pt < nnode){
-					(*pts)[n] = pt;
-					n++;
-				}
+	if(memsize <= n){
+	  MemResize(pts, memsize, memsize+memjump);
+	  memsize += memjump;
+	}
+	//make sure we don't accidentally add a ghost node to the list
+	if(pt < nnode){
+	  (*pts)[n] = pt;
+	  n++;
+	}
       }
     }
   }
@@ -2675,7 +2675,7 @@ Int Mesh<Type>::ReadPartedMesh(std::string casename)
   std::cout << "PARTITION HDF I/O: Number of Hexes " << nelem[HEX] << std::endl;
   
   lnelem =  (nelem[TRI] + nelem[QUAD] + nelem[TET] + 
-						 nelem[PYRAMID] + nelem[PRISM] + nelem[HEX]);
+	     nelem[PYRAMID] + nelem[PRISM] + nelem[HEX]);
   
   MemInitMesh();
 
@@ -2998,252 +2998,252 @@ Int Mesh<Type>::ReadSU2_Ascii(std::string filename)
     switch(state)
       {
       case stateReadNdim:
-				loc = line.find(ndimKey);
-				if(loc == std::string::npos){
-					std::cerr << "SU2 ASCII I/O: File read did not find \"NDIME=\" marker where expected\n";
-					return(1);
-				}
-				else{
-					ss.str(line.substr(loc+ndimKey.size()));
-					ss >> ndim;
-					std::cout << "SU2 ASCII I/O: Reading " << ndim << " dimensional mesh" << std::endl;
-					if(ndim != 3){
-						std::cerr << "SU2 ASCII I/O: File read only recognizes 3d meshes" << std::endl;
-						return(1);
-					}
-					else{
-						state = stateReadNelem;
-					}
-				}
-				break;
+	loc = line.find(ndimKey);
+	if(loc == std::string::npos){
+	  std::cerr << "SU2 ASCII I/O: File read did not find \"NDIME=\" marker where expected\n";
+	  return(1);
+	}
+	else{
+	  ss.str(line.substr(loc+ndimKey.size()));
+	  ss >> ndim;
+	  std::cout << "SU2 ASCII I/O: Reading " << ndim << " dimensional mesh" << std::endl;
+	  if(ndim != 3){
+	    std::cerr << "SU2 ASCII I/O: File read only recognizes 3d meshes" << std::endl;
+	    return(1);
+	  }
+	  else{
+	    state = stateReadNelem;
+	  }
+	}
+	break;
       case stateReadNelem:
-				loc = line.find(nelemKey);
-				if(loc == std::string::npos){
-					std::cerr << "SU2 ASCII I/O: File read did not find \"NELEM=\" marker where expected";
-					return(1);
-				}
-				else{
-					ss << line.substr(loc+nelemKey.size());
-					ss >> nnelem;
-					std::cout << "SU2 ASCII I/O: Reading " << nnelem << " volume elements" << std::endl;
-					state = stateReadElem;
-				}
+	loc = line.find(nelemKey);
+	if(loc == std::string::npos){
+	  std::cerr << "SU2 ASCII I/O: File read did not find \"NELEM=\" marker where expected";
+	  return(1);
+	}
+	else{
+	  ss << line.substr(loc+nelemKey.size());
+	  ss >> nnelem;
+	  std::cout << "SU2 ASCII I/O: Reading " << nnelem << " volume elements" << std::endl;
+	  state = stateReadElem;
+	}
       	break;
       case stateReadElem:
-				ss.str(line);
-				ss >> elemType;
-				if(elemType == SU2_LINE){
-					std::cerr << "SU2 ASCII I/O: Only 3d elements expected, found line";
-					return (-1);
-				}
-				else if(elemType == SU2_TRI){
-					std::cerr << "SU2 ASCII I/O: Only 3d elements expected, found triangle";
-					return (-1);
-				}
-				else if(elemType == SU2_QUAD){
-					std::cerr << "SU2 ASCII I/O: Only 3d elements expected, found quad";
-					return (-1);
-				}
-				else if(elemType == SU2_TET){
-					Int nodes[4];
-					ss >> nodes[0];
-					ss >> nodes[1];
-					ss >> nodes[2];
-					ss >> nodes[3];
-					Int id;
-					ss >> id;
-					TranslateWinding(nodes, translation, mnode[TET], TET, 0);
-					tempe = new Tetrahedron<Type>;
-					tempe->Init(nodes);
-					elementList.push_back(tempe);
-					nelem[TET]++;
-				}
-				else if(elemType == SU2_HEX){
-					Int nodes[8];
-					ss >> nodes[0];
-					ss >> nodes[1];
-					ss >> nodes[2];
-					ss >> nodes[3];
-					ss >> nodes[4];
-					ss >> nodes[5];
-					ss >> nodes[6];
-					ss >> nodes[7];
-					Int id;
-					ss >> id;
-					TranslateWinding(nodes, translation, mnode[HEX], HEX, 0);
-					tempe = new Hexahedron<Type>;
-					tempe->Init(nodes);
-					elementList.push_back(tempe);
-					nelem[HEX]++;
-				}
-				else if(elemType == SU2_PRISM){
-					Int nodes[6];
-					ss >> nodes[0];
-					ss >> nodes[1];
-					ss >> nodes[2];
-					ss >> nodes[3];
-					ss >> nodes[4];
-					ss >> nodes[5];
-					Int id;
-					ss >> id;
-					TranslateWinding(nodes, translation, mnode[PRISM], PRISM, 0);
-					tempe = new Prism<Type>;
-					tempe->Init(nodes);
-					elementList.push_back(tempe);
-					nelem[PRISM]++;
-				}
-				else if(elemType == SU2_PYRAMID){
-					Int nodes[5];
-					ss >> nodes[0];
-					ss >> nodes[1];
-					ss >> nodes[2];
-					ss >> nodes[3];
-					ss >> nodes[4];
-					Int id;
-					ss >> id;
-					TranslateWinding(nodes, translation, mnode[PYRAMID], PYRAMID, 0);
-					tempe = new Pyramid<Type>;
-					tempe->Init(nodes);
-					elementList.push_back(tempe);
-					nelem[PYRAMID]++;
-				}
-				else{
-					std::cerr << "SU2 ASCII I/O: Cannot find element of type " << elemType << std::endl;
-					return(-1);
-				}
-				elemCounter++;
-				if(elemCounter >= nnelem){
-					state = stateReadNpoints;
-				}
-				break;
+	ss.str(line);
+	ss >> elemType;
+	if(elemType == SU2_LINE){
+	  std::cerr << "SU2 ASCII I/O: Only 3d elements expected, found line";
+	  return (-1);
+	}
+	else if(elemType == SU2_TRI){
+	  std::cerr << "SU2 ASCII I/O: Only 3d elements expected, found triangle";
+	  return (-1);
+	}
+	else if(elemType == SU2_QUAD){
+	  std::cerr << "SU2 ASCII I/O: Only 3d elements expected, found quad";
+	  return (-1);
+	}
+	else if(elemType == SU2_TET){
+	  Int nodes[4];
+	  ss >> nodes[0];
+	  ss >> nodes[1];
+	  ss >> nodes[2];
+	  ss >> nodes[3];
+	  Int id;
+	  ss >> id;
+	  TranslateWinding(nodes, translation, mnode[TET], TET, 0);
+	  tempe = new Tetrahedron<Type>;
+	  tempe->Init(nodes);
+	  elementList.push_back(tempe);
+	  nelem[TET]++;
+	}
+	else if(elemType == SU2_HEX){
+	  Int nodes[8];
+	  ss >> nodes[0];
+	  ss >> nodes[1];
+	  ss >> nodes[2];
+	  ss >> nodes[3];
+	  ss >> nodes[4];
+	  ss >> nodes[5];
+	  ss >> nodes[6];
+	  ss >> nodes[7];
+	  Int id;
+	  ss >> id;
+	  TranslateWinding(nodes, translation, mnode[HEX], HEX, 0);
+	  tempe = new Hexahedron<Type>;
+	  tempe->Init(nodes);
+	  elementList.push_back(tempe);
+	  nelem[HEX]++;
+	}
+	else if(elemType == SU2_PRISM){
+	  Int nodes[6];
+	  ss >> nodes[0];
+	  ss >> nodes[1];
+	  ss >> nodes[2];
+	  ss >> nodes[3];
+	  ss >> nodes[4];
+	  ss >> nodes[5];
+	  Int id;
+	  ss >> id;
+	  TranslateWinding(nodes, translation, mnode[PRISM], PRISM, 0);
+	  tempe = new Prism<Type>;
+	  tempe->Init(nodes);
+	  elementList.push_back(tempe);
+	  nelem[PRISM]++;
+	}
+	else if(elemType == SU2_PYRAMID){
+	  Int nodes[5];
+	  ss >> nodes[0];
+	  ss >> nodes[1];
+	  ss >> nodes[2];
+	  ss >> nodes[3];
+	  ss >> nodes[4];
+	  Int id;
+	  ss >> id;
+	  TranslateWinding(nodes, translation, mnode[PYRAMID], PYRAMID, 0);
+	  tempe = new Pyramid<Type>;
+	  tempe->Init(nodes);
+	  elementList.push_back(tempe);
+	  nelem[PYRAMID]++;
+	}
+	else{
+	  std::cerr << "SU2 ASCII I/O: Cannot find element of type " << elemType << std::endl;
+	  return(-1);
+	}
+	elemCounter++;
+	if(elemCounter >= nnelem){
+	  state = stateReadNpoints;
+	}
+	break;
       case stateReadNpoints:
-				loc = line.find(npoinKey);
-				if(loc == std::string::npos){
-					std::cerr << "SU2 ASCII I/O: File read did not find \"NPOIN=\" marker where expected\n";
-					return(1);
-				}
-				else{
-					ss.str(line.substr(loc+npoinKey.size()));
-					ss >> nnode;
-					std::cout << "SU2 ASCII I/O: Reading " << GetNumNodes() << " nodes" << std::endl;
-					state = stateReadPoints;
-					MemInitMesh();
-					std::cout << "SU2 ASCII I/O: Memory initialized" << std::endl;
-					std::cout << "SU2 ASCII I/O: Reading points " << std::endl;
-				}
-				break;
+	loc = line.find(npoinKey);
+	if(loc == std::string::npos){
+	  std::cerr << "SU2 ASCII I/O: File read did not find \"NPOIN=\" marker where expected\n";
+	  return(1);
+	}
+	else{
+	  ss.str(line.substr(loc+npoinKey.size()));
+	  ss >> nnode;
+	  std::cout << "SU2 ASCII I/O: Reading " << GetNumNodes() << " nodes" << std::endl;
+	  state = stateReadPoints;
+	  MemInitMesh();
+	  std::cout << "SU2 ASCII I/O: Memory initialized" << std::endl;
+	  std::cout << "SU2 ASCII I/O: Reading points " << std::endl;
+	}
+	break;
       case stateReadPoints:
-				ss.str(line);
-				{
-					Real xyzt[3];
-					ss >> xyzt[0];
-					ss >> xyzt[1];
-					ss >> xyzt[2];
-					Int id;
-					ss >> id;
-					xyz[nodeCount*3 + 0] = xyzt[0];
-					xyz[nodeCount*3 + 1] = xyzt[1];
-					xyz[nodeCount*3 + 2] = xyzt[2];
-					nodeCount++;
-				}
-				if(nodeCount >= nnode){
-					state = stateReadNmark;
-					std::cout << "SU2 ASCII I/O: Reading boundary markers" << std::endl;
-				}
-				break;
+	ss.str(line);
+	{
+	  Real xyzt[3];
+	  ss >> xyzt[0];
+	  ss >> xyzt[1];
+	  ss >> xyzt[2];
+	  Int id;
+	  ss >> id;
+	  xyz[nodeCount*3 + 0] = xyzt[0];
+	  xyz[nodeCount*3 + 1] = xyzt[1];
+	  xyz[nodeCount*3 + 2] = xyzt[2];
+	  nodeCount++;
+	}
+	if(nodeCount >= nnode){
+	  state = stateReadNmark;
+	  std::cout << "SU2 ASCII I/O: Reading boundary markers" << std::endl;
+	}
+	break;
       case stateReadNmark:
-				loc = line.find(nmarkKey);
-				if(loc == std::string::npos){
-					std::cerr << "SU2 ASCII I/O: File read did not find \"NMARK=\" marker where expected" << std::endl;
-					return(1);
-				}
-				else{
-					ss.str(line.substr(loc+nmarkKey.size()));
-					ss >> nbound;
-					std::cout << "SU2 ASCII I/O: Reading " << nbound << " boundaries" << std::endl;
-					state = stateReadMarkerTag;
-				}
-				break;
+	loc = line.find(nmarkKey);
+	if(loc == std::string::npos){
+	  std::cerr << "SU2 ASCII I/O: File read did not find \"NMARK=\" marker where expected" << std::endl;
+	  return(1);
+	}
+	else{
+	  ss.str(line.substr(loc+nmarkKey.size()));
+	  ss >> nbound;
+	  std::cout << "SU2 ASCII I/O: Reading " << nbound << " boundaries" << std::endl;
+	  state = stateReadMarkerTag;
+	}
+	break;
       case stateReadMarkerTag:
-				loc = line.find(markTagKey);
-				if(loc == std::string::npos){
-					std::cerr << "SU2 ASCII I/O: File read did not find \"MARKER_TAG=\" where expected\n";
-					return(1);
-				}
-				else{
-					std::string name;
-					ss.str(line.substr(loc+markTagKey.size()));
-					ss >> name;
-					std::cout << "SU2 ASCII I/O: Reading boundary " << name << std::endl;
-					state = stateReadMarkerNelem;
-				}
-				break;
+	loc = line.find(markTagKey);
+	if(loc == std::string::npos){
+	  std::cerr << "SU2 ASCII I/O: File read did not find \"MARKER_TAG=\" where expected\n";
+	  return(1);
+	}
+	else{
+	  std::string name;
+	  ss.str(line.substr(loc+markTagKey.size()));
+	  ss >> name;
+	  std::cout << "SU2 ASCII I/O: Reading boundary " << name << std::endl;
+	  state = stateReadMarkerNelem;
+	}
+	break;
       case stateReadMarkerNelem:
-				loc = line.find(markElemKey);
-				if(loc == std::string::npos){
-					std::cerr << "SU2 ASCII I/O: File read did not find \"MARKER_ELEMS=\" where expected\n";
-					return(1);
-				}
-				else{
-					nbelemTmp = 0;
-					ss.str(line.substr(loc+markElemKey.size()));
-					ss >> nbelemTmp;
-					std::cout << "SU2 ASCII I/O: Reading " << nbelemTmp << " boundary elements " << std::endl;
-					state = stateReadMarkerElem;
-					boundElemCounter = 0;
-				}
-				break;
+	loc = line.find(markElemKey);
+	if(loc == std::string::npos){
+	  std::cerr << "SU2 ASCII I/O: File read did not find \"MARKER_ELEMS=\" where expected\n";
+	  return(1);
+	}
+	else{
+	  nbelemTmp = 0;
+	  ss.str(line.substr(loc+markElemKey.size()));
+	  ss >> nbelemTmp;
+	  std::cout << "SU2 ASCII I/O: Reading " << nbelemTmp << " boundary elements " << std::endl;
+	  state = stateReadMarkerElem;
+	  boundElemCounter = 0;
+	}
+	break;
       case stateReadMarkerElem:
-				ss.str(line);
-				ss >> elemType;
-				if(elemType == SU2_LINE){
-					std::cerr << "SU2 ASCII I/O: Only 3d elements expected, found line ";
-					return (-1);
-				}
-				else if(elemType == SU2_TRI){
-					Int nodes[3];
-					ss >> nodes[0];
-					ss >> nodes[1];
-					ss >> nodes[2];
-					Int id;
-					ss >> id;
-					TranslateWinding(nodes, translation, mnode[TRI], TRI, 0);
-					tempe = new Triangle<Type>;
-					tempe->Init(nodes);
-					tempe->SetFactag(boundCounter+1);
-					elementList.push_back(tempe);
-					nelem[TRI]++;
-				}
-				else if(elemType == SU2_QUAD){
-					Int nodes[4];
-					ss >> nodes[0];
-					ss >> nodes[1];
-					ss >> nodes[2];
-					ss >> nodes[3];
-					Int id;
-					ss >> id;
-					TranslateWinding(nodes, translation, mnode[QUAD], QUAD, 0);
-					tempe = new Quadrilateral<Type>;
-					tempe->Init(nodes);
-					tempe->SetFactag(boundCounter+1);
-					elementList.push_back(tempe);
-					nelem[QUAD]++;
-				}
-				else{
-					std::cerr << "SU2 ASCII I/O: Cannot find boundary element of type " << elemType << std::endl;
-					return(-1);
-				}
-				boundElemCounter++;
-				if(boundElemCounter >= nbelemTmp){
-					state = stateReadMarkerTag;
-					boundCounter++;
-					if(boundCounter >= nbound){
-						state = stateExit;
-					}
-				}
-				break;
+	ss.str(line);
+	ss >> elemType;
+	if(elemType == SU2_LINE){
+	  std::cerr << "SU2 ASCII I/O: Only 3d elements expected, found line ";
+	  return (-1);
+	}
+	else if(elemType == SU2_TRI){
+	  Int nodes[3];
+	  ss >> nodes[0];
+	  ss >> nodes[1];
+	  ss >> nodes[2];
+	  Int id;
+	  ss >> id;
+	  TranslateWinding(nodes, translation, mnode[TRI], TRI, 0);
+	  tempe = new Triangle<Type>;
+	  tempe->Init(nodes);
+	  tempe->SetFactag(boundCounter+1);
+	  elementList.push_back(tempe);
+	  nelem[TRI]++;
+	}
+	else if(elemType == SU2_QUAD){
+	  Int nodes[4];
+	  ss >> nodes[0];
+	  ss >> nodes[1];
+	  ss >> nodes[2];
+	  ss >> nodes[3];
+	  Int id;
+	  ss >> id;
+	  TranslateWinding(nodes, translation, mnode[QUAD], QUAD, 0);
+	  tempe = new Quadrilateral<Type>;
+	  tempe->Init(nodes);
+	  tempe->SetFactag(boundCounter+1);
+	  elementList.push_back(tempe);
+	  nelem[QUAD]++;
+	}
+	else{
+	  std::cerr << "SU2 ASCII I/O: Cannot find boundary element of type " << elemType << std::endl;
+	  return(-1);
+	}
+	boundElemCounter++;
+	if(boundElemCounter >= nbelemTmp){
+	  state = stateReadMarkerTag;
+	  boundCounter++;
+	  if(boundCounter >= nbound){
+	    state = stateExit;
+	  }
+	}
+	break;
       default:
-				break;
+	break;
       }
     
   }
@@ -3313,8 +3313,8 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
   std::map<std::string, int> stateMap;
   stateMap["$MeshFormat"] = ReadMeshFormat;
   stateMap["$EndMeshFormat"] = None;
-	stateMap["$ParametricNodes"] = ReadNpoints;
-	stateMap["$EndParametricNodes"] = None;
+  stateMap["$ParametricNodes"] = ReadNpoints;
+  stateMap["$EndParametricNodes"] = None;
   stateMap["$Nodes"] = ReadNpoints;
   stateMap["$EndNodes"] = None;
   stateMap["$Elements"] = ReadNelem;
@@ -3348,12 +3348,12 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
     if(line[0] == '$'){
       std::map<std::string, int>::iterator it = stateMap.find(line);
       if(it != stateMap.end()){
-				state = stateMap[line];
-				continue;
+	state = stateMap[line];
+	continue;
       }
       else{
-				std::cerr << "GMSH ASCII I/O: found bad state " << state << std::endl;
-				return(-1);
+	std::cerr << "GMSH ASCII I/O: found bad state " << state << std::endl;
+	return(-1);
       }
     }
     std::stringstream ss;
@@ -3365,202 +3365,202 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
     switch(state)
       {
       case None:
-				//this just skips the line read and moves on
-				break;
+	//this just skips the line read and moves on
+	break;
       case ReadMeshFormat:
-				{
-					std::cout << "GMSH ASCII I/I: Reading mesh format" << std::endl;
-					Real version;
-					Int tmp;
-					ss >> version;	
-					std::cout << "GMSH ASCII I/I: Reading mesh format version " << version << std::endl;
-					ss >> tmp;
-					Int ndim;
-					ss >> ndim;
-					if(ndim != 3){
-						std::cerr << "GMSH ASCII I/O: Number of dimensions required is 3. Received " << ndim << std::endl;
-					}
-				}
-				break;
+	{
+	  std::cout << "GMSH ASCII I/I: Reading mesh format" << std::endl;
+	  Real version;
+	  Int tmp;
+	  ss >> version;	
+	  std::cout << "GMSH ASCII I/I: Reading mesh format version " << version << std::endl;
+	  ss >> tmp;
+	  Int ndim;
+	  ss >> ndim;
+	  if(ndim != 3){
+	    std::cerr << "GMSH ASCII I/O: Number of dimensions required is 3. Received " << ndim << std::endl;
+	  }
+	}
+	break;
       case ReadNpoints:
-				ss >> nnode;
-				std::cout << "GMSH ASCII I/O: Number of points to read is " << nnode << std::endl;
-				MemInitMesh();
-				std::cout << "GMSH ASCII I/O: Memory initialized" << std::endl;
-				state = ReadPoints; //trip to next state for reading
-				break;
+	ss >> nnode;
+	std::cout << "GMSH ASCII I/O: Number of points to read is " << nnode << std::endl;
+	MemInitMesh();
+	std::cout << "GMSH ASCII I/O: Memory initialized" << std::endl;
+	state = ReadPoints; //trip to next state for reading
+	break;
       case ReadPoints:
-				{
-					Int ptid;
-					ss >> ptid;
-					if(ptid-1 != nodesRead){
-						std::cerr << "GMSH ASCII I/O: Warning points not ordered. Dying." << std::endl;
-						return -1;
-					}
-					ss >> xyz[nodesRead*3 + 0];
-					ss >> xyz[nodesRead*3 + 1];
-					ss >> xyz[nodesRead*3 + 2];
-					nodesRead++;
-				}
-				break;
+	{
+	  Int ptid;
+	  ss >> ptid;
+	  if(ptid-1 != nodesRead){
+	    std::cerr << "GMSH ASCII I/O: Warning points not ordered. Dying." << std::endl;
+	    return -1;
+	  }
+	  ss >> xyz[nodesRead*3 + 0];
+	  ss >> xyz[nodesRead*3 + 1];
+	  ss >> xyz[nodesRead*3 + 2];
+	  nodesRead++;
+	}
+	break;
       case ReadNelem:
-				ss >> totalElems;
-				std::cout << "GMSH ASCII I/O: Number of elements to read is " << totalElems << std::endl;
-				state = ReadElem; //trip to next state for reading
-				break;
+	ss >> totalElems;
+	std::cout << "GMSH ASCII I/O: Number of elements to read is " << totalElems << std::endl;
+	state = ReadElem; //trip to next state for reading
+	break;
       case ReadElem:
-				{
-					Int elemId = 0;
-					Int elemType = -1;
-					Int physicalId = 0;
-					Int elementaryId = 0;
-					// * first tag is the physical entity to which element belongs
-					// * second tag is the elementary geometric entity
-					// * third is the number of which partitions to which element belongs,
-					// * followed by the partition ids (negative implies ghost cells)
-					//     -- a zero tag is equivalent to no tag
-					// * format is elemId, elemType, number of tags, <tags> (physicalId, elementaryId, ... ) <list of nodes>
-					ss >> elemId;
-					ss >> elemType;
-					ss >> numberOfTags;
-					if(numberOfTags == 2){
-						ss >> physicalId;
-						ss >> elementaryId;
-					}
-					else{
-						std::cerr << "GMSH ASCII I/O: number of tags inconsistent. Require two. One physical and one elementary tag id per element." << std::endl;
-						return (-1);
-					}
-					if(elemType == GMSH_LINE){
-						std::cerr << "GMSH ASCII I/O: found lin elements in file, these shouldn't be here. Ignoring.\n";
-					}
-					else if(elemType == GMSH_POINT){
-						std::cerr << "GMSH ASCII I/O: found point elements in file, these shouldn't be here. Ignoring.\n";
-					}
-					else if(elemType == GMSH_TRI){
-						Int nodes[3];
-						ss >> nodes[0];
-						ss >> nodes[1];
-						ss >> nodes[2];
-						//gmsh nodes are 1 based, we are zero based
-						nodes[0]--;
-						nodes[1]--;
-						nodes[2]--;
-						TranslateWinding(nodes, translation, mnode[TRI], TRI, 0);
-						tempe = new Triangle<Type>;
-						tempe->Init(nodes);
-						tempe->SetFactag(physicalId);
-						elementList.push_back(tempe);
-						nelem[TRI]++;
-					}
-					else if(elemType == GMSH_QUAD){
-						Int nodes[4];
-						ss >> nodes[0];
-						ss >> nodes[1];
-						ss >> nodes[2];
-						ss >> nodes[3];
-						//gmsh nodes are 1 based, we are zero based
-						nodes[0]--;
-						nodes[1]--;
-						nodes[2]--;
-						nodes[3]--;
-						TranslateWinding(nodes, translation, mnode[QUAD], QUAD, 0);
-						tempe = new Quadrilateral<Type>;
-						tempe->Init(nodes);
-						tempe->SetFactag(physicalId);
-						elementList.push_back(tempe);
-						nelem[QUAD]++;
-					}
-					else if(elemType == GMSH_TET){
-						Int nodes[4];
-						ss >> nodes[0];
-						ss >> nodes[1];
-						ss >> nodes[2];
-						ss >> nodes[3];
-						//gmsh nodes are 1 based, we are zero based
-						nodes[0]--;
-						nodes[1]--;
-						nodes[2]--;
-						nodes[3]--;
-						TranslateWinding(nodes, translation, mnode[TET], TET, 0);
-						tempe = new Tetrahedron<Type>;
-						tempe->Init(nodes);
-						elementList.push_back(tempe);
-						nelem[TET]++;
-					}
-					else if(elemType == GMSH_HEX){
-						Int nodes[8];
-						ss >> nodes[0];
-						ss >> nodes[1];
-						ss >> nodes[2];
-						ss >> nodes[3];
-						ss >> nodes[4];
-						ss >> nodes[5];
-						ss >> nodes[6];
-						ss >> nodes[7];
-						//gmsh nodes are 1 based, we are zero based
-						nodes[0]--;
-						nodes[1]--;
-						nodes[2]--;
-						nodes[3]--;
-						nodes[4]--;
-						nodes[5]--;
-						nodes[6]--;
-						nodes[7]--;
-						TranslateWinding(nodes, translation, mnode[HEX], HEX, 0);
-						tempe = new Hexahedron<Type>;
-						tempe->Init(nodes);
-						elementList.push_back(tempe);
-						nelem[HEX]++;
-					}
-					else if(elemType == GMSH_PRISM){
-						Int nodes[6];
-						ss >> nodes[0];
-						ss >> nodes[1];
-						ss >> nodes[2];
-						ss >> nodes[3];
-						ss >> nodes[4];
-						ss >> nodes[5];
-						//gmsh nodes are 1 based, we are zero based
-						nodes[0]--;
-						nodes[1]--;
-						nodes[2]--;
-						nodes[3]--;
-						nodes[4]--;
-						nodes[5]--;
-						TranslateWinding(nodes, translation, mnode[PRISM], PRISM, 0);
-						tempe = new Prism<Type>;
-						tempe->Init(nodes);
-						elementList.push_back(tempe);
-						nelem[PRISM]++;
-					}
-					else if(elemType == GMSH_PYRAMID){
-						Int nodes[5];
-						ss >> nodes[0];
-						ss >> nodes[1];
-						ss >> nodes[2];
-						ss >> nodes[3];
-						ss >> nodes[4];
-						//gmsh nodes are 1 based, we are zero based
-						nodes[0]--;
-						nodes[1]--;
-						nodes[2]--;
-						nodes[3]--;
-						nodes[4]--;
-						TranslateWinding(nodes, translation, mnode[PYRAMID], PYRAMID, 0);
-						tempe = new Pyramid<Type>;
-						tempe->Init(nodes);
-						elementList.push_back(tempe);
-						nelem[PYRAMID]++;
-					}
-					else{
-						std::cerr << "GMSH ASCII I/O: Element type " << elemType << " not valid" << std::endl;
-					}
-				}
-				break;
+	{
+	  Int elemId = 0;
+	  Int elemType = -1;
+	  Int physicalId = 0;
+	  Int elementaryId = 0;
+	  // * first tag is the physical entity to which element belongs
+	  // * second tag is the elementary geometric entity
+	  // * third is the number of which partitions to which element belongs,
+	  // * followed by the partition ids (negative implies ghost cells)
+	  //     -- a zero tag is equivalent to no tag
+	  // * format is elemId, elemType, number of tags, <tags> (physicalId, elementaryId, ... ) <list of nodes>
+	  ss >> elemId;
+	  ss >> elemType;
+	  ss >> numberOfTags;
+	  if(numberOfTags == 2){
+	    ss >> physicalId;
+	    ss >> elementaryId;
+	  }
+	  else{
+	    std::cerr << "GMSH ASCII I/O: number of tags inconsistent. Require two. One physical and one elementary tag id per element." << std::endl;
+	    return (-1);
+	  }
+	  if(elemType == GMSH_LINE){
+	    std::cerr << "GMSH ASCII I/O: found lin elements in file, these shouldn't be here. Ignoring.\n";
+	  }
+	  else if(elemType == GMSH_POINT){
+	    std::cerr << "GMSH ASCII I/O: found point elements in file, these shouldn't be here. Ignoring.\n";
+	  }
+	  else if(elemType == GMSH_TRI){
+	    Int nodes[3];
+	    ss >> nodes[0];
+	    ss >> nodes[1];
+	    ss >> nodes[2];
+	    //gmsh nodes are 1 based, we are zero based
+	    nodes[0]--;
+	    nodes[1]--;
+	    nodes[2]--;
+	    TranslateWinding(nodes, translation, mnode[TRI], TRI, 0);
+	    tempe = new Triangle<Type>;
+	    tempe->Init(nodes);
+	    tempe->SetFactag(physicalId);
+	    elementList.push_back(tempe);
+	    nelem[TRI]++;
+	  }
+	  else if(elemType == GMSH_QUAD){
+	    Int nodes[4];
+	    ss >> nodes[0];
+	    ss >> nodes[1];
+	    ss >> nodes[2];
+	    ss >> nodes[3];
+	    //gmsh nodes are 1 based, we are zero based
+	    nodes[0]--;
+	    nodes[1]--;
+	    nodes[2]--;
+	    nodes[3]--;
+	    TranslateWinding(nodes, translation, mnode[QUAD], QUAD, 0);
+	    tempe = new Quadrilateral<Type>;
+	    tempe->Init(nodes);
+	    tempe->SetFactag(physicalId);
+	    elementList.push_back(tempe);
+	    nelem[QUAD]++;
+	  }
+	  else if(elemType == GMSH_TET){
+	    Int nodes[4];
+	    ss >> nodes[0];
+	    ss >> nodes[1];
+	    ss >> nodes[2];
+	    ss >> nodes[3];
+	    //gmsh nodes are 1 based, we are zero based
+	    nodes[0]--;
+	    nodes[1]--;
+	    nodes[2]--;
+	    nodes[3]--;
+	    TranslateWinding(nodes, translation, mnode[TET], TET, 0);
+	    tempe = new Tetrahedron<Type>;
+	    tempe->Init(nodes);
+	    elementList.push_back(tempe);
+	    nelem[TET]++;
+	  }
+	  else if(elemType == GMSH_HEX){
+	    Int nodes[8];
+	    ss >> nodes[0];
+	    ss >> nodes[1];
+	    ss >> nodes[2];
+	    ss >> nodes[3];
+	    ss >> nodes[4];
+	    ss >> nodes[5];
+	    ss >> nodes[6];
+	    ss >> nodes[7];
+	    //gmsh nodes are 1 based, we are zero based
+	    nodes[0]--;
+	    nodes[1]--;
+	    nodes[2]--;
+	    nodes[3]--;
+	    nodes[4]--;
+	    nodes[5]--;
+	    nodes[6]--;
+	    nodes[7]--;
+	    TranslateWinding(nodes, translation, mnode[HEX], HEX, 0);
+	    tempe = new Hexahedron<Type>;
+	    tempe->Init(nodes);
+	    elementList.push_back(tempe);
+	    nelem[HEX]++;
+	  }
+	  else if(elemType == GMSH_PRISM){
+	    Int nodes[6];
+	    ss >> nodes[0];
+	    ss >> nodes[1];
+	    ss >> nodes[2];
+	    ss >> nodes[3];
+	    ss >> nodes[4];
+	    ss >> nodes[5];
+	    //gmsh nodes are 1 based, we are zero based
+	    nodes[0]--;
+	    nodes[1]--;
+	    nodes[2]--;
+	    nodes[3]--;
+	    nodes[4]--;
+	    nodes[5]--;
+	    TranslateWinding(nodes, translation, mnode[PRISM], PRISM, 0);
+	    tempe = new Prism<Type>;
+	    tempe->Init(nodes);
+	    elementList.push_back(tempe);
+	    nelem[PRISM]++;
+	  }
+	  else if(elemType == GMSH_PYRAMID){
+	    Int nodes[5];
+	    ss >> nodes[0];
+	    ss >> nodes[1];
+	    ss >> nodes[2];
+	    ss >> nodes[3];
+	    ss >> nodes[4];
+	    //gmsh nodes are 1 based, we are zero based
+	    nodes[0]--;
+	    nodes[1]--;
+	    nodes[2]--;
+	    nodes[3]--;
+	    nodes[4]--;
+	    TranslateWinding(nodes, translation, mnode[PYRAMID], PYRAMID, 0);
+	    tempe = new Pyramid<Type>;
+	    tempe->Init(nodes);
+	    elementList.push_back(tempe);
+	    nelem[PYRAMID]++;
+	  }
+	  else{
+	    std::cerr << "GMSH ASCII I/O: Element type " << elemType << " not valid" << std::endl;
+	  }
+	}
+	break;
 	
       default:
-				break;
+	break;
       }
   }
   fin.close();
@@ -3576,7 +3576,7 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
   
   if(totalElems != lnelem){
     std::cerr << "GMSH ASCII I/O: Number of elements expected does not match number read in" << std::endl;
-		std::cerr << "GMSH ASCII I/O: This sometimes happen if we ignore lower order elements like linear" << std::endl;
+    std::cerr << "GMSH ASCII I/O: This sometimes happen if we ignore lower order elements like linear" << std::endl;
   }
   std::cout << "GMSH ASCII I/O: Number of nodes " << nnode << std::endl;
   std::cout << "GMSH ASCII I/O: Number of elements " << lnelem << std::endl;
@@ -3677,7 +3677,7 @@ Int Mesh<Type>::WriteCRUNCH_Ascii(std::string casename)
       fout << element.GetFactag() << " " << nnodes << " ";
       //write node ids for the face
       for(j = 0; j < nnodes; j++){
-				fout << tempnodes[j]+1 << " ";
+	fout << tempnodes[j]+1 << " ";
       }
       //endline
       fout << std::endl;
@@ -3692,16 +3692,16 @@ Int Mesh<Type>::WriteCRUNCH_Ascii(std::string casename)
     etype = element.GetType();
     if(etype != TRI && etype != QUAD){
       switch(etype)
-				{
-				case TET: crunch_type = 1; break;
-				case HEX: crunch_type = 2; break;
-				case PRISM: crunch_type = 3; break;
-				case PYRAMID: crunch_type = 4; break;	
-				default:
-					std::cerr << "WARNING: non-identifiable volume element in WriteCRUNCH_Ascii()" 
-										<< std::endl;
-					return (-1);
-				}
+	{
+	case TET: crunch_type = 1; break;
+	case HEX: crunch_type = 2; break;
+	case PRISM: crunch_type = 3; break;
+	case PYRAMID: crunch_type = 4; break;	
+	default:
+	  std::cerr << "WARNING: non-identifiable volume element in WriteCRUNCH_Ascii()" 
+		    << std::endl;
+	  return (-1);
+	}
       
       Int* nodes = NULL;
       Int nnodes = element.GetNodes(&nodes);
@@ -3714,7 +3714,7 @@ Int Mesh<Type>::WriteCRUNCH_Ascii(std::string casename)
       
       //write node ids
       for(j = 0; j < nnodes; j++){
-				fout << tempnodes[j]+1 << " ";
+	fout << tempnodes[j]+1 << " ";
       }
       //endline
       fout << std::endl;
@@ -3807,20 +3807,20 @@ Int Mesh<Type>::WriteVTK_Ascii(std::string casename, std::vector<SolutionField<T
     Real* q = field.GetData(FIELDS::STATE_NONE);
     for(j = 0; j < neqn; j++){
       if(field.DofIsVector(j)){
-				fout << "VECTORS " << field.GetDofName(j) << " double " << std::endl;
-				for(Int i = 0; i < nnode; i++){
-					fout << q[i*neqn + j] << " ";
-					fout << q[i*neqn + j+1] << " ";
-					fout << q[i*neqn + j+2] << std::endl;;
-				}
-				j+=2;
+	fout << "VECTORS " << field.GetDofName(j) << " double " << std::endl;
+	for(Int i = 0; i < nnode; i++){
+	  fout << q[i*neqn + j] << " ";
+	  fout << q[i*neqn + j+1] << " ";
+	  fout << q[i*neqn + j+2] << std::endl;;
+	}
+	j+=2;
       }
       else{
-				fout << "SCALARS " << field.GetDofName(j) << " double " << 1 << std::endl;
-				fout << "LOOKUP_TABLE default" << std::endl;
-				for(Int i = 0; i < nnode; i++){
-					fout << q[i*neqn + j] << "\n";
-				}
+	fout << "SCALARS " << field.GetDofName(j) << " double " << 1 << std::endl;
+	fout << "LOOKUP_TABLE default" << std::endl;
+	for(Int i = 0; i < nnode; i++){
+	  fout << q[i*neqn + j] << "\n";
+	}
       }
     }
   }
@@ -4089,8 +4089,8 @@ Int Mesh<Type>::ReadUGRID_Ascii(std::string filename)
       Element<Type>& element = **it;
       Int etype = element.GetType();
       if(etype == TRI || etype == QUAD){
-				Int factag = element.GetFactag();
-				element.SetFactag(factag + 1);
+	Int factag = element.GetFactag();
+	element.SetFactag(factag + 1);
       }
     }
   }
@@ -4222,7 +4222,7 @@ Int Mesh<Type>::ReadCRUNCH_Ascii(std::string filename)
   
   if(loc == std::string::npos){
     std::cerr << "CRUNCH ASCII I/O: BOUNDARY TABLE HEADER NOT IN EXPECTED LOCATION -- "
-							<< "remove comments from file (i.e. lines with !)" << std::endl;
+	      << "remove comments from file (i.e. lines with !)" << std::endl;
     return(1); 
   }
 
@@ -4249,7 +4249,7 @@ Int Mesh<Type>::ReadCRUNCH_Ascii(std::string filename)
 
   if(loc == std::string::npos){
     std::cerr << "CRUNCH ASCII I/O: NODES HEADER NOT IN EXPECTED LOCATION -- "
-							<< "remove comments from file (i.e. lines with !)" << std::endl;
+	      << "remove comments from file (i.e. lines with !)" << std::endl;
     return(1);
   }
 
@@ -4270,7 +4270,7 @@ Int Mesh<Type>::ReadCRUNCH_Ascii(std::string filename)
   loc = trash.find(bfaceline);
   if(loc == std::string::npos){
     std::cerr << "CRUNCH ASCII I/O: BOUNDARY FACES HEADER NOT IN EXPECTED LOCATION -- "
-							<< "remove comments from file (i.e. lines with !)" << std::endl;
+	      << "remove comments from file (i.e. lines with !)" << std::endl;
     return(1);
   }
   loc += (bfaceline.size() + line);
@@ -4291,7 +4291,7 @@ Int Mesh<Type>::ReadCRUNCH_Ascii(std::string filename)
     }
     else{
       std::cerr << "CRUNCH ASCII I/O: Unidentified number of points in boundary face " 
-								<< npts << std::endl;
+		<< npts << std::endl;
       return(1);
     }
   }
@@ -4303,7 +4303,7 @@ Int Mesh<Type>::ReadCRUNCH_Ascii(std::string filename)
   loc = trash.find(elemline);
   if(loc == std::string::npos){
     std::cerr << "CRUNCH ASCII I/O: ELEMENT HEADER NOT IN EXPECTED LOCATION -- "
-							<< "remove comments from file (i.e. lines with !)" << std::endl;
+	      << "remove comments from file (i.e. lines with !)" << std::endl;
     return(1);
   }
   elemloc = fin.tellg();
@@ -4321,19 +4321,19 @@ Int Mesh<Type>::ReadCRUNCH_Ascii(std::string filename)
       fin >> elemtype;
       switch (elemtype){
       case CTet:
-				nelem[TET]++;
-				break;
+	nelem[TET]++;
+	break;
       case CHex:
-				nelem[HEX]++;
-				break;
+	nelem[HEX]++;
+	break;
       case CPrism:
-				nelem[PRISM]++;
-				break;
+	nelem[PRISM]++;
+	break;
       case CPyramid:
-				nelem[PYRAMID]++;
-				break;
+	nelem[PYRAMID]++;
+	break;
       default:
-				std::cerr << "ELEM type undefined " << elemtype << std::endl;
+	std::cerr << "ELEM type undefined " << elemtype << std::endl;
       }
     }
     else{
@@ -4388,8 +4388,8 @@ Int Mesh<Type>::ReadCRUNCH_Ascii(std::string filename)
       //Triangle
     case 3:
       for(j = 0; j < 3; j++){
-				fin >> nodes[j];
-				nodes[j]--;
+	fin >> nodes[j];
+	nodes[j]--;
       }
       TranslateWinding(nodes, translation, mnode[TRI], TRI, 0);
       tempe = new Triangle<Type>;
@@ -4401,8 +4401,8 @@ Int Mesh<Type>::ReadCRUNCH_Ascii(std::string filename)
       //Quad
     case 4:
       for(j = 0; j < 4; j++){
-				fin >> nodes[j];
-				nodes[j]--;
+	fin >> nodes[j];
+	nodes[j]--;
       }
       TranslateWinding(nodes, translation, mnode[QUAD], QUAD, 0);
       tempe = new Quadrilateral<Type>;
@@ -4430,8 +4430,8 @@ Int Mesh<Type>::ReadCRUNCH_Ascii(std::string filename)
       Element<Type>& element = **it;
       Int etype = element.GetType();
       if(etype == TRI || etype == QUAD){
-				Int factag = element.GetFactag();
-				element.SetFactag(factag + 1);
+	Int factag = element.GetFactag();
+	element.SetFactag(factag + 1);
       }
     }
   }
@@ -4446,8 +4446,8 @@ Int Mesh<Type>::ReadCRUNCH_Ascii(std::string filename)
     switch (elemtype){
     case CTet:
       for(j = 0; j < 4; j++){
-				fin >> nodes[j];
-				nodes[j]--;
+	fin >> nodes[j];
+	nodes[j]--;
       }
       TranslateWinding(nodes, translation, mnode[TET], TET, 0);
       tempe = new Tetrahedron<Type>;
@@ -4457,8 +4457,8 @@ Int Mesh<Type>::ReadCRUNCH_Ascii(std::string filename)
       break;
     case CHex:
       for(j = 0; j < 8; j++){
-				fin >> nodes[j];
-				nodes[j]--;
+	fin >> nodes[j];
+	nodes[j]--;
       }
       TranslateWinding(nodes, translation, mnode[HEX], HEX, 0);
       tempe = new Hexahedron<Type>;
@@ -4468,8 +4468,8 @@ Int Mesh<Type>::ReadCRUNCH_Ascii(std::string filename)
       break;
     case CPyramid:
       for(j = 0; j < 5; j++){
-				fin >> nodes[j];
-				nodes[j]--;
+	fin >> nodes[j];
+	nodes[j]--;
       }
       TranslateWinding(nodes, translation, mnode[PYRAMID], PYRAMID, 0);
       tempe = new Pyramid<Type>;
@@ -4479,8 +4479,8 @@ Int Mesh<Type>::ReadCRUNCH_Ascii(std::string filename)
       break;
     case CPrism:
       for(j = 0; j < 6; j++){
-				fin >> nodes[j];
-				nodes[j]--;
+	fin >> nodes[j];
+	nodes[j]--;
       }
       TranslateWinding(nodes, translation, mnode[PRISM], PRISM, 0);
       tempe = new Prism<Type>;
@@ -4549,44 +4549,44 @@ Int Mesh<Type>::WriteVTK_Binary(std::string casename, std::vector<SolutionField<
     Element<Type>& element = **it;
     e = element.GetType();
     switch (e) {  
-		case TRI :
-			id = 5;
-			id = ReverseEndianInt(id);
-			fout.write((char*)&id, sizeof(Int));
-			//fout << "5" << std::endl;
-			break;
-		case QUAD :
-			id = 9;
-			id = ReverseEndianInt(id);
-			fout.write((char*)&id, sizeof(Int));
-			//fout << "9" << std::endl;
-			break;
-		case TET :
-			id = 10;
-			id = ReverseEndianInt(id);
-			fout.write((char*)&id, sizeof(Int));
-			//fout << "10" << std::endl;
-			break;
-		case PYRAMID :
-			id = 14;
-			id = ReverseEndianInt(id);
-			fout.write((char*)&id, sizeof(Int));
-			//fout << "14" << std::endl;
-			break;
-		case PRISM :
-			id = 13;
-			id = ReverseEndianInt(id);
-			fout.write((char*)&id, sizeof(Int));
-			//fout << "13" << std::endl;
-			break;
-		case HEX :
-			id = 12;
-			id = ReverseEndianInt(id);
-			fout.write((char*)&id, sizeof(Int));
-			//fout << "12" << std::endl;
-			break;
-		default :
-			std::cerr << "Type not defined WriteVTK_BINARY() -- type " << e << std::endl;
+    case TRI :
+      id = 5;
+      id = ReverseEndianInt(id);
+      fout.write((char*)&id, sizeof(Int));
+      //fout << "5" << std::endl;
+      break;
+    case QUAD :
+      id = 9;
+      id = ReverseEndianInt(id);
+      fout.write((char*)&id, sizeof(Int));
+      //fout << "9" << std::endl;
+      break;
+    case TET :
+      id = 10;
+      id = ReverseEndianInt(id);
+      fout.write((char*)&id, sizeof(Int));
+      //fout << "10" << std::endl;
+      break;
+    case PYRAMID :
+      id = 14;
+      id = ReverseEndianInt(id);
+      fout.write((char*)&id, sizeof(Int));
+      //fout << "14" << std::endl;
+      break;
+    case PRISM :
+      id = 13;
+      id = ReverseEndianInt(id);
+      fout.write((char*)&id, sizeof(Int));
+      //fout << "13" << std::endl;
+      break;
+    case HEX :
+      id = 12;
+      id = ReverseEndianInt(id);
+      fout.write((char*)&id, sizeof(Int));
+      //fout << "12" << std::endl;
+      break;
+    default :
+      std::cerr << "Type not defined WriteVTK_BINARY() -- type " << e << std::endl;
     }
   }
   
@@ -4612,23 +4612,23 @@ Int Mesh<Type>::WriteVTK_Binary(std::string casename, std::vector<SolutionField<
     Int neqn = field.GetNdof();
     for(j = 0; j < neqn; j++){
       if(field.DofIsVector(j)){
-				fout << "VECTORS " << field.GetDofName(j) << " double " << std::endl;
-				for(i = 0; i < nnode; i++){
-					ReverseEndianArrayReal(&q[i*neqn + j], 3);
-					fout.write((char*)&q[i*neqn + j], sizeof(Real)*3);
-					ReverseEndianArrayReal(&q[i*neqn + j], 3);
-				}
-				j+=2;
-				fout << "\n";
+	fout << "VECTORS " << field.GetDofName(j) << " double " << std::endl;
+	for(i = 0; i < nnode; i++){
+	  ReverseEndianArrayReal(&q[i*neqn + j], 3);
+	  fout.write((char*)&q[i*neqn + j], sizeof(Real)*3);
+	  ReverseEndianArrayReal(&q[i*neqn + j], 3);
+	}
+	j+=2;
+	fout << "\n";
       }
       else{
-				fout << "SCALARS " << field.GetDofName(j) << " double " << 1 << std::endl;
-				fout << "LOOKUP_TABLE default" << std::endl;
-				for(i = 0; i < nnode; i++){
-					Real temp = ReverseEndianReal(q[i*neqn + j]);
-					fout.write((char*)&temp, sizeof(Real));
-				}
-				fout << "\n";
+	fout << "SCALARS " << field.GetDofName(j) << " double " << 1 << std::endl;
+	fout << "LOOKUP_TABLE default" << std::endl;
+	for(i = 0; i < nnode; i++){
+	  Real temp = ReverseEndianReal(q[i*neqn + j]);
+	  fout.write((char*)&temp, sizeof(Real));
+	}
+	fout << "\n";
       }
     }
   }
