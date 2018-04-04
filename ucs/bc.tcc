@@ -1359,7 +1359,11 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
     eqnset->GetIsothermalBoundaryVariables(QL, QR, Twall);
   }
   else if(bcId == PythonBC){
-    eqnset->GetPythonBoundaryVariables(QL, QR);
+    Type wallx[3];
+    wallx[0] = m->xyz[left_cv*3 + 0];
+    wallx[1] = m->xyz[left_cv*3 + 1];
+    wallx[2] = m->xyz[left_cv*3 + 2];
+    eqnset->GetPythonBoundaryVariables(QL, QR, wallx);
   }
   else{
     std::cout << "WARNING: EID for " << eid << " not found! " << std::endl;

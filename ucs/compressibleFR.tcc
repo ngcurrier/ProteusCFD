@@ -5,6 +5,7 @@
 #include "chem.h"
 #include "solutionSpace.h"
 #include "solutionField.h"
+#include "pythonInterface.h"
 #include <cmath>
 #include <iostream>
 
@@ -841,16 +842,32 @@ void CompressibleFREqnSet<Type>::SetInitialConditions()
   }
   std::cout << "\tReynolds number: " << this->param->Re << std::endl;
   std::cout << std::endl;
-    
-  //set all the nodes interior and phantom
-  for(i = 0; i < (nnode+gnode+nbnode); i++){
-    for(j = 0; j < neqn; j++){
-      this->space->q[i*(neqn+nauxvars) + j] = this->Qinf[j];
+
+
+  //check for setInitialConditions.py
+  std::ifstream pyscript("setInitialConditions.py");
+  if(pyscript){
+    pyscript.close();
+    std::cout << "Attempting to use python interface to set initial conditions" << std::endl;
+#ifdef _HAS_PYTHON
+    PythonWrapper pywrap("./", "setInitialConditions", "setInitialConditions");
+    for(i = 0; i < (nnode+gnode+nbnode); ++i){
+      pywrap.SetInitialConditions(this->Qinf, neqn, nauxvars, &this->space->q[i*(neqn+nauxvars)], &m->xyz[i*3]);
+      ComputeAuxiliaryVariables(&this->space->q[i*(neqn+nauxvars)]);
     }
-    ComputeAuxiliaryVariables(&this->space->q[i*(neqn+nauxvars)]);
+#else
+    Abort << "Python not built with solver";
+#endif
   }
-  
-  return;
+  else{
+    //set all the nodes interior and phantom to Qinf
+    for(i = 0; i < (nnode+gnode+nbnode); i++){
+      for(j = 0; j < neqn; j++){
+	this->space->q[i*(neqn+nauxvars) + j] = this->Qinf[j];
+      }
+      ComputeAuxiliaryVariables(&this->space->q[i*(neqn+nauxvars)]);
+    }
+  }
 }
 
 
@@ -2014,6 +2031,18 @@ void CompressibleFREqnSet<Type>::GetViscousWallBoundaryVariables(Type* QL, Type*
   QR[nspecies] = QL[nspecies] = vel[0];
   QR[nspecies+1] = QL[nspecies+1] = vel[1];
   QR[nspecies+2] = QL[nspecies+2] = vel[2];
+}
+
+template <class Type>
+void CompressibleFREqnSet<Type>::GetPythonBoundaryVariables(Type* QL, Type* QR, Type* wallx)
+{
+#ifdef _HAS_PYTHON
+  PythonWrapper pywrap("./", "pythonBC", "pythonBC");
+  //pywrap.GetBoundaryVariables(QL, QR, wallx);
+#else
+  Abort << "CompressibleFREqnSet::GetPythonBoundaryVariables() - python not built with solver";
+#endif
+  
 }
 
 template <class Type>

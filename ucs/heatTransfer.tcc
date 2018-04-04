@@ -108,7 +108,7 @@ void HeatTransferEqnSet<Type>::SetInitialConditions()
    if(pyscript){
      pyscript.close();
      std::cout << "Attempting to use python interface to set initial conditions" << std::endl;
-     #ifdef _HAS_PYTHON
+#ifdef _HAS_PYTHON
      PythonWrapper pywrap("./", "setInitialConditions", "setInitialConditions");
      for(i = 0; i < (nnode+gnode+nbnode); ++i){
        pywrap.SetInitialConditions(this->Qinf, neqn, nauxvars, &this->space->q[i*(neqn+nauxvars)], &m->xyz[i*3]);
@@ -117,9 +117,9 @@ void HeatTransferEqnSet<Type>::SetInitialConditions()
 	 Abort << "HeatTransferEqnSet:: initial temperature cannot be < 0.0";
        }
      }
-     #else
+#else
      Abort << "Python not built with solver";
-     #endif
+#endif
    }
    else{
      //set all the nodes interior and phantom to Qinf
