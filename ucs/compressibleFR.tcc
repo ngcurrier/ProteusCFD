@@ -2038,7 +2038,7 @@ void CompressibleFREqnSet<Type>::GetPythonBoundaryVariables(Type* QL, Type* QR, 
 {
 #ifdef _HAS_PYTHON
   PythonWrapper pywrap("./", "pythonBC", "pythonBC");
-  //pywrap.GetBoundaryVariables(QL, QR, wallx);
+  pywrap.GetBoundaryVariables(QL, QR, this->neqn, this->nauxvars, wallx);
 #else
   Abort << "CompressibleFREqnSet::GetPythonBoundaryVariables() - python not built with solver";
 #endif

@@ -32,6 +32,8 @@ class PythonWrapper
   //These are the real solver interfaces
   template <class Type>
   void SetInitialConditions(Type* Qinf, int neqn, int nauxvars, Type* Qreturn, Type* coordsXYZ);
+  template <class Type>
+  void GetBoundaryVariables(Type* QL, Type* QR, int neqn, int nauxvars, Type* wallXYZ);
   
  protected:
 
