@@ -51,7 +51,7 @@ void PythonWrapper::GetBoundaryVariables(Type* QL, Type* QR, int neqn, int nauxv
   npeqn = PyInt_FromSize_t(neqns);
   npauxvars = PyInt_FromSize_t(nauxvarss);
   npy_intp dim = 3;
-  npy_inpt dim2 = 4;
+  npy_intp dim2 = 4;
   npxyz = (PyObject*)PyArray_SimpleNewFromData(1, &dim, NPY_DOUBLE, wallXYZ);
   normxyz = (PyObject*)PyArray_SimpleNewFromData(1, &dim2, NPY_DOUBLE, wallAvec);
   PyObject* pArgs = PyTuple_New(6);
