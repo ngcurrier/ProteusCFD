@@ -173,9 +173,7 @@ class EqnSet
   {
     Abort << "GetIsothermalBoundaryVariables() not implemented";
   };
-  virtual void GetPythonBoundaryVariables(Type* QL, Type* QR, Type* wallx){
-    Abort << "GetPythonBoundaryVariables() not implemented";
-  };
+  virtual void GetPythonBoundaryVariables(Type* QL, Type* QR, Type* wallx, Type* wallAvec);
   virtual void GetHeatFluxBoundaryVariables(Type* QL, Type* QR, Type* normalQ, Type* normaldx, Type flux)
   {
     Abort << "GetHeatFluxBoundaryVariables() not implemented";

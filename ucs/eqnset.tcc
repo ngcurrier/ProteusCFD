@@ -181,4 +181,13 @@ void EqnSet<Type>::ContributeTemporalTerms(Type* Q, Type vol, Type cnp1,
   return;
 }
 
-
+template <class Type>
+void EqnSet<Type>::GetPythonBoundaryVariables(Type* QL, Type* QR, Type* wallx, Type* wallAvec)
+{
+#ifdef _HAS_PYTHON
+  PythonWrapper pywrap("./", "getBoundaryVariables", "getBoundaryVariables");
+  pywrap.GetBoundaryVariables(QL, QR, this->neqn, this->nauxvars, wallx, wallAvec);
+#else
+  Abort << "EqnSet::GetPythonBoundaryVariables() - python not built with solver";
+#endif
+}

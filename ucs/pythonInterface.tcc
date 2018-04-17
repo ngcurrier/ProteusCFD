@@ -13,7 +13,7 @@ void PythonWrapper::SetInitialConditions(Type* Qinf, int neqn, int nauxvars, Typ
   size_t neqns = neqn;
   size_t nauxvarss = nauxvars;
   size_t tot = neqn+nauxvars;
-  npy_intp inputsize = 1;
+  npy_intp inputsize = tot;
   PyObject *npqinf,*npeqn,*npauxvars,*npq,*npxyz; 
   npqinf = (PyObject*)PyArray_SimpleNewFromData(1, &inputsize, NPY_DOUBLE, (double*)Qinf);
   npeqn = PyInt_FromSize_t(neqns);
@@ -33,7 +33,7 @@ void PythonWrapper::SetInitialConditions(Type* Qinf, int neqn, int nauxvars, Typ
 }
 
 template <class Type>
-void PythonWrapper::GetBoundaryVariables(Type* QL, Type* QR, int neqn, int nauxvars, Type* wallXYZ)
+void PythonWrapper::GetBoundaryVariables(Type* QL, Type* QR, int neqn, int nauxvars, Type* wallXYZ, Type* wallAvec)
 {
   //I'm not sure why but if I remove this import we segfault, it appears numpy is being
   //unloaded somehow from initialization
@@ -44,20 +44,24 @@ void PythonWrapper::GetBoundaryVariables(Type* QL, Type* QR, int neqn, int nauxv
   size_t neqns = neqn;
   size_t nauxvarss = nauxvars;
   size_t tot = neqn+nauxvars;
-  npy_intp inputsize = 1;
-  PyObject *npql,*npqr,*npeqn,*npauxvars,*npq,*npxyz; 
+  npy_intp inputsize = tot;
+  PyObject *npql,*npqr,*npeqn,*npauxvars,*npq,*npxyz,*normxyz; 
   npql = (PyObject*)PyArray_SimpleNewFromData(1, &inputsize, NPY_DOUBLE, (double*)QL);
   npqr = (PyObject*)PyArray_SimpleNewFromData(1, &inputsize, NPY_DOUBLE, (double*)QR);
   npeqn = PyInt_FromSize_t(neqns);
   npauxvars = PyInt_FromSize_t(nauxvarss);
   npy_intp dim = 3;
+  npy_inpt dim2 = 4;
   npxyz = (PyObject*)PyArray_SimpleNewFromData(1, &dim, NPY_DOUBLE, wallXYZ);
-  PyObject* pArgs = PyTuple_New(5);
+  normxyz = (PyObject*)PyArray_SimpleNewFromData(1, &dim2, NPY_DOUBLE, wallAvec);
+  PyObject* pArgs = PyTuple_New(6);
   PyTuple_SetItem(pArgs, 0, npql);
   PyTuple_SetItem(pArgs, 1, npqr);
   PyTuple_SetItem(pArgs, 2, npeqn);
   PyTuple_SetItem(pArgs, 3, npauxvars);
   PyTuple_SetItem(pArgs, 4, npxyz);
+  PyTuple_SetItem(pArgs, 5, normxyz);
    
   PyObject* pValue = PyObject_CallObject(pFunc, pArgs);
 }
+

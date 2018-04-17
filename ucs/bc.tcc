@@ -228,6 +228,10 @@ void BoundaryConditions<Type>::CountNumberBCsInFile(std::ifstream& fin)
 
   std::cout << "BC: Surfaces found in file: " << num_bcs << std::endl;
   std::cout << "BC: Largest surface ID found in file: " << largest_bc_id << std::endl;
+
+  if(largest_bc_id < 0){
+    Abort << "Did not read any BCs in boundary condition file ";
+  }
   
   //clear failbits
   fin.clear();
@@ -1363,7 +1367,7 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
     wallx[0] = m->xyz[left_cv*3 + 0];
     wallx[1] = m->xyz[left_cv*3 + 1];
     wallx[2] = m->xyz[left_cv*3 + 2];
-    eqnset->GetPythonBoundaryVariables(QL, QR, wallx);
+    eqnset->GetPythonBoundaryVariables(QL, QR, wallx, avec);
   }
   else{
     std::cout << "WARNING: EID for " << eid << " not found! " << std::endl;

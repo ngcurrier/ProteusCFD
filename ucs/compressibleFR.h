@@ -67,7 +67,6 @@ class CompressibleFREqnSet : public EqnSet<Type>
   void ModifyInternalInflowJacobian(Int cvid, CRS<Type>* crs, Type* densities, Type* flowDirection, Type velocity); 
   void GetInternalOutflowBoundaryVariables(Type* QL, Type* QR, Type pressure, Type gamma);
   void GetViscousWallBoundaryVariables(Type* QL, Type* QR, Type* vel, Int normalNode, Type* normalQ, Type Twall);
-  void GetPythonBoundaryVariables(Type* QL, Type* QR, Type* wallx);
   void GetTotalTempPressureBoundaryVariables(Type* QL, Type* QR, Type Pressure, Type T, Type* flowDirection);
   void ModifyViscousWallResidual(Type* res, Type* vel, Int normalNode, Type Twall);
   void ModifyViscousWallJacobian(Type* QL, Type* QR, Type* vel, Int cvid, CRS<Type>* crs, 

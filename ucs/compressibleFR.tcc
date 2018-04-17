@@ -2034,18 +2034,6 @@ void CompressibleFREqnSet<Type>::GetViscousWallBoundaryVariables(Type* QL, Type*
 }
 
 template <class Type>
-void CompressibleFREqnSet<Type>::GetPythonBoundaryVariables(Type* QL, Type* QR, Type* wallx)
-{
-#ifdef _HAS_PYTHON
-  PythonWrapper pywrap("./", "pythonBC", "pythonBC");
-  pywrap.GetBoundaryVariables(QL, QR, this->neqn, this->nauxvars, wallx);
-#else
-  Abort << "CompressibleFREqnSet::GetPythonBoundaryVariables() - python not built with solver";
-#endif
-  
-}
-
-template <class Type>
 void CompressibleFREqnSet<Type>::ModifyViscousWallJacobian(Type* QL, Type* QR, 
 							   Type* vel, Int cvid, CRS<Type>* crs,
 							   Int normalNode, Type Twall)
