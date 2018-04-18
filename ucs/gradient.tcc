@@ -7,9 +7,9 @@
 #include "solutionSpace.h"
 
 template <class Type>
-Gradient<Type>::Gradient(Int neqn, Int stride, Int* list, Type* data,  
-			 SolutionSpace<Type>* space, Int gradType, Type* grad, Int weighted) :
-  neqn(neqn), nnode(space->m->GetNumNodes() + space->m->GetNumParallelNodes()),  stride(stride), 
+Gradient<Type>::Gradient(Int nterms, Int stride, Int* list, Type* data,  
+			 SolutionSpace<Type>* space, Int gradType, Type* grad, Bool weighted) :
+  nterms(nterms), nnode(space->m->GetNumNodes() + space->m->GetNumParallelNodes()),  stride(stride), 
   type(gradType), weighted(weighted), space(space), data(data)
 {
   if(data == NULL){
@@ -20,22 +20,22 @@ Gradient<Type>::Gradient(Int neqn, Int stride, Int* list, Type* data,
     std::cerr << "WARNING: Green Gauss gradients not yet tested as functional" << std::endl;
   }
 
-  //assume we want all the values from zero up to neqn
+  //assume we want all the values from zero up to nterms
   //unless something meaningful is passed in
-  this->list = new Int[neqn];
+  this->list = new Int[nterms];
   if(list == NULL){
-    for(Int i = 0; i < neqn; i++){
+    for(Int i = 0; i < nterms; i++){
       this->list[i] = i;
     }
   }
   else{
-    for(Int i = 0; i < neqn; i++){
+    for(Int i = 0; i < nterms; i++){
       this->list[i] = list[i];
     }
   }
   
   if(grad == NULL){
-    this->grad = new Type[neqn*3*nnode];
+    this->grad = new Type[nterms*3*nnode];
     allocated = true;
   }
   else{
@@ -63,7 +63,7 @@ void Gradient<Type>::Compute()
   BoundaryConditions<Real>* bc = space->bc;
 
   //zero gradients
-  for(i = 0; i < (nnode*neqn*3); i++){
+  for(i = 0; i < (nnode*nterms*3); i++){
     grad[i] = 0.0;
   }
 
@@ -73,17 +73,17 @@ void Gradient<Type>::Compute()
     Kernel<Type> Gradient(Kernel_LSQ_Gradient);
     Kernel<Type> BGradient(Bkernel_LSQ_Gradient);
     //call drivers to calculate gradients
-    Driver(space, Gradient, neqn*3, this);
-    Bdriver(space, BGradient, neqn*3, this);
+    Driver(space, Gradient, nterms*3, this);
+    Bdriver(space, BGradient, nterms*3, this);
   }
   else if(type == 1){
     Kernel<Type> Gradient(Kernel_Green_Gauss_Gradient);
     Kernel<Type> BGradient(Bkernel_Green_Gauss_Gradient);
     //call drivers to calculate gradients
-    Driver(space, Gradient, neqn*3, this);
-    Bdriver(space, BGradient, neqn*3, this);
+    Driver(space, Gradient, nterms*3, this);
+    Bdriver(space, BGradient, nterms*3, this);
     //divide gradients by the volume of the cell
-    for(i = 0; i < (nnode*neqn*3); i++){
+    for(i = 0; i < (nnode*nterms*3); i++){
       grad[i] /= m->vol[i];
     }
   }
@@ -91,19 +91,19 @@ void Gradient<Type>::Compute()
   //we'll need a valid bc object to do this though, otherwise, badness
   if(bc != NULL){
     Kernel<Type> SymFix(Bkernel_Symmetry_Fix);
-    BdriverNoScatter(space, SymFix, neqn*3, this);
+    BdriverNoScatter(space, SymFix, nterms*3, this);
   }
 
   //sync gradients via parallel call
-  space->p->UpdateGeneralVectors(grad, neqn*3);
+  space->p->UpdateGeneralVectors(grad, nterms*3);
 
 #if 0
   for(i = 0; i < nnode; i++){
     std::cout << "Gradient node: " << i << std::endl;
-    for(Int j = 0; j < neqn; j++){
+    for(Int j = 0; j < nterms; j++){
       std::cout << "Eqn: " << j << " " ;
       for(Int k = 0; k < 3; k++){
-	std::cout << grad[i*neqn*3 + j*3 + k] << " " ;
+	std::cout << grad[i*nterms*3 + j*3 + k] << " " ;
       }
       std::cout << std::endl;
     }
@@ -183,13 +183,13 @@ void Kernel_Green_Gauss_Gradient(KERNEL_ARGS)
   Mesh<Type>* m = space->m;
   Gradient<Type>* g = (Gradient<Type>*) custom;
 
-  Int neqn = g->neqn;
-  Int nvars = g->stride;
+  Int nterms = g->GetNterms();
+  Int nvars = g->GetStride();
   Int* list = g->list; 
   Type* QL = &g->data[left_cv*nvars];
   Type* QR = &g->data[right_cv*nvars];
   Type edgept[3];
-  Type* faceavg = (Type*)alloca(sizeof(Type)*neqn);
+  Type* faceavg = (Type*)alloca(sizeof(Type)*nterms);
   Type wt1, wt2;
   Type area = avec[3];
 
@@ -197,21 +197,21 @@ void Kernel_Green_Gauss_Gradient(KERNEL_ARGS)
   Centroid(&m->xyz[left_cv*3], &m->xyz[right_cv*3], edgept);
 
   //set data necessary for driver scatter
-  *size = neqn*3;
-  *ptrL = &g->grad[left_cv*neqn*3];
-  *ptrR = &g->grad[right_cv*neqn*3];
+  *size = nterms*3;
+  *ptrL = &g->grad[left_cv*nterms*3];
+  *ptrR = &g->grad[right_cv*nterms*3];
 
   //compute face averaged q variables
   //TODO: something more sophisticated here for the face average
   wt1 = m->vol[left_cv];
   wt2 = m->vol[right_cv];
-  for(i = 0; i < neqn; i++){
+  for(i = 0; i < nterms; i++){
     k = list[i];
     faceavg[i] = (wt1*QL[k] + wt2*QR[k]) / (wt1 + wt2);
   }
   
   for(i = 0; i < 3; i++){
-    for(j = 0; j < neqn; j++){
+    for(j = 0; j < nterms; j++){
       tempL[3*j + i] = faceavg[j]*avec[i]*area;
       tempR[3*j + i] = -faceavg[j]*avec[i]*area;
     }
@@ -227,13 +227,13 @@ void Bkernel_Green_Gauss_Gradient(B_KERNEL_ARGS)
   Mesh<Type>* m = space->m;
   Gradient<Type>* g = (Gradient<Type>*) custom;
 
-  Int neqn = g->neqn;
-  Int nvars = g->stride;
+  Int nterms = g->GetNterms();
+  Int nvars = g->GetStride();
   Int* list = g->list;
   Type* QL = &g->data[left_cv*nvars];
   Type* QR = &g->data[right_cv*nvars];
   Type edgept[3];
-  Type* faceavg = (Type*)alloca(sizeof(Type)*neqn);
+  Type* faceavg = (Type*)alloca(sizeof(Type)*nterms);
   Type wt1, wt2;
   Type area = avec[3];
 
@@ -245,20 +245,20 @@ void Bkernel_Green_Gauss_Gradient(B_KERNEL_ARGS)
 
 
   //set data necessary for driver scatter
-  *size = neqn*3;
-  *ptrL = &g->grad[left_cv*neqn*3];
+  *size = nterms*3;
+  *ptrL = &g->grad[left_cv*nterms*3];
 
   //compute face averaged q variables
   //TODO: something more sophisticated here for the face average
   wt1 = 0.5;
   wt2 = 0.5;
-  for(i = 0; i < neqn; i++){
+  for(i = 0; i < nterms; i++){
     k = list[i];
     faceavg[i] = (wt1*QL[k] + wt2*QR[k]) / (wt1 + wt2);
   }
   
   for(i = 0; i < 3; i++){
-    for(j = 0; j < neqn; j++){
+    for(j = 0; j < nterms; j++){
       tempL[3*j + i] = faceavg[j]*avec[i]*area;
     }
   }
@@ -273,8 +273,8 @@ void Kernel_LSQ_Gradient(KERNEL_ARGS)
   Mesh<Type>* m = space->m;
   Gradient<Type>* g = (Gradient<Type>*) custom;
 
-  Int neqn = g->neqn;
-  Int nvars = g->stride;
+  Int nterms = g->GetNterms();
+  Int nvars = g->GetStride();
   Int* list = g->list;
   Type dx[3];
   Type* xL = &m->cg[left_cv*3];
@@ -287,20 +287,20 @@ void Kernel_LSQ_Gradient(KERNEL_ARGS)
 
   Type* sL = &m->s[left_cv*6];
   Type* sR = &m->s[right_cv*6];
-  if(g->weighted){
+  if(g->IsWeighted()){
     sL = &m->sw[left_cv*6];
     sR = &m->sw[right_cv*6];
   }
 
-  Type *gradL = &g->grad[left_cv*neqn*3];
-  Type *gradR = &g->grad[right_cv*neqn*3];
+  Type *gradL = &g->grad[left_cv*nterms*3];
+  Type *gradR = &g->grad[right_cv*nterms*3];
 
   Type weL[3];
   Type weR[3];
   Type dq;
   Type weight = 1.0;
 
-  if(g->weighted){
+  if(g->IsWeighted()){
     //use inverse distance weighting
     Type dx2 = dx[0]*dx[0] + dx[1]*dx[1] + dx[2]*dx[2];
     weight = 1.0/sqrt(dx2);
@@ -319,11 +319,11 @@ void Kernel_LSQ_Gradient(KERNEL_ARGS)
   ComputeLSQCoefficients(sR, dx, weR);
 
   //set data necessary for driver scatter
-  *size = neqn*3;
+  *size = nterms*3;
   *ptrL = gradL;
   *ptrR = gradR;
 
-  for(i = 0; i < neqn; i++){
+  for(i = 0; i < nterms; i++){
     k = list[i];
     dq = weight*(qR[k] - qL[k]);
     for(j = 0; j < 3; j++){
@@ -331,8 +331,6 @@ void Kernel_LSQ_Gradient(KERNEL_ARGS)
       tempR[3*i + j] = +weR[j]*dq;
     }
   }
-
-  return;
 }
 
 template <class Type>
@@ -343,8 +341,8 @@ void Bkernel_LSQ_Gradient(B_KERNEL_ARGS)
   if(m->IsGhostNode(right_cv)){
     Int i, j, k;
     Gradient<Type>* g = (Gradient<Type>*) custom;
-    Int neqn = g->neqn;
-    Int nvars = g->stride;
+    Int nterms = g->GetNterms();
+    Int nvars = g->GetStride();
     Int* list = g->list;
     Type dx[3];
     Type* xL = &m->cg[left_cv*3];
@@ -356,17 +354,17 @@ void Bkernel_LSQ_Gradient(B_KERNEL_ARGS)
     Type* qR = &g->data[right_cv*nvars];
     
     Type* sL = &m->s[left_cv*6];
-    if(g->weighted){
+    if(g->IsWeighted()){
       sL = &m->sw[left_cv*6];
     }
 
-    Type *gradL = &g->grad[left_cv*neqn*3];
+    Type *gradL = &g->grad[left_cv*nterms*3];
     
     Type weL[3];
     Type dq;
     Type weight = 1.0;
     
-    if(g->weighted){
+    if(g->IsWeighted()){
       //use inverse distance weighting
       Type dx2 = dx[0]*dx[0] + dx[1]*dx[1] + dx[2]*dx[2];
       weight = 1.0/sqrt(dx2);
@@ -378,11 +376,11 @@ void Bkernel_LSQ_Gradient(B_KERNEL_ARGS)
     ComputeLSQCoefficients(sL, dx, weL);
     
     //set data necessary for driver scatter
-    *size = neqn*3;
+    *size = nterms*3;
     *ptrL = gradL;
     *ptrR = NULL;
     
-    for(i = 0; i < neqn; i++){
+    for(i = 0; i < nterms; i++){
       k = list[i];
       dq = weight*(qR[k] - qL[k]);
       for(j = 0; j < 3; j++){
@@ -567,13 +565,13 @@ void Bkernel_Symmetry_Fix(B_KERNEL_ARGS)
   BoundaryConditions<Real>* bc = space->bc;
   Mesh<Type>* m = space->m;
   Int bcId = space->bc->GetBCId(factag); 
-  Int neqn = g->neqn;
+  Int nterms = g->GetNterms();
   Type dot;
-  Type* gradL = &g->grad[left_cv*neqn*3];
+  Type* gradL = &g->grad[left_cv*nterms*3];
 
   if(bcId == Symmetry){
     //ensure gradients are zero in the normal direction
-    for(i = 0; i < neqn; i++){
+    for(i = 0; i < nterms; i++){
       dot = DotProduct(&gradL[i*3], avec);
       for(j = 0; j < 3; j++){
 	gradL[i*3 + j] -= dot*avec[j];

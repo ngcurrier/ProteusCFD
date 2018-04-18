@@ -201,7 +201,7 @@ void Kernel_Inviscid_Flux(KERNEL_ARGS)
   Param<Type>* param = eqnset->param;
   Int neqn = eqnset->neqn;
   Int nvars = neqn + eqnset->nauxvars;
-  Int nterms = space->grad->neqn;
+  Int nterms = space->grad->GetNterms();
   Type* qL = &space->q[left_cv*nvars];
   Type* qR = &space->q[right_cv*nvars];
   Type* QL = (Type*)alloca(sizeof(Type)*nvars);
@@ -298,7 +298,7 @@ void Bkernel_Inviscid_Flux(B_KERNEL_ARGS)
   Param<Type>* param = eqnset->param;
   Int neqn = eqnset->neqn;
   Int nvars = neqn + eqnset->nauxvars;
-  Int nterms = space->grad->neqn;
+  Int nterms = space->grad->GetNterms();
   Type* qL = &space->q[left_cv*nvars];
   Type* qR = &space->q[right_cv*nvars];
   Type* QL = (Type*)alloca(sizeof(Type)*nvars);
@@ -387,7 +387,7 @@ void Kernel_Viscous_Flux(KERNEL_ARGS)
   Type* mut = (Type*)custom;
   Int neqn = eqnset->neqn;
   Int nvars = neqn + eqnset->nauxvars;
-  Int nterms = space->grad->neqn;
+  Int nterms = space->grad->GetNterms();
   Type* qL = &space->q[left_cv*nvars];
   Type* qR = &space->q[right_cv*nvars];
   Type* Qavg = (Type*)alloca(sizeof(Type)*nvars);
@@ -469,7 +469,7 @@ void Bkernel_Viscous_Flux(B_KERNEL_ARGS)
   Type* mut = (Type*)custom;
   Int neqn = eqnset->neqn;
   Int nvars = neqn + eqnset->nauxvars;
-  Int nterms = space->grad->neqn;
+  Int nterms = space->grad->GetNterms();
   Type* qL = &space->q[left_cv*nvars];
   Type* qR = &space->q[right_cv*nvars];
   Type* QL = (Type*)alloca(sizeof(Type)*nvars);
@@ -679,7 +679,7 @@ void Kernel_Viscous_Src(KERNEL_ARGS)
   Type* mut = (Type*)custom;
   Int neqn = eqnset->neqn;
   Int nvars = neqn + eqnset->nauxvars;
-  Int nterms = space->grad->neqn;
+  Int nterms = space->grad->GetNterms();
   Type* qL = &space->q[left_cv*nvars];
   Type* qR = &space->q[right_cv*nvars];
   Type* Qavg = (Type*)alloca(sizeof(Type)*nvars);
@@ -775,7 +775,7 @@ void Bkernel_Viscous_Src(B_KERNEL_ARGS)
   Type* mut = (Type*)custom;
   Int neqn = eqnset->neqn;
   Int nvars = neqn + eqnset->nauxvars;
-  Int nterms = space->grad->neqn;
+  Int nterms = space->grad->GetNterms();
   Type* qL = &space->q[left_cv*nvars];
   Type* qR = &space->q[right_cv*nvars];
   Type* QL = (Type*)alloca(sizeof(Type)*nvars);

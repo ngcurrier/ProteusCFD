@@ -19,7 +19,7 @@
 //Mass - kilogram
 //Time - seconds
 //Length - meters
-//Concentration - mole
+//Concentration - mole/m^3
 //Energy - Joule
 //Force - Newton
 
@@ -72,7 +72,8 @@ class ChemModel
   Type GetThermalConductivity(Type* rhoi, Type T);
   void MassFractionToMoleFraction(Type* massfrac, Type* molefrac);
   void MoleFractionToMassFraction(Type* molefrac, Type* massfrac);
-
+  void MassToMole(Type* rho, Type* moleConc);
+  
   Type GetP(const Type* rhoi, const Type T) const;
   Type GetCp(const Type* rhoi, const Type T) const;
   Type GetCv(const Type* rhoi, const Type T) const;

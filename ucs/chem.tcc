@@ -934,6 +934,14 @@ void ChemModel<Type>::MoleFractionToMassFraction(Type* molefrac, Type* massfrac)
   massfrac[nspecies-1] = 1.0 - summ;
 }
 
+template <class Type>
+void ChemModel<Type>::MassToMole(Type* rho, Type* moleConc)
+{
+  //converts from kg/m^3 to mol/m^3
+  for(Int i = 0; i < nspecies; ++i){
+    moleConc[i] = rho[i]/species[i].MW/1000.0; //gives units of mol/m^3
+  }
+}
 
 template <class Type>
 Type ChemModel<Type>::GetP(const Type* rhoi, const Type T) const

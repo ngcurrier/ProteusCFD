@@ -216,7 +216,7 @@ void SolutionSpace<Type>::Init()
 
   std::cout << "INIT: Limiter" << std::endl;
   //allocate memory required for our limiters, this lives here because it should be with the data
-  limiter = new Limiter<Type>(this, q, qgrad, eqnset->neqn, eqnset->neqn+eqnset->nauxvars, grad->neqn, "variableQ");
+  limiter = new Limiter<Type>(this, q, qgrad, eqnset->neqn, eqnset->neqn+eqnset->nauxvars, grad->GetNterms(), "variableQ");
 
   std::cout << "INIT: sensors" << std::endl;
   //allocate sensors object if appropriate

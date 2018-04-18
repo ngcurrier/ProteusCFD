@@ -10,7 +10,7 @@
 #include <iostream>
 
 //Variable locations
-//rho_1
+//rho_1 (kg/m^3)
 //rho_2
 //...
 //rho_NScompute temperature from energy
@@ -18,12 +18,16 @@
 //v
 //w
 //T_static (not total)
-//Aux Variables
+//-----Aux Variables
 //P
 //rho
 //cv_1
 //...
 //cv_NS
+//mol_1 (mol/m^3)
+//mol_2
+//...
+//mol_NS
 
 #define N_SUBIT 10
 
@@ -37,7 +41,7 @@ CompressibleFREqnSet<Type>::CompressibleFREqnSet(SolutionSpace<Type>* space, Par
   
   nspecies = chem->nspecies;
   this->neqn = 4 + nspecies;
-  this->nauxvars = 2 + this->nspecies;
+  this->nauxvars = 2 + 2*this->nspecies;
   //grab and store pointers
 
   //variable set is not conservative
@@ -87,10 +91,13 @@ CompressibleFREqnSet<Type>::CompressibleFREqnSet(SolutionSpace<Type>* space, Par
   for(Int i = 0; i < nspecies; i++){
     this->idata->AddScalar(nspecies+6+i, this->chem->species[i].symbol + "_cv");
   }
+  for(Int i = 0; i < nspecies; i++){
+    this->idata->AddScalar(nspecies+6+nspecies+i, this->chem->species[i].symbol + "_Concentration");
+  }
   this->idata->Verify();
   
   //set gradients required
-  this->gdata = new DataInfo((this->nspecies+4)*3, "gradVariableQ");
+  this->gdata = new DataInfo((this->nspecies+4+this->nspecies)*3, "gradVariableQ");
   for(Int i = 0; i < nspecies; i++){
     this->gdata->AddVector(i*3, "Grad-" + this->chem->species[i].symbol + "_Density");
   }
@@ -98,6 +105,9 @@ CompressibleFREqnSet<Type>::CompressibleFREqnSet(SolutionSpace<Type>* space, Par
   this->gdata->AddVector((nspecies+1)*3, "Grad-v");
   this->gdata->AddVector((nspecies+2)*3, "Grad-w");
   this->gdata->AddVector((nspecies+3)*3, "Grad-Temperature");
+  for(Int i = 0; i < nspecies; i++){
+    this->gdata->AddVector((nspecies+4+i)*3, "Grad-" + this->chem->species[i].symbol + "_Concentration");
+  }
   this->gdata->Verify();
 
   return;
@@ -697,6 +707,10 @@ Int CompressibleFREqnSet<Type>::GetGradientsLocation(std::vector<Int>& gradientL
   gradientLoc.push_back(nspecies+2);
   //temperature
   gradientLoc.push_back(nspecies+3);
+  //moles/concentration
+  for(Int i = 0; i < nspecies; i++){
+    gradientLoc.push_back(nspecies+nspecies+6+i);
+  }
   
   return gradientLoc.size();
 }
@@ -752,6 +766,7 @@ void CompressibleFREqnSet<Type>::ComputeAuxiliaryVariables(Type* Q)
   Type* rho = &Q[nspecies+5];
   Type* rhoi = &Q[0];
   Type* cvi = &Q[nspecies+6];
+  Type* mol = &Q[nspecies+nspecies+6];
   Type T = Q[nspecies+3];
 
   Type* rhoiDim = (Type*)alloca(sizeof(Type)*nspecies);
@@ -790,6 +805,9 @@ void CompressibleFREqnSet<Type>::ComputeAuxiliaryVariables(Type* Q)
     }
   }
 
+  //compute concentrations given in mol/m^3
+  chem->MassToMole(rhoi, mol);
+  
 #if 0
   std::cout << "In ComputeAuxiliaryVariables()" << std::endl;
   std::cout << "TDim: " << TDim << std::endl;

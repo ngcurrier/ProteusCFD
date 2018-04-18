@@ -11,32 +11,36 @@ template <class Type>
 class Gradient{
 
 public:
-  Gradient(Int neqn, Int stride, Int* list, Type* data, 
-	   SolutionSpace<Type>* space, Int gradType=0, Type* grad=NULL, Int weighted = 1);
+  Gradient(Int nterms, Int stride, Int* list, Type* data, 
+	   SolutionSpace<Type>* space, Int gradType=0, Type* grad=NULL, Bool weighted = true);
 
   ~Gradient();
 
   void Compute();
-
-  Int neqn;     //number of values which should be in gradient
-  Int nnode;    //number of nodes
-  Int stride;   //distance between start of each set of neqn values
-  Int type;     //0 - LSQ
-                //1 - Green Gauss
-  Int weighted; //boolean flag to use weighted or non-weighted LSQ-grad
+  Int GetNterms(){return nterms;};
+  Int GetStride(){return stride;};
+  Bool IsWeighted(){return weighted;};
   
-  SolutionSpace<Type>* space;
-
   Type* data;  //pointer to things to take gradient of
   Type* grad;  //computed gradients here 
-
   Int* list;   //zero indexed id list of values which we need the gradient of
                //i.e. 0, 2, 4 would pick the first value, 3rd value, and 5 value
                //the gradient location however will be 0,1,2 when stored
+ 
+ 
+private:
+  
+  Int nterms;    //number of values which should be in gradient vector
+  Int nnode;    //number of nodes
+  Int stride;   //distance between start of each set of Q values
+  Int type;     //0 - LSQ
+                //1 - Green Gauss
+  Bool weighted; //boolean flag to use weighted or non-weighted LSQ-grad
+  
+  SolutionSpace<Type>* space;
+
 
   Bool allocated; //check to see if we should free the memory
-
-private:
 
 };
 
