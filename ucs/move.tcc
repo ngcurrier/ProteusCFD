@@ -7,6 +7,7 @@
 #include "parallel.h"
 #include "parametric.h"
 #include "walldist.h"
+#include "pythonInterface.h"
 #include <cmath>
 
 //these defines are for the sinusoidally oscillating airfoil case
@@ -294,8 +295,23 @@ void UpdateMeshDisplacements(SolutionSpace<Type>* space, Type* dx, Int* reqSmoot
     }
     *reqSmoothing = true;
   }
-  
-  return;
+  else if(param->movement == 8){ //python boundary movement calls
+    double* dxyz = (double*)custom;
+    Int* nodelist = NULL;
+    Int nodecount = GetNodesOnMovingBC(m, bc, &nodelist);
+#ifdef _HAS_PYTHON
+    if (MPI_GetType(m->xyz_base[0]) == MPI_COMPLEX){
+      Abort << "PythonInterface::GetBoundaryMovement() cannot handle complex variable types";
+    }
+    PythonWrapper pywrap("./", "getBoundaryMovement", "getBoundaryMovement");
+    pywrap.GetBoundaryMovement(real(Type(space->iter)*param->dt), nodelist, nodecount, m->GetNumNodes(),
+			       (double*)m->xyz_base, dxyz);
+#else
+    Abort << "UpdateMeshDisplacements() - python not built with solver";
+#endif
+    
+    *reqSmoothing = true;
+  }
 }
 
 template <class Type, class Type2>

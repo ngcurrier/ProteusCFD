@@ -65,3 +65,29 @@ void PythonWrapper::GetBoundaryVariables(Type* QL, Type* QR, int neqn, int nauxv
   PyObject* pValue = PyObject_CallObject(pFunc, pArgs);
 }
 
+
+template <class Type>
+void PythonWrapper::GetBoundaryMovement(Type time, int* nodelist, int sizenodelist, int nnode,
+					Type* xyz, Type* dxyz)
+{
+  //I'm not sure why but if I remove this import we segfault, it appears numpy is being
+  //unloaded somehow from initialization
+  import_array();
+
+  PyObject *nptime, *npnodelist,*npxyz,*npdxyz; 
+  npy_intp dim = sizenodelist;
+  npy_intp dim2 = nnode;
+
+  nptime = PyFloat_FromDouble(time);
+  npnodelist = (PyObject*)PyArray_SimpleNewFromData(1, &dim, NPY_INT, nodelist);
+  npdxyz = (PyObject*)PyArray_SimpleNewFromData(1, &dim, NPY_DOUBLE, dxyz);
+  npxyz = (PyObject*)PyArray_SimpleNewFromData(1, &dim2, NPY_DOUBLE, xyz);
+  PyObject* pArgs = PyTuple_New(4);
+  PyTuple_SetItem(pArgs, 0, nptime);
+  PyTuple_SetItem(pArgs, 1, npnodelist);
+  PyTuple_SetItem(pArgs, 2, npxyz);
+  PyTuple_SetItem(pArgs, 3, npdxyz);
+   
+  PyObject* pValue = PyObject_CallObject(pFunc, pArgs);
+}
+

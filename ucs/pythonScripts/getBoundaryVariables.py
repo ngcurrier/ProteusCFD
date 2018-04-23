@@ -1,3 +1,10 @@
+# Set the boundary conditions at the surface, user may choose to set QL, QR, or both
+# QL - raw vector on the surface (hard set BC)
+# QR - raw vector on the ghost edges (soft set BC)
+# neqn - number of conservative equations
+# naux - number of auxiliary (helper) variables
+# wallXYZ - X,Y,Z location of the wall node
+# wallAvec - normal vector of face at the wall (nx, ny, nz, area)
 def getBoundaryVariables(QL, QR, neqn, naux, wallXYZ, wallAvec):
     import numpy as np
 

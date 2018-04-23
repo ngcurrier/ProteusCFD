@@ -34,6 +34,9 @@ class PythonWrapper
   void SetInitialConditions(Type* Qinf, int neqn, int nauxvars, Type* Qreturn, Type* coordsXYZ);
   template <class Type>
   void GetBoundaryVariables(Type* QL, Type* QR, int neqn, int nauxvars, Type* wallXYZ, Type* wallAvec);
+  template <class Type>
+  void GetBoundaryMovement(Type time, int* nodelist, int sizenodelist, int nnode,
+			   Type* xyz, Type* dxyz);
   
  protected:
 
