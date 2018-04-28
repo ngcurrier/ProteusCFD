@@ -14,13 +14,14 @@
 # Species must follow camelCase convention, i.e. Li ..NOT.. LI
 
 #Must list number of reactions in the file to expect
+units = SI
 rxnInModel = 6
+speciesInModel = [N, N2, O2, NO, O]
 
 # The following reaction is oxygen dissociation in the presence of a catalyst
 REACTION 1
 rxnType = 2
-catPresent = 1
-reactantsAsCat = 1
+thirdBodiesPresent = 1
 O2 + M <==> 2O + M
 # The following line was converted to m^6 from cm^6 => 1.20e+17 * 1.00e-12
 A = 3.618E12
@@ -30,8 +31,7 @@ M = N[1.0], N2[2.0], O2[9.0], NO[1.0], O[25.0]
 
 REACTION 2
 rxnType = 2
-catPresent = 1
-reactantsAsCat = 1
+thirdBodiesPresent = 1
 N2 + M <==> 2N + M
 A = 1.92E11
 EA = 1.131E5
@@ -40,8 +40,7 @@ M = N2[2.5], O2[1.0], NO[1.0], O[1.0]
 
 REACTION 3
 rxnType = 2
-catPresent = 0
-reactantsAsCat = 0
+thirdBodiesPresent = 0
 N2 + N <==> 2N + N
 A = 4.15E16
 EA = 1.131E5
@@ -49,8 +48,7 @@ n = -1.5
 
 REACTION 4
 rxnType = 2
-catPresent = 1
-reactantsAsCat = 1
+thirdBodiesPresent = 1
 NO + M <==> N + O + M
 A = 3.97E14
 EA = 7.56E4
@@ -60,8 +58,7 @@ M = N[20.0], N2[1.0], O2[1.0], NO[20.0], O[20.0]
 #NOTE: this reaction is very stiff, see thesis Currier, N.
 REACTION 5
 rxnType = 2
-catPresent = 0
-reactantsAsCat = 0
+thirdBodiesPresent = 0
 NO + O <==> O2 + N
 A = 3.18E3
 EA = 1.97E4
@@ -69,8 +66,7 @@ n = 1.0
 
 REACTION 6
 rxnType = 2
-catPresent = 0
-reactantsAsCat = 0
+thirdBodiesPresent = 0
 N2 + O <==> NO + N
 A = 6.75E7
 EA = 3.75E4

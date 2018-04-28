@@ -12,13 +12,14 @@
 # Species must follow camelCase convention, i.e. Li ..NOT.. LI
 
 #Must list number of reactions in the file to expect
+units = SI
 rxnInModel = 4
+speciesInModel = [O2, O, H2, H, OH, H2O]
 
 # The following reaction is oxygen dissociation in the presence of a catalyst
 REACTION 1
 rxnType = 1
 catPresent = 0
-reactantsAsCat = 0
 O2 <==> 2O 
 A = 1.200E+9
 # EA = 59500.0
@@ -28,7 +29,6 @@ n = -0.5
 REACTION 2
 rxnType = 1
 catPresent = 0
-reactantsAsCat = 0
 H2 <==> 2H
 A = 1.86939E+5
 # EA = 52052.848
@@ -38,7 +38,6 @@ n = 0.37
 REACTION 3
 rxnType = 1
 catPresent = 0
-reactantsAsCat = 0
 O2 + H2 <==> 2OH
 A = 4.9112E+2
 # EA = 9523.71
@@ -48,7 +47,6 @@ n = -0.33
 REACTION 4
 rxnType = 1
 catPresent = 0
-reactantsAsCat = 0
 H2O + H <==> H2 + OH
 A = 4.722222
 # EA = 7638.647

@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <string>
 #include <vector>
+#include <iostream>
 
 enum reactionType
 {
@@ -47,18 +48,12 @@ class Reaction
   std::string name;             //descriptor of reaction -- plain text
 
   Int nespecies;                //number of elemental species involved
-  Int nspecies;                 //number of species involved
-  Int ntbodies;                 //number of rxn species which also act as catalysts
-  Int ncatalysts;               //number of species acting as catalysts ONLY
-  bool catalysts;                //1 - if any species act as catalysts, 0 - turn catalyst action off
-  bool thirdBodies;              //1 - rxn species act as catalysts,0 - pure catalysts only
-  std::vector<Type> TBEff;                  //third body efficiencies including catalysts and species in reaction
-  Species<Type>* species;       //pointers to species in reaction
-  Int* globalIndx;              //global index of species needed by this reaction 
-                                //(in order - rxn species, then catalysts and thirdbodies)
-
+  bool thirdBodiesPresent;      //1 - third body reaction, 0 - non-third body reaction
+  std::vector<Type> TBEff;      //third body efficiencies including species in reaction
+  Species<Type>* species;       //pointers to species in reaction, list includes species that show up as third bodies as well (reaction does NOT own this pointer)
+  std::vector<Int> globalIndx;  //list of indices for every reaction species which indx's into the global list
+  
   std::vector<std::string> speciesSymbols;  //list of species involved in reaction
-  std::vector<std::string> catSymbols;
   std::vector<Type> Nup;                     //stoich. coeff. left side
   std::vector<Type> Nupp;                    //stoich. coeff. right side
 
@@ -72,25 +67,24 @@ class Reaction
   Type Ab; 
   Type EAb;
   Type nb;
-    
+
+  Int GetNspecies();
   void Print();
   
   //will read reaction from file and will complete a reaction object to pass back
   Int ReadReactionFromFile(std::string fileName, Int ReactionId);
   Int ReadReactionFromFileChemkin(std::string fileName, Int ReadtionId);
   Int ParseReactionBlockLine(std::string& line);
-  Int ParseReaction(std::string& rxn);
-  Int ParseCatalysts(std::string& line);
-  void SetSpeciesPointer(Species<Type>* globalSpecies, Int globalCount);
+  void ParseReaction(std::string& rxn);
+  void ParseThirdBodies(std::string& line);
 
-  void SetCatalysts(std::vector<std::string>, std::vector<double> TBEff);
-  
+  void SetSpeciesPointer(Species<Type>* globalSpecies, Int globalCount);
   Int GetLocalSpeciesFromGlobal(Int speciesId);
 
   Type GetForwardReactionRate(Type T);     //forward reaction rate
   Type GetBackwardReactionRate(Type T);    //backward reaction rate
   Type GetEquilibriumReactionRate(Type T); //equilibrium reaction rate
-  Type GetMassProductionRate(Type* rhoi, Type T, Int speciesId); 
+  Type GetMassProductionRate(Type* rhoi, Int globalNspecies, Type T, Int speciesId); 
 
   Int rxnType;   //see enum. above for types
   Int rxnTypeBackward; //see enum. above for types

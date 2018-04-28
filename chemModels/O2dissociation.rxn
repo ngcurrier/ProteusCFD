@@ -12,7 +12,9 @@
 # Species must follow camelCase convention, i.e. Li ..NOT.. LI
 
 #Must list number of reactions in the file to expect
+units = SI
 rxnInModel = 1
+speciesInModel = [O2, O]
 
 # The following reaction is oxygen dissociation in the presence of a catalyst
 REACTION 1

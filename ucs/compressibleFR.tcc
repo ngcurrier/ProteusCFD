@@ -2341,6 +2341,7 @@ Type CompressibleFREqnSet<Type>::NewtonFindTGivenP(const Type* rhoi, const Type 
   for(Int i = 0; i < nspecies; ++i){
     rhoiDim[i] = rhoi[i]*this->param->ref_density;
   }
+
   Int j = 0;
   Type dT = 0.0;
   // all dimensional values internal to the loop
@@ -2352,8 +2353,8 @@ Type CompressibleFREqnSet<Type>::NewtonFindTGivenP(const Type* rhoi, const Type 
     Type zpointp = PgoalDim - PpDim;
     Type dzdT = (zpointp - zpoint)/(TpDim - TDim);
     dT = -zpoint/dzdT;
-    TDim += dT;
     if (real(CAbs(dT/this->param->ref_temperature)) < real(tol)) break;
+    else TDim += dT;
   }
 
   if(j == maxit){
@@ -2363,6 +2364,5 @@ Type CompressibleFREqnSet<Type>::NewtonFindTGivenP(const Type* rhoi, const Type 
     std::cerr << ss.str() << std::endl;
     Abort << ss.str();
   }
-
   return TDim/this->param->ref_temperature;
 }

@@ -14,13 +14,14 @@
 # Species must follow camelCase convention, i.e. Li ..NOT.. LI
 
 #Must list number of reactions in the file to expect
+units = SI
 rxnInModel = 20
+speciesInModel = [O2, O, N2, N, NO, NO(+), E(-), O2(+), O(+), N(+), N2(+)]
 
 # The following reaction is oxygen dissociation in the presence of a catalyst
 REACTION 1
 rxnType = 2
-catPresent = 1
-reactantsAsCat = 1
+thirdBodiesPresent = 1
 O2 + M <==> 2O + M
 # The following line was converted to m^6 from cm^6 => 1.20e+17 * 1.00e-12
 A = 3.618E12
@@ -34,8 +35,7 @@ M = N[1.0], N2[2.0], O2[9.0], NO[1.0], O[25.0]
 
 REACTION 2
 rxnType = 2
-catPresent = 1
-reactantsAsCat = 1
+thirdBodiesPresent = 1
 N2 + M <==> 2N + M
 A = 1.92E11
 EA = 1.131E5
@@ -48,8 +48,7 @@ M = N2[2.5], O2[1.0], NO[1.0], O[1.0]
 
 REACTION 3
 rxnType = 2
-catPresent = 0
-reactantsAsCat = 0
+thirdBodiesPresent = 0
 N2 + N <==> 2N + N
 A = 4.15E16
 EA = 1.131E5
@@ -61,8 +60,7 @@ n = -1.5
 
 REACTION 4
 rxnType = 2
-catPresent = 1
-reactantsAsCat = 1
+thirdBodiesPresent = 1
 NO + M <==> N + O + M
 A = 3.97E14
 EA = 7.56E4
@@ -76,8 +74,7 @@ M = N[20.0], N2[1.0], O2[1.0], NO[20.0], O[20.0]
 #NOTE: this reaction is very stiff, see thesis Currier, N.
 REACTION 5
 rxnType = 2
-catPresent = 0
-reactantsAsCat = 0
+thirdBodiesPresent = 0
 NO + O <==> O2 + N
 A = 3.18E3
 EA = 1.97E4
@@ -91,7 +88,6 @@ n = 1.0
 REACTION 6
 rxnType = 2
 catPresent = 0
-reactantsAsCat = 0
 N2 + O <==> NO + N
 A = 6.75E7
 EA = 3.75E4
@@ -104,7 +100,6 @@ n = 0.0
 REACTION 7
 rxnType = 2
 catPresent = 0
-reactantsAsCat = 0
 N + O <==> NO(+) + E(-)
 A = 9.03E3
 EA = 3.24E4
@@ -115,8 +110,7 @@ n = 0.5
 # and each catalyst identified individually on each side... this may not be correct
 REACTION 8
 rxnType = 2
-catPresent = 1
-reactantsAsCat = 1
+thirdBodiesPresent = 1
 O + M <==> O(+) + E(-) + M
 A = 3.6E25
 EA = 1.58E5
@@ -128,8 +122,7 @@ M = NO(+)[1.0], O2(+)[1.0], N2(+)[1.0], O(+)[1.0], N(+)[1.0]
 # and each catalyst identified individually on each side... this may not be correct
 REACTION 9
 rxnType = 2
-catPresent = 1
-reactantsAsCat = 1
+thirdBodiesPresent = 1
 N + M <==> N(+) + E(-) + M
 A = 1.1E26
 EA = 1.69E5
@@ -138,8 +131,7 @@ M = NO(+)[1.0], O2(+)[1.0], N2(+)[1.0], O(+)[1.0], N(+)[1.0]
 
 REACTION 10
 rxnType = 2
-catPresent = 0
-reactantsAsCat = 0
+thirdBodiesPresent = 0
 2O <==> O2(+) + E(-)
 A = 1.6E11
 EA = 8.08E4
@@ -147,8 +139,7 @@ n = -0.98
 
 REACTION 11
 rxnType = 2
-catPresent = 0
-reactantsAsCat = 0
+thirdBodiesPresent = 0
 O + O2(+) <==> O2 + O(+)
 A = 2.92E12
 EA = 2.8E4
@@ -156,8 +147,7 @@ n = -1.11
 
 REACTION 12
 rxnType = 2
-catPresent = 0
-reactantsAsCat = 0
+thirdBodiesPresent = 0
 N2 + N(+) <==> N + N2(+)
 A = 2.02E5
 EA = 1.3E4
@@ -165,8 +155,7 @@ n = 0.81
 
 REACTION 13
 rxnType = 2
-catPresent = 0
-reactantsAsCat = 0
+thirdBodiesPresent = 0
 2N <==> N2(+) + E(-)
 A = 1.4E7
 EA = 6.78E4
@@ -174,8 +163,7 @@ n = 0.0
 
 REACTION 14
 rxnType = 2
-catPresent = 0
-reactantsAsCat = 0
+thirdBodiesPresent = 0
 O2 + N2 <==> NO + NO(+) + E(-)
 A = 1.38E14
 EA = 1.41E5
@@ -183,8 +171,7 @@ n = -1.84
 
 REACTION 15
 rxnType = 2
-catPresent = 1
-reactantsAsCat = 1
+thirdBodiesPresent = 1
 NO + M <==> NO(+) + E(-) + M
 A = 2.2E9
 EA = 1.08E5
@@ -193,8 +180,7 @@ M = O2[4.0], N2[1.0]
 
 REACTION 16
 rxnType = 2
-catPresent = 0
-reactantsAsCat = 0
+thirdBodiesPresent = 0
 O + NO(+) <==> NO + O(+)
 A = 3.63E9
 EA = 5.08E4
@@ -202,8 +188,7 @@ n = -0.6
 
 REACTION 17
 rxnType = 2
-catPresent = 0
-reactantsAsCat = 0
+thirdBodiesPresent = 0
 N2 + O(+) <==> O + N2(+)
 A = 3.4E13
 EA = 2.3E4
@@ -211,8 +196,7 @@ n = -2.0
 
 REACTION 18
 rxnType = 2
-catPresent = 0
-reactantsAsCat = 0
+thirdBodiesPresent = 0
 N + NO(+) <==> NO + N(+)
 A = 1.0E13
 EA = 6.1E4
@@ -220,8 +204,7 @@ n = -0.93
 
 REACTION 19
 rxnType = 2
-catPresent = 0
-reactantsAsCat = 0
+thirdBodiesPresent = 0
 O2 + NO(+) <==> NO + O2(+)
 A = 1.8E9
 EA = 3.3E4
@@ -229,8 +212,7 @@ n = 0.17
 
 REACTION 20
 rxnType = 2
-catPresent = 0
-reactantsAsCat = 0
+thirdBodiesPresent = 0
 O + NO(+) <==> O2 + N(+)
 A = 1.34E7
 EA = 7.727E4

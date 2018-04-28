@@ -1,15 +1,18 @@
 //used to create an individual reaction
 template <class Type>
 Reaction<Type>::Reaction() :
-  ncatalysts(0), ntbodies(0), nspecies(0), backwardRateGiven(false),
-  rxnType(999), rxnTypeBackward(999),species(NULL), globalIndx(NULL)
-{
-}
+  backwardRateGiven(false), thirdBodiesPresent(false),
+  rxnType(999), rxnTypeBackward(999), species(NULL)
+{}
 
 template <class Type>
 Reaction<Type>::~Reaction()
+{}
+
+template <class Type>
+Int Reaction<Type>::GetNspecies()
 {
-  delete [] globalIndx;
+  return speciesSymbols.size();
 }
 
 template <class Type>
@@ -33,16 +36,17 @@ void Reaction<Type>::Print()
   }
 
   std::cout << "========================" << std::endl;
-  std::cout << "nspecies: " << nspecies << std::endl;
-  for(i = 0; i < nspecies; i++){
+  std::cout << "nspecies: " << this->GetNspecies() << std::endl;
+  for(i = 0; i < this->GetNspecies(); i++){
     indx = globalIndx[i];
     std::cout << "Species[" << i << "] = " << species[indx].symbol << "   \t\tNup: " << Nup[i] << "\tNupp: " << Nupp[i] << std::endl;
   }
-  std::cout << "ncatalysts: " << ncatalysts << std::endl;
-  for(i = nspecies; i < ntbodies+ncatalysts+nspecies; i++){
-    indx = globalIndx[i];
-    std::cout << "Catalyst[" << i-nspecies << "] = " << species[indx].symbol 
-	      << "  \tTBEff: " << TBEff[i-nspecies] << std::endl;
+  if(thirdBodiesPresent){
+    for(i = 0; i < this->GetNspecies(); i++){
+      indx = globalIndx[i];
+      std::cout << "Thirdbody[" << i << "] = " << species[indx].symbol 
+		<< "  \tTBEff: " << TBEff[i] << std::endl;
+    }
   }
   
   std::cout << "Temp(K) \tKf \t\tKc \t\tKb" << std::endl;
@@ -66,8 +70,8 @@ void Reaction<Type>::Print()
   return;
 }
 
-// This function looks for reactionId given and passes the block off
-// to ParseReactionBlockLine() for parsing
+// This function iterates through the files and counts for the looks for reactionId given
+//and passes the reaction input block off to ParseReactionBlockLine() for parsing
 template <class Type>
 Int Reaction<Type>::ReadReactionFromFile(std::string fileName, Int reactionId)
 {
@@ -163,8 +167,7 @@ Int Reaction<Type>::ReadReactionFromFile(std::string fileName, Int reactionId)
 // An example of such a block is
 // REACTION 1
 // rxnType = 2
-// catPresent = 1
-// reactantsAsCat = 1
+// thirdBodiesPresent = 1
 // O2 + M <==> 2O + M
 // A = 3.618E12
 // EA = 5.94E+4
@@ -178,40 +181,24 @@ Int Reaction<Type>::ParseReactionBlockLine(std::string& line)
 
   std::stringstream ss;
   std::string rxn = "REACTION ";
-  std::string rxnStart = rxn;
-  std::string iff = "<==>";
-  std::string ArrCoeffA = "A";
-  std::string ArrCoeffEA = "EA";
-  std::string ArrCoeffn = "n";
-  std::string CatalystSwitch = "catPresent";
-  std::string TBodies = "reactantsAsCat";
-  std::string rxnTypeK = "rxnType";
-  std::string rxnTypeBackK = "rxnTypeBackward";
-  std::string Catalyst = "M";
-  std::string ArrCoeffAb = "Ab";
-  std::string ArrCoeffnb = "nb";
-  std::string ArrCoeffEAb = "EAb";
-
   std::string subline;
 
   if(line.length() == 0){
     return(0);
   }
 
-
-  //if we find the reaction key we've read far enough to get all this
-  //reaction's data
-  loc = line.find(rxn);
+  //if we find the reaction key (i.e. the next reaction) we've read far enough to get all the current reaction's data
+  loc = line.find("REACTION");
   if(loc != std::string::npos && loc == 0){
     return(1);
   }
 
-  loc = line.find(iff);
+  loc = line.find("<==>");
   if(loc != std::string::npos){
     ParseReaction(line);
     return(0);
   }
-  loc = line.find(rxnTypeBackK);
+  loc = line.find("rxnTypeBackward");
   if(loc != std::string::npos){
     loc = line.find('=');
     loc += 1;
@@ -222,7 +209,7 @@ Int Reaction<Type>::ParseReactionBlockLine(std::string& line)
     backwardRateGiven = true;
     return(0);
   }
-  loc = line.find(rxnTypeK);
+  loc = line.find("rxnType");
   if(loc != std::string::npos){
     loc = line.find('=');
     loc += 1;
@@ -232,27 +219,17 @@ Int Reaction<Type>::ParseReactionBlockLine(std::string& line)
     ss.clear();
     return(0);
   }
-  loc = line.find(CatalystSwitch);
+  loc = line.find("thirdBodiesPresent");
   if(loc != std::string::npos){
     loc = line.find('=');
     loc += 1;
     subline = line.substr(loc);
     ss << subline;
-    ss >> catalysts;
+    ss >> thirdBodiesPresent;
     ss.clear();
     return(0);
   }
-  loc = line.find(TBodies);
-  if(loc != std::string::npos){
-    loc = line.find('=');
-    loc += 1;
-    subline = line.substr(loc);
-    ss << subline;
-    ss >> thirdBodies;
-    ss.clear();
-    return(0);
-  }
-  loc = line.find(ArrCoeffAb);
+  loc = line.find("Ab");
   if(loc != std::string::npos && loc == 0){
     loc = line.find('=');
     loc += 1;
@@ -262,7 +239,7 @@ Int Reaction<Type>::ParseReactionBlockLine(std::string& line)
     ss.clear();
     return(0);
   }
-  loc = line.find(ArrCoeffnb);
+  loc = line.find("nb");
   if(loc != std::string::npos && loc == 0){
     loc = line.find('=');
     loc += 1;
@@ -272,7 +249,7 @@ Int Reaction<Type>::ParseReactionBlockLine(std::string& line)
     ss.clear();
     return(0);
   }
-  loc = line.find(ArrCoeffEAb);
+  loc = line.find("EAb");
   if(loc != std::string::npos && loc == 0){
     loc = line.find('=');
     loc += 1;
@@ -282,7 +259,7 @@ Int Reaction<Type>::ParseReactionBlockLine(std::string& line)
     ss.clear();
     return(0);
   }
-  loc = line.find(ArrCoeffA);
+  loc = line.find("A");
   if(loc != std::string::npos && loc == 0){
     loc = line.find('=');
     loc += 1;
@@ -292,7 +269,7 @@ Int Reaction<Type>::ParseReactionBlockLine(std::string& line)
     ss.clear();
     return(0);
   }
-  loc = line.find(ArrCoeffEA);
+  loc = line.find("EA");
   if(loc != std::string::npos && loc == 0){
     loc = line.find('=');
     loc += 1;
@@ -302,7 +279,7 @@ Int Reaction<Type>::ParseReactionBlockLine(std::string& line)
     ss.clear();
     return(0);
   }
-  loc = line.find(ArrCoeffn);
+  loc = line.find("n");
   if(loc != std::string::npos){
     loc = line.find('=');
     loc += 1;
@@ -312,9 +289,9 @@ Int Reaction<Type>::ParseReactionBlockLine(std::string& line)
     ss.clear();
     return(0);
   }
-  loc = line.find(Catalyst);
+  loc = line.find("M");
   if(loc != std::string::npos){
-    ParseCatalysts(line);
+    ParseThirdBodies(line);
     ss.clear();
     return(0);
   }
@@ -328,9 +305,8 @@ Int Reaction<Type>::ParseReactionBlockLine(std::string& line)
 // O + M <==> O(+) + E(-) + M
 // where (+) (-) indicate ionized species and M is a third-body catalyst
 template <class Type>
-Int Reaction<Type>::ParseReaction(std::string& rxn)
+void Reaction<Type>::ParseReaction(std::string& rxn)
 {
-  Int err = 0;
   Int i, j, k;
   Int nlhs, nrhs;
   std::string lhs, rhs;
@@ -360,7 +336,7 @@ Int Reaction<Type>::ParseReaction(std::string& rxn)
 
   //this is an estimate we will get the real number by parsing
   //out duplicates later
-  nspecies = nrhs+nlhs;
+  Int nspecies = nrhs+nlhs;
 
   //allocate nupp and nup temporarily
   std::vector<Type> NupTemp(nspecies);
@@ -498,20 +474,14 @@ Int Reaction<Type>::ParseReaction(std::string& rxn)
 
   //now set total number of species which are unique
   nspecies = unique;
-
-  return err;
 }
 
-//we need to put the catalysts in the following form for parsing
+//we need to put the third bodies in the following form for parsing
 //M = NO(+)[1.0], O2(+)[1.0], N2(+)[1.0], O(+)[1.0], N(+)[1.0]
 template <class Type>
-Int Reaction<Type>::ParseCatalysts(std::string& line)
+void Reaction<Type>::ParseThirdBodies(std::string& line)
 {
-  Int err = 0;
-  Int i;
-  size_t loc, loc2;
-  std::string catSym;
-  std::string str;
+  std::string TBSym;
   std::stringstream ss;
   Int ions;
   std::string ionp = "(+)";
@@ -520,125 +490,105 @@ Int Reaction<Type>::ParseCatalysts(std::string& line)
   line = Split(line, "=")[1];
   
   //count number of csv 
-  Int ncat = std::count(line.begin(), line.end(), ',') + 1;
-  
-  //strip off third bodies, i.e. rxn species acting as catalysts
-  //we want a list of strict catalysts ONLY
-  ntbodies = 0;
-  for(i = 0; i < nspecies; i++){
-    //attempt to idiot proof the format in case spaces
-    //are not put after the commas... this is easy to break
-    //however, TODO: more robust parser here...
-    loc = line.find(' '+speciesSymbols[i]+'[');
-    if(loc != std::string::npos){
-      ntbodies++;
-    }
-    loc = line.find(','+speciesSymbols[i]+'[');
-    if(loc != std::string::npos){
-      ntbodies++;
-    }
-  }
-  if(ntbodies){
-    thirdBodies = true;
-    std::cerr << "WARNING: third bodies switch is off but third bodies found in list!\n";
-  }
+  Int ntb = std::count(line.begin(), line.end(), ',') + 1;
 
-  //set ncatalysts equal to efficiencies found minus third bodies
-  //this prevents doubly adding species to the list
-  ncatalysts = ncat - ntbodies;
-  catSymbols.resize(ncatalysts+ntbodies);
-  TBEff.resize(ncatalysts+ntbodies);
+  //if third bodies are used, all unlisted species have an efficiency of unity, allocate memory
+  TBEff.resize(this->GetNspecies(), 1.0);
 
-  i = 0;
-  Int count = 0;
+  Int i = 0;
   while(i < (Int)line.size()){
-    //if we find an upper case letter parse the catalyst
+    //if we find an upper case letter (chemical), parse the catalyst one letter at a time
+    TBSym.clear();
+    TBSym = "";
     if(isupper(line[i])){
       while((line[i] != '[') && (line[i] != ' ')){
-	catSym += line[i];
+	TBSym += line[i];
 	i++;
       }
       //strip out our custom ion notation (+)
-      ions = StripFromString(catSym, ionp, catSym);
+      ions = StripFromString(TBSym, ionp, TBSym);
       if(ions){
-	catSym += "+";
+	TBSym += "+";
       }
       //strip out our custom ion notation (-)
-      ions = StripFromString(catSym, ionn, catSym);
+      ions = StripFromString(TBSym, ionn, TBSym);
       if(ions){
-	catSym += "-";
+	TBSym += "-";
       }
       //rename electrons to lower case e-
-      if(catSym == "E-"){
-	catSym = "e-";
+      if(TBSym == "E-"){
+	TBSym = "e-";
       }
-      catSymbols[count] = catSym;
-      catSym = "";
       
       //skip to next brackets and read out the values to TBefficiency array
-      loc = line.find('[', i-1);
+      size_t loc = line.find('[', i-1);
       loc += 1;
-      loc2 = line.find(']', i-1);
-      str = line.substr(loc, loc2-loc);
+      size_t loc2 = line.find(']', i-1);
+      if(loc == std::string::npos || loc2 == std::string::npos){
+	std::cerr << "Error reading thirdbodies, matching brackets: " + line << std::endl;
+      }
+      std::string val = line.substr(loc, loc2-loc);
       ss.clear();
-      ss << str;
-      ss >> TBEff[count];
+      ss << val;
+      Type vald;
+      ss >> vald;
+      
+      //find the species in the species list for the reaction
+      Int specielocalid = -99;
+      for(int k = 0; k < speciesSymbols.size(); ++k){
+	if(TBSym == speciesSymbols[k]){
+	  specielocalid = k;
+	  TBEff.at(specielocalid) = vald;
+	  break;
+	}
+      }
+      //if a new species shows up as a third body, extend both lists
+      if(specielocalid == -99){
+	speciesSymbols.push_back(TBSym);
+	TBEff.push_back(vald);
+	Nup.push_back(0.0);
+	Nupp.push_back(0.0);
+      }
       i = loc2;
-
-      count++;
       i++;
     }
     i++;
   }
-
-
   
-  for(i = 0; i < ncatalysts+ntbodies; i++){
-    std::cout << "III : " << i << " " << catSymbols[i] << " " << TBEff[i] << std::endl;
+  if(TBEff.size() != speciesSymbols.size()){
+    Abort << "Third bodies and species symbols list sizes do not match";
   }
-
-  return err;
 }
 
+//looks through global species symbol list and sets the global indx locally
+//globalSpecies - list of global species pointers (globally complete)
+//globalCount - number of species in the list
 template <class Type>
 void Reaction<Type>::SetSpeciesPointer(Species<Type>* globalSpecies, Int globalCount)
 {
-  Int i, j;
-  
+  //copy a pointer to point at the global list
   species = globalSpecies;
-  //this list will have some duplicates if ntbodies != 0
-  globalIndx = new Int[nspecies+ncatalysts+ntbodies];
+  globalIndx.resize(this->GetNspecies());
   
-  for(i = 0; i < nspecies; i++){
-    for(j = 0; j < globalCount; j++){
+  for(Int i = 0; i < this->GetNspecies(); i++){
+    for(Int j = 0; j < globalCount; j++){
       if(speciesSymbols[i] == species[j].symbol){
 	globalIndx[i] = j;
 	break;
       }
     }
   }
-  for(i = 0; i < ncatalysts+ntbodies; i++){
-    for(j = 0; j < globalCount; j++){
-      if(catSymbols[i] == species[j].symbol){
-	globalIndx[i+nspecies] = j;
-	break;
-      }
-    }
-  }
-
-  return;
 }
 
 //the function maps the species id from the global list (all reactions) to the
 //list that is specific to this reaction only
+//speciedId - local species indx from reaction
+//returns - global species list indx
 template <class Type>
 Int Reaction<Type>::GetLocalSpeciesFromGlobal(Int speciesId)
 {
-  Int i;
-  for(i = 0; i < nspecies; i++){
+  for(Int i = 0; i < this->GetNspecies(); i++){
     //the first occurence in the list is what we want
-    //since reactants that act as catalysts are stored again
-    //towards the end
     if(globalIndx[i] == speciesId){
       return(i);
     }
@@ -646,6 +596,7 @@ Int Reaction<Type>::GetLocalSpeciesFromGlobal(Int speciesId)
   return(-1);
 }
 
+//returns forward reaction rate Kf with units (mol/m^3)^nu
 template <class Type>
 Type Reaction<Type>::GetForwardReactionRate(Type T)
 {
@@ -665,10 +616,10 @@ Type Reaction<Type>::GetForwardReactionRate(Type T)
   return(-999);
 }
 
+//returns equilibrium reaction rate Kc with units (mol/m^3)^nu
 template <class Type>
 Type Reaction<Type>::GetEquilibriumReactionRate(Type T)
 {
-  Int i,ii;
   Type dnu_i;
   Type a[7];
   Type nu = 0.0;
@@ -681,8 +632,8 @@ Type Reaction<Type>::GetEquilibriumReactionRate(Type T)
   Type dnua7 = 0.0;
   
   //calculate the delta in reference enthalpy and reference entropy
-  for(i = 0; i < nspecies; i++){
-    ii = globalIndx[i];
+  for(Int i = 0; i < this->GetNspecies(); i++){
+    Int ii = globalIndx[i];
     species[ii].GetThermoCoeff(T,a);
     dnu_i = Nupp[i] - Nup[i];
     nu += dnu_i;
@@ -720,6 +671,7 @@ Type Reaction<Type>::GetEquilibriumReactionRate(Type T)
   return Kc;
 }
 
+//returns backwards reaction rate Kb with units (mol/m^3)^nu
 template <class Type>
 Type Reaction<Type>::GetBackwardReactionRate(Type T)
 {
@@ -746,31 +698,40 @@ Type Reaction<Type>::GetBackwardReactionRate(Type T)
   return (Kf/Kc);
 }
 
+//returns reaction rate in units (mol/m^3)^nu
 template <class Type>
 Type Reaction<Type>::Arrhenius(Type A, Type EA, Type T)
 {
   return(A * exp(-EA/(UNIV_R * T)));
 }
 
+//returns reaction rate in units (mol/m^3)^nu
 template <class Type>
 Type Reaction<Type>::ModArrhenius(Type A, Type EA, Type n, Type T)
 {
   return(A * pow(T, n) * exp(-EA/(UNIV_R * T)));
 }
 
+//returns reaction rate in units (mol/m^3)^nu
 template <class Type>
 Type Reaction<Type>::GuptaModArrhenius(Type A, Type EA, Type n, Type T)
 {
   return(A * pow(T, n) * exp(-EA/T));
 }
 
+//returns reaction rate in units (mol/m^3)^nu
 template <class Type>
 Type Reaction<Type>::PowerRxn(Type A, Type n, Type T){
   return(A * pow(T, n));
 }
 
+//returns production rate of given species in kg/s.m^3
+//rhoi - dimensional vector of densities for all species (global) kg/m^3
+//globalNspecies - number of entries in the rhoi vector
+//T - temperature in Kelvin
+//speciesId - global species indx (will be mapped to local species indx)
 template <class Type>
-Type Reaction<Type>::GetMassProductionRate(Type* rhoi, Type T, Int speciesId)
+Type Reaction<Type>::GetMassProductionRate(Type* rhoi, Int globalNspecies, Type T, Int speciesId)
 {
   Type wdot = 0.0;
   Type dest,form,prod_dest,prod_form;
@@ -778,8 +739,8 @@ Type Reaction<Type>::GetMassProductionRate(Type* rhoi, Type T, Int speciesId)
   Type nu_ir;
   Type Kf,Kb;
   Type Mconc,net;
-  Type* X = (Type*)alloca(sizeof(Type)*(nspecies+ncatalysts+ntbodies)); //precomputed concentrations for each species
-  Type XX;
+  Int nspecies = this->GetNspecies();
+  std::vector<Type> X(globalNspecies); //precomputed concentrations for each species
   Int k,kk;	  
   
   kk = GetLocalSpeciesFromGlobal(speciesId);
@@ -796,10 +757,9 @@ Type Reaction<Type>::GetMassProductionRate(Type* rhoi, Type T, Int speciesId)
   Real dnu_ir = real(nu_ir);
   if (AlmostEqualRelative(dnu_ir, zero, diff)) return 0.0;
   
-  //precompute the concentrations
-  for(k = 0; k < nspecies+ncatalysts+ntbodies; k++){
-    kk = globalIndx[k];
-    X[k] = rhoi[kk]/species[kk].MW; //(kg/m^3)/(kg/mol) => (mol/m^3)
+  //precompute the concentrations for all species in the gas mixture globally
+  for(k = 0; k < globalNspecies; k++){
+    X[k] = rhoi[k]/species[k].MW; //(kg/m^3)/(kg/mol) => (mol/m^3)
   }
   
   Kf = GetForwardReactionRate(T);
@@ -808,40 +768,51 @@ Type Reaction<Type>::GetMassProductionRate(Type* rhoi, Type T, Int speciesId)
   prod_form = prod_dest = 1.0;
   
 
-  //loop over the species that participate as reactants
+  //loop over the species that participate locally as reactants
   for(k = 0; k < nspecies; k++){
+    //need this to reference the correction global concentration X[kk]
+    kk = globalIndx[k];
+
     nupp_kr = Nupp[k];
     nup_kr  = Nup [k];
 
     //avoid using pow(Type, Type) if possible to use pow(Type, Int) - much cheaper
     if(isWholeNumber(nup_kr)){
       Int nup_kri = (Int)real(nup_kr);
-      form = pow(X[k],nup_kri);
+      form = pow(X[kk],nup_kri);
     }
     else{
-      form = pow(X[k], nup_kr);
+      form = pow(X[kk], nup_kr);
     }
     if(isWholeNumber(nupp_kr)){
       Int nupp_kri = (Int)real(nupp_kr);
-      dest = pow(X[k], nupp_kri);
+      dest = pow(X[kk], nupp_kri);
     }
     else{
-      dest = pow(X[k],nupp_kr);
+      dest = pow(X[kk],nupp_kr);
     }
 
     prod_form *= form;
     prod_dest *= dest;
   }
 
-  //if catalyst action is turned on we need to calculate the effective
-  //concentration of the catalysts (equation 9.75, p. 384, Kee text)
+  //if third body action is turned on we need to calculate the effective
+  //concentration of the third bodies (equation 9.75, p. 384, Kee text)
+  //Note that for radical reactions, all species are assumed to have an efficiency
+  //of unity unless they show up in our input list as something else
+  //this is b/c the third body collision provides the energy for the reaction
+  //to proceed
   Mconc = 1.0;
-  if(catalysts){
+  if(thirdBodiesPresent){
     Mconc = 0.0;
-    for(k = 0; k < ntbodies+ncatalysts; k++){
-      kk = globalIndx[k+nspecies];
-      XX = rhoi[kk]/species[kk].MW; //in mol/m^3
-      Mconc += TBEff[k]*XX;
+    //sum up concentration for all gases in the mixture globally - assum TBeff = 1.0
+    for(k = 0; k < globalNspecies; ++k){
+      Mconc += X[k];
+    }
+    //for gases that we have local information about, exchange their TEff*X concentrations instead
+    for(k = 0; k < nspecies; ++k){
+      kk = globalIndx[k];
+      Mconc += (TBEff[k]-1.0)*X[kk]; //mol/m^3
     }
   }
   
@@ -852,6 +823,7 @@ Type Reaction<Type>::GetMassProductionRate(Type* rhoi, Type T, Int speciesId)
   return wdot;
 }
 
+//returns a string with the formatted reaction
 template <class Type>
 std::string Reaction<Type>::GetFormattedReaction()
 {
@@ -859,7 +831,8 @@ std::string Reaction<Type>::GetFormattedReaction()
   Int first;
   std::string rxn = "";
   std::stringstream ss;
-
+  Int nspecies = this->GetNspecies();
+  
   first = 1;
   for(i = 0; i < nspecies; i++){
     indx = globalIndx[i];
@@ -876,7 +849,7 @@ std::string Reaction<Type>::GetFormattedReaction()
       first = 0;
     }
   }
-  if(catalysts){
+  if(thirdBodiesPresent){
     ss << "+ M ";
   }
   ss << "<==> ";
@@ -896,7 +869,7 @@ std::string Reaction<Type>::GetFormattedReaction()
       first = 0;
     }
   }
-  if(catalysts){
+  if(thirdBodiesPresent){
     ss << "+ M";
   }
   rxn = ss.str();

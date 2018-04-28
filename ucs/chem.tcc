@@ -107,21 +107,19 @@ void ChemModel<Type>::BuildGlobalSpeciesList()
   std::cout << "CHEM_RXN: Building global species list" << std::endl;
   
   Int SpeciesCount = 0;
-  Int CatCount = 0;
   for(Int i = 1; i <= nreactions; i++){
-    SpeciesCount += reactions[i-1].nspecies;
-    CatCount += reactions[i-1].ncatalysts;
+    SpeciesCount += reactions[i-1].GetNspecies();
   }
   
   //from species information now contained in each reaction object
   //build a global list of all unique species
-  std::vector<std::string> speciesList(SpeciesCount+CatCount);
+  std::vector<std::string> speciesList(SpeciesCount);
   
   Int listSize = 0;
   Bool inList;
   //create a unique list using reactants
   for(Int i = 0; i < nreactions; i++){
-    for(Int j = 0; j < reactions[i].nspecies; j++){
+    for(Int j = 0; j < reactions[i].GetNspecies(); j++){
       inList = false;
       for(Int k = 0; k < listSize; k++){
 	if(reactions[i].speciesSymbols[j] == speciesList[k]){
@@ -131,22 +129,6 @@ void ChemModel<Type>::BuildGlobalSpeciesList()
       }
       if(!inList){
 	speciesList[listSize] = reactions[i].speciesSymbols[j];
-	listSize++;
-      }
-    }
-  }
-  //add catalysts to the list
-  for(Int i = 0; i < nreactions; i++){
-    for(Int j = 0; j < reactions[i].ncatalysts+reactions[i].ntbodies; j++){
-      inList = false;
-      for(Int k = 0; k < listSize; k++){
-	if(reactions[i].catSymbols[j] == speciesList[k]){
-	  inList = true;
-	  break;
-	}
-      }
-      if(!inList){
-	speciesList[listSize] = reactions[i].catSymbols[j];
 	listSize++;
       }
     }
@@ -204,8 +186,8 @@ Int ChemModel<Type>::ReadChemkinReactionsFile(std::string rxnfile)
       std::vector<double> values;
       std::string LHS, RHS, coeffs, LOW, TROE;
       std::string proteusEquation;
-      std::string proteusCatalysts;
-      bool hascat = false;
+      std::string proteusTBs;
+      bool hasTB = false;
       bool haspdep = false;
       bool haslow, hastroe;
       trash.clear();
@@ -260,13 +242,13 @@ Int ChemModel<Type>::ReadChemkinReactionsFile(std::string rxnfile)
 	RemoveWhitespace(RHS);
 	if(LHS.find("(+M)") != std::string::npos){
 	  haspdep = true;
-	  hascat = true;
+	  hasTB = true;
 	  //replace any (M+) values with M
 	  Replace(LHS, "(+M)", "+M");
 	  Replace(RHS, "(+M)", "+M");
 	}
 	else if(LHS.find("M") != std::string::npos){
-	  hascat = true;
+	  hasTB = true;
 	}
 
 	//parser currently expects spaces separating operators, make it so!
@@ -285,11 +267,11 @@ Int ChemModel<Type>::ReadChemkinReactionsFile(std::string rxnfile)
 	proteusEquation = LHS + "<==>" + RHS;
 	reactions[ireaction].ParseReaction(proteusEquation);
 	
-	// If the letter M appears by itself in a reaction the next line must be catalysts
+	// If the letter M appears by itself in a reaction the next line must be thirdbodies
 	// i.e. the rate constant is assumed to be in the low pressure limiting region
-	if(hascat){
-	  std::cout << "WARNING: " << LHS << " has catalysts\n";
-	  std::cerr << "WARNING: " << LHS << " has catalysts\n";
+	if(hasTB){
+	  std::cout << "WARNING: " << LHS << " has third bodies\n";
+	  std::cerr << "WARNING: " << LHS << " has third bodies\n";
 	  getline(fin, trash);
 	  haslow = hastroe = false;
 	  if(trash.find("LOW") != std::string::npos){
@@ -305,21 +287,19 @@ Int ChemModel<Type>::ReadChemkinReactionsFile(std::string rxnfile)
 	  if(trash.find("PLOG") != std::string::npos){
 	    //should continue to getline until it fails.. TODO: fix PLOG reading
 	  }
-	  std::vector<std::string> cats = Tokenize(trash, '/');
-	  reactions[ireaction].catalysts = true;
-	  reactions[ireaction].ncatalysts = cats.size();
-	  //TODO: reactions[ireaction].thirdBodies = false?
-	  //we need to put the catalysts in the following form for parsing
+	  std::vector<std::string> TBs = Tokenize(trash, '/');
+	  reactions[ireaction].thirdBodiesPresent = true;
+	  //we need to put the thirdbodies in the following form for parsing
 	  //M = NO(+)[1.0], O2(+)[1.0], N2(+)[1.0], O(+)[1.0], N(+)[1.0]
-	  proteusCatalysts = "M =";
-	  for(int i = 0; i < cats.size(); i = i + 2){
-	    proteusCatalysts += " " + cats[i] + "[" + cats[i+1] + "],";
+	  proteusTBs = "M =";
+	  for(int i = 0; i < TBs.size(); i = i + 2){
+	    proteusTBs += " " + TBs[i] + "[" + TBs[i+1] + "],";
 	  }
-	  proteusCatalysts = proteusCatalysts.substr(0, proteusCatalysts.size()-1);
-	  reactions[ireaction].ParseCatalysts(proteusCatalysts);
+	  proteusTBs = proteusTBs.substr(0, proteusTBs.size()-1);
+	  reactions[ireaction].ParseThirdBodies(proteusTBs);
 	}
 	// If (+M) appears then the rate constant is in the fall off region
-	// -- If only LOW/ follows then this is the Lindemann formula
+	// -- If only LOW/ follows the nthis is the Lindemann formula
 	// -- If LOW/ then a line with TROE/ follows then this is Troe's formula
 	if(haspdep){
 	  std::cout << "\tWARNING: pressure dependent reaction\n";       
@@ -539,7 +519,7 @@ void ChemModel<Type>::GetMassProductionRates(Type* rhoi, Type T, Type* wdot)
   for(i = 0; i < this->nspecies; i++){
     wdot[i] = 0.0;
     for(j = 0; j < this->nreactions; j++){
-      wdot[i] += this->reactions[j].GetMassProductionRate(rhoi, T, i);
+      wdot[i] += this->reactions[j].GetMassProductionRate(rhoi, this->nspecies, T, i);
     }
   }
 }

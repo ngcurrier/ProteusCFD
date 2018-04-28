@@ -26,11 +26,11 @@ TEST(compressibleFR, newtonTest)
   
   double Treturn = eqnset->NewtonFindTGivenP(rhoi, Pgoal, 150.0/rTemp);
   Treturn *= rTemp;
-  EXPECT_NEAR(301.57, Treturn, 0.01);
+  EXPECT_NEAR(166.5, Treturn, 0.01);
 
   Treturn = eqnset->NewtonFindTGivenP(rhoi, Pgoal/2.0, 150.0/rTemp);
   Treturn *= rTemp;
-  EXPECT_NEAR(301.57/2.0, Treturn, 0.01);
+  EXPECT_NEAR(166.5/2.0, Treturn, 0.01);
 
   delete eqnset;
 }
