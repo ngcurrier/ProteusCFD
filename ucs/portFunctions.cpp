@@ -23,7 +23,7 @@ void function_(FUNC_ARGS)
   WriteDesignFile(casename, *ndv, x, bounds, *f, grad, dvType);
 
   //perturb points according to x
-  MoveMesh(nprocs);
+  ExternMoveMesh(nprocs);
 
 #if 0
   //this section used to make movies only
@@ -40,7 +40,7 @@ void function_(FUNC_ARGS)
 #endif
 
   //run flow solver
-  ComputeObjectiveFunction(nprocs);
+  ExternComputeObjectiveFunction(nprocs);
 
   //Read design file again to retrieve the "new" objective function value
   ReadDesignFile(casename, ndv, trashx, bounds, f, grad, dvType);
@@ -78,11 +78,11 @@ void gradient_(GRAD_ARGS)
   WriteDesignFile(casename, *ndv, x, bounds, f, grad, dvType);
 
   //move points in case betas have changed
-  MoveMesh(nprocs);
+  ExternMoveMesh(nprocs);
   //compute grid sensitivities
-  ComputeMeshSensitivities(nprocs);
+  ExternComputeMeshSensitivities(nprocs);
   //compute gradients
-  ComputeGradient(nprocs, GRAD_METHOD);
+  ExternComputeGradient(nprocs, GRAD_METHOD);
   //read gradients from file
   ReadDesignFile(casename, ndv, trashx, bounds, &f, grad, dvType);
   //write design file out with most recent data
@@ -198,7 +198,7 @@ void WritePointMoveFile(std::string filename, int npts, int ndv,
   return;
 }
 
-void ComputeObjectiveFunction(int np)
+void ExternComputeObjectiveFunction(int np)
 {
   std::stringstream ss;
   std::string command;
@@ -213,14 +213,14 @@ void ComputeObjectiveFunction(int np)
   return;
 }
 
-void MoveMesh(int np)
+void ExternMoveMesh(int np)
 {
   std::stringstream ss;
   std::string command;
   ss << np;
 
   //copy original (non-moved) partitions down
-  CopyBasePartitionFilesDown(np);
+  ExternCopyBasePartitionFilesDown(np);
 
   //now perturb the copies
   command = "mpirun -np " + ss.str() + " ./ucs " + casename + " 5";
@@ -234,7 +234,7 @@ void MoveMesh(int np)
   return;
 }
 
-void SaveOriginalMesh(int np)
+void ExternSaveOriginalMesh(int np)
 {
   std::stringstream ss;
   std::string command;
@@ -250,14 +250,14 @@ void SaveOriginalMesh(int np)
   }
 }
 
-void SaveOriginalDesignFile()
+void ExternSaveOriginalDesignFile()
 {
   std::cout << "SAVING ORIGINAL DESIGN FILE TO " + pathname + "original.design \n";
   std::string command = "cp " + casename + ".design " + pathname + "original.design";
   system(command.c_str());
 }
 
-void CopyBasePartitionFilesDown(int np)
+void ExternCopyBasePartitionFilesDown(int np)
 {
   int i;
   std::stringstream ss;
@@ -272,7 +272,7 @@ void CopyBasePartitionFilesDown(int np)
   return;
 }
 
-void ComputeMeshSensitivities(int np)
+void ExternComputeMeshSensitivities(int np)
 {
   std::stringstream ss;
   std::string command;
@@ -288,7 +288,7 @@ void ComputeMeshSensitivities(int np)
   return;
 }
 
-void ComputeGradient(int np, int method)
+void ExternComputeGradient(int np, int method)
 {
   std::stringstream ss1, ss2;
   std::string command;

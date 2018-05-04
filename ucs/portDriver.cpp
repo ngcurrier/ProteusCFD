@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <mpi.h>
 #include "portFunctions.h"
 #include "param.h"
 #include "portGlobal.h"
@@ -138,8 +139,8 @@ int main(int argc, char* argv[])
   }
 
   //before we begin we save a copy of the original geometry for all modifications
-  SaveOriginalMesh(nprocs);
-  SaveOriginalDesignFile();
+  ExternSaveOriginalMesh(nprocs);
+  ExternSaveOriginalDesignFile();
   
   ReadDesignFile(casename, &ndv, x, bounds, &urparm[0], &urparm[1], dvType);
   //we can intercept the starting values of x here and initialize them

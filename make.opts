@@ -38,9 +38,9 @@ ifeq ($(TOOLCHAIN),GNU)
 	#CXX_OPTS = -fopenmp -D_DEBUG
 	#CXX_OPTS = -O0 -g
 	LINK_OPTS = 
-	FXX = gfortran
-	FXX_OPTS = -O3
-	FXX_LINK_OPTS = -fdefault-real-8
+	FXX = mpif90
+	FXX_OPTS = -O3 
+	FXX_LINK_OPTS = -fdefault-real-8 -fdefault-double-8 
 endif
 
 #IBM XLC
@@ -94,7 +94,7 @@ LFXXFLAGS =
 CXXLIBS = $(HDF5_LIB)/libhdf5.a -lcommon -lz 
 #more mpi stuff from running mpiCC --showme
 CXXLIBS += -lstdc++ 
-FXXLIBS = -lstdc++
+FXXLIBS = -lstdc++ -lmpi -lmpi_cxx
 
 ifdef DEBUG
       CXX_OPTS += -g

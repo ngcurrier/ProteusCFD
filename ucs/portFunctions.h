@@ -32,13 +32,13 @@ void WritePointMoveFile(std::string filename, int npts, int ndv,
 			int* pts, double* xyz, double* dxyz, int* betaid);
 
 //calls to interface with solver
-void ComputeObjectiveFunction(int np);
-void MoveMesh(int np);
-void SaveOriginalMesh(int np);
-void SaveOriginalDesignFile();
-void CopyBasePartitionFilesDown(int np);
-void ComputeMeshSensitivities(int np);
-void ComputeGradient(int np, int method = 2);
+void ExternComputeObjectiveFunction(int np);
+void ExternMoveMesh(int np);
+void ExternSaveOriginalMesh(int np);
+void ExternSaveOriginalDesignFile();
+void ExternCopyBasePartitionFilesDown(int np);
+void ExternComputeMeshSensitivities(int np);
+void ExternComputeGradient(int np, int method = 2);
 
 //call to execute a command and get the response returned in a string
 std::string GetOutputFromCommand(std::string cmd);
