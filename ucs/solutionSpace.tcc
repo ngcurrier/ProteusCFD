@@ -644,7 +644,7 @@ void SolutionSpace<Type>::NewtonIterate()
   Type tempmax, tempold, deltaDq;
  
   if(param->movement){
-    MoveMesh(this, NULL);
+    MoveMesh(this);
   }
 
   //set BCs for next iteration

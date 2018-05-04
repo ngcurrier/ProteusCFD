@@ -65,23 +65,27 @@ void PythonWrapper::GetBoundaryVariables(Type* QL, Type* QR, int neqn, int nauxv
   PyObject* pValue = PyObject_CallObject(pFunc, pArgs);
 }
 
-
+// time - nodimensional time for movement
+// nodelist - list of node indices to move
+// sizenodelist - number of nodes in above list
+// nnode - number of nodes in local process's mesh
+// xyz_base - xyz locations of nodes at time=0
+// dyxz - vector which contains a movement delta from t=0 for each node in the local process
 template <class Type>
 void PythonWrapper::GetBoundaryMovement(Type time, int* nodelist, int sizenodelist, int nnode,
-					Type* xyz, Type* dxyz)
+					Type* xyz_base, Type* dxyz)
 {
   //I'm not sure why but if I remove this import we segfault, it appears numpy is being
   //unloaded somehow from initialization
   import_array();
 
   PyObject *nptime, *npnodelist,*npxyz,*npdxyz; 
-  npy_intp dim = sizenodelist;
-  npy_intp dim2 = nnode;
+  npy_intp dim  = nnode*3; //3 coordinate directions
 
   nptime = PyFloat_FromDouble(time);
   npnodelist = (PyObject*)PyArray_SimpleNewFromData(1, &dim, NPY_INT, nodelist);
   npdxyz = (PyObject*)PyArray_SimpleNewFromData(1, &dim, NPY_DOUBLE, dxyz);
-  npxyz = (PyObject*)PyArray_SimpleNewFromData(1, &dim2, NPY_DOUBLE, xyz);
+  npxyz = (PyObject*)PyArray_SimpleNewFromData(1, &dim, NPY_DOUBLE, xyz_base);
   PyObject* pArgs = PyTuple_New(4);
   PyTuple_SetItem(pArgs, 0, nptime);
   PyTuple_SetItem(pArgs, 1, npnodelist);

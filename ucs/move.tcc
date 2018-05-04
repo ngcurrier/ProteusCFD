@@ -15,8 +15,10 @@
 #define ALPHA_MEAN 2.89 //degrees
 #define OSC_FREQ 50.32  //hertz
 
+//This routine is the driver for moving a mesh
+//space - solution space which holds the mesh we'd like to move
 template <class Type>
-void MoveMesh(SolutionSpace<Type>* space, void* custom){
+void MoveMesh(SolutionSpace<Type>* space){
   Int i;
   Mesh<Type>* m = space->m;
   Int nnode = m->GetNumNodes();
@@ -28,8 +30,8 @@ void MoveMesh(SolutionSpace<Type>* space, void* custom){
   Int reqSmoothing = false;
 
   //call routine to get point displacements on boundaries
-  MemBlank(dx, nnode*3);
-  UpdateMeshDisplacements(space, dx, &reqSmoothing, custom);
+  MemBlank(dx, nnode*3); // zero all nodes dx
+  UpdateMeshDisplacements(space, dx, &reqSmoothing);
 
   if(reqSmoothing){
     //use linear elastic to move the mesh
@@ -58,8 +60,12 @@ void MoveMesh(SolutionSpace<Type>* space, void* custom){
   return;
 }
 
+// This routine sets up all the displacements for a mesh movement/change
+//space - solution space containing mesh information
+//dx - vector containing a displacement 3-vector for each node in the local process
+//reqSmoothing - set true if surface movement, false (default) if all nodes explicitly placed
 template <class Type>
-void UpdateMeshDisplacements(SolutionSpace<Type>* space, Type* dx, Int* reqSmoothing, void* custom)
+void UpdateMeshDisplacements(SolutionSpace<Type>* space, Type* dx, Int* reqSmoothing)
 {
   Int i;
   
@@ -71,6 +77,7 @@ void UpdateMeshDisplacements(SolutionSpace<Type>* space, Type* dx, Int* reqSmoot
 
   //sinusoidally pitching airfoil (rigid body)
   //this only works if we are rotating about the origin
+  //moves every single node in the mesh explicitly
   if(param->movement == 1){
     Type pi = acos(-1.0);
     //number of rads to move both up and down
@@ -129,6 +136,7 @@ void UpdateMeshDisplacements(SolutionSpace<Type>* space, Type* dx, Int* reqSmoot
   }
   //sinusoidally pitching airfoil (moving grid)
   //this only works if we are rotating about the origin
+  //moves just the nodes on the flagged surface
   else if(param->movement == 2){
     Type pi = acos(-1.0);
     //number of rads to move both up and down
@@ -257,8 +265,8 @@ void UpdateMeshDisplacements(SolutionSpace<Type>* space, Type* dx, Int* reqSmoot
     //displacements given are on the surface
     *reqSmoothing = true;
   }
+  //this is a testing routine, move all nodes at speed 0.6 mach in x direction
   else if(param->movement == 4){
-    //this is a testing routine, move at speed 0.6 mach in x direction
     for(i = 0; i < nnode; i++){
       dx[i*3 + 0] = 0.6*param->dt;
       dx[i*3 + 1] = 0.0;
@@ -266,8 +274,9 @@ void UpdateMeshDisplacements(SolutionSpace<Type>* space, Type* dx, Int* reqSmoot
     }
     *reqSmoothing = false;
   }
+  //this is a testing routine, vibrate vertically 0.1
+  //just moves surface nodes
   else if(param->movement == 5){
-    //this is a testing routine, vibrate vertically 0.1
     //retrieve that nodes that are on the design surface indicated in the
     //boundary conditions file
     Int* nodelist = NULL;
@@ -282,21 +291,8 @@ void UpdateMeshDisplacements(SolutionSpace<Type>* space, Type* dx, Int* reqSmoot
     }
     *reqSmoothing = true;
   }
-  else if(param->movement == 7){
-    double* dxyz = (double*)custom;
-    Int* nodelist = NULL;
-    Int nodecount = GetNodesOnMovingBC(m, bc, &nodelist);
-    //compute the displacements for the interior nodes
-    for(i = 0; i < nodecount; i++){
-     Int node = nodelist[i];
-     dx[node*3 + 0] = dxyz[i*3 + 0];
-     dx[node*3 + 1] = dxyz[i*3 + 1];
-     dx[node*3 + 2] = dxyz[i*3 + 2];
-    }
-    *reqSmoothing = true;
-  }
-  else if(param->movement == 8){ //python boundary movement calls
-    double* dxyz = (double*)custom;
+  //python boundary movement calls
+  else if(param->movement == 6){
     Int* nodelist = NULL;
     Int nodecount = GetNodesOnMovingBC(m, bc, &nodelist);
 #ifdef _HAS_PYTHON
@@ -304,16 +300,22 @@ void UpdateMeshDisplacements(SolutionSpace<Type>* space, Type* dx, Int* reqSmoot
       Abort << "PythonInterface::GetBoundaryMovement() cannot handle complex variable types";
     }
     PythonWrapper pywrap("./", "getBoundaryMovement", "getBoundaryMovement");
-    pywrap.GetBoundaryMovement(real(Type(space->iter)*param->dt), nodelist, nodecount, m->GetNumNodes(),
-			       (double*)m->xyz_base, dxyz);
+    Real time = real(Type(space->iter)*param->dt);
+    //Note: we do a nasty cast here but we presume the type check above makes it valid
+    //we just don't want this failing in a static compile
+    pywrap.GetBoundaryMovement(time, nodelist, nodecount, m->GetNumNodes(),
+			       (Real*)m->xyz_base, (Real*)dx);
 #else
     Abort << "UpdateMeshDisplacements() - python not built with solver";
 #endif
-    
     *reqSmoothing = true;
+  }
+  else{
+    Abort << "UpdateMeshDisplacements() - param->movement value not recognized";
   }
 }
 
+//This routine updates the mesh velocities used to ensure cell-wise conservation of mass/momentum/etc.
 template <class Type, class Type2>
 void UpdateMeshVelocities(Mesh<Type>* m, Type* xyz, Type* xyzold, Type* xyzoldm1, 
 			  Type2 timestep, Int iter, Int torder)
@@ -438,6 +440,10 @@ void SmoothMeshLaplacian(Mesh<Type>* m, BoundaryConditions<Real>* bc,
   return;
 }
 
+//This routine is used to bump an entire mesh-line of nodes in a given direction
+//Most useful for looking at a 2D adjoint problem where we might want sensitivity
+//to nodes movement in say only the y direction and want to move the extruded surface
+//in unison
 template <class Type>
 Int BumpNodesOnLine(const Type dist[3], const Int ptId, const Int nnodes, 
 		    Type* xyz, const Int* ipsp,const Int* psp, 
@@ -524,11 +530,15 @@ Int BumpNodesOnLine(const Type dist[3], const Int ptId, const Int nnodes,
   return (count+1);
 }
 
+//Moves the mesh using the linear elastic mesh movement methodology
+//code follows AIAA 2005-0923 (Karman, et. al.)
+//m - mesh to do movement on
+//bc - used to ensure we respect symmetry planes, etc. w/o distorting mesh horribly
+//dx - vector of all nodes*3 {dx,dy,dz}, will be set to the smooth displacements on exit
+//iter - max number of iterations for linear system solve
 template <class Type>
 void MoveMeshLinearElastic(Mesh<Type>* m, BoundaryConditions<Real>* bc, Type* dx, const Int iter)
 {
-  //code follows AIAA 2005-0923 (Karman, et. al.)
-
   Int i, j, eid;
   Type deltaDq = 0.0;
 
@@ -688,7 +698,7 @@ void MoveMeshLinearElastic(Mesh<Type>* m, BoundaryConditions<Real>* bc, Type* dx
   }
 
   //set row to identity and zero rhs if node is on surface and locked
-  SetBCLinearElastic(m, &crs, bc, dx);
+  SetBCLinearElastic(m, &crs, bc);
 
   //setup rhs (equal to displacements)
   memcpy(crs.b, dx, (nnode*3)*sizeof(Type));
@@ -724,12 +734,14 @@ void MoveMeshLinearElastic(Mesh<Type>* m, BoundaryConditions<Real>* bc, Type* dx
   std::cout << "Linear elastic solve - D||Ax-b||: "  << deltaDq << std::endl;
 
   delete [] aspectRatio;
-
-  return;
 }
 
+//Sets the boundary conditions for the movement solve
+//m - mesh object to move
+//crs - compressed row storage of linear system to solve (BCs modified here)
+//dx 
 template <class Type>
-void SetBCLinearElastic(Mesh<Type>* m, CRS<Type>* crs, BoundaryConditions<Real>* bc, Type* dx)
+void SetBCLinearElastic(Mesh<Type>* m, CRS<Type>* crs, BoundaryConditions<Real>* bc)
 {
   Int i;
   Int nnode = m->GetNumNodes();
@@ -785,8 +797,6 @@ void SetBCLinearElastic(Mesh<Type>* m, CRS<Type>* crs, BoundaryConditions<Real>*
   delete [] fixed;
   delete [] symNodes;
   delete [] designNodes;
-
-  return;
 }
 
 template <class Type>

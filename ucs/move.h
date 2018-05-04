@@ -10,7 +10,7 @@ template <class Type> class BoundaryConditions;
 
 //this is master calling routine to update mesh movement during a solve
 template <class Type>
-void MoveMesh(SolutionSpace<Type>* space, void* custom = NULL);
+void MoveMesh(SolutionSpace<Type>* space);
 
 template <class Type, class Type2>
 void UpdateMeshVelocities(Mesh<Type>* m, Type* xyz, Type* xyzold, Type* xyzoldm1, 
@@ -36,8 +36,7 @@ void MoveMeshLinearElastic(Mesh<Type>* m, BoundaryConditions<Real>* bc,
 			   Type* dx, const Int iter);
 
 template <class Type>
-void SetBCLinearElastic(Mesh<Type>* m, CRS<Type>* crs, 
-			BoundaryConditions<Real>* bc, Type* dx);
+void SetBCLinearElastic(Mesh<Type>* m, CRS<Type>* crs, BoundaryConditions<Real>* bc);
 
 //bumps points on a constant x, y, or z line
 //dist - distance to bump points in 3 dimensions
