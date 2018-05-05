@@ -10,8 +10,14 @@
 #define PLANK 6.626176e-34         // J.s  // from JANAF tables
 #define BOLTZMANN 1.380662e-23     // J/K  // from JANAF tables
 #define SPEEDOFLIGHT 299792458.0   // m/s  // from JANAF tables
+#define CAL_TO_JOULE 4184          // cal to Joule
 
 //NOTE: pV = nRT
 //p - absolute pressure
+
+enum UNITS{
+  SI,
+  CGS
+};
 
 #endif

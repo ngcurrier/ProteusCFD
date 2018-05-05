@@ -81,9 +81,11 @@ class ChemModel
  private:
   std::vector<std::string> GetElementsInModel();
   Int ReadReactionsFile(std::string rxnfile);
+  Int CheckReactionFileUnits(std::string rxnfile);
   Int ReadNumberOfReactionsFromFile(std::string rxnfile);
   Int ReadChemkinReactionsFile(std::string rxnfile);
   Int ReadNumberOfReactionsFromFileChemkin(std::string rxnfile);
+  void ConvertArrheniusCGSToSI(Type& A, Type& n, Type& Ea, const Type zp_zpp);
   void BuildGlobalSpeciesList();
 };
 

@@ -71,9 +71,12 @@ void Reaction<Type>::Print()
 }
 
 // This function iterates through the files and counts for the looks for reactionId given
-//and passes the reaction input block off to ParseReactionBlockLine() for parsing
+// and passes the reaction input block off to ParseReactionBlockLine() for parsing
+// filename - reaction file name to open
+// reactionid - number of the reaction to ingest
+// units - SI, CGS, etc. see chem_constants header for values
 template <class Type>
-Int Reaction<Type>::ReadReactionFromFile(std::string fileName, Int reactionId)
+Int Reaction<Type>::ReadReactionFromFile(std::string fileName, Int reactionId, Int units)
 {
   Int err = 0;
   Int err2 = 0;
@@ -160,6 +163,10 @@ Int Reaction<Type>::ReadReactionFromFile(std::string fileName, Int reactionId)
     return (1);
   }
 
+  if(units == UNITS::CGS){
+    this->ConvertArrheniusCGSToSI();
+  }
+  
   return err2;
 }
 
@@ -596,7 +603,7 @@ Int Reaction<Type>::GetLocalSpeciesFromGlobal(Int speciesId)
   return(-1);
 }
 
-//returns forward reaction rate Kf with units (mol/m^3)^nu
+//returns forward reaction rate Kf with units (kmol/m^3)^nu
 template <class Type>
 Type Reaction<Type>::GetForwardReactionRate(Type T)
 {
@@ -616,7 +623,8 @@ Type Reaction<Type>::GetForwardReactionRate(Type T)
   return(-999);
 }
 
-//returns equilibrium reaction rate Kc with units (mol/m^3)^nu
+//returns equilibrium reaction rate Kc with no units (dimensionless iff number of moles of products == number of moles of reactants)
+//will have units if the mole balance is not zero from products to reactants
 template <class Type>
 Type Reaction<Type>::GetEquilibriumReactionRate(Type T)
 {
@@ -645,8 +653,7 @@ Type Reaction<Type>::GetEquilibriumReactionRate(Type T)
     dnua6 += dnu_i*a[5];
     dnua7 += dnu_i*a[6];
   }
-  
-  
+    
   //compute the equilibrium constant based on pressure
   //p. 502, Gardiner
   //This is DeltaS_rr/UnivR - DeltaH_rr/(UnivR*T)
@@ -661,17 +668,17 @@ Type Reaction<Type>::GetEquilibriumReactionRate(Type T)
     //attempt to use the pow(Type, int) version if possible - much faster
     if(isWholeNumber(nu)){
       Int nuint = (Int)real(nu);
-      Kc *= pow(Pref/(UNIV_R*T),nuint); // has units of (mol/m^3)^nu, 
+      Kc *= pow(Pref/(UNIV_R*T),nuint); // has units of (kmol/m^3)^nu, 
     }
     else{
-      Kc *= pow(Pref/(UNIV_R*T), nu); // has units of (mol/m^3)^nu
+      Kc *= pow(Pref/(UNIV_R*T), nu); // has units of (kmol/m^3)^nu
     }
   }
   
-  return Kc;
+  return Kc;  //Unitless if number of moles of products == number of moles of reactants
 }
 
-//returns backwards reaction rate Kb with units (mol/m^3)^nu
+//returns backwards reaction rate Kb with units (1/s)(kmol/m^3)^(1-zpp)
 template <class Type>
 Type Reaction<Type>::GetBackwardReactionRate(Type T)
 {
@@ -698,28 +705,50 @@ Type Reaction<Type>::GetBackwardReactionRate(Type T)
   return (Kf/Kc);
 }
 
-//returns reaction rate in units (mol/m^3)^nu
+//returns reaction rate in units (1/s)(kmol/m^3)^(1-z')
+//T - temperature in Kelvin
+//Ea - activation energy in J/mol
+//A - Prefactor in  units of (1/sec)(kmol/m^3)^(1-z') and kbr (1/sec)(kmol/m^3)^(1-z'') internally
+//    -- z' is the sum of the left-hand side stoich coefficients(nu')
+//    -- z'' is the sum of the right-hand size stoich coefficients (nu'')
 template <class Type>
 Type Reaction<Type>::Arrhenius(Type A, Type EA, Type T)
 {
+  //UNIV_R - J/(mol.K)
   return(A * exp(-EA/(UNIV_R * T)));
 }
 
-//returns reaction rate in units (mol/m^3)^nu
+
+//returns reaction rate in units (1/s)(kmol/m^3)^(1-z')
+//T - temperature in Kelvin
+//Ea - activation energy in J/mol
+//A - Prefactor in  units of (1/sec)(kmol/m^3)^(1-z') and kbr (1/sec)(kmol/m^3)^(1-z'') internally
+//    -- z' is the sum of the left-hand side stoich coefficients(nu')
+//    -- z'' is the sum of the right-hand size stoich coefficients (nu'')
 template <class Type>
 Type Reaction<Type>::ModArrhenius(Type A, Type EA, Type n, Type T)
 {
   return(A * pow(T, n) * exp(-EA/(UNIV_R * T)));
 }
 
-//returns reaction rate in units (mol/m^3)^nu
+//returns reaction rate in units (1/s)(kmol/m^3)^(1-z')
+//T - temperature in Kelvin
+//Ea - activation energy in J/mol
+//A - Prefactor in  units of (1/sec)(kmol/m^3)^(1-z') and kbr (1/sec)(kmol/m^3)^(1-z'') internally
+//    -- z' is the sum of the left-hand side stoich coefficients(nu')
+//    -- z'' is the sum of the right-hand size stoich coefficients (nu'')
 template <class Type>
 Type Reaction<Type>::GuptaModArrhenius(Type A, Type EA, Type n, Type T)
 {
   return(A * pow(T, n) * exp(-EA/T));
 }
 
-//returns reaction rate in units (mol/m^3)^nu
+//returns reaction rate in units (1/s)(kmol/m^3)^(1-z')
+//T - temperature in Kelvin
+//Ea - activation energy in J/mol
+//A - Prefactor in  units of (1/sec)(kmol/m^3)^(1-z') and kbr (1/sec)(kmol/m^3)^(1-z'') internally
+//    -- z' is the sum of the left-hand side stoich coefficients(nu')
+//    -- z'' is the sum of the right-hand size stoich coefficients (nu'')
 template <class Type>
 Type Reaction<Type>::PowerRxn(Type A, Type n, Type T){
   return(A * pow(T, n));
@@ -755,19 +784,21 @@ Type Reaction<Type>::GetMassProductionRate(Type* rhoi, Int globalNspecies, Type 
   Real zero = 0.0;
   Real diff = 1.0e-15;
   Real dnu_ir = real(nu_ir);
+  //this kicks out so we don't do the expensive math below if coefficients are identical
   if (AlmostEqualRelative(dnu_ir, zero, diff)) return 0.0;
   
   //precompute the concentrations for all species in the gas mixture globally
   for(k = 0; k < globalNspecies; k++){
-    X[k] = rhoi[k]/species[k].MW; //(kg/m^3)/(kg/mol) => (mol/m^3)
+    X[k] = rhoi[k]/species[k].MW; //(kg/m^3)/(kg/kmol) => (kmol/m^3)
   }
-  
+
+  //Kfr has units of (1/sec)(kmol/m^3)^(1-z') and kbr (1/sec)(kmol/m^3)^(1-z'')
+  //z' is the sum of the left-hand side stoich coefficients and z'' is the sum of the right-hand size stoich coefficients
   Kf = GetForwardReactionRate(T);
   Kb = GetBackwardReactionRate(T);
 
   prod_form = prod_dest = 1.0;
   
-
   //loop over the species that participate locally as reactants
   for(k = 0; k < nspecies; k++){
     //need this to reference the correction global concentration X[kk]
@@ -779,17 +810,17 @@ Type Reaction<Type>::GetMassProductionRate(Type* rhoi, Int globalNspecies, Type 
     //avoid using pow(Type, Type) if possible to use pow(Type, Int) - much cheaper
     if(isWholeNumber(nup_kr)){
       Int nup_kri = (Int)real(nup_kr);
-      form = pow(X[kk],nup_kri);
+      form = pow(X[kk],nup_kri); //(kmol/m^3)^(nu')
     }
     else{
-      form = pow(X[kk], nup_kr);
+      form = pow(X[kk], nup_kr); //(kmol/m^3)^(nu')
     }
     if(isWholeNumber(nupp_kr)){
       Int nupp_kri = (Int)real(nupp_kr);
-      dest = pow(X[kk], nupp_kri);
+      dest = pow(X[kk], nupp_kri); //(kmol/m^3)^(nu'')
     }
     else{
-      dest = pow(X[kk],nupp_kr);
+      dest = pow(X[kk],nupp_kr);   //(kmol/m^3)^(nu'')
     }
 
     prod_form *= form;
@@ -812,15 +843,16 @@ Type Reaction<Type>::GetMassProductionRate(Type* rhoi, Int globalNspecies, Type 
     //for gases that we have local information about, exchange their TEff*X concentrations instead
     for(k = 0; k < nspecies; ++k){
       kk = globalIndx[k];
-      Mconc += (TBEff[k]-1.0)*X[kk]; //mol/m^3
+      Mconc += (TBEff[k]-1.0)*X[kk]; //kmol/m^3
     }
   }
+  //Mconc is the same as \Gamma in my disseration - Nick
   
-  net  = Kf*prod_form - Kb*prod_dest; 
-  wdot = (Type)nu_ir*Mconc*net; //in mol/s.m^3
-  wdot *= species[speciesId].MW;  //convert units to kg/s.m^3
+  net  = Kf*prod_form - Kb*prod_dest;  // (kmol/m^3.s)
+  wdot = (Type)nu_ir*Mconc*net;        // (kmol/m^3.s)(N.D.) in kmol/s.m^3
+  wdot *= species[speciesId].MW;       // convert units (kmol/s.m^3)(kg/kmol) to (kg/s.m^3)
 
-  return wdot;
+  return wdot; //(kg/s.m^3)
 }
 
 //returns a string with the formatted reaction
@@ -876,3 +908,32 @@ std::string Reaction<Type>::GetFormattedReaction()
 
   return rxn;
 }
+
+//Function converts Arrhenius coefficients from cm, gram, moles to SI units for internal use
+//Chemkin gives us rates in the form k = A T^n exp(-Ea/(Runiv.T))
+//A - prefactor - units in cgs are (mol/(cm^3.s.K)) -- > we need something like (kmol/(m^3.s.K))
+//    note that unimolecular reactions are 1/s
+//              bimolecular reactions are mol/(cm^3.s.K)
+//              trimolecular reactions are mol^2/(cm^6.s.K)
+//n - power exponent
+//Ea - activation energy (chemkin default cal/mol unless keyword Joule/mole is in file)
+//zp_zpp - if forward rate constant is given pass z', if backward is given pass z''
+//         z' or Sum(nu'), sum of left-hand side stoich coefficients
+//         z''or Sum(nu''), sum of right-hand side stoich coefficients
+template <class Type>
+void Reaction<Type>::ConvertArrheniusCGSToSI()
+{
+  Type zp_zpp = 0.0;
+  for(Int i = 0; i < Nup.size(); ++i){
+    zp_zpp += Nup[i];
+    //TODO: support backwards reactions specification with Nupp
+  }
+  //Ea is passed to us in calories/mole (not KCal) convert it to Joules/mole
+  EA = EA * (Type)CAL_TO_JOULE;
+  Real inverseOfcm3Tom3 = 1.0e-6;
+  Real molTokmol = 1.0e-3;
+  Real factor = molTokmol*inverseOfcm3Tom3;
+  Type one = 1.0;
+  A = A*pow(factor, (one - zp_zpp));
+}
+

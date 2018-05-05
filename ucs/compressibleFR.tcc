@@ -1296,12 +1296,13 @@ void CompressibleFREqnSet<Type>::SourceTerm(Type* Q, Type vol, Type* source)
     for(i = 0; i < nspecies; i++){
       rhoi[i] = Q[i]*this->param->ref_density;
     }
-    
+
+    //wdots are returned in (kg/m^3.s)
     chem->GetMassProductionRates(rhoi, T, wdot);
     
     //non-dimensionalize output
     for(i = 0; i < nspecies; i++){
-      wdot[i] /= this->param->ref_density/this->param->ref_time;
+      wdot[i] /= (this->param->ref_density/this->param->ref_time);
       source[i] = vol*wdot[i];
     }
   }

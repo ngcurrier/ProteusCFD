@@ -25,7 +25,7 @@ class Species
   std::string symbol;   //symbolic name of species O2
   Int charge;           //charge of the species
   Type MW;              //molecular weight kg/kmol
-  Type R;               //(J /kg . K)
+  Type R;               //(J /(kg . K))
   Type href;            //enthalpy at 298K
   Type hf298;           //heat of formation 298K
   Type dhf298;          //Delta Hf(298K) -- used to shift curve to reference abs. zero

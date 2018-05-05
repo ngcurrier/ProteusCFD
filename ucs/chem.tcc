@@ -91,14 +91,72 @@ Int ChemModel<Type>::ReadReactionsFile(std::string rxnfile)
   std::cout << "CHEM_RXN: Reading " << nreactions << " reactions from file " << rxnfile 
 	    << std::endl;
 
+  Int units = CheckReactionFileUnits(rxnfile);
+  
   for(Int i = 1; i <= nreactions; i++){
-    reactions[i-1].ReadReactionFromFile(rxnfile,i);
+    reactions[i-1].ReadReactionFromFile(rxnfile,i,units);
   }
   
   BuildGlobalSpeciesList();
   
   return 0;
 
+}
+
+template <class Type>
+Int ChemModel<Type>::CheckReactionFileUnits(std::string rxnfile)
+{
+  std::ifstream fin;
+  std::string unitsKey = "units";
+  std::string subline, trash, line;
+  char c;
+  size_t loc;
+  bool found = false;
+  int units = UNITS::CGS;
+  
+  fin.open(rxnfile.c_str());
+  if(fin.is_open()){
+    while(!fin.eof()){
+      c = fin.peek();
+      //get rid of comments and blank lines
+      if(c == '#' || c == ' ' || c == '\n'){
+	getline(fin, trash);
+	trash.clear();
+	continue;
+      }
+      getline(fin, line);
+      loc = line.find(unitsKey);
+      if(loc != std::string::npos){
+	loc = line.find('=');
+	loc += 1;
+	subline = line.substr(loc);
+	if(subline.find("SI") != std::string::npos){
+	  found = true;
+	  std::cout << "CHEM_RXN CHECK UNITS: Found SI units tag in reaction file" << std::endl;
+	  units = UNITS::SI;
+	}
+	else if(subline.find("CGS") != std::string::npos){
+	  found = true;
+	  std::cout << "CHEM_RXN CHECK UNITS: Found CGS units tag in reaction file" << std::endl;
+	  units = UNITS::CGS;
+	}
+	break;
+      }
+    }
+  }
+  else{
+    std::stringstream ss;
+    ss << "CHEM_RXN CHECK UNITS: Cannot open reaction file --> " << rxnfile << std::endl;
+    Abort << ss.str();
+    return 1;
+  }
+  fin.close();
+
+  if(!found){
+    std::cout << "CHEM_RXN CHECK UNITS: Did not find units tag in file, defaulting to CGS" << std::endl;
+  }
+  
+  return units;
 }
 
 template <class Type>
@@ -266,6 +324,10 @@ Int ChemModel<Type>::ReadChemkinReactionsFile(std::string rxnfile)
 	//create the equation proteus expects to see for parsing
 	proteusEquation = LHS + "<==>" + RHS;
 	reactions[ireaction].ParseReaction(proteusEquation);
+
+	//we have to wait until the stoich coefficients have been parsed to do this
+	//default units in chemkin formatted files are, cal, cm, gram, sec (CGS)
+	reactions[ireaction].ConvertArrheniusCGSToSI();
 	
 	// If the letter M appears by itself in a reaction the next line must be thirdbodies
 	// i.e. the rate constant is assumed to be in the low pressure limiting region
@@ -474,7 +536,6 @@ Int ChemModel<Type>::ReadNumberOfReactionsFromFileChemkin(std::string rxnfile)
   }
   fin.close();
   return nreactions;
-  
 }
 
 // returns fluid properties given rhoi's (kg/m^3), Temperature (K), and cvi's (J/kg.K)
@@ -484,17 +545,16 @@ template <class Type>
 void ChemModel<Type>::GetFluidProperties(const Type* rhoi, const Type T, const Type* cvi,
 					 Type& cv, Type& cp, Type& R, Type& P, Type& rho, Type& c2) const
 {
-  Int i;
   R = 0.0;
   P = 0.0;
   rho = 0.0;
   c2 = 0.0;
 
-  for(i = 0; i < nspecies; ++i){
+  for(Int i = 0; i < nspecies; ++i){
     rho += rhoi[i];
   }
   
-  for(i = 0; i < this->nspecies; i++){
+  for(Int i = 0; i < this->nspecies; i++){
     Type Rs = species[i].R;
     R += rhoi[i]*Rs;
     // assumes that Dalton's law holds - P = sum_i (P_i)
@@ -514,11 +574,9 @@ void ChemModel<Type>::GetFluidProperties(const Type* rhoi, const Type T, const T
 template <class Type>
 void ChemModel<Type>::GetMassProductionRates(Type* rhoi, Type T, Type* wdot)
 {
-  Int i;
-  Int j;
-  for(i = 0; i < this->nspecies; i++){
+  for(Int i = 0; i < this->nspecies; i++){
     wdot[i] = 0.0;
-    for(j = 0; j < this->nreactions; j++){
+    for(Int j = 0; j < this->nreactions; j++){
       wdot[i] += this->reactions[j].GetMassProductionRate(rhoi, this->nspecies, T, i);
     }
   }
@@ -810,6 +868,10 @@ Type ChemModel<Type>::dRmixdRhoi(Type* rhoi, Type rho, Int i)
   return dRmixdRhoi;
 }
 
+//returns the bulk mixture value
+//rhoi - vector of dimension densities (kg/m^3)
+//property -vector of the property we need the mixture value of
+//T - temperature in Kelvin
 template <class Type>
 Type ChemModel<Type>::WilkesMixtureRule(Type* rhoi, Type* property, Type T)
 {
@@ -976,4 +1038,5 @@ Type ChemModel<Type>::GetCv(const Type* rhoi, const Type T) const
   }
   return cv;
 }
-  
+
+

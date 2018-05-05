@@ -30,12 +30,13 @@
 #include <sys/utsname.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <stdio.h>
 
 using namespace std;
 
 int main(int argc, char* argv[]){
 
-#if 0
+#ifdef _DEBUG
   //enable exceptions so we can trap NaNs, etc.
   feenableexcept(FE_INVALID | FE_OVERFLOW);
 #endif
@@ -69,7 +70,11 @@ int main(int argc, char* argv[]){
 
   PObj<Real> pobj;
   rank = pobj.GetRank();
-
+  //remove Abort.Log if its present
+  if(rank == 0){
+    remove("Abort.Log");
+  }
+  
   if(!((argc == 2) || (argc == 3))){
     cerr << "Invalid arguments!!!" << endl;
     cerr << "USE: " << argv[0] << " <casename>" << endl;

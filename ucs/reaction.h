@@ -58,8 +58,13 @@ class Reaction
   std::vector<Type> Nupp;                    //stoich. coeff. right side
 
   //Arrhenius reaction rate curve fit coefficients
-  Type A;                            
-  Type EA;
+  //Note: internal Rsp is stored as (J/(kg.K)) for each species
+  //by definition Ea/RT must be unitless, therefore, Ea must have units of R*T
+  //Kfr has units of (1/sec)(kmol/m^3)^(1-z') and kbr (1/sec)(kmol/m^3)^(1-z'') internally
+  // -- z' is the sum of the left-hand side stoich coefficients(nu')
+  // -- z'' is the sum of the right-hand size stoich coefficients (nu'')
+  Type A;  //internal units are: unimolecular - s^-1, bimolecular - m^3/mol.s, and so on                           
+  Type EA; //internal units are (J/mol)
   Type n;  //used in modified Arrhenius
 
   //Arrhenius reaction rate curve fit coefficients (backward)
@@ -72,7 +77,7 @@ class Reaction
   void Print();
   
   //will read reaction from file and will complete a reaction object to pass back
-  Int ReadReactionFromFile(std::string fileName, Int ReactionId);
+  Int ReadReactionFromFile(std::string fileName, Int ReactionId, Int units);
   Int ReadReactionFromFileChemkin(std::string fileName, Int ReadtionId);
   Int ParseReactionBlockLine(std::string& line);
   void ParseReaction(std::string& rxn);
@@ -94,6 +99,8 @@ class Reaction
   Type GuptaModArrhenius(Type A, Type EA, Type n, Type T);
   Type PowerRxn(Type A, Type n, Type T);
 
+  void ConvertArrheniusCGSToSI();
+  
   //returns string of rxn formatted for human readability
   std::string GetFormattedReaction();
 
