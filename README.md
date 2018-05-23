@@ -85,8 +85,14 @@ Usage:
   
   2) Define <casename>.bc and <casename>.param files (see ProteusTestSuite for examples)
      This sets up boundary conditions and the solver runtime parameters for relevant physics.
+     You can get all of the options/flags for the .param file that Proteus currently accepts by typing ucs.x
+     with no arguments.  ProteusCFD will write all options to the terminal. Options available for the 
+     .bc file can be found in /docs/master.bc.
+     * ProteusCFD has the option of defining user based boundary conditions, mesh movement, and initial conditions. Examples
+       of these scripts can be found in the code source tree under the pythonScripts folder. Placing them in the runtime
+       folder activates these capabilities in turn.
   
-  3) Run the solver with mpiexec -np <number of processors> ./ucs.x <casename>
+  3) Run the solver with mpiexec -np <number of processors> ucs.x <casename>
      There is also a run script in the ./tools directory to modify should you need 
      parallel job scripts.
   
