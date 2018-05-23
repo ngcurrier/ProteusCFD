@@ -49,10 +49,10 @@ Installation instructions:
   * Install dependencies for OS (list below) to your machine - openMPI is the big one (you need the devel package with headers).
   * Build ucs.x, udecomp.x, urecomp.x and tools required to run
   * make TARGET=local all (on some machines you may have to try this several times to complete all tasks)
-  * Build the chemical database
-      * cd chemdata
-      * ./chemDB.py
-      * cp chemdb.hdf5 /usr/local/database/chemdb.hdf5
+      * This also builds the chemical database. You can build it manually if required by.
+          * cd chemdata
+          * ./chemDB.py
+          * cp chemdb.hdf5 ~/.proteusCFD/database/chemdb.hdf5
 
   * Check that the tests pass after the installation
       * cd bin
@@ -64,10 +64,24 @@ Usage:
   We recommend Salome or GMSH as an opensource alternative to commercial gridding tools.
   Using Proteus with a given mesh involves:
   
-  1) Use ./decomp.x <casename - i.e. test.ugrid would just be 'test'> <number of processors/cores> tool to 
+  1) Use udecomp.x <gridfile - e.g. test.ugrid> <number of processors/cores> tool to 
      decompose the geometry into multiple parallel partitions. This tool currently expects .ugrid (MSU), 
      .su2 (Stanford SU2), .msh (GMSH), or .crunch mesh files. Other formats may be added in the future 
-     if there is a request and possibly user support (testers) for them.
+     if there is a request and possibly user support (testers) for them. The proteus test suite has several examples. 
+     You can check it out by typing at the command line:
+     * git clone https://github.com/ngcurrier/ProteusTestSuite/
+     * A suggested starting point is the 15DegreeRamp test case. It runs quickly and should get you started easily.
+       You can run it by:
+         * cd ./ProteusTestSuite
+         * Create a symlink to the ProteusCFD tools as below. Alternatively, you can add ProteusCFD/bin to your .bashrc PATH.
+             * ln -s ../ProteusCFD/bin/ucs.x ucs.x
+             * ln -s ../ProteusCFD/bin/udecomp.x udecomp.x
+             * ln -s ../ProteusCFD/bin/urecomp.x urecomp.x
+         * udecomp.x 15degramp.crunch 8
+         * mpiexec -np 8 ucs.x 15degramp
+         * -- Code will run and finish --
+         * urecomp.x 15degramp
+         * -- Suggested to use paraview to open the 15degramp.vtk file for visualization --         
   
   2) Define <casename>.bc and <casename>.param files (see ProteusTestSuite for examples)
      This sets up boundary conditions and the solver runtime parameters for relevant physics.
@@ -76,7 +90,7 @@ Usage:
      There is also a run script in the ./tools directory to modify should you need 
      parallel job scripts.
   
-  4) Use ./recomp.x <casename> tool to recompose the parallel geometry and solution to .vtk binary files.
+  4) Use urecomp.x <casename -- e.g. test> tool to recompose the parallel geometry and solution to .vtk binary files.
      VTK legacy files are the only supported output at this time.
   
   5) Use paraview or visit (or any other VTK capable visualization tool) to view and query results.
