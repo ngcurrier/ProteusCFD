@@ -633,22 +633,35 @@ Type CompressibleEqnSet<Type>::MaxEigenvalue(Type* Q, Type* avec, Type vdotn, Ty
  void CompressibleEqnSet<Type>::UpdateQinf()
  {
    //non-dimensionalization here is by rho_inf, c_inf, T_inf
-
+   
    //use GetVelocity() function for ramping
    Type V = this->param->GetVelocity(this->space->iter);
    Type Mach = V;
    Type gamma = this->param->gamma;
    Type gm1 = gamma - 1.0;
 
+   //since we don't enforce it directly, check that the param object
+   //contains a reasonable speed of sound c^2 = gamma*P/rho
+   Type T = 1.0; //assume freestream temp is non-dim temp
+   Type rho = 1.0; //assume non-dim density is freestream density
+   Type p = T*rho/gamma;
+   Type c2avg = gamma*(p/rho);
+   Type cavg = sqrt(c2avg);
+   Type cavg_dim = cavg * this->param->ref_velocity;
+
+   std::cout << "CompressibleEqnSet - computed speed of sound freestream is " << cavg_dim << std::endl;
+   std::cout << "CompressibleEqnSet - freestream reference velocity is set to " << this->param->ref_velocity << " should be equivalent " << std::endl;
+
+   if(Abs(real(cavg_dim - this->param->ref_velocity)) > 1.0e-10){
+     std::stringstream ss;
+     ss << "CompressibleEqnSet - non-dimensionalization not sane. Please set input variable refVelocity = ";
+     ss << cavg_dim;
+     Abort << ss.str();
+   }
+   
    Type u = this->param->flowdir[0]*Mach;
    Type v = this->param->flowdir[1]*Mach;
    Type w = this->param->flowdir[2]*Mach;
-
-   //assume that non-dim density is the freestream density
-   Type rho = 1.0;
-   //assume that non-dim temperature is the freestream temperature
-   Type T = 1.0;
-   Type p = T*rho/gamma;
 
    //now set total energy
    Type E = p/gm1 + 0.5*rho*(u*u + v*v + w*w);
