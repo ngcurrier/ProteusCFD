@@ -34,7 +34,7 @@ endif
 ifeq ($(TOOLCHAIN),GNU)
 	CXX = g++
 	MPICXX = mpicxx
-	CXX_OPTS = -O0 -g 
+	CXX_OPTS = -O0 -g -std=c++11
 	#CXX_OPTS = -fopenmp -D_DEBUG
 	#CXX_OPTS = -O0 -g
 	LINK_OPTS = 
