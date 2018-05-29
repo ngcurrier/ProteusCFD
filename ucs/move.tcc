@@ -292,7 +292,7 @@ void UpdateMeshDisplacements(SolutionSpace<Type>* space, Type* dx, Int* reqSmoot
     *reqSmoothing = true;
   }
   //python boundary movement calls
-  else if(param->movement == 6){
+  else if(param->movement == 7){
     Int* nodelist = NULL;
     Int nodecount = GetNodesOnMovingBC(m, bc, &nodelist);
 #ifdef _HAS_PYTHON
