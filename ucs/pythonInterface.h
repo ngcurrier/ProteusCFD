@@ -36,7 +36,7 @@ class PythonWrapper
   void GetBoundaryVariables(Type* QL, Type* QR, int neqn, int nauxvars, Type* wallXYZ, Type* wallAvec);
   template <class Type>
   void GetBoundaryMovement(Type time, int* nodelist, int sizenodelist, int nnode,
-			   Type* xyz, Type* dxyz);
+			   Type* xyz_base, Type* xyz_current, Type* dxyz);
   
  protected:
 

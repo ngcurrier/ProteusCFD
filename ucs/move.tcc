@@ -304,7 +304,7 @@ void UpdateMeshDisplacements(SolutionSpace<Type>* space, Type* dx, Int* reqSmoot
     //Note: we do a nasty cast here but we presume the type check above makes it valid
     //we just don't want this failing in a static compile
     pywrap.GetBoundaryMovement(time, nodelist, nodecount, m->GetNumNodes(),
-			       (Real*)m->xyz_base, (Real*)dx);
+			       (Real*)m->xyz_base, (Real*)m->xyz, (Real*)dx);
 #else
     Abort << "UpdateMeshDisplacements() - python not built with solver";
 #endif
