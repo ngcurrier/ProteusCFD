@@ -396,8 +396,8 @@ void SolutionSpace<Type>::AddField(DataInfo dataInfo, Int stateType, Int varLoca
   for(typename std::vector<SolutionField<Type>*>::iterator it = fields.begin(); it != fields.end(); ++it){
     SolutionField<Type>& field = **it;
     if(field.IsNamed(dataInfo.GetName())){
-	Abort << "Field of name " + dataInfo.GetName() + " already exists... must have unique name";
-	return;
+      Abort << "Field of name " + dataInfo.GetName() + " already exists... must have unique name";
+      return;
     }
   }
   SolutionField<Type> * temp =  new SolutionField<Type>(*m, dataInfo,  stateType, varLocation);
@@ -523,8 +523,24 @@ void SolutionSpace<Type>::PreIterate()
   ComputeSurfaceAreas(this, 1);
 
   //if we are restarting, allow the restart file to set the iteration count
-  if(!param->useRestart || !param->preserveRestartCounters){
-    this->iter = 1;
+  if(param->useRestart){
+    if(!param->preserveRestartCounters){
+      this->iter = 1;
+    }
+  }
+  else{ //not using restart
+    // we write out the time information for xyz/vol if restarting
+    // no need to set it, in fact, it destroys time accuracy if we do
+    //we need to save the xyz locations of the nodes at t = 0
+    memcpy(m->xyz_base, m->xyz, sizeof(Type)*(nnode+gnode)*3);
+    //we also need to zero the displacements over time since we use
+    //higher order accurate grid speed terms
+    memcpy(m->xyzold, m->xyz, sizeof(Type)*(nnode*3));
+    memcpy(m->xyzoldm1, m->xyz, sizeof(Type)*(nnode*3));
+    //we need to set our gcl volumes to be equal to the current time
+    //this is taken care of in restart routines if using restarted solution
+    memcpy(m->vololdm1, m->vol, sizeof(Type)*nnode);
+    memcpy(m->volold, m->vol, sizeof(Type)*nnode);
   }
 
   //this has to be precomputed so temporal jacobians
@@ -533,20 +549,6 @@ void SolutionSpace<Type>::PreIterate()
   param->UpdateCFL(this->iter, real(residualDelta));
   dtmin = ComputeTimesteps(this);
 
-  if(param->movement){
-    //we need to save the xyz locations of the nodes at t = 0
-    memcpy(m->xyz_base, m->xyz, sizeof(Type)*(nnode+gnode)*3);
-    //we also need to zero the displacements over time since we use
-    //higher order accurate grid speed terms
-    memcpy(m->xyzold, m->xyz, sizeof(Type)*(nnode*3));
-    memcpy(m->xyzoldm1, m->xyz, sizeof(Type)*(nnode*3));
-    if(param->gcl && !param->useRestart){
-      //we need to set our gcl volumes to be equal to the current time
-      //this is taken care of in restart routines if using restarted solution
-      memcpy(m->vololdm1, m->vol, sizeof(Type)*nnode);
-      memcpy(m->volold, m->vol, sizeof(Type)*nnode);
-    }
-  }
 
   param->time = 0.0;
   this->timers.StartTimer("IterationTimer");
@@ -605,12 +607,10 @@ void SolutionSpace<Type>::PreTimeAdvance()
     //copy down the old displacements so we get h.o. accurate grid speeds
     memcpy(m->xyzoldm1, m->xyzold, sizeof(Type)*3*nnode);
     memcpy(m->xyzold, m->xyz, sizeof(Type)*3*nnode);
-    if(param->gcl){
-      //if we are using a modifiable mesh we need to update the GCL contributions
-      //for this we need the volumes from two previous steps
-      memcpy(m->vololdm1, m->volold, sizeof(Type)*nnode);
-      memcpy(m->volold, m->vol, sizeof(Type)*nnode);
-    }
+    //if we are using a modifiable mesh we need to update the GCL contributions
+    //for this we need the volumes from two previous steps
+    memcpy(m->vololdm1, m->volold, sizeof(Type)*nnode);
+    memcpy(m->volold, m->vol, sizeof(Type)*nnode);
     if(param->viscous){
       std::cout << "Wall distance results: " << std::endl;
       std::cout << "=======================" << std::endl;
@@ -624,8 +624,6 @@ void SolutionSpace<Type>::PreTimeAdvance()
       std::cout << std::endl << std::endl;
     }
   }
-
-  return;
 }
 
 //performs solution iteration, called multiple times per timestep
@@ -868,14 +866,12 @@ void SolutionSpace<Type>::NewtonIterate()
     std::stringstream ss;
     ss << "Solution residual divergent!! " << std::endl;
     ss << "Coordinates of max residual: " << m->xyz[resnode*3 + 0] 
-	      << " " << m->xyz[resnode*3 + 1] << " " << m->xyz[resnode*3 + 2] << std::endl;
+       << " " << m->xyz[resnode*3 + 1] << " " << m->xyz[resnode*3 + 2] << std::endl;
     ss << "Coordinates of max dq: " << m->xyz[qnode*3 + 0] 
-	      << " " << m->xyz[qnode*3 + 1] << " " << m->xyz[qnode*3 + 2] << std::endl;
+       << " " << m->xyz[qnode*3 + 1] << " " << m->xyz[qnode*3 + 2] << std::endl;
     Abort << ss.str();
     nanflag = 1;
   }
-
-  return;
 }
 
 //performs operations required after Newton iterations, once per timestep
@@ -1028,7 +1024,6 @@ void SolutionSpace<Type>::InitCRSSystem()
 {
   if(eqnset == NULL){
     Abort << "Eqnset pointer is NULL in InitCRSSytem()... FAILING";
-    return;
   }
   crs = new CRS<Type>;
   Int nnode = m->GetNumNodes();
@@ -1061,7 +1056,6 @@ void SolutionSpace<Type>::WriteSolution()
       hid_t h5out = HDF_OpenFile(filename, 1);
       if(h5out < 0){
 	Abort << "SolutionSpace::WriteSolution() could not open file -- " + filename;
-	return;
       }
       //Type time = this->iter*param->dt;
       //HDF_WriteScalar(h5out, directoryBase, "time", &time);
@@ -1105,14 +1099,12 @@ void SolutionSpace<Type>::ClearSolutionFromFile()
   std::cout << "Clearing old restart data" << std::endl;
 
   m->WriteParallelMesh(param->path+param->spacename);
-  
-  return;
 }
 
 /*
-template <class Type>
-void SolutionSpace<Type>::WriteSurfaceVariables(Type* var, std::ofstream& fout, Int ignoreSymmPlanes)
-{
+  template <class Type>
+  void SolutionSpace<Type>::WriteSurfaceVariables(Type* var, std::ofstream& fout, Int ignoreSymmPlanes)
+  {
   Int i;
   Int nnode = m->GetNumNodes();
   Int nbedge = m->GetNumBoundaryEdges();
@@ -1124,28 +1116,28 @@ void SolutionSpace<Type>::WriteSurfaceVariables(Type* var, std::ofstream& fout, 
   
   //we write out the averages on the face, this isn't ideal but works okay?
   for(i = 0; i < nbedge; i++){
-    //get the node on the surface
-    Int node = m->bedges[i].n[0];
-    Int factag = m->bedges[i].factag;
-    Int bcId = bc->GetBCId(factag);
+  //get the node on the surface
+  Int node = m->bedges[i].n[0];
+  Int factag = m->bedges[i].factag;
+  Int bcId = bc->GetBCId(factag);
     
-    if(bcId == Symmetry && ignoreSymmPlanes){
-      continue;
-    }
-    else{
-      list[node]++;
-      avg[node] += var[i];
-    }
+  if(bcId == Symmetry && ignoreSymmPlanes){
+  continue;
+  }
+  else{
+  list[node]++;
+  avg[node] += var[i];
+  }
   }
   for(i = 0; i < nbedge; i++){
-    //get the node on the surface
-    Int node = m->bedges[i].n[0];
-    //get the number of values added here
-    Int count = list[node];
-    //divide by the number of values to get average
-    if(count != 0){
-      avg[node] /= (Type)count;
-    }
+  //get the node on the surface
+  Int node = m->bedges[i].n[0];
+  //get the number of values added here
+  Int count = list[node];
+  //divide by the number of values to get average
+  if(count != 0){
+  avg[node] /= (Type)count;
+  }
   }
   
   //write out the binary data
@@ -1154,8 +1146,7 @@ void SolutionSpace<Type>::WriteSurfaceVariables(Type* var, std::ofstream& fout, 
   delete [] list;
   delete [] avg;
   
-  return;
-};
+  };
 */  
 
 template <class Type>
@@ -1183,8 +1174,10 @@ void SolutionSpace<Type>::WriteRestartFile()
   HDF_WriteArray(h5out, "/Mesh State/", "Volume N+1", m->vol, nnode);
   HDF_WriteArray(h5out, "/Mesh State/", "Volume N", m->volold, nnode);
   HDF_WriteArray(h5out, "/Mesh State/", "Volume N-1", m->vololdm1, nnode);
-  HDF_WriteArray(h5out, "/Mesh State/", "Nodal Coordinates Current", m->xyz, 3*(nnode+gnode));
+  HDF_WriteArray(h5out, "/Mesh State/", "Nodal Coordinates N+1", m->xyz, 3*(nnode+gnode));
   HDF_WriteArray(h5out, "/Mesh State/", "Nodal Coordinates Base", m->xyz_base, 3*(nnode+gnode));
+  HDF_WriteArray(h5out, "/Mesh State/", "Nodal Coordinates N", m->xyzold, 3*nnode);
+  HDF_WriteArray(h5out, "/Mesh State/", "Nodal Coordinates N-1", m->xyzoldm1, 3*nnode);
   HDF_CloseFile(h5out);
 }
 
@@ -1222,8 +1215,11 @@ void SolutionSpace<Type>::ReadRestartFile()
   HDF_ReadArray(h5in, "/Mesh State/", "Volume N", &m->volold, &nnode);
   HDF_ReadArray(h5in, "/Mesh State/", "Volume N-1", &m->vololdm1, &nnode);
   Int ntnodes = 3*(nnode+gnode);
-  HDF_ReadArray(h5in, "/Mesh State/", "Nodal Coordinates Current", &m->xyz, &ntnodes);
+  HDF_ReadArray(h5in, "/Mesh State/", "Nodal Coordinates N+1", &m->xyz, &ntnodes);
   HDF_ReadArray(h5in, "/Mesh State/", "Nodal Coordinates Base", &m->xyz_base, &ntnodes);
+  ntnodes = 3*nnode;
+  HDF_ReadArray(h5in, "/Mesh State/", "Nodal Coordinates N", &m->xyzold, &ntnodes);
+  HDF_ReadArray(h5in, "/Mesh State/", "Nodal Coordinates N-1", &m->xyzoldm1, &ntnodes);
   HDF_CloseFile(h5in);
 }
 
@@ -1301,7 +1297,6 @@ SolutionSpace<Type>::SolutionSpace(const SolutionSpace<Type2>& spaceToCopy) :
   if(ierr){
     Abort << "SolutionSpace copy constructor fatal failure -- LATEZ!";
   }
-
-  return;
 }
+
 
