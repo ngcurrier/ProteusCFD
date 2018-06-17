@@ -1,3 +1,5 @@
+#include "base64.h"
+
 //used to check if a list is negative or not
 //class must allow random access via []
 template<class theType>
@@ -4507,21 +4509,17 @@ Int Mesh<Type>::WriteXMLVTK_Binary(std::string casename, std::vector<SolutionFie
   int i, j, e;
   std::string filename = casename + ".vtu";
 
+  //appended data binary blob
+  std::vector<unsigned char> appendedData;
+  //offsets for each blob to jump into the binary blob
+  uint32_t appendedDataAccumulate = 0;
+  //data block sizes
+  std::vector<uint32_t> appendedDataSizes;
+  
   std::cout << "VTK XML BINARY I/O: Writing solution file --> " << filename << std::endl;
 
   fout.open(filename.c_str());
 
-  // NOTE: Binary Inline vtu Format
-  // The XML structure is like in the ASCII vtu format. But the data is not stored the same
-  // way as in the binary vtk format, because the XML language forbids special characters.
-  // So the binary data has to be base64-encoded. Additionally, there is a header prepended
-  // to the data; it is a 32 bit integer containing the data length (in bytes). This header
-  // is encoded separately. So in pseudocode, the data output would look like this
-  // (always without spaces or line breaks!):
-  //int32 = length( data );
-  //output = base64-encode( int32 ) + base64-encode( data );
-
-  
   //Overall file structure looks like:
   //  <VTKFile type=" UnstructuredGrid" ...> 
   // <UnstructuredGrid> 
@@ -4544,12 +4542,56 @@ Int Mesh<Type>::WriteXMLVTK_Binary(std::string casename, std::vector<SolutionFie
   fout << "<Piece NumberOfPoints=\"" << nnode << "\" NumberOfCells=\"" << lnelem << "\">" << std::endl;
   fout << "<Points>" << std::endl;
   //write coordinates
-  fout << "<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">" << std::endl;
-  //fout.write((char*)xyz, sizeof(Real)*nnode*3);
-  for(Int i = 0; i < nnode*3; ++i){
+  uint32_t datasize = 3*nnode*sizeof(Real);
+  //This switch enables/disables base64 inline encoding -- very SLOOOOW
+#if 0 
+  fout << "<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"appended\" offset=\"" << appendedDataAccumulate << "\"/>" << std::endl;
+  //resize to totalBytes/sizeof(unsigned char) OR totalBytes/1;
+  union doubleUnion_t
+  {
+    double d;
+    char bytes[sizeof(double)];
+  };
+  doubleUnion_t doubleUnion1;
+  appendedDataSizes.push_back(datasize);
+  appendedData.resize(appendedDataAccumulate+datasize);
+  //iterate of the data one byte at a time
+  int byteCounter = 0;
+  for(int i = 0; i < 3*nnode; ++i){
+    doubleUnion1.d = xyz[i];
+    for(int j = 0; j < sizeof(double); ++j){
+      appendedData[appendedDataAccumulate + byteCounter + j] = doubleUnion1.bytes[j];
+    }
+    byteCounter += sizeof(double);
+  }
+  appendedDataAccumulate += datasize;
+#else
+  fout << "<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\" >" << std::endl;
+  for(Int i = 0; i < 3*nnode; ++i){
     fout << xyz[i] << " ";
   }
   fout << "</DataArray>" << std::endl;
+#endif
+  // NOTE: Binary Inline vtu Format
+  // The XML structure is like in the ASCII vtu format. But the data is not stored the same
+  // way as in the binary vtk format, because the XML language forbids special characters.
+  // So the binary data has to be base64-encoded. Additionally, there is a header prepended
+  // to the data; it is a 32 bit integer containing the data length (in bytes). This header
+  // is encoded separately. So in pseudocode, the data output would look like this
+  // (always without spaces or line breaks!):
+  //int32 = length( data );
+  //output = base64-encode( int32 ) + base64-encode( data );
+  // base 64 encode the size of data and then the data itself -
+  // the "binary" keyword is really inline base64 which is garbage
+  // output = base64-encode( int32 ) + base64-encode( data );
+  //fout << "<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"binary\" \>" << std::endl;
+  //std::string datasize64 = base64_encode((const unsigned char*)&datasize, sizeof(uint32_t));
+  //std::string data64 = base64_encode((const unsigned char*)xyz, datasize);
+  //for(Int i = 0; i < nnode*3; ++i){
+  //  fout << datasize64 << data64;
+  //}
+  //fout << "</DataArray>" << std::endl;
+
   fout << "</Points>" << std::endl;
 
   fout << "<Cells>" << std::endl;
@@ -4625,9 +4667,6 @@ Int Mesh<Type>::WriteXMLVTK_Binary(std::string casename, std::vector<SolutionFie
   fout << "</Cells>" << std::endl;
   
   
-  //fout << "CELL_DATA " << lnelem << std::endl;
-  //fout << "SCALARS BoundaryIds int " << 1 << std::endl;
-  //fout << "LOOKUP_TABLE default" << std::endl;
   fout << "<CellData>" << std::endl;
   fout << "<DataArray type=\"Float64\" Name=\"BoundaryId\" format=\"ascii\">" << std::endl;
   for(typename std::vector<Element<Type>*>::iterator it = elementList.begin(); it != elementList.end(); ++it){
@@ -4670,6 +4709,27 @@ Int Mesh<Type>::WriteXMLVTK_Binary(std::string casename, std::vector<SolutionFie
   //write file closing
   fout << "</Piece>" << std::endl;
   fout << "</UnstructuredGrid>" << std::endl;
+
+
+#if 0
+  //write the appended data block
+  //The format is
+  // _NNNN<data>NNNN<data>NNNN<data>
+  // ^         ^         ^
+  // 1         2         3
+  //where each "NNNN" is an unsigned 32-bit integer, and <data> consists of
+  //a number of bytes equal to the preceding NNNN value.  The corresponding
+  //DataArray elements must have format="appended" and offset attributes
+  //equal to the following:
+  //1.) offset="0"
+  //2.) offset="(4+NNNN1)"
+  //3.) offset="(4+NNNN1+4+NNNN2)"
+  fout << "<AppendedData encoding=\"raw\">" << std::endl;
+  fout << "_";
+  fout.write((char*)&appendedDataSizes[0], sizeof(uint32_t));
+  fout.write((const char*)appendedData.data(), appendedData.size());
+  fout << "</AppendedData>" << std::endl;
+#endif
   fout << "</VTKFile>" << std::endl;
   
   fout.close();

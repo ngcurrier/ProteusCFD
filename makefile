@@ -13,7 +13,7 @@ EXE_TESTS = ./bin/tests.x
 # --------- BEGIN COMMON LIBRARY SECTION
 
 SRCS_COMMON = ./ucs/timer.cpp ./ucs/endian_util.cpp ./ucs/strings_util.cpp \
-	./ucs/h5layer.cpp ./ucs/parameterParser.cpp 
+	./ucs/h5layer.cpp ./ucs/parameterParser.cpp ./ucs/base64.cpp
 OBJS_COMMON = $(SRCS_COMMON:.cpp=.o)
 DEPS_COMMON = $(SRCS_COMMON:.cpp=.d)
 
