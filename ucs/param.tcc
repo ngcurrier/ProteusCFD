@@ -84,7 +84,6 @@ void Param<Type>::SetupParams()
   //These are internal non-user parameters, used for runtime monitoring, etc.
   this->chi = 0.0;
   this->requireComplex = false;
-  this->time = 0.0;
   this->PrT = 0.85;  //average value??? no idea if this is okay varies from 0.7-0.9
   this->ref_time = 1.0;
   this->ref_enthalpy = 1.0;

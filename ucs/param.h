@@ -93,7 +93,6 @@ public:
   Bool enableVNN;     // von neumann diffusive stability condition - useful for very low Reynolds numbers
   Type VNN;           // von neumann diffusive stability multiplier
 
-  Type time;            // total elapsed time
   Type dt;              // minimum time step (unsteady only); if negative, use
                         // local time stepping
   Bool pseudotimestepping; // use pseudotimestepping

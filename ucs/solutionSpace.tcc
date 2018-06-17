@@ -549,8 +549,6 @@ void SolutionSpace<Type>::PreIterate()
   param->UpdateCFL(this->iter, real(residualDelta));
   dtmin = ComputeTimesteps(this);
 
-
-  param->time = 0.0;
   this->timers.StartTimer("IterationTimer");
 
   residual = residualnm1 = 0.0;
@@ -624,6 +622,16 @@ void SolutionSpace<Type>::PreTimeAdvance()
       std::cout << std::endl << std::endl;
     }
   }
+
+  //calculate timesteps, do once per timestep
+  Type residualDelta = (residualnm1 - residual)/residualnm1;
+  param->UpdateCFL(this->iter, real(residualDelta));
+  dtmin = ComputeTimesteps(this);
+  
+  //increment the temporal counter since this is the new timestep, only do this once per time
+  // not on every inner Newton loop
+  this->time += param->dt;
+
 }
 
 //performs solution iteration, called multiple times per timestep
@@ -681,10 +689,6 @@ void SolutionSpace<Type>::NewtonIterate()
   }
 
 
-  //calculate timesteps
-  Type residualDelta = (residualnm1 - residual)/residualnm1;
-  param->UpdateCFL(this->iter, real(residualDelta));
-  dtmin = ComputeTimesteps(this);
   //calculate residuals
   if(p->GetRank() == 0){
     this->timers.StartAccumulate("ResidualTimer");
@@ -701,7 +705,8 @@ void SolutionSpace<Type>::NewtonIterate()
   residual = residGlobal;
   
   std::cout << " dt_min: " << dtmin;
-
+  std::cout << " time: " << this->time;
+  
   //find global minimum timestep
   Real dtmin_global = real(dtmin);
   MPI_Datatype mpit = MPI_GetType(dtmin_global);
@@ -861,7 +866,6 @@ void SolutionSpace<Type>::NewtonIterate()
   //if doing fluid-structure interactions, we need cl, and cm
   forces->Compute();
   
-  param->time += real(dtmin_global);
   if(std::isnan(real(residGlobal)) || std::isinf(real(residGlobal))){
     std::stringstream ss;
     ss << "Solution residual divergent!! " << std::endl;
@@ -1057,7 +1061,6 @@ void SolutionSpace<Type>::WriteSolution()
       if(h5out < 0){
 	Abort << "SolutionSpace::WriteSolution() could not open file -- " + filename;
       }
-      //Type time = this->iter*param->dt;
       //HDF_WriteScalar(h5out, directoryBase, "time", &time);
       HDF_CloseFile(h5out);
     }

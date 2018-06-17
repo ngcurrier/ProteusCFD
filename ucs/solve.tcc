@@ -37,8 +37,8 @@ void Solve(std::vector<SolutionSpaceBase<Type>*>& solSpaces, SolutionOrdering<Ty
   std::cout << "===========================\n" << std::endl;
 
   //Outer timestepping loop
-  Int iter = 1;
-  while(iter <= temporalControl.nSteps){
+  Int outeriter = 1;
+  while(outeriter <= temporalControl.nSteps){
 
     //Do things that should happen pre timestep
     for(typename std::vector<SolutionSpaceBase<Type>*>::iterator it = solSpaces.begin(); 
@@ -61,10 +61,8 @@ void Solve(std::vector<SolutionSpaceBase<Type>*>& solSpaces, SolutionOrdering<Ty
       space.PostTimeAdvance();
     }
     
-    iter++;
+    outeriter++;
   }
-
-  return;
 }
 
 //this function handles explicit solution methodology only and contains special

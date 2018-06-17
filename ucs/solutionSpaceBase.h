@@ -37,11 +37,12 @@ class SolutionSpaceBase
 public:
   std::string name;
   Int nSteps;
-  Int iter;
+  Int iter;  //keeps track of the current unsteady or steady iteration
+  Type time; //if solver is time accurate, this keeps track of the locally dimensioned/non-dimensioned time state
   TemporalControl<Real>& temporalControl;
 
   SolutionSpaceBase(std::string name, TemporalControl<Real>& temporalControl) :
-    name(name), temporalControl(temporalControl)
+  name(name), temporalControl(temporalControl), iter(0), time(0.0)
   {};
   virtual ~SolutionSpaceBase()
   {
