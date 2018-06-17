@@ -286,18 +286,36 @@ int main(int argc, char* argv[])
   if(solutionPresent == false){
     std::cout << "RECOMP I/O: Solution not present, have you run the solver yet? ;) " << std::endl;
     if(format == 0){
-      m.WriteVTK_Binary(solfilename, fields);
+      m.WriteXMLVTK_Binary(solfilename, fields);
     }  
     else if(format == 1){
-      m.WriteCRUNCH_Ascii(solfilename);
+      m.WriteVTK_Binary(solfilename, fields);
     }
     else if(format == 2){
+      m.WriteCRUNCH_Ascii(solfilename);
+    }
+    else if(format == 3){
       m.WriteVTK_Ascii(solfilename, fields);
-    } 
+    }
     else{}
   }
-  else{
+  else{ //if solution is present check all the fields for writing, etc.
     count = 0;
+    //loop over all solutions that are present (i.e. a time series), recompose and write one at a time
+
+    // if we are writing XML based vtk the also create a pvd file for including
+    // time stepping context in the visualization
+
+    std::ofstream fpvd;
+    if(format == 0){
+      std::string sscase;
+      sscase = casename + ".pvd";
+      fpvd.open(sscase.c_str());
+      fpvd << "<?xml version=\"1.0\"?>" << std::endl;
+      fpvd << "<VTKFile type=\"Collection\" version=\"0.1\">" << std::endl;
+      fpvd << "<Collection>";
+    }
+    
     for(std::vector<std::string>::iterator it = solutionVect.begin(); it != solutionVect.end(); ++it){
       std::string& path = *it;
       std::string timestepstring = "timestep-";
@@ -322,7 +340,7 @@ int main(int argc, char* argv[])
       }
       SolutionField<Real>* field = new SolutionField<Real>(m, h5in[0], path);
       fields.push_back(field);
-      //the field exists and memory is allocated, now read in the partitioned data
+      //the field exists and memory is allocated, now read in the parallel partitioned data
       //and reassemble it in a meaningful way
       for(Int i = 0; i < np; i++){
 	Int size = -1;
@@ -330,7 +348,7 @@ int main(int argc, char* argv[])
 	//probe dataset for size
 	HDF_ReadArray(h5in[i], directory, dataname, &tempdata, &size);
 	tempdata = new Real[size];
-	//read the data
+	//read the dataset
 	HDF_ReadArray(h5in[i], directory, dataname, &tempdata, &size);
 	//copy the appropriate chunk to the field, i.e. the first nnode values
 	Real* fielddata = field->GetData(FIELDS::STATE_NONE);
@@ -353,14 +371,24 @@ int main(int argc, char* argv[])
 
       if((sets[count] != sets[count+1]) || count == solutionVect.size()-1){
 	if(format == 0){
-	  m.WriteVTK_Binary(solfilename, fields);
+	  m.WriteXMLVTK_Binary(solfilename, fields);
+	  double dt = 0.1;
+	  int istepnumber;
+	  std::stringstream ss;
+	  ss.str(stepnumber);
+	  ss >> istepnumber;
+	  fpvd << "<DataSet timestep=\"" << dt*(double)istepnumber << "\" group=\"\" part=\"0\" file=\"" << solfilename+".vtu" << "\"/>" << std::endl;
 	}  
 	else if(format == 1){
-	  m.WriteCRUNCH_Ascii(solfilename);
+	  m.WriteVTK_Binary(solfilename, fields);
 	}
 	else if(format == 2){
+	  m.WriteCRUNCH_Ascii(solfilename);
+	}
+	else if(format == 3){
 	  m.WriteVTK_Ascii(solfilename, fields);
 	}
+	else{}
 	//clear the fields for the next pass
 	for(std::vector<SolutionField<Real>*>::iterator it = fields.begin(); it != fields.end(); ++it){
 	  delete *it;
@@ -369,7 +397,13 @@ int main(int argc, char* argv[])
       }
       count++;
     }
-  }
+    if(format == 0){
+      fpvd << "</Collection>" << std::endl;
+      fpvd << "</VTKFile>" << std::endl;
+      fpvd.close();
+    }
+  } // end solution writing loop
+
   
   //close hdf file series
   for(Int i = 0; i < np; i++){

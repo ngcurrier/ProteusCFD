@@ -133,6 +133,7 @@ class Mesh
   Int WriteCRUNCH_Ascii(std::string casename);
   Int WriteVTK_Ascii(std::string casename, std::vector<SolutionField<Type>*>& fields);
   Int WriteVTK_Binary(std::string casename, std::vector<SolutionField<Type>*>& fields);
+  Int WriteXMLVTK_Binary(std::string casename, std::vector<SolutionField<Type>*>& fields);
   Int WriteGridXDMF(PObj<Type> &p, std::string filebase, std::string meshname);
   
   void SetNumNodes(Int nnode){this->nnode = nnode;};

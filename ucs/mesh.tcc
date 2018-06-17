@@ -4501,6 +4501,186 @@ Int Mesh<Type>::ReadCRUNCH_Ascii(std::string filename)
 
 
 template <class Type>
+Int Mesh<Type>::WriteXMLVTK_Binary(std::string casename, std::vector<SolutionField<Type>*>& fields)
+{
+  std::ofstream fout;
+  int i, j, e;
+  std::string filename = casename + ".vtu";
+
+  std::cout << "VTK XML BINARY I/O: Writing solution file --> " << filename << std::endl;
+
+  fout.open(filename.c_str());
+
+  // NOTE: Binary Inline vtu Format
+  // The XML structure is like in the ASCII vtu format. But the data is not stored the same
+  // way as in the binary vtk format, because the XML language forbids special characters.
+  // So the binary data has to be base64-encoded. Additionally, there is a header prepended
+  // to the data; it is a 32 bit integer containing the data length (in bytes). This header
+  // is encoded separately. So in pseudocode, the data output would look like this
+  // (always without spaces or line breaks!):
+  //int32 = length( data );
+  //output = base64-encode( int32 ) + base64-encode( data );
+
+  
+  //Overall file structure looks like:
+  //  <VTKFile type=" UnstructuredGrid" ...> 
+  // <UnstructuredGrid> 
+  // <Piece NumberOfPoints="#" NumberOfCells="#"> 
+  // <PointData Scalars=" Temperature" Vectors=" Velocity"> 
+  // <DataArray Name=" Velocity" .../> 
+  // <DataArray Name=" Temperature" .../> 
+  // <DataArray Name=" Pressure" .../> 
+  // </ PointData> 
+  // <CellData>...</ CellData> 
+  // <Points>...</ Points> 
+  //  <Cells>...</ Cells> 
+  // </ Piece> 
+  // </ UnstructuredGrid> 
+  // </ VTKFile> 
+  //write the header
+  fout << "<?xml version=\"1.0\"?>" << std::endl;
+  fout << "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">" << std::endl;
+  fout << "<UnstructuredGrid>" << std::endl;
+  fout << "<Piece NumberOfPoints=\"" << nnode << "\" NumberOfCells=\"" << lnelem << "\">" << std::endl;
+  fout << "<Points>" << std::endl;
+  //write coordinates
+  fout << "<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">" << std::endl;
+  //fout.write((char*)xyz, sizeof(Real)*nnode*3);
+  for(Int i = 0; i < nnode*3; ++i){
+    fout << xyz[i] << " ";
+  }
+  fout << "</DataArray>" << std::endl;
+  fout << "</Points>" << std::endl;
+
+  fout << "<Cells>" << std::endl;
+ 
+  // Write out element connectivities
+  fout << "<DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">" << std::endl;
+  for(typename std::vector<Element<Type>*>::iterator it = elementList.begin(); it != elementList.end(); ++it){
+    Element<Type>& element = **it;
+    Int* nodes = NULL;
+    Int nnodes = element.GetNodes(&nodes);
+    for(j = 0; j < nnodes; j++){
+      //fout.write((char*)&nodes[j], sizeof(Int));
+      fout << nodes[j] << " ";
+    }
+  }
+  fout << "</DataArray>" << std::endl;
+
+  // Write out element offsets into connectivity array
+  fout << "<DataArray type=\"Int32\" Name=\"offsets\" format=\"ascii\">" << std::endl;
+  Int offset = 0;
+  for(typename std::vector<Element<Type>*>::iterator it = elementList.begin(); it != elementList.end(); ++it){
+    Element<Type>& element = **it;
+    Int* nodes = NULL;
+    Int nnodes = element.GetNodes(&nodes);
+    offset += nnodes;
+    //fout.write((char*)&offset, sizeof(Int));
+    fout << offset << " ";
+  }
+  fout << "\n</DataArray>" << std::endl;
+
+    // Write out element types
+  fout << "<DataArray type=\"UInt8\" Name=\"types\" format=\"ascii\">" << std::endl;
+  Int id;
+  for(typename std::vector<Element<Type>*>::iterator it = elementList.begin(); it != elementList.end(); ++it){
+    Element<Type>& element = **it;
+    e = element.GetType();
+    switch (e) {  
+    case TRI :
+      id = 5;
+      //fout.write((char*)&id, sizeof(Int));
+      fout << "5" << std::endl;
+      break;
+    case QUAD :
+      id = 9;
+      //fout.write((char*)&id, sizeof(Int));
+      fout << "9" << std::endl;
+      break;
+    case TET :
+      id = 10;
+      //fout.write((char*)&id, sizeof(Int));
+      fout << "10" << std::endl;
+      break;
+    case PYRAMID :
+      id = 14;
+      //fout.write((char*)&id, sizeof(Int));
+      fout << "14" << std::endl;
+      break;
+    case PRISM :
+      id = 13;
+      //fout.write((char*)&id, sizeof(Int));
+      fout << "13" << std::endl;
+      break;
+    case HEX :
+      id = 12;
+      //fout.write((char*)&id, sizeof(Int));
+      fout << "12" << std::endl;
+      break;
+    default :
+      std::cerr << "Type not defined WriteXMLVTK_BINARY() -- type " << e << std::endl;
+    }
+  }
+  fout << "\n</DataArray>" << std::endl;
+  fout << "</Cells>" << std::endl;
+  
+  
+  //fout << "CELL_DATA " << lnelem << std::endl;
+  //fout << "SCALARS BoundaryIds int " << 1 << std::endl;
+  //fout << "LOOKUP_TABLE default" << std::endl;
+  fout << "<CellData>" << std::endl;
+  fout << "<DataArray type=\"Float64\" Name=\"BoundaryId\" format=\"ascii\">" << std::endl;
+  for(typename std::vector<Element<Type>*>::iterator it = elementList.begin(); it != elementList.end(); ++it){
+    Element<Type>& element = **it;
+    e = element.GetFactag();
+    //fout.write((char*)&rint, sizeof(Int));
+    fout << e << " ";
+  }
+  fout << "</DataArray>" << std::endl;
+  fout << "</CellData>" << std::endl;
+  if(fields.size() != 0){
+    fout << "<PointData>" << std::endl;
+    for(typename std::vector<SolutionField<Type>*>::iterator it = fields.begin(); it != fields.end(); ++it){ 
+      SolutionField<Type>& field = **it;
+      Real* q = field.GetData(FIELDS::STATE_NONE);
+      Int neqn = field.GetNdof();
+      for(j = 0; j < neqn; j++){
+	if(field.DofIsVector(j)){
+	  fout << "<DataArray type=\"Float64\" Name=\"" << field.GetDofName(j) << "\" NumberOfComponents=\"3\" format=\"ascii\">" << std::endl;
+	  for(i = 0; i < nnode; i++){
+	    //fout.write((char*)&q[i*neqn + j], sizeof(Real)*3);
+	    fout << q[i*neqn + j] << " " << q[i*neqn + j + 1] << " " << q[i*neqn + j + 2] << " " ;
+	  }
+	  j+=2;
+	  fout << "</DataArray>";
+	}
+	else{
+	  fout << "<DataArray type=\"Float64\" Name=\"" << field.GetDofName(j) << "\" NumberOfComponents=\"1\" format=\"ascii\">" << std::endl;
+	  for(i = 0; i < nnode; i++){
+	    //fout.write((char*)&q[i*neqn + j], sizeof(Real));
+	    fout << q[i*neqn + j] << " ";
+	  }
+	  fout << "</DataArray>";
+	}
+      }
+    }
+    fout << "</PointData>";
+  }
+
+  //write file closing
+  fout << "</Piece>" << std::endl;
+  fout << "</UnstructuredGrid>" << std::endl;
+  fout << "</VTKFile>" << std::endl;
+  
+  fout.close();
+
+  std::cout << "VTK XML BINARY I/O: File write successful!!" << std::endl;
+
+  return (0);
+
+}
+
+template <class Type>
 Int Mesh<Type>::WriteVTK_Binary(std::string casename, std::vector<SolutionField<Type>*>& fields)
 {
   std::ofstream fout;
@@ -4632,6 +4812,8 @@ Int Mesh<Type>::WriteVTK_Binary(std::string casename, std::vector<SolutionField<
       }
     }
   }
+
+
 
   fout.close();
 
