@@ -628,10 +628,6 @@ void SolutionSpace<Type>::PreTimeAdvance()
   param->UpdateCFL(this->iter, real(residualDelta));
   dtmin = ComputeTimesteps(this);
   
-  //increment the temporal counter since this is the new timestep, only do this once per time
-  // not on every inner Newton loop
-  this->time += param->dt;
-
 }
 
 //performs solution iteration, called multiple times per timestep
@@ -884,6 +880,12 @@ void SolutionSpace<Type>::PostTimeAdvance()
 {
   Int rank = p->GetRank();
 
+  //increment the temporal counter since this is the new timestep, only do this once per time
+  // not on every inner Newton loop
+  this->time += param->dt;
+
+  this->iter++;
+  
   //sample sensor data
   sensors->Sample();
   //write out sensor data
@@ -893,7 +895,6 @@ void SolutionSpace<Type>::PostTimeAdvance()
   forces->Compute();
   //report cf, yp, qdot, cl, forces, etc.
   forces->Report();
-
 
   //loop over all post processing plugins
   for(typename std::vector<PostPlugin<Type>*>::iterator it =
@@ -923,7 +924,6 @@ void SolutionSpace<Type>::PostTimeAdvance()
     p->timers.ResetAccumulate("CommTimer");
   }
 
-  this->iter++;
 }
 
 //returns a plugin pointer given a particular name
@@ -1055,13 +1055,16 @@ void SolutionSpace<Type>::WriteSolution()
   if(param->solutionTagStep){
     ss.str("");
     ss << this->iter;
-    directoryBase += "timestep-" + ss.str() + "/";
+    std::string timeflag = "timestep-" + ss.str() + "/";
+    //modify path with timestep information if running unsteady
+    directoryBase += timeflag;
     if(!param->useLocalTimeStepping || (param->pseudotimestepping && param->useLocalTimeStepping)){
       hid_t h5out = HDF_OpenFile(filename, 1);
       if(h5out < 0){
 	Abort << "SolutionSpace::WriteSolution() could not open file -- " + filename;
       }
-      //HDF_WriteScalar(h5out, directoryBase, "time", &time);
+      std::string timevaluedir = "/SolutionTime/" + timeflag + "/";
+      HDF_WriteScalar(h5out, timevaluedir, "time", &this->time);
       HDF_CloseFile(h5out);
     }
 		    
@@ -1104,54 +1107,6 @@ void SolutionSpace<Type>::ClearSolutionFromFile()
   m->WriteParallelMesh(param->path+param->spacename);
 }
 
-/*
-  template <class Type>
-  void SolutionSpace<Type>::WriteSurfaceVariables(Type* var, std::ofstream& fout, Int ignoreSymmPlanes)
-  {
-  Int i;
-  Int nnode = m->GetNumNodes();
-  Int nbedge = m->GetNumBoundaryEdges();
-  Int* list = new Int[nnode];
-  Type* avg = new Type[nnode];
-  
-  MemBlank(list, nnode);
-  MemBlank(avg, nnode);
-  
-  //we write out the averages on the face, this isn't ideal but works okay?
-  for(i = 0; i < nbedge; i++){
-  //get the node on the surface
-  Int node = m->bedges[i].n[0];
-  Int factag = m->bedges[i].factag;
-  Int bcId = bc->GetBCId(factag);
-    
-  if(bcId == Symmetry && ignoreSymmPlanes){
-  continue;
-  }
-  else{
-  list[node]++;
-  avg[node] += var[i];
-  }
-  }
-  for(i = 0; i < nbedge; i++){
-  //get the node on the surface
-  Int node = m->bedges[i].n[0];
-  //get the number of values added here
-  Int count = list[node];
-  //divide by the number of values to get average
-  if(count != 0){
-  avg[node] /= (Type)count;
-  }
-  }
-  
-  //write out the binary data
-  fout.write((char*)avg, sizeof(Type)*m->nnode);
-  
-  delete [] list;
-  delete [] avg;
-  
-  };
-*/  
-
 template <class Type>
 void SolutionSpace<Type>::WriteRestartFile()
 {
@@ -1174,6 +1129,7 @@ void SolutionSpace<Type>::WriteRestartFile()
   hid_t h5out = HDF_OpenFile(filename, 1);
   HDF_WriteScalar(h5out, "/Solver State/", "Iteration Count", &this->iter);
   HDF_WriteScalar(h5out, "/Solver State/", "GCL State", &param->gcl);
+  HDF_WriteScalar(h5out, "/Solver State/", "time", &this->time);
   HDF_WriteArray(h5out, "/Mesh State/", "Volume N+1", m->vol, nnode);
   HDF_WriteArray(h5out, "/Mesh State/", "Volume N", m->volold, nnode);
   HDF_WriteArray(h5out, "/Mesh State/", "Volume N-1", m->vololdm1, nnode);
@@ -1206,8 +1162,7 @@ void SolutionSpace<Type>::ReadRestartFile()
 
   hid_t h5in = HDF_OpenFile(filename, 0);
   HDF_ReadScalar(h5in, "/Solver State/", "Iteration Count", &this->iter);
-  //increment by one since this is the new step
-  this->iter++;
+  HDF_ReadScalar(h5in, "/Solver State/", "time", &this->time);
   Int gclcheck = 0;
   HDF_ReadScalar(h5in, "/Solver State/", "GCL State", &gclcheck);
   if(gclcheck != param->gcl){

@@ -137,9 +137,6 @@ void ComputeNodeLSQCoefficients(SolutionSpace<Type>* space)
   //sync LSQ coefficients via parallel call
   space->p->UpdateGeneralVectors(space->m->s, 6);
   space->p->UpdateGeneralVectors(space->m->sw, 6);
-
-
-  return;
 }
 
 template <class Type>
@@ -170,8 +167,6 @@ void ComputeLSQCoefficients(Type* s, Type* dxbar, Type* we)
   we[1] = (real(r22) == 0.0) ? 0.0 : (dykdx - r23*we[2])/r22;
   //compute weight we_x
   we[0] = (real(r11) == 0.0) ? 0.0 : (dxbar[0] - r12*we[1] - r13*we[2])/r11;
-
-  return;
 }
 
 
@@ -216,8 +211,6 @@ void Kernel_Green_Gauss_Gradient(KERNEL_ARGS)
       tempR[3*j + i] = -faceavg[j]*avec[i]*area;
     }
   }
-
-  return;
 }
 
 template <class Type>
@@ -262,7 +255,6 @@ void Bkernel_Green_Gauss_Gradient(B_KERNEL_ARGS)
       tempL[3*j + i] = faceavg[j]*avec[i]*area;
     }
   }
-  return;
 }
 
 template <class Type>
@@ -393,8 +385,6 @@ void Bkernel_LSQ_Gradient(B_KERNEL_ARGS)
     *ptrL = NULL;
     *ptrR = NULL;
   }
-
-  return;
 }
 
 template <class Type>
@@ -433,8 +423,6 @@ void Kernel_LSQ_Coefficients(KERNEL_ARGS)
   *size = 6;  
   *ptrL = s1;
   *ptrR = s2;
-
-  return;
 }
 
 template <class Type>
@@ -513,8 +501,6 @@ void Kernel_LSQ_CoefficientsWeighted(KERNEL_ARGS)
   *size = 6;  
   *ptrL = s1;
   *ptrR = s2;
-
-  return;
 }
 
 template <class Type>

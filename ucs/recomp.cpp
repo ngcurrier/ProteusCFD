@@ -300,12 +300,9 @@ int main(int argc, char* argv[])
     else{}
   }
   else{ //if solution is present check all the fields for writing, etc.
-    count = 0;
-    //loop over all solutions that are present (i.e. a time series), recompose and write one at a time
 
     // if we are writing XML based vtk the also create a pvd file for including
     // time stepping context in the visualization
-
     std::ofstream fpvd;
     if(format == 0){
       std::string sscase;
@@ -316,7 +313,10 @@ int main(int argc, char* argv[])
       fpvd << "<Collection>";
     }
     
+    //loop over all solutions that are present (i.e. a time series), recompose and write one at a time
+    count = 0;
     for(std::vector<std::string>::iterator it = solutionVect.begin(); it != solutionVect.end(); ++it){
+      double time = 0.0;
       std::string& path = *it;
       std::string timestepstring = "timestep-";
       std::string stepnumber = "";
@@ -337,6 +337,7 @@ int main(int argc, char* argv[])
 	stepnumber = path.substr(loct,locsep-loct);
 	//add the timestep number to the file base name
 	solfilename += "-" + stepnumber;
+	HDF_ReadScalar(h5in[0], "/SolutionTime/timestep-" + stepnumber + "/", "time", &time);
       }
       SolutionField<Real>* field = new SolutionField<Real>(m, h5in[0], path);
       fields.push_back(field);
@@ -372,12 +373,7 @@ int main(int argc, char* argv[])
       if((sets[count] != sets[count+1]) || count == solutionVect.size()-1){
 	if(format == 0){
 	  m.WriteXMLVTK_Binary(solfilename, fields);
-	  double dt = 0.1;
-	  int istepnumber;
-	  std::stringstream ss;
-	  ss.str(stepnumber);
-	  ss >> istepnumber;
-	  fpvd << "<DataSet timestep=\"" << dt*(double)istepnumber << "\" group=\"\" part=\"0\" file=\"" << solfilename+".vtu" << "\"/>" << std::endl;
+	  fpvd << "<DataSet timestep=\"" << time << "\" group=\"\" part=\"0\" file=\"" << solfilename+".vtu" << "\"/>" << std::endl;
 	}  
 	else if(format == 1){
 	  m.WriteVTK_Binary(solfilename, fields);

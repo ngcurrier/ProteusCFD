@@ -4688,7 +4688,7 @@ Int Mesh<Type>::WriteXMLVTK_Binary(std::string casename, std::vector<SolutionFie
 	  fout << "<DataArray type=\"Float64\" Name=\"" << field.GetDofName(j) << "\" NumberOfComponents=\"3\" format=\"ascii\">" << std::endl;
 	  for(i = 0; i < nnode; i++){
 	    //fout.write((char*)&q[i*neqn + j], sizeof(Real)*3);
-	    fout << q[i*neqn + j] << " " << q[i*neqn + j + 1] << " " << q[i*neqn + j + 2] << " " ;
+	    fout << q[i*neqn + j + 0] << " " << q[i*neqn + j + 1] << " " << q[i*neqn + j + 2] << " " ;
 	  }
 	  j+=2;
 	  fout << "</DataArray>";

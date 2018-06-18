@@ -80,7 +80,6 @@ public:
   //clears old solution data from HDF file
   void ClearSolutionFromFile();
   void WriteSolution();
-  void WriteSurfaceVariables(){};
 
   void WriteRestartFile();
   void ReadRestartFile();
