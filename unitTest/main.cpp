@@ -7,6 +7,7 @@
 #include "compressibleFRTest.h"
 #include "pythonTest.h"
 #include "pythonInterface.h"
+#include "elementTest.h"
 
 int main(int argc, char** argv)
 {

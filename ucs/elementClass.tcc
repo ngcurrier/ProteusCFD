@@ -3,6 +3,7 @@
 #include "macros.h"
 #include "strings_util.h"
 #include "functor.h"
+#include "geometry.h"
 #include <string>
 #include <sstream>
 #include <iomanip>
@@ -221,6 +222,28 @@ Triangle<Type>::Triangle()
   this->nodes = new Int[3];
 }
 
+//gets the normal for the element
+//normal - vector which contains (nx, ny, nz, area) on return
+//xyz - list of all nodes which this element is built from
+template <class Type>
+void Triangle<Type>::GetNormal(std::vector<Type>& normal, Type const * const xyz) const
+{
+  normal.resize(4,0.0);
+  Type* area = (Type*)alloca(sizeof(Type)*3);
+  Type* norm = (Type*)alloca(sizeof(Type)*3);
+  Int nodes[this->GetNnodes()];
+  this->GetNodes(nodes);
+  Type const * const pt1 = &xyz[nodes[0]*3];
+  Type const * const pt2 = &xyz[nodes[1]*3];
+  Type const * const pt3 = &xyz[nodes[2]*3];
+  CalcTriArea(pt1, pt2, pt3, area);
+  //first 3 values are the normal, last is the area
+  normal[3] = Normalize(area, norm);
+  normal[0] = norm[0];
+  normal[1] = norm[1];
+  normal[2] = norm[2];
+}
+
 template <class Type>
 Int Triangle<Type>::GetType() const
 {
@@ -434,6 +457,36 @@ template <class Type>
 Int Quadrilateral<Type>::GetType() const
 {
   return QUAD;
+}
+
+//gets the normal for the element
+//normal - vector which contains (nx, ny, nz, area) on return
+//xyz - list of all nodes which this element is built from
+template <class Type>
+void Quadrilateral<Type>::GetNormal(std::vector<Type>& normal, Type const * const xyz) const
+{
+  normal.resize(4,0.0);
+  Type* area = (Type*)alloca(sizeof(Type)*3);
+  Type* areab = (Type*)alloca(sizeof(Type)*3);
+  Type* norm = (Type*)alloca(sizeof(Type)*3);
+  Int nodes[this->GetNnodes()];
+  this->GetNodes(nodes);
+  Type const * const pt1 = &xyz[nodes[0]*3];
+  Type const * const pt2 = &xyz[nodes[1]*3];
+  Type const * const pt3 = &xyz[nodes[2]*3];
+  Type const * const pt4 = &xyz[nodes[3]*3];
+  CalcTriArea(pt1, pt2, pt3, area);
+  CalcTriArea(pt3, pt4, pt1, areab);
+  area[0] = area[0] + areab[0];
+  area[1] = area[1] + areab[1];
+  area[2] = area[2] + areab[2];
+  //first 3 values are the normal, last is the area
+  //we use area weighted averaging for the two "triangles which make up a quad across its diagonal"
+  Type tmparea = Normalize(area, norm);
+  normal[0] = norm[0];
+  normal[1] = norm[1];
+  normal[2] = norm[2];
+  normal[3] = tmparea;
 }
 
 template <class Type> template <class Type2>

@@ -82,8 +82,11 @@ class Mesh
 
   //give local node number, returns owning process and the localid of that node 
   //on the owning process... owning Process and localId return negative if in error
-  void GetParallelTuple(Int node, Int* owningProcess, Int* localId);
+  void GetParallelTuple(Int node, Int& owningProcess, Int& localId) const;
 
+  //computes the normal vector to a node based on neighbor faces
+  void GetNodeNeighborhoodNormal(Int npt, std::vector<Type>& normal) const; 
+  
   Int IsInteriorNode(Int n) const;   //interior to mesh
   Int IsGhostNode(Int n) const;      //parallel update nodes
   Int IsBoundaryNode(Int n) const;   //boundary condition nodes

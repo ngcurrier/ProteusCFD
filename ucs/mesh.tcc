@@ -1214,22 +1214,41 @@ Bool Mesh<Type>::IsElemParallel(Int gelem)
 }
 
 template <class Type>
-void Mesh<Type>::GetParallelTuple(Int node, Int* owningProcess, Int* localId)
+void Mesh<Type>::GetParallelTuple(Int node, Int& owningProcess, Int& localId) const
 {
   if(!IsGhostNode(node)){
-    *owningProcess = -1;
-    *localId = -1;
+    owningProcess = -1;
+    localId = -1;
     return;
   }
   else{
     node -= nnode;
-    *localId = gNodeLocalId[node];
-    *owningProcess = gNodeOwner[node];
+    localId = gNodeLocalId[node];
+    owningProcess = gNodeOwner[node];
     return;
   }
 }
 
-
+template <class Type>
+void Mesh<Type>::GetNodeNeighborhoodNormal(Int npt, std::vector<Type>& normal) const
+{
+  Int count = 0;
+  std::vector<Type> avg(4,0.0);
+  for(Int* indx = SelspBegin(npt); indx != SelspEnd(npt); ++indx){
+    Int selemid = *indx;
+    std::vector<Type> normal;
+    elementList[selemid]->GetNormal(normal);
+    avg[0] += normal[0]; //x
+    avg[1] += normal[1]; //y
+    avg[2] += normal[2]; //z
+    avg[3] += normal[3]; //actually face area
+    count++;
+  }
+  avg[0] /= (Type)count;
+  avg[1] /= (Type)count;
+  avg[2] /= (Type)count;
+  avg[3] /= (Type)count;
+}
 
 /******************************************/
 //Find repeats in a list, reorder list with

@@ -34,12 +34,18 @@ Real Distance(const theType pt1[3], const theType pt2[3])
   return( sqrt(dx*dx + dy*dy + dz*dz) );
 }
 
+//computes the magnitude of a vector
+//returns - magnitude
 template <class theType>
 theType Magnitude(const theType v[3])
 {
   return( sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]) );
 }
 
+//normalizes a vector
+//v - 3 space vector
+//rv - normalize vector returned
+//returns - magnitude of normalization
 template <class theType>
 theType Normalize(const theType v[3], theType rv[3])
 {
@@ -244,6 +250,11 @@ void ElementCentroid(const theType* nodes, const theType2 *xyz, theType etype,
   }
 } 
 
+//Computes the area of a triangle
+//pt1 - xyz values of 1st point
+//pt2 - xyz values of 2nd point
+//pt3 - xyz values of 3rd point
+//rpt - return value, direction area (x,y,z) of the resultant triangle
 template <class theType>
 void CalcTriArea(const theType pt1[3], const theType pt2[3], const theType pt3[3], theType rpt[3])
 {
@@ -258,7 +269,12 @@ void CalcTriArea(const theType pt1[3], const theType pt2[3], const theType pt3[3
   Scale((theType)0.5, rpt, 3);
 }
 
-
+//computes the volume of a tetrahedron
+//pt1 - xyz values of 1st point
+//pt2 - xyz values of 2nd point
+//pt3 - xyz values of 3rd point
+//pt4 - xyz values of 3rd point
+//returns volume of the tet
 template <class theType>
 theType CalcTetVol(const theType pt1[3], const theType pt2[3], const theType pt3[3], 
 			const theType pt4[3])
@@ -302,7 +318,14 @@ theType GetPlaneDefintion(const theType pt1[3], const theType pt2[3], const theT
   return mag;
 }
 
-//expects normalized vectors for normals
+//computes the intersection of two planes, expects normalized vectors for normals
+//pt1 - (xyz) of a point on the first plane
+//n1 - normal (xyz) of first plane
+//pt2 - (xyz) of a point on the second plane
+//n2 - normal (xyz) of second plane
+//rpt - (xyz) of a point on the intersection line
+//rn - normal vector which follows the direction of the intersection
+//return - angle between planes in radians
 template <class theType>
 theType FindPlanesIntersection(const theType pt1[3], const theType n1[3], const theType pt2[3], const theType n2[3],
 			       theType rpt[3], theType rn[3])
@@ -391,10 +414,12 @@ void TranslatePoints(theType* pts, theType dx[3], Int n)
   return;
 }
 
-//rotate list of points by theta given:
+//rotate list of points by theta given
+//pts - list of points (x1 y1 z1, x2 y2 z2, ...)
 //apt - axis point. center of rotation
-//axis
-//theta (rads)
+//axis - (xyz) normal of axis to rotate around
+//theta (rads) - angle to rotate by
+//n - number of points in list pts
 template <class theType>
 void RotatePoints(theType* pts, const theType apt[3], const theType axis[3], const theType theta, const Int n)
 {

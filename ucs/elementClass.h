@@ -4,6 +4,7 @@
 #include "general.h"
 #include "etypes.h"
 #include "mem_util.h"
+#include "exceptions.h"
 #include <iostream>
 #include <vector>
 
@@ -23,6 +24,8 @@ class Element
   Int GetNodes(Int** nodes);
   Int GetNodes(Int* nodes) const;
   Int GetNnodes() const;
+  virtual void GetNormal(std::vector<Type>& normal, Type const * const xyz) const
+  { Abort << "Element does not support normal calculation";};
   virtual Int GetType() const;
   void SetFactag(Int factag);
   Int GetFactag() const;
@@ -60,6 +63,7 @@ public:
   Triangle();
   template <class Type2>
   Triangle(const Triangle<Type2>& elemToCopy);
+  void GetNormal(std::vector<Type>& normal, Type const * const xyz) const;
   Int GetType() const;
   
   void GetGaussWeights(std::vector<Type>& gpoints, std::vector<Type>& gweights, Int degree) const;
@@ -77,6 +81,7 @@ public:
   Quadrilateral();
   template <class Type2>
   Quadrilateral(const Quadrilateral<Type2>& elemToCopy);
+  void GetNormal(std::vector<Type>& normal, Type const * const xyz) const;
   Int GetType() const;
   void GetGaussWeights(std::vector<Type>& gpoints, std::vector<Type>& gweights, Int degree) const;
   void EvaluateShapeFunctions(Type* elemXYZ, Type xi, Type eta, Type& det, Type* sfunc) const;

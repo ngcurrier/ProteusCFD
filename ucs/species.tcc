@@ -100,7 +100,7 @@ void Species<Type>::GetThermoCoeff(Type T, Type* a)
     std::stringstream ss;
     ss << "WARNING: Temperature outside of thermo valid range! Low range @ 200K";
     ss << " -- T = " << T << std::endl;
-    Abort << ss;
+    Abort << ss.str();
     for(i = 0; i < 7; i++){
       a[i] = thermo_coeff[0][i];
     }
@@ -109,7 +109,7 @@ void Species<Type>::GetThermoCoeff(Type T, Type* a)
     std::stringstream ss;
     ss << "WARNING: Temperature outside of thermo valid range! High range @ 6000K";
     ss << " -- T = " << T << std::endl;
-    Abort << ss;
+    Abort << ss.str();
     for(i = 0; i < 7; i++){
       a[i] = thermo_coeff[1][i];
     }
@@ -313,8 +313,7 @@ Int Species<Type>::GetDBInfo(std::string database)
 
   //compute href and dhf298
   dhf298 = GetH(298.15, false);
-  href = 0.0;
-  href = GetH(0.0, false);
+  href = GetH(298.15, false);
   
   //TODO: read in other important coeff. for diffusion, etc.
   
@@ -350,7 +349,6 @@ void Species<Type>::Print()
   std::cout << "T(K)\t\th (J/kg)\tCp (J/kg.K)\tk (W/m.K)\tmu (Pa.s)" << std::endl;
   std::cout << "-----------------------------------------------------------------------------------------" << std::endl;
   std::cout.setf(std::ios::scientific);
-  std::cout << 0.0 << "\t" << std::setw(8) << GetH(0.0) << "\t" << std::setw(8) << GetCp(0.0) << std::endl;
   std::cout << 298.0 << "\t" << std::setw(8) << GetH(298.0) << "\t" << std::setw(8) << GetCp(298.0) << std::endl;
   if(hasViscousProps){
     for(Int i = 0; i <= 20; i++){
