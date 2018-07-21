@@ -97,15 +97,19 @@ void Species<Type>::GetThermoCoeff(Type T, Type* a)
 {
   Int i;
   if(real(T) < 200.0){
-    //std::cerr << "WARNING: Temperature outside of thermo valid range! Pinning @ 200K";
-    //std::cerr << " -- T = " << T << std::endl;
+    std::stringstream ss;
+    ss << "WARNING: Temperature outside of thermo valid range! Low range @ 200K";
+    ss << " -- T = " << T << std::endl;
+    Abort << ss;
     for(i = 0; i < 7; i++){
       a[i] = thermo_coeff[0][i];
     }
   }
   else if(real(T) > 6000.0){
-    //std::cerr << "WARNING: Temperature outside of thermo valid range! Pinning @ 6000K";
-    //std::cerr << " -- T = " << T << std::endl;
+    std::stringstream ss;
+    ss << "WARNING: Temperature outside of thermo valid range! High range @ 6000K";
+    ss << " -- T = " << T << std::endl;
+    Abort << ss;
     for(i = 0; i < 7; i++){
       a[i] = thermo_coeff[1][i];
     }
@@ -124,7 +128,6 @@ void Species<Type>::GetThermoCoeff(Type T, Type* a)
       }
     }
   }
-  return;
 }
 
 template <class Type>
