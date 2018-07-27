@@ -119,7 +119,8 @@ Dependencies for OS (you need to install these on the system prior to building)
 * Make for building ProteusCFD and tools
 * GNU/C/C++
 * GNU FORTRAN (gfortran)
-* MPI (version dependent on local machine infrastructure, we suggest openMPI if you get a choice)
+* MPI (version dependent on local machine infrastructure, we suggest openMPI if you get a choice) - requires dev version
+* Dev version of python for inclusion of python headers libpython-dev
 
 Dependencies for GUI
 ====================
