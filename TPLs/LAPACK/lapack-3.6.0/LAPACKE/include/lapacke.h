@@ -140,7 +140,7 @@ typedef lapack_logical (*LAPACK_Z_SELECT1) ( const lapack_complex_double* );
 typedef lapack_logical (*LAPACK_Z_SELECT2)
     ( const lapack_complex_double*, const lapack_complex_double* );
 
-#include "lapacke_mangling.h"
+#include "lapacke_mangling_with_flags.h"
 
 #define LAPACK_lsame LAPACK_GLOBAL(lsame,LSAME)
 lapack_logical LAPACK_lsame( char* ca,  char* cb,
