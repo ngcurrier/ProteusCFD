@@ -119,8 +119,10 @@ Dependencies for OS (you need to install these on the system prior to building)
 * Make for building ProteusCFD and tools
 * GNU/C/C++
 * GNU FORTRAN (gfortran)
-* MPI (version dependent on local machine infrastructure, we suggest openMPI if you get a choice) - requires dev version
+* MPI (version dependent on local machine infrastructure, we suggest openMPI if you get a choice) - requires dev version headers
 * Dev version of python for inclusion of python headers libpython-dev
+* H5PY (package python-h5py on Debian) - needed for chemistry database
+* Package libz-dev on Debian
 
 Dependencies for GUI
 ====================
