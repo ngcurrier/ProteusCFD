@@ -1,4 +1,5 @@
 #include "base64.h"
+#include "math.h"
 
 //used to check if a list is negative or not
 //class must allow random access via []
@@ -4706,8 +4707,16 @@ Int Mesh<Type>::WriteXMLVTK_Binary(std::string casename, std::vector<SolutionFie
 	if(field.DofIsVector(j)){
 	  fout << "<DataArray type=\"Float64\" Name=\"" << field.GetDofName(j) << "\" NumberOfComponents=\"3\" format=\"ascii\">" << std::endl;
 	  for(i = 0; i < nnode; i++){
-	    //fout.write((char*)&q[i*neqn + j], sizeof(Real)*3);
-	    fout << q[i*neqn + j + 0] << " " << q[i*neqn + j + 1] << " " << q[i*neqn + j + 2] << " " ;
+	    //we check for nan's here for a few reasons... mostly because paraview chokes if we dump them out but with
+	    //a really oddball array not long enough error which is not useful. So we do something clever and dump a huge actual number
+	    //instead b/c at least that allows diagnostics
+	    if(isnan(real(q[i*neqn + j + 0])) || isnan(real(q[i*neqn + j +1])) || isnan(real(q[i*neqn + j + 2]))){
+	      fout << std::numeric_limits<double>::max() << " " << std::numeric_limits<double>::max() << " " <<std::numeric_limits<double>::max() << std::endl;
+	    }
+	    else{
+	      //fout.write((char*)&q[i*neqn + j], sizeof(Real)*3);
+	      fout << q[i*neqn + j + 0] << " " << q[i*neqn + j + 1] << " " << q[i*neqn + j + 2] << " " ;
+	    }
 	  }
 	  j+=2;
 	  fout << "</DataArray>";
