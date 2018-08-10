@@ -10,6 +10,7 @@
 
 #include "general.h"
 #include "parameterParser.h"
+#include "xmlreader.h"
 
 //this is a list of the modes available to the solver
 //these are mostly used for computational design

@@ -21,7 +21,7 @@ DEPS_COMMON = $(SRCS_COMMON:.cpp=.d)
 
 SRCS_SOLVER = ./ucs/main.cpp ./ucs/eqnset.cpp ./ucs/etypes.cpp ./ucs/threaded.cpp ./ucs/parallel.cpp \
 	./ucs/customics.cpp ./ucs/oddsNends.cpp ./ucs/portFileio.cpp \
-	./ucs/elements.cpp ./ucs/dataInfo.cpp ./ucs/derivatives.cpp ./ucs/pythonInterface.cpp
+	./ucs/elements.cpp ./ucs/dataInfo.cpp ./ucs/derivatives.cpp ./ucs/pythonInterface.cpp ./ucs/xmlreader.cpp
 SRCS_DECOMP = ./ucs/decomp.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/parallel.cpp \
 	./ucs/oddsNends.cpp ./ucs/dataInfo.cpp
 SRCS_RECOMP = ./ucs/recomp.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/parallel.cpp \
@@ -46,7 +46,7 @@ DEPS_CHEMPROPS = $(SRCS_CHEMPROPS:.cpp=.d)
 
 # --------- BEGIN OPTIMIZATION TOOLKIT SECTION
 
-CSRCS_PORTOPT = ./ucs/portDriver.cpp ./ucs/portFunctions.cpp ./ucs/portFileio.cpp ./ucs/lineSearch.cpp
+CSRCS_PORTOPT = ./ucs/portDriver.cpp ./ucs/portFunctions.cpp ./ucs/portFileio.cpp ./ucs/lineSearch.cpp ./ucs/xmlreader.cpp
 FSRCS_PORTOPT = ./ucs/portF.f
 OBJS_PORTOPT = $(CSRCS_PORTOPT:.cpp=.o) $(FSRCS_PORTOPT:.cpp=.o)
 
@@ -56,7 +56,7 @@ SRCS_STRUCT_SOLVER = ./structuralDynamics/main.cpp ./structuralDynamics/element_
 	./structuralDynamics/structparam.cpp ./structuralDynamics/utility.cpp \
 	./structuralDynamics/explicit.cpp ./structuralDynamics/implicit.cpp \
 	./structuralDynamics/forces.cpp ./structuralDynamics/bc.cpp ./structuralDynamics/io.cpp \
-	./structuralDynamics/fluid_structure.cpp
+	./structuralDynamics/fluid_structure.cpp ./ucs/xmlreader.cpp
 OBJS_STRUCT_SOLVER = $(SRCS_STRUCT_SOLVER:.cpp=.o)
 DEPS_STRUCT_SOLVER = $(SRCS_STRUCT_SOLVER:.cpp=.d)
 
@@ -85,13 +85,13 @@ $(EXE_FINDPOINT): $(DEPS_FINDPOINT) $(OBJS_FINDPOINT)
 	$(MPICXX) $(LINK_OPTS) -o $(EXE_FINDPOINT) $(LCXXFLAGS) $(OBJS_FINDPOINT) $(CXXLIBS) -ltinyxml
 
 $(EXE_PORTOPT): $(OBJS_PORTOPT)
-	$(FXX) $(FXX_LINK_OPTS) -o $(EXE_PORTOPT) $(LCXXFLAGS) $(OBJS_PORTOPT) $(FXXLIBS) -lcommon
+	$(FXX) $(FXX_LINK_OPTS) -o $(EXE_PORTOPT) $(LCXXFLAGS) $(OBJS_PORTOPT) $(FXXLIBS) -lcommon -ltinyxml
 
 $(EXE_CHEMPROPS): $(DEPS_CHEMPROPS) $(OBJS_CHEMPROPS) ./ucs/libcommon.a $(HDF5_LIB)/libhdf5.a
 	$(MPICXX) $(LINK_OPTS) -o $(EXE_CHEMPROPS) $(LCXXFLAGS) $(OBJS_CHEMPROPS) $(CXXLIBS)
 
 $(EXE_STRUCT_SOLVER): $(DEPS_STRUCT_SOLVER) $(OBJS_STRUCT_SOLVER) $(LAPACK_LIB)/liblapacke.a ./ucs/libcommon.a
-	$(MPICXX) -o $(EXE_STRUCT_SOLVER) $(LCXXFLAGS) $(OBJS_STRUCT_SOLVER) $(CXXLIBS) -llapacke
+	$(MPICXX) -o $(EXE_STRUCT_SOLVER) $(LCXXFLAGS) $(OBJS_STRUCT_SOLVER) $(CXXLIBS) -llapacke -ltinyxml
 
 $(EXE_STRUCT_ERROR): ./structuralDynamics/error.o ./ucs/libcommon.a
 	$(MPICXX) -o $(EXE_STRUCT_ERROR) $(LCXXFLAGS) ./structuralDynamics/error.o $(CXXLIBS)
