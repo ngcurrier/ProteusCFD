@@ -18,6 +18,10 @@ void XMLReader::RegisterCallback(std::string path, XMLReaderCallbackInterface* c
 
 void XMLReader::ProcessXML()
 {
+  //NOTE: elements are tags like <element>
+  //      text are values between tags like <element> text </element>
+  //      so we check keys for matches on elements and the text associated
+  //      with those are the file input values we store/process
   dump_to_stdout(doc);
 }
 
@@ -39,7 +43,8 @@ void dump_to_stdout( TiXmlNode * pParent, unsigned int indent)
   TiXmlText *pText;
   int t = pParent->Type();
   printf( "%s", getIndent( indent));
-
+  TiXmlNode* child;
+  
   switch ( t )
     {
     case TiXmlNode::TINYXML_DOCUMENT:
@@ -47,6 +52,7 @@ void dump_to_stdout( TiXmlNode * pParent, unsigned int indent)
       break;
 
     case TiXmlNode::TINYXML_ELEMENT:
+      child = pParent->FirstChild();
       printf( "Element \"%s\"", pParent->Value() );
       break;
 

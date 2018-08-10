@@ -6,21 +6,44 @@
 #include <vector>
 #include <map>
 #include "tinyxml.h"
+#include "exceptions.h"
 
 class XMLReaderCallbackInterface
 {
 public:
-    // The prefix "cbi" is to prevent naming clashes.
-    virtual void cbiCallbackFunction(int) = 0;
+    virtual void callbackFunction(TiXmlNode* node) = 0;
+};
+
+class CallbackCalleeDouble : public XMLReaderCallbackInterface
+{
+ public:
+ CallbackCalleeDouble(double& storagePtr, std::string key):
+  storagePtr(storagePtr), key(key) { };
+  void callbackFunction(TiXmlNode* node)
+  {
+    int t = node->Type();
+    if(t == TiXmlNode::TINYXML_TEXT){
+      TiXmlPrinter printer;
+      node->Accept(&printer);
+      std::stringstream ss(printer.CStr());
+      ss >> storagePtr;
+    }
+    else{
+      Abort << "CallbackCalleeDouble::calbackFunction found wrong type";
+    }
+  };
+ private:
+  double& storagePtr;
+  std::string key;
 };
 
 class CallbackCalleeExample : public XMLReaderCallbackInterface
 {
 public:
     // The callback function that Caller will call.
-    void cbiCallbackFunction(int i)  
+    void callbackFunction(TiXmlNode* node)  
     { 
-      printf("  Callee::cbiCallbackFunction() inside callback\n");
+      printf("  Callee::callbackFunction() inside callback\n");
     }
 };
 
