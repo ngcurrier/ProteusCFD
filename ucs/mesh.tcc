@@ -3290,7 +3290,7 @@ Int Mesh<Type>::ReadSU2_Ascii(std::string filename)
 }
 
 template <class Type>
-Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
+Int Mesh<Type>::ReadGMSH2_Ascii(std::string filename)
 {
   //Winding information (edgelist):
   // Triangle {0-1,1-2,2-0}
@@ -3391,17 +3391,15 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
 	break;
       case ReadMeshFormat:
 	{
-	  std::cout << "GMSH ASCII I/I: Reading mesh format" << std::endl;
+	  std::cout << "GMSH ASCII I/O: Reading mesh format" << std::endl;
 	  Real version;
 	  Int tmp;
 	  ss >> version;	
-	  std::cout << "GMSH ASCII I/I: Reading mesh format version " << version << std::endl;
+	  std::cout << "GMSH ASCII I/O: Reading mesh format version " << version << std::endl;
 	  ss >> tmp;
-	  Int ndim;
-	  ss >> ndim;
-	  if(ndim != 3){
-	    std::cerr << "GMSH ASCII I/O: Number of dimensions required is 3. Received " << ndim << std::endl;
-	  }
+	  Int datasize;
+	  ss >> datasize;
+	  std::cout << "GMSH ASCII I/O: Reading mesh dataszie " << datasize << std::endl;
 	}
 	break;
       case ReadNpoints:
@@ -3612,6 +3610,374 @@ Int Mesh<Type>::ReadGMSH_Ascii(std::string filename)
   
   return 0;
 }
+
+template <class Type>
+Int Mesh<Type>::ReadGMSH4_Ascii(std::string filename)
+{
+  //Winding information (edgelist):
+  // Triangle {0-1,1-2,2-0}
+  // Quad {0-1,1-2,2-3,3-0}
+  // Tet {0-3,3-1,1-0}, {3-1,1-2,2-3}, {1-0,0-2,2-1}, {0-3,3-2,2-0}
+  // Prism {1-2,2-0,0-1}, {4-5,5-3,3-4}, {1-2,2-5,5-4,4-1}, {2-0,0-3,3-5,5-2}, {0-1,1-4,4-3,3-0}
+  // Pyramid {3-0,0-1,1-2,2-3}, {1-2,2-4,4-1}, {0-1,1-4,4-0}, {2-3,3-4,4-2}, {3-0,0-4,4-3}
+  // Hex {0-4,4-7,7-3,3-0}, {4-5,5-6,6-7,7-4}, {5-1,1-2,2-6,6-5}, {1-0,0-3,3-2,2-1}, {0-1,1-5,5-4,4-0}, {7-6,6-2,2-3,3-7}
+
+  //
+  // table converts from gmsh --> our format
+  //
+  Int translation[][8] = {
+    {0,1,2}, // Triangle
+    {0,1,2,3}, // Quad
+    {0,1,2,3},  // Tet
+    {0,1,2,3,4},  // Pyramid
+    {0,1,2,3,4,5},  // Prism
+    {0,1,2,3,4,5,6,7}  // Hex
+  };
+
+  Element<Type>* tempe = NULL;
+  std::ifstream fin;
+  std::string line;
+  size_t lineCount = 0;
+  
+  //states for our state machine reader
+  enum{
+    None, /* this state is looking for new sections*/
+    ReadMeshFormat,
+    ReadNpoints,
+    ReadPoints,
+    ReadNelem,
+    ReadElem,
+    ReadNphysicalNames,
+    ReadPhysicalNames,
+    ReadEntityInfoNodes,
+    ReadEntityInfoElems,
+    Exit,
+    NSTATES
+  };
+  
+  std::map<std::string, int> stateMap;
+  stateMap["$MeshFormat"] = ReadMeshFormat;
+  stateMap["$EndMeshFormat"] = None;
+  stateMap["$ParametricNodes"] = ReadNpoints;
+  stateMap["$EndParametricNodes"] = None;
+  stateMap["$Nodes"] = ReadNpoints;
+  stateMap["$EndNodes"] = None;
+  stateMap["$Elements"] = ReadNelem;
+  stateMap["$EndElements"] = None;
+  stateMap["$PhysicalNames"] = ReadNphysicalNames;
+  stateMap["$EndPhysicalNames"] = None;
+  stateMap["$NodeData"] = None; //ignore this
+  stateMap["$EndNodeData"] = None;
+  stateMap["$ElementData"] = None; //ignore this
+  stateMap["$EndElementData"] = None;
+  stateMap["$Entities"] = None; //ignore this
+  stateMap["$EndEntities"] = None;
+  
+  Int state = None;
+  Int nodesRead = 0; //counter to keep track of how many nodes have been read
+  Int elemRead = 0;  //counter to keep track of how many elements have been read
+  Int totalElems = 0; //tracks total elements expected
+  Int nEntityBlocks = 0; // tracks number of entities blocks
+  Int nEntityNodes = 0; //local value for nodes in entity
+  Int nEntityElems = 0; //local value for elems in entity
+  Int entityNodesRead = 0; //counter for number of entity nodes read
+  Int entityElemsRead = 0; //counter for number of entity elems read
+
+  
+  std::cout << "GMSH ASCII I/O: Reading file --> " << filename << std::endl;
+
+  fin.open(filename.c_str());
+  if(!fin.is_open()){
+    std::cerr << "Could not open file " << filename << " in GMSH ASCII I/O" << std::endl;
+    return(-1);
+  }
+
+  //read each line one at a time, use a state machine to process data
+  std::size_t loc;
+  while(std::getline(fin, line)){
+    lineCount++;
+    if(line.size() == 0) continue; //skip blank lines
+    if(line[0] == '%') continue; //skip comment lines
+    //this is a state change
+    if(line[0] == '$'){
+      std::map<std::string, int>::iterator it = stateMap.find(line);
+      if(it != stateMap.end()){
+	state = stateMap[line];
+	continue;
+      }
+      else{
+	std::cerr << "GMSH ASCII I/O: found bad state " << state << std::endl;
+	return(-1);
+      }
+    }
+    std::stringstream ss;
+    ss.str(line);
+    //use our state machine to do cool stuff with the datas...
+    Int numberOfTags = 0;
+    std::vector<double> nodes;
+
+    //entity information
+    Int tagEntity;
+    Int dimEntity;
+    Int parametric;
+    Int elemType;
+
+    switch(state)
+      {
+      case None:
+	//this just skips the line read and moves on
+	break;
+      case ReadMeshFormat:
+	{
+	  std::cout << "GMSH ASCII I/I: Reading mesh format" << std::endl;
+	  Real version;
+	  Int tmp;
+	  ss >> version;	
+	  std::cout << "GMSH ASCII I/O: Reading mesh format version " << version << std::endl;
+	  if (version != 4){
+	    std::cerr << "GMSH ASCII I/O: Expecting version 4.0. Quitting" << std::endl;
+	    std::cerr << "GMSH ASCII I/O: line # " << lineCount << std::endl;
+	    return(-1);
+	  }
+	  ss >> tmp;
+	  Int datasize;
+	  ss >> datasize;
+	  if(datasize != 8){
+	    std::cerr << "GMSH ASCII I/O: Data size expected is 8. Received " << datasize << std::endl;
+	    std::cerr << "GMSH ASCII I/O: line # " << lineCount << std::endl;
+	  }
+	}
+	break;
+      case ReadEntityInfoNodes:
+	  ss >> tagEntity;
+	  ss >> dimEntity;
+	  ss >> parametric;
+	  ss >> nEntityNodes;
+	  std::cout << "GMSH ASCII I/O: Reading entity " << tagEntity << " with " << nEntityNodes << " nodes" << std::endl;
+ 	  entityNodesRead = 0;
+	  if(nEntityNodes != 0){
+	    state = ReadPoints;
+	  }
+	  else{
+	    state = ReadEntityInfoNodes;
+	  }
+	break; 
+      case ReadEntityInfoElems:
+	  ss >> tagEntity;
+	  ss >> dimEntity;
+	  ss >> elemType;
+	  ss >> nEntityElems;
+	  std::cout << "GMSH ASCII I/O: Reading entity " << tagEntity << " with " << nEntityElems << " elems - of type " << elemType << std::endl;
+	  entityElemsRead = 0;
+	  if(nEntityElems != 0){
+	    state = ReadElem;
+	  }
+	  else{
+	    state = ReadEntityInfoElems;
+	  }
+	  break;
+     case ReadNpoints:
+	ss >> nEntityBlocks;
+	std::cout << "GMSH ASCII I/O: Number of node entity blocks to read is " << nEntityBlocks << std::endl;
+	ss >> nnode;
+	std::cout << "GMSH ASCII I/O: Number of points to read is " << nnode << std::endl;
+	MemInitMesh();
+	std::cout << "GMSH ASCII I/O: Memory initialized" << std::endl;
+	state = ReadEntityInfoNodes; //trip to next state for reading
+	break;
+      case ReadPoints:
+	{
+	  Int ptid;
+	  ss >> ptid;
+	  if(nodesRead >= nnode){
+	    std::cerr << "GMSH ASCII I/O: Node read is " << ptid-1 << " which is greater than maximum " << nnode << std::endl;
+	    std::cerr << "GMSH ASCII I/O: line # " << lineCount << std::endl;
+	  }
+	  ss >> xyz[(ptid-1)*3 + 0];
+	  ss >> xyz[(ptid-1)*3 + 1];
+	  ss >> xyz[(ptid-1)*3 + 2];
+	  nodesRead++;
+	  entityNodesRead++;
+	  if(entityNodesRead >= nEntityNodes){
+	    state = ReadEntityInfoNodes;
+	  }
+	}
+	break;
+      case ReadNelem:
+	ss >> nEntityBlocks;
+	std::cout << "GMSH ASCII I/O: Number of element entity blocks to read is " << nEntityBlocks << std::endl;
+	ss >> totalElems;
+	std::cout << "GMSH ASCII I/O: Number of elements to read is " << totalElems << std::endl;
+	state = ReadEntityInfoElems; //trip to next state for reading
+	break;
+      case ReadElem:
+	{
+	  Int elemId = 0;
+	  ss >> elemId;
+	  Int physicalId = tagEntity;
+	  if(elemType == GMSH_LINE){
+	    std::cerr << "GMSH ASCII I/O: found line elements in file, these shouldn't be here. Ignoring.\n";
+	  }
+	  else if(elemType == GMSH_POINT){
+	    std::cerr << "GMSH ASCII I/O: found point elements in file, these shouldn't be here. Ignoring.\n";
+	  }
+	  else if(elemType == GMSH_TRI){
+	    Int nodes[3];
+	    ss >> nodes[0];
+	    ss >> nodes[1];
+	    ss >> nodes[2];
+	    //gmsh nodes are 1 based, we are zero based
+	    nodes[0]--;
+	    nodes[1]--;
+	    nodes[2]--;
+	    TranslateWinding(nodes, translation, mnode[TRI], TRI, 0);
+	    tempe = new Triangle<Type>;
+	    tempe->Init(nodes);
+	    tempe->SetFactag(physicalId);
+	    elementList.push_back(tempe);
+	    nelem[TRI]++;
+	  }
+	  else if(elemType == GMSH_QUAD){
+	    Int nodes[4];
+	    ss >> nodes[0];
+	    ss >> nodes[1];
+	    ss >> nodes[2];
+	    ss >> nodes[3];
+	    //gmsh nodes are 1 based, we are zero based
+	    nodes[0]--;
+	    nodes[1]--;
+	    nodes[2]--;
+	    nodes[3]--;
+	    TranslateWinding(nodes, translation, mnode[QUAD], QUAD, 0);
+	    tempe = new Quadrilateral<Type>;
+	    tempe->Init(nodes);
+	    tempe->SetFactag(physicalId);
+	    elementList.push_back(tempe);
+	    nelem[QUAD]++;
+	  }
+	  else if(elemType == GMSH_TET){
+	    Int nodes[4];
+	    ss >> nodes[0];
+	    ss >> nodes[1];
+	    ss >> nodes[2];
+	    ss >> nodes[3];
+	    //gmsh nodes are 1 based, we are zero based
+	    nodes[0]--;
+	    nodes[1]--;
+	    nodes[2]--;
+	    nodes[3]--;
+	    TranslateWinding(nodes, translation, mnode[TET], TET, 0);
+	    tempe = new Tetrahedron<Type>;
+	    tempe->Init(nodes);
+	    elementList.push_back(tempe);
+	    nelem[TET]++;
+	  }
+	  else if(elemType == GMSH_HEX){
+	    Int nodes[8];
+	    ss >> nodes[0];
+	    ss >> nodes[1];
+	    ss >> nodes[2];
+	    ss >> nodes[3];
+	    ss >> nodes[4];
+	    ss >> nodes[5];
+	    ss >> nodes[6];
+	    ss >> nodes[7];
+	    //gmsh nodes are 1 based, we are zero based
+	    nodes[0]--;
+	    nodes[1]--;
+	    nodes[2]--;
+	    nodes[3]--;
+	    nodes[4]--;
+	    nodes[5]--;
+	    nodes[6]--;
+	    nodes[7]--;
+	    TranslateWinding(nodes, translation, mnode[HEX], HEX, 0);
+	    tempe = new Hexahedron<Type>;
+	    tempe->Init(nodes);
+	    elementList.push_back(tempe);
+	    nelem[HEX]++;
+	  }
+	  else if(elemType == GMSH_PRISM){
+	    Int nodes[6];
+	    ss >> nodes[0];
+	    ss >> nodes[1];
+	    ss >> nodes[2];
+	    ss >> nodes[3];
+	    ss >> nodes[4];
+	    ss >> nodes[5];
+	    //gmsh nodes are 1 based, we are zero based
+	    nodes[0]--;
+	    nodes[1]--;
+	    nodes[2]--;
+	    nodes[3]--;
+	    nodes[4]--;
+	    nodes[5]--;
+	    TranslateWinding(nodes, translation, mnode[PRISM], PRISM, 0);
+	    tempe = new Prism<Type>;
+	    tempe->Init(nodes);
+	    elementList.push_back(tempe);
+	    nelem[PRISM]++;
+	  }
+	  else if(elemType == GMSH_PYRAMID){
+	    Int nodes[5];
+	    ss >> nodes[0];
+	    ss >> nodes[1];
+	    ss >> nodes[2];
+	    ss >> nodes[3];
+	    ss >> nodes[4];
+	    //gmsh nodes are 1 based, we are zero based
+	    nodes[0]--;
+	    nodes[1]--;
+	    nodes[2]--;
+	    nodes[3]--;
+	    nodes[4]--;
+	    TranslateWinding(nodes, translation, mnode[PYRAMID], PYRAMID, 0);
+	    tempe = new Pyramid<Type>;
+	    tempe->Init(nodes);
+	    elementList.push_back(tempe);
+	    nelem[PYRAMID]++;
+	  }
+	  else{
+	    std::cerr << "GMSH ASCII I/O: Element type " << elemType << " not valid" << std::endl;
+	    std::cerr << "GMSH ASCII I/O: line # " << lineCount << std::endl;
+	  }
+	  entityElemsRead++;
+	  if(entityElemsRead >= nEntityElems){
+	    state = ReadEntityInfoElems;
+	  }
+	}
+	break;
+	
+      default:
+	break;
+      }
+  }
+  fin.close();
+
+  lnelem = 0;
+  for(Int e = TRI; e <= HEX; e++){
+    lnelem += nelem[e];
+  }
+  if(nelem[TRI] == 0 && nelem[QUAD] == 0){
+    std::cerr << "GMSH ASCII I/O: Warning no surface tri/quad elements found. Did you create physical groups on the surface for BCs?\n";
+    return -1;
+  }
+  
+  if(totalElems != lnelem){
+    std::cerr << "GMSH ASCII I/O: Number of elements expected does not match number read in" << std::endl;
+    std::cerr << "GMSH ASCII I/O: This sometimes happen if we ignore lower order elements like linear" << std::endl;
+  }
+  std::cout << "GMSH ASCII I/O: Number of nodes " << nnode << std::endl;
+  std::cout << "GMSH ASCII I/O: Number of elements " << lnelem << std::endl;
+  std::cout << "GMSH ASCII I/O: Number of Tris " << nelem[TRI] << std::endl;
+  std::cout << "GMSH ASCII I/O: Number of Quads " << nelem[QUAD] << std::endl;
+  std::cout << "GMSH ASCII I/O: Number of Tets " << nelem[TET] << std::endl;
+  std::cout << "GMSH ASCII I/O: Number of Pyramids " << nelem[PYRAMID] << std::endl;
+  std::cout << "GMSH ASCII I/O: Number of Prisms " << nelem[PRISM] << std::endl;
+  std::cout << "GMSH ASCII I/O: Number of Hexes " << nelem[HEX] << std::endl;
+  std::cout << "GMSH ASCII I/O: Number of tagged boundaries " << nfactags << std::endl;
+  
+  return 0;
 
 template <class Type>
 Int Mesh<Type>::WriteCRUNCH_Ascii(std::string casename)
