@@ -17,6 +17,21 @@ class MeshTestGmsh : public testing::Test
   Mesh<Real> m;
 };
 
+class MeshTestGmsh4 : public testing::Test
+{
+ protected:
+ MeshTestGmsh4():
+  ierr(0)
+    { };
+  ~MeshTestGmsh4(){};
+
+  void SetUp(){};
+  void TearDown(){};
+
+  int ierr;
+  Mesh<Real> m;
+};
+
 class MeshTestUgrid : public testing::Test
 {
  protected:
@@ -74,6 +89,20 @@ TEST_F(MeshTestGmsh, testGmshRead)
   m.BuildMaps();
   m.CalcMetrics();
   EXPECT_NEAR(1.0, m.GetVolumeTotal(), 1.0e-7);
+}
+
+TEST_F(MeshTestGmsh4, testGmshRead)
+{
+  PObj<Real> pobj;
+  EXPECT_EQ(0, m.ReadGMSH4_Ascii("../unitTest/meshResources/Domain.msh"));
+  m.SetParallelPointer(&pobj);
+
+  EXPECT_EQ(56601,m.GetNumNodes());
+  EXPECT_EQ(327552, m.GetNumElem());
+
+  m.BuildMaps();
+  m.CalcMetrics();
+  EXPECT_NEAR(0.00201639, m.GetVolumeTotal(), 1.0e-7);
 }
 
 TEST_F(MeshTestUgrid, testUgridRead)
