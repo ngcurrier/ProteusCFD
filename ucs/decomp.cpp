@@ -65,7 +65,7 @@ int main(int argc, char* argv[]){
     ierr = m.ReadSU2_Ascii(filename);
   }
   else if(fileextension == "msh"){
-    ierr = m.ReadGMSH_Ascii(filename);
+    ierr = m.ReadGMSH4_Ascii(filename);
   }
   else{
     cerr << "File extension " << fileextension << " not recognized" << endl;

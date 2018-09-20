@@ -65,7 +65,7 @@ class MeshTestSU2 : public testing::Test
 TEST_F(MeshTestGmsh, testGmshRead)
 {
   PObj<Real> pobj;
-  EXPECT_EQ(0, m.ReadGMSH_Ascii("../unitTest/meshResources/cube.msh"));
+  EXPECT_EQ(0, m.ReadGMSH2_Ascii("../unitTest/meshResources/cube.msh"));
   m.SetParallelPointer(&pobj);
 
   EXPECT_EQ(14, m.GetNumNodes());

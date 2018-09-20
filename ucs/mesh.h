@@ -132,7 +132,8 @@ class Mesh
   Int ReadUGRID_Ascii(std::string filename);
   Int ReadCRUNCH_Ascii(std::string filename);
   Int ReadSU2_Ascii(std::string filename);
-  Int ReadGMSH_Ascii(std::string filename);
+  Int ReadGMSH2_Ascii(std::string filename);
+  Int ReadGMSH4_Ascii(std::string filename);
   Int WriteCRUNCH_Ascii(std::string casename);
   Int WriteVTK_Ascii(std::string casename, std::vector<SolutionField<Type>*>& fields);
   Int WriteVTK_Binary(std::string casename, std::vector<SolutionField<Type>*>& fields);

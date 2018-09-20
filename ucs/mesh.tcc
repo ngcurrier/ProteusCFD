@@ -3978,7 +3978,8 @@ Int Mesh<Type>::ReadGMSH4_Ascii(std::string filename)
   std::cout << "GMSH ASCII I/O: Number of tagged boundaries " << nfactags << std::endl;
   
   return 0;
-
+}
+  
 template <class Type>
 Int Mesh<Type>::WriteCRUNCH_Ascii(std::string casename)
 {
