@@ -185,13 +185,13 @@ void CompressibleEqnSet<Type>::RoeFlux(Type QL[], Type QR[], Type avec[], Type v
 
   //pseudo-2D simulations
   if(this->param->symmetry2D > 0){
-    if(this->param->symmetry2D == 0){
+    if(this->param->symmetry2D == 1){
       flux[1] = 0.0;
     }
-    else if(this->param->symmetry2D == 1){
+    else if(this->param->symmetry2D == 2){
       flux[2] = 0.0;
     }
-    else if(this->param->symmetry2D == 2){
+    else if(this->param->symmetry2D == 3){
       flux[3] = 0.0;
     }
   }
@@ -324,13 +324,13 @@ void CompressibleEqnSet<Type>::OneSidedRoeFlux(Type* QL, Type* QR, Type* avec,
 
   //pseudo-2D simulations
   if(this->param->symmetry2D > 0){
-    if(this->param->symmetry2D == 0){
+    if(this->param->symmetry2D == 1){
       flux[1] = 0.0;
     }
-    else if(this->param->symmetry2D == 1){
+    else if(this->param->symmetry2D == 2){
       flux[2] = 0.0;
     }
-    else if(this->param->symmetry2D == 2){
+    else if(this->param->symmetry2D == 3){
       flux[3] = 0.0;
     }
   }
@@ -589,13 +589,13 @@ void CompressibleEqnSet<Type>::ViscousFlux(Type* Q, Type* grad, Type* avec, Type
 
   //pseudo-2D simulations
   if(this->param->symmetry2D > 0){
-    if(this->param->symmetry2D == 0){
+    if(this->param->symmetry2D == 1){
       flux[1] = 0.0;
     }
-    else if(this->param->symmetry2D == 1){
+    else if(this->param->symmetry2D == 2){
       flux[2] = 0.0;
     }
-    else if(this->param->symmetry2D == 2){
+    else if(this->param->symmetry2D == 3){
       flux[3] = 0.0;
     }
   }
@@ -1644,17 +1644,17 @@ void CompressibleEqnSet<Type>::ViscousJacobian(Type* QL, Type* QR, Type* dx, Typ
   }
   //pseudo-2D simulations
   if(this->param->symmetry2D > 0){
-    if(this->param->symmetry2D == 0){
+    if(this->param->symmetry2D == 1){
       for(i = 0; i < neqn; i++){
 	aL[1*neqn + i] = aR[1*neqn + i] = 0.0;
       }
     }
-    else if(this->param->symmetry2D == 1){
+    else if(this->param->symmetry2D == 2){
       for(i = 0; i < neqn; i++){
 	aL[2*neqn + i] = aR[2*neqn + i] = 0.0;
       }
     }
-    else if(this->param->symmetry2D == 2){
+    else if(this->param->symmetry2D == 3){
       for(i = 0; i < neqn; i++){
 	aL[3*neqn + i] = aR[3*neqn + i] = 0.0;
       }

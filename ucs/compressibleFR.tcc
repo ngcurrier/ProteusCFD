@@ -533,13 +533,13 @@ void CompressibleFREqnSet<Type>::HLLCFlux(Type* QL, Type* QR, Type* avec, Type v
 
   //pseudo-2D simulations
   if(this->param->symmetry2D > 0){
-    if(this->param->symmetry2D == 0){
+    if(this->param->symmetry2D == 1){
       flux[nspecies] = 0.0;
     }
-    else if(this->param->symmetry2D == 1){
+    else if(this->param->symmetry2D == 2){
       flux[nspecies+1] = 0.0;
     }
-    else if(this->param->symmetry2D == 2){
+    else if(this->param->symmetry2D == 3){
       flux[nspecies+2] = 0.0;
     }
   }
@@ -627,13 +627,13 @@ void CompressibleFREqnSet<Type>::ViscousFlux(Type* Q, Type* grad, Type* avec, Ty
 
   //pseudo-2D simulations
   if(this->param->symmetry2D > 0){
-    if(this->param->symmetry2D == 0){
+    if(this->param->symmetry2D == 1){
       flux[nspecies] = 0.0;
     }
-    else if(this->param->symmetry2D == 1){
+    else if(this->param->symmetry2D == 2){
       flux[nspecies+1] = 0.0;
     }
-    else if(this->param->symmetry2D == 2){
+    else if(this->param->symmetry2D == 3){
       flux[nspecies+2] = 0.0;
     }
   }
@@ -2001,17 +2001,17 @@ void CompressibleFREqnSet<Type>::ViscousJacobian(Type* QL, Type* QR, Type* dx, T
 
   //pseudo-2D simulations
   if(this->param->symmetry2D > 0){
-    if(this->param->symmetry2D == 0){
+    if(this->param->symmetry2D == 1){
       for(i = 0; i < neqn; i++){
 	aL[nspecies*neqn + i] = aR[nspecies*neqn + i] = 0.0;
       }
     }
-    else if(this->param->symmetry2D == 1){
+    else if(this->param->symmetry2D == 2){
       for(i = 0; i < neqn; i++){
 	aL[(nspecies+1)*neqn + i] = aR[(nspecies+1)*neqn + i] = 0.0;
       }
     }
-    else if(this->param->symmetry2D == 2){
+    else if(this->param->symmetry2D == 3){
       for(i = 0; i < neqn; i++){
 	aL[(nspecies+2)*neqn + i] = aR[(nspecies+2)*neqn + i] = 0.0;
       }

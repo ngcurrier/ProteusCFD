@@ -193,13 +193,13 @@ void IncompressibleEqnSet<Type>::RoeFlux(Type QL[], Type QR[], Type avec[], Type
 
   //pseudo-2D simulations
   if(this->param->symmetry2D > 0){
-    if(this->param->symmetry2D == 0){
+    if(this->param->symmetry2D == 1){
       flux[1] = 0.0;
     }
-    else if(this->param->symmetry2D == 1){
+    else if(this->param->symmetry2D == 2){
       flux[2] = 0.0;
     }
-    else if(this->param->symmetry2D == 2){
+    else if(this->param->symmetry2D == 3){
       flux[3] = 0.0;
     }
   }
@@ -366,13 +366,13 @@ void IncompressibleEqnSet<Type>::ViscousFlux(Type* Q, Type* grad, Type* avec, Ty
 
   //pseudo-2D simulations
   if(this->param->symmetry2D > 0){
-    if(this->param->symmetry2D == 0){
+    if(this->param->symmetry2D == 1){
       flux[1] = 0.0;
     }
-    else if(this->param->symmetry2D == 1){
+    else if(this->param->symmetry2D == 2){
       flux[2] = 0.0;
     }
-    else if(this->param->symmetry2D == 2){
+    else if(this->param->symmetry2D == 3){
       flux[3] = 0.0;
     }
   }
