@@ -11,7 +11,7 @@ template <class Type>
 CompressibleEqnSet<Type>::CompressibleEqnSet(SolutionSpace<Type>* space, Param<Type>* p)
 {
   this->neqn = 5;
-  this->nauxvars = 2;
+  this->nauxvars = 5;
   this->param = p;
   this->space = space;
   //variable set is conservative
@@ -24,16 +24,20 @@ CompressibleEqnSet<Type>::CompressibleEqnSet(SolutionSpace<Type>* space, Param<T
    this->idata->AddScalar(4, std::string("TotalEnergy"));
    this->idata->AddScalar(5, std::string("Temperature"));
    this->idata->AddScalar(6, std::string("Pressure"));
+   this->idata->AddVector(7, std::string("Velocity"));
    this->idata->Verify();
 
    //set gradients required
    this->gdata = new DataInfo((this->neqn+1)*3, "gradVariableQ");
    this->gdata->AddVector(0*3, "Grad-Density");
-   this->gdata->AddVector(1*3, "Grad-u");
-   this->gdata->AddVector(2*3, "Grad-v");
-   this->gdata->AddVector(3*3, "Grad-w");
+   this->gdata->AddVector(1*3, "Grad-rhou");
+   this->gdata->AddVector(2*3, "Grad-rhov");
+   this->gdata->AddVector(3*3, "Grad-rhow");
    this->gdata->AddVector(4*3, "Grad-TotalEnergy");
    this->gdata->AddVector(5*3, "Grad-Temperature");
+   this->gdata->AddVector(6*3, "Grad-u");
+   this->gdata->AddVector(7*3, "Grad-v");
+   this->gdata->AddVector(8*3, "Grad-w");
    this->gdata->Verify();
 
    this->Qinf = new Type[this->neqn + this->nauxvars];
@@ -77,6 +81,12 @@ template <class Type>
 void CompressibleEqnSet<Type>::RoeFlux(Type QL[], Type QR[], Type avec[], Type vdotn,  
 				       Type gamma, Type flux[], Type beta)
 {
+
+#if 0
+  OneSidedRoeFlux(QL,QR,avec, vdotn, gamma, flux, beta);
+  return;
+#endif
+  
   Int i;
   
   Type Qroe[5];
@@ -99,6 +109,9 @@ void CompressibleEqnSet<Type>::RoeFlux(Type QL[], Type QR[], Type avec[], Type v
   /////////////////////////////////////////////////////////////////////////////
   // adjust the eigenvalues according to Harten and Hyman, 1983 (Hirsch,p. 469)
   // to prevent expansion shocks allowed by the Roe scheme
+  // this is the second type suggested by these authors
+  ////////////////////////////////////////////////////////////////////////////
+  
   Type gm1 = gamma -1.0;
   Type thetaR,thetaL,eigL,eigR,eps,cR,cL,eig;
   const Type rhoL  = QL[0];
@@ -122,21 +135,22 @@ void CompressibleEqnSet<Type>::RoeFlux(Type QL[], Type QR[], Type avec[], Type v
   cR = sqrt(gamma*PR/rhoR);
   cL = sqrt(gamma*PL/rhoL);
   
-  // eigenvalues 1,2,3
-  
+  // eigenvalues 1,2,3 (u)
   eigL  = thetaL;
   eigR  = thetaR;
   eig = eigenvalues[0];
   eps = MAX((eig - eigL),(eigR - eig));
   eps = MAX((Type)0.0,eps);
-  
   if (real(CAbs(eigenvalues[0])) < real(eps)){
     eigenvalues[0] = 0.5*(eigenvalues[0]*eigenvalues[0]/eps + eps);
     eigenvalues[1] = eigenvalues[0];
     eigenvalues[2] = eigenvalues[0];
   }
+  else{
+    eigenvalues[0] = eigenvalues[1] = eigenvalues[2] = CAbs(eigenvalues[0]);
+  }
   
-  // eigenvalue 4
+  // eigenvalue 4 (u+c)
   eigL  = thetaL + cL;
   eigR  = thetaR + cR;
   eig = eigenvalues[3];
@@ -145,8 +159,11 @@ void CompressibleEqnSet<Type>::RoeFlux(Type QL[], Type QR[], Type avec[], Type v
   if (real(CAbs(eigenvalues[3])) < real(eps)){
     eigenvalues[3] = 0.5*(eigenvalues[3]*eigenvalues[3]/eps + eps);
   }
+  else{
+    eigenvalues[3] = CAbs(eigenvalues[3]);
+  }
   
-  // eigenvalue 5 
+  // eigenvalue 5 (u-c)
   eigL  = thetaL - cL;
   eigR  = thetaR - cR;
   eig = eigenvalues[4];
@@ -154,6 +171,9 @@ void CompressibleEqnSet<Type>::RoeFlux(Type QL[], Type QR[], Type avec[], Type v
   eps = MAX((Type)0.0,eps);
   if (real(CAbs(eigenvalues[4])) < real(eps)){
     eigenvalues[4] = 0.5*(eigenvalues[4]*eigenvalues[4]/eps + eps);
+  }
+  else{
+    eigenvalues[4] = CAbs(eigenvalues[4]);
   }
   
   //compute difference
@@ -195,8 +215,6 @@ void CompressibleEqnSet<Type>::RoeFlux(Type QL[], Type QR[], Type avec[], Type v
       flux[3] = 0.0;
     }
   }
-
-  return;
 }  
 
 template <class Type>
@@ -526,19 +544,20 @@ void CompressibleEqnSet<Type>::ViscousFlux(Type* Q, Type* grad, Type* avec, Type
   //parse for readability
   Type ux, uy, uz, vx, vy, vz, wx, wy, wz;
   Type Tx, Ty, Tz;
-  ux = grad[3];
-  uy = grad[4];
-  uz = grad[5];
-  vx = grad[6];
-  vy = grad[7];
-  vz = grad[8];
-  wx = grad[9];
-  wy = grad[10];
-  wz = grad[11];
   Tx = grad[15];
   Ty = grad[16];
   Tz = grad[17];
-
+  ux = grad[18];
+  uy = grad[19];
+  uz = grad[20];
+  vx = grad[21];
+  vy = grad[22];
+  vz = grad[23];
+  wx = grad[24];
+  wy = grad[25];
+  wz = grad[26];
+  
+  
   Type u, v, w;
   Type rho = Q[0];
   u = Q[1]/rho;
@@ -807,53 +826,40 @@ Int CompressibleEqnSet<Type>::GetGradientsLocation(std::vector<Int>& gradientLoc
   return gradientLoc.size();
 }
 
-template <class Type>
-void CompressibleEqnSet<Type>::NativeToExtrapolated(Type* Q)
-{
-  //density
-  Type rho = Q[0];
-  //velocity
-  Q[1] /= rho;
-  Q[2] /= rho;
-  Q[3] /= rho;
-  //total energy
-}
 
+// recall that gradients are for primitive (rho,u,v,w,rhoEt) and not conservative
+// so we cannot extrpolate them directly, do some magic -- POOF!
+// Qho - higher order Q 
+// q - lower order Q 
+// dQedge - deltaQ across the face (native, i.e. qL-qR or qR-qL)
+// gradQ - gradient of lower order Q 
+// dx - vector distance from CV center to face
+// limiter - value 0 to 1 which limits extrapolation 
 template <class Type>
-void CompressibleEqnSet<Type>::ExtrapolatedToNative(Type* Q)
-{
-  //density
-  Type rho = Q[0];
-  //momentum
-  Q[1] *= rho;
-  Q[2] *= rho;
-  Q[3] *= rho;
-  //total energy
-}
-
-template <class Type>
-void CompressibleEqnSet<Type>::ExtrapolateVariables(Type* Qho, const Type* Q, const Type* dQedge, 
+void CompressibleEqnSet<Type>::ExtrapolateVariables(Type* Qho, const Type* q, const Type* dQedge, 
 						    const Type* gradQ, const Type* dx, const Type* limiter)
 {
   //density
-  Qho[0] = Q[0] + this->ExtrapolateCorrection(dQedge[0], &gradQ[0*3], dx)*limiter[0];
+  Qho[0] = q[0] + this->ExtrapolateCorrection(dQedge[0], &gradQ[0*3], dx)*limiter[0];
   //momentum
   #pragma ivdep
   for(Int i = 1; i < 4; i++){
-    Qho[i] = Q[i] + this->ExtrapolateCorrection(dQedge[i], &gradQ[i*3], dx)*limiter[i];
+    //get higher order u,v,w
+    Qho[i] = q[i] + this->ExtrapolateCorrection(dQedge[i], &gradQ[i*3], dx)*limiter[i];
   }
   //total energy
-  Qho[4] = Q[4] + this->ExtrapolateCorrection(dQedge[4], &gradQ[4*3], dx)*limiter[4];
+  Qho[4] = q[4] + this->ExtrapolateCorrection(dQedge[4], &gradQ[4*3], dx)*limiter[4];
 }
 
+//Q - native variables
 template <class Type>
 Int CompressibleEqnSet<Type>::BadExtrapolation(Type* Q)
 {
-  //check for negative pressure and total energy
+  //check for negative pressure, density, and total energy
   Type r = Q[0];
-  Type u = Q[1];
-  Type v = Q[2];
-  Type w = Q[3];
+  Type u = Q[1]/r;
+  Type v = Q[2]/r;
+  Type w = Q[3]/r;
   Type E = Q[4];
   Type gamma = this->param->gamma;
   Type v2h = 0.5*(u*u + v*v + w*w);
@@ -861,6 +867,9 @@ Int CompressibleEqnSet<Type>::BadExtrapolation(Type* Q)
   
   Type p = gm1*(E - r*v2h);
   if(real(p) < 1.0e-10){
+    return true;
+  }
+  if(real(r) < 0.0){
     return true;
   }
   if(real(E) < 1.0e-10){
@@ -1660,6 +1669,4 @@ void CompressibleEqnSet<Type>::ViscousJacobian(Type* QL, Type* QR, Type* dx, Typ
       }
     }
   }
-
-  return;
 }

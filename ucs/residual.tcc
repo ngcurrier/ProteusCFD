@@ -119,8 +119,6 @@ void SpatialResidual(SolutionSpace<Type>* space)
   }
 
   delete [] source;
-
-  return;
 }
 
 template <class Type>
@@ -178,8 +176,6 @@ void TemporalResidual(SolutionSpace<Type>* space, Type timestep, Int iter, Int t
   delete [] q;
   delete [] dq;
   delete [] dqm1;
-
-  return;
 }
 
 template <class Type>
@@ -236,7 +232,7 @@ void Kernel_Inviscid_Flux(KERNEL_ARGS)
     for(j = 0; j < neqn; j++){
       dQ[j] = qR[j] - qL[j];
     }
-
+    
     eqnset->ExtrapolateVariables(QL, qL, dQ, gradL, dx, limiterL);
 
     for(j = 0; j < neqn; j++){
@@ -249,8 +245,6 @@ void Kernel_Inviscid_Flux(KERNEL_ARGS)
 
     eqnset->ExtrapolateVariables(QR, qR, dQ, gradR, dx, limiterR);
 
-    eqnset->ExtrapolatedToNative(QL);
-    eqnset->ExtrapolatedToNative(QR);
     eqnset->ComputeAuxiliaryVariables(QL);
     eqnset->ComputeAuxiliaryVariables(QR);
 
@@ -275,8 +269,23 @@ void Kernel_Inviscid_Flux(KERNEL_ARGS)
     
   }
 
-  eqnset->NumericalFlux(QL, QR, avec, vdotn, tempR, avbeta);
-
+  bool error = eqnset->NumericalFlux(QL, QR, avec, vdotn, tempR, avbeta);
+  if(error){
+    std::cerr << "non-extrapolated values: ------------------------------" << std::endl;
+    for(int i = 0; i < neqn; ++i){
+      std::cerr << "qL[" << i  << "] = " << qL[i] << std::endl;
+    }
+    for(int i = 0; i < neqn; ++i){
+      std::cerr << "qR[" << i  << "] = " << qR[i] << std::endl;
+    }
+    for(int i = 0; i < neqn; ++i){
+      std::cerr << "limL[" << i << "] = " << limiterL[i] << std::endl;
+    }
+    for(int i = 0; i < neqn; ++i){
+      std::cerr << "limR[" << i << "] = " << limiterR[i] << std::endl;
+    }
+  }
+  
   //set data necessary for driver scatter
   *size = neqn;
   *ptrL = &space->crs->b[left_cv*neqn];
@@ -285,8 +294,6 @@ void Kernel_Inviscid_Flux(KERNEL_ARGS)
   for(i = 0; i < neqn; i++){
     tempL[i] = -tempR[i];
   }
-
-  return;
 }
 
 template <class Type>
@@ -304,6 +311,8 @@ void Bkernel_Inviscid_Flux(B_KERNEL_ARGS)
   Type* QL = (Type*)alloca(sizeof(Type)*nvars);
   Type* QR = (Type*)alloca(sizeof(Type)*nvars); 
   Type* dQ = (Type*)alloca(sizeof(Type)*nvars);
+  Type* limiterL = &space->limiter->l[left_cv*neqn];
+  Type* limiterR = &space->limiter->l[right_cv*neqn];
  
   Type* xL;
   Type* xR;
@@ -333,7 +342,6 @@ void Bkernel_Inviscid_Flux(B_KERNEL_ARGS)
     
     //only do full right extrapolation if boundary node is ghost(parallel)
     if(m->IsGhostNode(right_cv)){
-      Type* limiterL = &space->limiter->l[left_cv*neqn];
       Type* gradL = space->qgrad + 3*nterms*left_cv;
       
       for(j = 0; j < neqn; j++){
@@ -354,19 +362,31 @@ void Bkernel_Inviscid_Flux(B_KERNEL_ARGS)
       dx[1] = -dx[1];
       dx[2] = -dx[2];
       Type* gradR = space->qgrad + 3*nterms*right_cv;
-      Type* limiterR = &space->limiter->l[right_cv*neqn];
 
       eqnset->ExtrapolateVariables(QR, qR, dQ, gradR, dx, limiterR);
 
     }
-    eqnset->ExtrapolatedToNative(QL);
-    eqnset->ExtrapolatedToNative(QR);
     eqnset->ComputeAuxiliaryVariables(QL);
     eqnset->ComputeAuxiliaryVariables(QR);
     
   }
   
-  eqnset->BoundaryFlux(QL, QR, avec, vdotn, tempL, betaL);
+  bool error =  eqnset->BoundaryFlux(QL, QR, avec, vdotn, tempL, betaL);
+  if(error){
+    std::cerr << "non-extrapolated values: ------------------------------" << std::endl;
+    for(int i = 0; i < neqn; ++i){
+      std::cerr << "qL[" << i  << "] = " << qL[i] << std::endl;
+    }
+    for(int i = 0; i < neqn; ++i){
+      std::cerr << "qR[" << i  << "] = " << qR[i] << std::endl;
+    }
+    for(int i = 0; i < neqn; ++i){
+      std::cerr << "limL[" << i << "] = " << limiterL[i] << std::endl;
+    }
+    for(int i = 0; i < neqn; ++i){
+      std::cerr << "limR[" << i << "] = " << limiterR[i] << std::endl;
+    }
+  }
   
   //set data necessary for driver scatter
   *size = neqn;
@@ -374,8 +394,6 @@ void Bkernel_Inviscid_Flux(B_KERNEL_ARGS)
   for(i = 0; i < neqn; i++){
     tempL[i] = -tempL[i];
   }
-
-  return;
 }
 
 template <class Type>
@@ -417,8 +435,6 @@ void Kernel_Viscous_Flux(KERNEL_ARGS)
 
   memcpy(QL, qL, sizeof(Type)*nvars);
   memcpy(QR, qR, sizeof(Type)*nvars);
-  eqnset->NativeToExtrapolated(QL);
-  eqnset->NativeToExtrapolated(QR);
 
   //get turbulent viscosity
   Type tmut = 0.5*(mut[left_cv] + mut[right_cv]);
@@ -456,8 +472,6 @@ void Kernel_Viscous_Flux(KERNEL_ARGS)
   for(i = 0; i < neqn; i++){
     tempL[i] = -tempR[i];
   }
-
-  return;
 }
 
 template <class Type>
@@ -520,8 +534,6 @@ void Bkernel_Viscous_Flux(B_KERNEL_ARGS)
   if(m->IsGhostNode(right_cv)){
     memcpy(QL, qL, sizeof(Type)*nvars);
     memcpy(QR, qR, sizeof(Type)*nvars);
-    eqnset->NativeToExtrapolated(QL);
-    eqnset->NativeToExtrapolated(QR);
 
     Type* gradR = space->qgrad + 3*nterms*right_cv;
     tmut = (mut[left_cv] + mut[right_cv])/2.0;
@@ -556,8 +568,6 @@ void Bkernel_Viscous_Flux(B_KERNEL_ARGS)
   for(i = 0; i < neqn; i++){
     tempL[i] = -tempL[i];
   }
-
-  return;
 }
 
 template <class Type>
@@ -711,8 +721,6 @@ void Kernel_Viscous_Src(KERNEL_ARGS)
 
   memcpy(QL, qL, sizeof(Type)*nvars);
   memcpy(QR, qR, sizeof(Type)*nvars);
-  eqnset->NativeToExtrapolated(QL);
-  eqnset->NativeToExtrapolated(QR);
 
   //get turbulent viscosity
   Type tmut = 0.5*(mut[left_cv] + mut[right_cv]);
@@ -827,8 +835,6 @@ void Bkernel_Viscous_Src(B_KERNEL_ARGS)
   if(m->IsGhostNode(right_cv)){
     memcpy(QL, qL, sizeof(Type)*nvars);
     memcpy(QR, qR, sizeof(Type)*nvars);
-    eqnset->NativeToExtrapolated(QL);
-    eqnset->NativeToExtrapolated(QR);
 
     Type* gradR = space->qgrad + 3*nterms*right_cv;
     tmut = (mut[left_cv] + mut[right_cv])/2.0;

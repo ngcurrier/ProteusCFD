@@ -20,7 +20,8 @@ EqnSet<Type>::~EqnSet()
 }
 
 template <class Type>
-void EqnSet<Type>::BoundaryFlux(Type* QL, Type* QR, Type* avec, Type vdotn, Type* flux, Type beta){
+bool EqnSet<Type>::BoundaryFlux(Type* QL, Type* QR, Type* avec, Type vdotn, Type* flux, Type beta){
+  bool error = false;
 #if 0
   //use algebraic flux only
   this->Flux(QR, avec, vdotn, this->param->gamma, flux, beta);
@@ -33,12 +34,22 @@ void EqnSet<Type>::BoundaryFlux(Type* QL, Type* QR, Type* avec, Type vdotn, Type
 #else
   this->NumericalFlux(QL, QR, avec, vdotn, flux, beta);
 #endif
-  return;
+  for(int i = 0; i < this->neqn; ++i){
+    if(std::isnan(real(flux[i]))){
+      std::cerr << "WARNING: EqnSet::BoundaryFlux() kneecapping a nan flux term - flux[" << i << "]" << std::endl;
+      std::cerr << "QL = " << QL[i] << std::endl;
+      std::cerr << "QR = " << QR[i] << std::endl;
+      flux[i] = 0.0;
+      error = true;
+    }
+  }
+  return error;
 }
 
 template <class Type>
-void EqnSet<Type>::NumericalFlux(Type QL[], Type QR[], Type avec[], Type vdotn, Type flux[], Type beta)
+bool EqnSet<Type>::NumericalFlux(Type QL[], Type QR[], Type avec[], Type vdotn, Type flux[], Type beta)
 {
+  bool error = false;
   Int type = this->param->flux_id;
   if(type == AlgebraicFluxType){
     Type* flux2 = (Type*)alloca(sizeof(Type)*this->neqn);
@@ -54,7 +65,16 @@ void EqnSet<Type>::NumericalFlux(Type QL[], Type QR[], Type avec[], Type vdotn, 
   else if(type == HLLCFluxType){
     this->HLLCFlux(QL, QR, avec, vdotn, this->param->gamma, flux, beta);
   }
-  return;
+  for(int i = 0; i < this->neqn; ++i){
+    if(std::isnan(real(flux[i]))){
+      std::cerr << "WARNING: EqnSet::NumericalFlux() kneecapping a nan flux term - flux[" << i << "]" << std::endl;
+      std::cerr << "QL = " << QL[i] << std::endl;
+      std::cerr << "QR = " << QR[i] << std::endl;
+      flux[i] = 0.0;
+      error = true;
+    }
+  }
+  return error;
 }
 
 template <class Type>
@@ -87,8 +107,6 @@ void EqnSet<Type>::ViscousJacobian(Type* qL, Type* qR, Type* dx, Type s2, Type* 
 
   memcpy(QL, qL, sizeof(Type)*nvars);
   memcpy(QR, qR, sizeof(Type)*nvars);
-  NativeToExtrapolated(QL);
-  NativeToExtrapolated(QR);
 
   DirectionalDerivativeGrad(dx, s2, avec, QL, QR, grad, gradLoc);
   ViscousFlux(Qavg, grad, avec, mut, flux);
@@ -104,9 +122,6 @@ void EqnSet<Type>::ViscousJacobian(Type* qL, Type* qR, Type* dx, Type s2, Type* 
     QPR[i] += h;
     ComputeAuxiliaryVariables(QPL);
     ComputeAuxiliaryVariables(QPR);
-
-    NativeToExtrapolated(QPL);
-    NativeToExtrapolated(QPR);
 
     //not sure if this is correct but since we perturb both sides by the same h
     //we don't need to compute a new qavg for each call to viscous flux

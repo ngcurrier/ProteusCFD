@@ -62,7 +62,7 @@ void Limiter<Type>::Compute(SolutionSpace<Type>* space)
   MemBlank(this->qmin, this->nnodes*this->neqn);
   MemBlank(this->qmax, this->nnodes*this->neqn);
 
-  //initialize limiter
+  //initialize limiters to 1.0 (OFF) until we compute them
   for(i = 0; i < this->nnodes+this->gnode; i++){
     for(j = 0; j < this->neqn; j++){
       this->l[i*neqn + j] = 1.0;
@@ -129,8 +129,6 @@ void Limiter<Type>::Compute(SolutionSpace<Type>* space)
 
   delete [] this->qmin;
   delete [] this->qmax;
-
-  return;
 }
 
 template <class Type>
@@ -160,8 +158,6 @@ void Kernel_FindMinMax(KERNEL_ARGS)
   *size = 0;
   *ptrL = NULL;
   *ptrR = NULL;
-
-  return;
 }
 
 template <class Type>
@@ -192,8 +188,6 @@ void Bkernel_FindMinMax(B_KERNEL_ARGS)
   *size = 0;
   *ptrL = NULL;
   *ptrR = NULL;
-
-  return;
 }
 
 template <class Type>
@@ -203,6 +197,7 @@ void Kernel_Barth(KERNEL_ARGS)
   Limiter<Type>* limiter = (Limiter<Type>*) custom;
   Param<Type>* param = space->param;
   Mesh<Type>* m = space->m;
+  EqnSet<Type>* eqnset = space->eqnset;
 
   Int neqn = limiter->neqn;
   Int nvars = limiter->nvars;
@@ -222,41 +217,38 @@ void Kernel_Barth(KERNEL_ARGS)
   Type* QL = (Type*)alloca(sizeof(Type)*nvars);
   Type* QR = (Type*)alloca(sizeof(Type)*nvars);
   Type* dx = (Type*)alloca(sizeof(Type)*3);
+  Type* dQedge = (Type*)alloca(sizeof(Type)*neqn);
+  Type* zeros = (Type*)alloca(sizeof(Type)*neqn);
+  MemBlank(zeros, neqn);
   Type temp;
 
-  Type chi = param->chi;
-  
   //compute extrapolations
   xL = m->cg + 3*left_cv;
   xR = m->cg + 3*right_cv;
-  
+
   memcpy(QL, qL, sizeof(Type)*nvars);
   memcpy(QR, qR, sizeof(Type)*nvars);
-  
+
+  for(int i = 0; i < neqn; ++i){
+    dQedge[i] = qR[i] - qL[i];
+  }
+ 
   //TODO: generalize incase we want to use a non-midpoint edge CV
   dx[0] = 0.5*(xR[0] - xL[0]);
   dx[1] = 0.5*(xR[1] - xL[1]);
   dx[2] = 0.5*(xR[2] - xL[2]);
-  
-  for (j = 0; j < neqn; j++){
-    QL[j] += 
-      (0.5*chi*(qR[j] - qL[j]) + (1.0 - chi)*
-       (gradL[j*3 + 0]*dx[0] +
-	gradL[j*3 + 1]*dx[1] +
-	gradL[j*3 + 2]*dx[2]));
-  }
+
+  eqnset->ExtrapolateVariables(QL, qL, dQedge, gradL, dx, zeros);
   
   dx[0] = -dx[0];
   dx[1] = -dx[1];
   dx[2] = -dx[2];
-  
-  for (j = 0; j < neqn; j++){
-    QR[j] += 
-      (0.5*chi*(qL[j] - qR[j]) + (1.0 - chi)*
-       (gradR[j*3 + 0]*dx[0] +
-	gradR[j*3 + 1]*dx[1] +
-	gradR[j*3 + 2]*dx[2]));
+
+  for(int i = 0; i < neqn; ++i){
+    dQedge[i] = -dQedge[i];
   }
+  
+  eqnset->ExtrapolateVariables(QR, qR, dQedge, gradR, dx, zeros);
   
   //compute the Barth limiters now
   for(j = 0; j < neqn; j++){
@@ -264,7 +256,7 @@ void Kernel_Barth(KERNEL_ARGS)
     if(real(QL[j]) > real(qL[j])){
       temp = (qmaxL[j] - qL[j])/(QL[j] - qL[j]);
     }
-    else if(real(QL[j]) < real(qL[j])){
+    else{
       temp = (qminL[j] - qL[j])/(QL[j] - qL[j]);
     }
     
@@ -275,6 +267,9 @@ void Kernel_Barth(KERNEL_ARGS)
     
     //pick the smallest phi required
     limiterL[j] = MIN(limiterL[j], temp);
+    if(std::isnan(real(limiterL[j]))){
+      limiterL[j] = 1.0;
+    }
   }
   
   for(j = 0; j < neqn; j++){
@@ -282,7 +277,7 @@ void Kernel_Barth(KERNEL_ARGS)
     if(real(QR[j]) > real(qR[j])){
       temp = (qmaxR[j] - qR[j])/(QR[j] - qR[j]);
     }
-    else if(real(QR[j]) < real(qR[j])){
+    else{
       temp = (qminR[j] - qR[j])/(QR[j] - qR[j]);
     }
     
@@ -293,6 +288,9 @@ void Kernel_Barth(KERNEL_ARGS)
     
     //pick the smallest phi required
     limiterR[j] = MIN(limiterR[j], temp);
+    if(std::isnan(real(limiterR[j]))){
+      limiterR[j] = 1.0;
+    }
   }
   
 
@@ -300,8 +298,6 @@ void Kernel_Barth(KERNEL_ARGS)
   *size = 0;
   *ptrL = NULL;
   *ptrR = NULL;
-  
-  return;
 }
 
 
@@ -312,7 +308,8 @@ void Bkernel_Barth(B_KERNEL_ARGS)
   Limiter<Type>* limiter = (Limiter<Type>*) custom;
   Param<Type>* param = space->param;
   Mesh<Type>* m = space->m;
-
+  EqnSet<Type>* eqnset = space->eqnset;
+  
   if(m->IsGhostNode(right_cv)){
     Int neqn = limiter->neqn;
     Int nvars = limiter->nvars;
@@ -328,9 +325,10 @@ void Bkernel_Barth(B_KERNEL_ARGS)
     Type* QL = (Type*)alloca(sizeof(Type)*nvars);
     Type* QR = (Type*)alloca(sizeof(Type)*nvars);
     Type* dx = (Type*)alloca(sizeof(Type)*3);
+    Type* dQedge = (Type*)alloca(sizeof(Type)*neqn);
+    Type* zeros = (Type*)alloca(sizeof(Type)*neqn);
+    MemBlank(zeros, neqn);
     Type temp;
-    
-    Type chi = param->chi;
     
     //compute extrapolations
     xL = m->cg + 3*left_cv;
@@ -339,18 +337,16 @@ void Bkernel_Barth(B_KERNEL_ARGS)
     memcpy(QL, qL, sizeof(Type)*nvars);
     memcpy(QR, qR, sizeof(Type)*nvars);
     
+    for(int i = 0; i < neqn; ++i){
+      dQedge[i] = qR[i] - qL[i];
+    }
+    
     //TODO: generalize incase we want to use a non-midpoint edge CV
     dx[0] = 0.5*(xR[0] - xL[0]);
     dx[1] = 0.5*(xR[1] - xL[1]);
     dx[2] = 0.5*(xR[2] - xL[2]);
-    
-    for (j = 0; j < neqn; j++){
-      QL[j] += 
-	(0.5*chi*(qR[j] - qL[j]) + (1.0 - chi)*
-	 (gradL[j*3 + 0]*dx[0] +
-	  gradL[j*3 + 1]*dx[1] +
-	  gradL[j*3 + 2]*dx[2]));
-    }
+
+    eqnset->ExtrapolateVariables(QL, qL, dQedge, gradL, dx, zeros);
     
     //compute the Barth limiters now
     for(j = 0; j < neqn; j++){
@@ -358,7 +354,7 @@ void Bkernel_Barth(B_KERNEL_ARGS)
       if(real(QL[j]) > real(qL[j])){
 	temp = (qmaxL[j] - qL[j])/(QL[j] - qL[j]);
       }
-      else if(real(QL[j]) < real(qL[j])){
+      else{
 	temp = (qminL[j] - qL[j])/(QL[j] - qL[j]);
       }
       
@@ -369,14 +365,15 @@ void Bkernel_Barth(B_KERNEL_ARGS)
       
       //pick the smallest phi required
       limiterL[j] = MIN(limiterL[j], temp);
+      if(std::isnan(real(limiterL[j]))){
+	limiterL[j] = 1.0;
+      }
     }
   }
   
   //no scatter
   *size = 0;
   *ptrL = NULL;
-  
-  return;
 }
 
 template <class Type>
@@ -447,12 +444,15 @@ void Kernel_Venkat(KERNEL_ARGS)
     if(real(QL[j]) > real(qL[j])){
       temp = (qmaxL[j] - qL[j])/(QL[j] - qL[j]);
     }
-    else if(real(QL[j]) < real(qL[j])){
+    else{
       temp = (qminL[j] - qL[j])/(QL[j] - qL[j]);
     }
     
     temp = (temp*temp + 2.0*temp)/(temp*temp + temp + 2.0);
     limiterL[j] = MIN(limiterL[j], temp);
+    if(std::isnan(real(limiterL[j]))){
+      limiterL[j] = 1.0;
+    }
   }
   
   for(j = 0; j < neqn; j++){
@@ -460,12 +460,15 @@ void Kernel_Venkat(KERNEL_ARGS)
     if(real(QR[j]) > real(qR[j])){
       temp = (qmaxR[j] - qR[j])/(QR[j] - qR[j]);
     }
-    else if(real(QR[j]) < real(qR[j])){
+    else{
       temp = (qminR[j] - qR[j])/(QR[j] - qR[j]);
     }
     
     temp = (temp*temp + 2.0*temp)/(temp*temp + temp + 2.0);
     limiterR[j] = MIN(limiterR[j], temp);
+    if(std::isnan(real(limiterR[j]))){
+      limiterR[j] = 1.0;
+    }
   }
   
 
@@ -473,8 +476,6 @@ void Kernel_Venkat(KERNEL_ARGS)
   *size = 0;
   *ptrL = NULL;
   *ptrR = NULL;
-  
-  return;
 }
 
 
@@ -531,12 +532,15 @@ void Bkernel_Venkat(B_KERNEL_ARGS)
       if(real(QL[j]) > real(qL[j])){
 	temp = (qmaxL[j] - qL[j])/(QL[j] - qL[j]);
       }
-      else if(real(QL[j]) < real(qL[j])){
+      else{
 	temp = (qminL[j] - qL[j])/(QL[j] - qL[j]);
       }
       
       temp = (temp*temp + 2.0*temp)/(temp*temp + temp + 2.0);
       limiterL[j] = MIN(limiterL[j], temp);
+      if(std::isnan(real(limiterL[j]))){
+	limiterL[j] = 1.0;
+      }
     }
   }
   
@@ -544,8 +548,6 @@ void Bkernel_Venkat(B_KERNEL_ARGS)
   *size = 0;
   *ptrL = NULL;
   *ptrR = NULL;
-  
-  return;
 }
 
 template <class Type>
@@ -555,7 +557,8 @@ void Kernel_VenkatMod(KERNEL_ARGS)
   Limiter<Type>* limiter = (Limiter<Type>*) custom;
   Param<Type>* param = space->param;
   Mesh<Type>* m = space->m;
-
+  EqnSet<Type>* eqnset = space->eqnset;
+ 
   Int neqn = limiter->neqn;
   Int nvars = limiter->nvars;
   Int gradneqn = limiter->gradneqn;
@@ -642,6 +645,9 @@ void Kernel_VenkatMod(KERNEL_ARGS)
     ep2 = Ll3*K3;
     temp = (DP*DP + ep2 + 2.0*DM*DP)/(DP*DP + 2.0*DM*DM + DM*DP + ep2);
     limiterL[j] = MIN(limiterL[j], temp);
+    if(std::isnan(real(limiterL[j]))){
+      limiterL[j] = 1.0;
+    }
   }
   
   for(j = 0; j < neqn; j++){
@@ -658,6 +664,9 @@ void Kernel_VenkatMod(KERNEL_ARGS)
     ep2 = Lr3*K3;
     temp = (DP*DP + ep2 + 2.0*DM*DP)/(DP*DP + 2.0*DM*DM + DM*DP + ep2);
     limiterR[j] = MIN(limiterR[j], temp);
+    if(std::isnan(real(limiterR[j]))){
+      limiterR[j] = 1.0;
+    }
   }
   
 
@@ -665,8 +674,6 @@ void Kernel_VenkatMod(KERNEL_ARGS)
   *size = 0;
   *ptrL = NULL;
   *ptrR = NULL;
-  
-  return;
 }
 
 
@@ -677,7 +684,8 @@ void Bkernel_VenkatMod(B_KERNEL_ARGS)
   Limiter<Type>* limiter = (Limiter<Type>*) custom;
   Param<Type>* param = space->param;
   Mesh<Type>* m = space->m;
-
+  EqnSet<Type>* eqnset = space->eqnset;
+ 
   if(m->IsGhostNode(right_cv)){
     Int neqn = limiter->neqn;
     Int nvars = limiter->nvars;
@@ -695,14 +703,15 @@ void Bkernel_VenkatMod(B_KERNEL_ARGS)
     Type* dx = (Type*)alloca(sizeof(Type)*3);
     Type temp;
 
-    Type chi = param->chi;
-    
     //Pi
     Type Pi = 3.141592653589793;
 
     //tunable parameters
     Type K = 1.0;
     Type K3 = K*K*K;
+
+
+    Type chi = param->chi;
 
     //compute a characteristic length of the control volume
     //use a sphere diameter with the same volume 4/3*pi*r^3
@@ -746,14 +755,15 @@ void Bkernel_VenkatMod(B_KERNEL_ARGS)
       ep2 = Ll3*K3;
       temp = (DP*DP + ep2 + 2.0*DM*DP)/(DP*DP + 2.0*DM*DM + DM*DP + ep2);
       limiterL[j] = MIN(limiterL[j], temp);
+      if(std::isnan(real(limiterL[j]))){
+	limiterL[j] = 1.0;
+      }
     }
   }
   
   //no scatter
   *size = 0;
   *ptrL = NULL;
-  
-  return;
 }
 
 template <class Type>
@@ -835,6 +845,4 @@ void Kernel_PressureClip(KERNEL_ARGS)
       }
     }    
   }
-
-  return;
 }

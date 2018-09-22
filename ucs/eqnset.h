@@ -41,8 +41,8 @@ class EqnSet
 
   //Numerical Flux -- master calling function for flux type
   //see listing below for types
-  virtual void NumericalFlux(Type* QL, Type* QR, Type* avec, Type vdotn, Type* flux, Type beta);
-  virtual void BoundaryFlux(Type* QL, Type* QR, Type* avec, Type vdotn, Type* flux, Type beta);
+  virtual bool NumericalFlux(Type* QL, Type* QR, Type* avec, Type vdotn, Type* flux, Type beta);
+  virtual bool BoundaryFlux(Type* QL, Type* QR, Type* avec, Type vdotn, Type* flux, Type beta);
 
   virtual Bool RoeVariables(Type* QL, Type* QR, Type gamma, Type* Qroe)
   {
@@ -204,18 +204,6 @@ class EqnSet
     return -1;
   }
 
-  virtual void NativeToExtrapolated(Type* Q)
-  {
-    //converts native Q variables to variables which we actually extrapolate, in the case
-    //of compressible euler [rho rhou rhov rhow Et] -> [rho u v w Et]
-    Abort << "NativeToExtrapolated() not implemented -- required for higher order solution";
-  };
-  virtual void ExtrapolatedToNative(Type* Q)
-  {
-    //converts extrapolated Q variables to variables which we store, in the case
-    //of compressible euler  [rho u v w Et] -> [rho rhou rhov rhow Et]
-    Abort << "ExtrapolatedToNative() not implemented -- required for higher order solution";
-  };
   virtual Int BadExtrapolation(Type* Q)
   {
     //takes extrapolated Q values and returns true if the limiter should
@@ -223,7 +211,7 @@ class EqnSet
     //for compressible eqnset an example would be negative pressure or energy
     return (false);
   };
-  virtual void ExtrapolateVariables(Type* Qho, const Type* Q, const Type* dQedge, 
+  virtual void ExtrapolateVariables(Type* Qho, const Type* q, const Type* dQedge, 
 				    const Type* gradQ, const Type* dx, const Type* limiter)
   {
     //FUNCTION always operates on extrapolated gradient, dQ and Q

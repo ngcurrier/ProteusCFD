@@ -385,8 +385,6 @@ void SolutionSpace<Type>::AddField(std::string name)
   idata.Verify();
 
   AddField(idata, FIELDS::STATE_NONE, FIELDS::VAR_INTERIOR);
-
-  return;
 }
 
 //add a field with state information, a data descriptor, and location info
@@ -565,8 +563,6 @@ void SolutionSpace<Type>::PreIterate()
     }
     Abort.CheckForSoftAbort("Soft abort post jacobians");
   }
-
-  return;
 }
 
 //performs operations required prior to Newton iterations, once per timestep
@@ -578,6 +574,7 @@ void SolutionSpace<Type>::PreTimeAdvance()
   Int nnode = m->GetNumNodes();
 
   std::cout << "\n" << this->iter << ": --------------------------------------------------------------------------\n\n";
+  std::cerr << "\n" << this->iter << ": --------------------------------------------------------------------------\n\n";
 
   if(param->torder){
     for(typename std::vector<SolutionField<Type>*>::iterator it = fields.begin(); it != fields.end(); ++it){
@@ -594,6 +591,8 @@ void SolutionSpace<Type>::PreTimeAdvance()
     if(p->GetRank() == 0){
       this->timers.StartAccumulate("JacobianAssembleTimer");
     }
+    std::cout << "Computing jacobians" << std::endl;
+    std::cerr << "Computing jacobians" << std::endl;
     ComputeJacobians(this);
     if(p->GetRank() == 0){
       this->timers.PauseAccumulateAndPrint("JacobianAssembleTimer", timerOutFile);
@@ -646,10 +645,14 @@ void SolutionSpace<Type>::NewtonIterate()
   Type tempmax, tempold, deltaDq;
  
   if(param->movement){
+    std::cout << "Moving mesh" << std::endl;
+    std::cerr << "Moving mesh" << std::endl;
     MoveMesh(this);
   }
 
   //set BCs for next iteration
+  std::cout << "Updating boundary conditions" << std::endl;
+  std::cerr << "Updating boundary conditions" << std::endl;
   UpdateBCs(this);
 
   //Update solution vectors via MPI
@@ -659,12 +662,10 @@ void SolutionSpace<Type>::NewtonIterate()
     this->timers.StartAccumulate("GradientTimer");
   }
 
-  for(Int i = 0; i < (nnode+nbnode+gnode); i++){
-    eqnset->NativeToExtrapolated(&q[i*nvars]);
-  }
-
   //if doing higher order or viscous compute gradients
   if((param->sorder > 1 && (this->iter > param->nFirstOrderSteps)) || param->viscous){
+    std::cout << "Computing gradient" << std::endl;
+    std::cerr << "Computing gradient" << std::endl;
     grad->Compute();
   }
 
@@ -672,35 +673,33 @@ void SolutionSpace<Type>::NewtonIterate()
   //the Q vector to the appropriate variable set first
   if((this->iter%param->limiterRefresh == 0) && (param->sorder > 1) && param->limiter
      && (this->iter > param->nFirstOrderSteps) && (this->iter < param->limiterFreeze)){
+    std::cout << "Computing limiters" << std::endl;
+    std::cerr << "Computing limiters" << std::endl;
     limiter->Compute(this);
   }
-
-  //convert back
-  for(Int i = 0; i < (nnode+nbnode+gnode); i++){
-    eqnset->ExtrapolatedToNative(&q[i*nvars]);
-  }
-
+  
   if(p->GetRank() == 0){
     this->timers.PauseAccumulateAndPrint("GradientTimer", timerOutFile);
   }
-
 
   //calculate residuals
   if(p->GetRank() == 0){
     this->timers.StartAccumulate("ResidualTimer");
   }
+  std::cout << "Computing fluxes/residuals" << std::endl;
+  std::cerr << "Computing fluxes/residuals" << std::endl;
   std::vector<Type> residualComponents = ComputeResiduals(this);
   residGlobal = residualComponents[0]; //first value is the total residual
   Abort.CheckForSoftAbort("Soft abort post residuals");
   if(p->GetRank() == 0){
     this->timers.PauseAccumulateAndPrint("ResidualTimer", timerOutFile);
   }
-
+  
   //copy residual for storage
   residualnm1 = residual;
   residual = residGlobal;
   
-  std::cout << " dt_min: " << dtmin;
+  std::cout << "dt_min: " << dtmin;
   std::cout << " time: " << this->time;
   
   //find global minimum timestep
@@ -716,6 +715,8 @@ void SolutionSpace<Type>::NewtonIterate()
   }
 
   if(param->nSgs > 0){
+    std::cout << "\nComputing implicit solution" << std::endl;
+    std::cerr << "\nComputing implicit solution" << std::endl;
     if(p->GetRank() == 0){
       this->timers.StartAccumulate("LinearSolveTimer");
     }
@@ -745,12 +746,14 @@ void SolutionSpace<Type>::NewtonIterate()
     deltaDq = crs->SGS(10, NULL, NULL, NULL, true);
     std::cout << "\nD||sgs-dq||: " << deltaDq;
 #endif
-    std::cout << "\tD||sgs-dq||: " << deltaDq;
+    std::cout << "D||sgs-dq||: " << deltaDq;
     if(p->GetRank() == 0){
       this->timers.PauseAccumulateAndPrint("LinearSolveTimer", timerOutFile);
     }  
   }
   else{
+    std::cout << "Computing explicit solution" << std::endl;
+    std::cerr << "Computing explicit solution" << std::endl;
     ExplicitSolve(*this);
   }
   Abort.CheckForSoftAbort("Soft abort post linear solve");

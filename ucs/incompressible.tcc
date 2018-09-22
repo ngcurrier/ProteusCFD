@@ -560,14 +560,6 @@ Int IncompressibleEqnSet<Type>::GetGradientsLocation(std::vector<Int>& gradientL
 }
 
 template <class Type>
-void IncompressibleEqnSet<Type>::NativeToExtrapolated(Type* Q)
-{ }
-
-template <class Type>
-void IncompressibleEqnSet<Type>::ExtrapolatedToNative(Type* Q)
-{ }
-
-template <class Type>
 Int IncompressibleEqnSet<Type>::BadExtrapolation(Type* Q)
 {
   //nothing to check since we use relative pressure in this eqnset

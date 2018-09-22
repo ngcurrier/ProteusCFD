@@ -81,14 +81,8 @@ void Compute_dRdBeta_CTSE(Real* dRdB, SolutionSpace<Real>& space, Int beta)
 
   //now, compute gradients and limiters
   if(param->sorder > 1 || param->viscous){
-    for(Int i = 0; i < (cnnode+cnbnode+cgnode); i++){
-      ceqnset->NativeToExtrapolated(&q[i*nvars]);
-    }
     cspace.grad->Compute();
     cspace.limiter->Compute(&cspace);
-    for(Int i = 0; i < (cnnode+cnbnode+cgnode); i++){
-      ceqnset->ExtrapolatedToNative(&q[i*nvars]);
-    }
   }
 
   //compute spatial residual
@@ -173,14 +167,8 @@ void Compute_dRdBeta_FD(Real* dRdB, SolutionSpace<Real>& space, Int beta)
   UpdateBCs(&space);
   //now, compute gradients and limiters
   if(param->sorder > 1 || param->viscous){
-    for(Int i = 0; i < (nnode+nbnode+gnode); i++){
-      eqnset->NativeToExtrapolated(&q[i*nvars]);
-    }
     space.grad->Compute();
     space.limiter->Compute(&space);
-    for(Int i = 0; i < (nnode+nbnode+gnode); i++){
-      eqnset->ExtrapolatedToNative(&q[i*nvars]);
-    }
   }
 
   //compute spatial residual
@@ -220,14 +208,8 @@ void Compute_dRdBeta_FD(Real* dRdB, SolutionSpace<Real>& space, Int beta)
   UpdateBCs(&space);
   //now, compute gradients and limiters
   if(param->sorder > 1 || param->viscous){
-    for(Int i = 0; i < (nnode+nbnode+gnode); i++){
-      eqnset->NativeToExtrapolated(&q[i*nvars]);
-    }
     space.grad->Compute();
     space.limiter->Compute(&space);
-    for(Int i = 0; i < (nnode+nbnode+gnode); i++){
-      eqnset->ExtrapolatedToNative(&q[i*nvars]);
-    }
   }
   //compute spatial residual
   SpatialResidual(&space);
@@ -284,14 +266,8 @@ void Compute_dRdBeta_FD(Real* dRdB, SolutionSpace<Real>& space, Int beta)
   UpdateBCs(&space);
   //now, compute gradients and limiters
   if(param->sorder > 1 || param->viscous){
-    for(Int i = 0; i < (nnode+nbnode+gnode); i++){
-      eqnset->NativeToExtrapolated(&q[i*nvars]);
-    }
     space.grad->Compute();
     space.limiter->Compute(&space);
-    for(Int i = 0; i < (nnode+nbnode+gnode); i++){
-      eqnset->ExtrapolatedToNative(&q[i*nvars]);
-    }
   }
 
   delete [] dxdb;
@@ -1150,14 +1126,8 @@ void Compute_dRdQ_Product_MatrixFree(SolutionSpace<RCmplx>& cspace, Real* vector
   
   //now, compute gradients and limiters
   if(param->sorder > 1 || param->viscous){
-    for(Int i = 0; i < (cnnode+cnbnode+cgnode); i++){
-      ceqnset->NativeToExtrapolated(&q[i*nvars]);
-    }
     cspace.grad->Compute();
     cspace.limiter->Compute(&cspace);
-    for(Int i = 0; i < (cnnode+cnbnode+cgnode); i++){
-      ceqnset->ExtrapolatedToNative(&q[i*nvars]);
-    }
   }
 
   //it is assumed that this routine is going to be called iteratively,

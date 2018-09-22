@@ -716,20 +716,18 @@ Int CompressibleFREqnSet<Type>::GetGradientsLocation(std::vector<Int>& gradientL
 }
 
 template <class Type>
-void CompressibleFREqnSet<Type>::NativeToExtrapolated(Type* Q)
-{ }
-
-template <class Type>
-void CompressibleFREqnSet<Type>::ExtrapolatedToNative(Type* Q)
-{ }
-
-template <class Type>
 Int CompressibleFREqnSet<Type>::BadExtrapolation(Type* Q)
 {
   for(Int i = 0; i < nspecies; i++){
     if(real(Q[i]) < 0.0){
       return true;
     }
+  }
+  if(real(GetTotalEnergy(Q)) <= 0.0){
+    return true;   
+  }
+  if(real(GetPressure(Q)) < 1.0e-10){
+    return true;
   }
   if(real(GetTemperature(Q)) < 1.0e-10){
     return true;

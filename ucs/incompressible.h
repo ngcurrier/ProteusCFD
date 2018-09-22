@@ -35,8 +35,6 @@ public:
   Int GetVelocityGradLocation();
   Int GetMomentumLocation();
   Int GetGradientsLocation(std::vector<Int>& gradientLoc);
-  void NativeToExtrapolated(Type* Q);
-  void ExtrapolatedToNative(Type* Q);
   Int BadExtrapolation(Type* Q);
   void ExtrapolateVariables(Type* Qho, const Type* Q, const Type* dQedge, const Type* gradQ, 
 			    const Type* dx, const Type* limiter);

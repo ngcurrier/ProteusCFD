@@ -265,7 +265,7 @@ void TurbulenceModel<Type>::Compute()
   Type resid = VecL2Norm(crs.b, nnode*neqn);
   Type residGlobal = ParallelL2Norm(space->p, crs.b, nnode*neqn);
 
-  std::cout << "\t ||Turb res||: " << resid << " ";
+  std::cout << "||Turb res||: " << resid << " ";
 
   if(space->p->GetRank() == 0){
     space->residOutFile << "||Turb-res||: " << residGlobal << " ";

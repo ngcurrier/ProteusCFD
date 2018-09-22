@@ -24,9 +24,7 @@ public:
   void ExtrapolateVariables(Type* Qho, const Type* Q, const Type* dQedge,
 			    const Type* gradQ, const Type* dx, const Type* limiter);
   void SetInitialConditions();
-  void NativeToExtrapolated(Type* Q){};
   void Dimensionalize(Type* Q);
-  void ExtrapolatedToNative(Type* Q){};
   Type MaxEigenvalue(Type* Q, Type* avec, Type vdotn, Type gamma, Type beta);
   void GetInviscidWallBoundaryVariables(Type* QL, Type* QR, Type* Qinf, Type* avec, Type vdotn, Type beta);
   void GetIsothermalBoundaryVariables(Type* QL, Type* QR, Type Twall);
