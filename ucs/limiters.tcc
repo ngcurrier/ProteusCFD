@@ -218,8 +218,9 @@ void Kernel_Barth(KERNEL_ARGS)
   Type* QR = (Type*)alloca(sizeof(Type)*nvars);
   Type* dx = (Type*)alloca(sizeof(Type)*3);
   Type* dQedge = (Type*)alloca(sizeof(Type)*neqn);
-  Type* zeros = (Type*)alloca(sizeof(Type)*neqn);
-  MemBlank(zeros, neqn);
+  Type* ones = (Type*)alloca(sizeof(Type)*neqn);
+  Type one = 1.0;
+  MemSet(ones, one, neqn);
   Type temp;
 
   //compute extrapolations
@@ -238,7 +239,7 @@ void Kernel_Barth(KERNEL_ARGS)
   dx[1] = 0.5*(xR[1] - xL[1]);
   dx[2] = 0.5*(xR[2] - xL[2]);
 
-  eqnset->ExtrapolateVariables(QL, qL, dQedge, gradL, dx, zeros);
+  eqnset->ExtrapolateVariables(QL, qL, dQedge, gradL, dx, ones);
   
   dx[0] = -dx[0];
   dx[1] = -dx[1];
@@ -248,7 +249,7 @@ void Kernel_Barth(KERNEL_ARGS)
     dQedge[i] = -dQedge[i];
   }
   
-  eqnset->ExtrapolateVariables(QR, qR, dQedge, gradR, dx, zeros);
+  eqnset->ExtrapolateVariables(QR, qR, dQedge, gradR, dx, ones);
   
   //compute the Barth limiters now
   for(j = 0; j < neqn; j++){
@@ -256,7 +257,7 @@ void Kernel_Barth(KERNEL_ARGS)
     if(real(QL[j]) > real(qL[j])){
       temp = (qmaxL[j] - qL[j])/(QL[j] - qL[j]);
     }
-    else{
+    else if(real(QL[j]) < real(qL[j])){
       temp = (qminL[j] - qL[j])/(QL[j] - qL[j]);
     }
     
@@ -267,9 +268,6 @@ void Kernel_Barth(KERNEL_ARGS)
     
     //pick the smallest phi required
     limiterL[j] = MIN(limiterL[j], temp);
-    if(std::isnan(real(limiterL[j]))){
-      limiterL[j] = 1.0;
-    }
   }
   
   for(j = 0; j < neqn; j++){
@@ -277,7 +275,7 @@ void Kernel_Barth(KERNEL_ARGS)
     if(real(QR[j]) > real(qR[j])){
       temp = (qmaxR[j] - qR[j])/(QR[j] - qR[j]);
     }
-    else{
+    else if(real(QR[j]) < real(qR[j])){
       temp = (qminR[j] - qR[j])/(QR[j] - qR[j]);
     }
     
@@ -288,9 +286,6 @@ void Kernel_Barth(KERNEL_ARGS)
     
     //pick the smallest phi required
     limiterR[j] = MIN(limiterR[j], temp);
-    if(std::isnan(real(limiterR[j]))){
-      limiterR[j] = 1.0;
-    }
   }
   
 
@@ -326,8 +321,9 @@ void Bkernel_Barth(B_KERNEL_ARGS)
     Type* QR = (Type*)alloca(sizeof(Type)*nvars);
     Type* dx = (Type*)alloca(sizeof(Type)*3);
     Type* dQedge = (Type*)alloca(sizeof(Type)*neqn);
-    Type* zeros = (Type*)alloca(sizeof(Type)*neqn);
-    MemBlank(zeros, neqn);
+    Type* ones = (Type*)alloca(sizeof(Type)*neqn);
+    Type one = 1.0;
+    MemSet(ones, one, neqn);
     Type temp;
     
     //compute extrapolations
@@ -346,7 +342,7 @@ void Bkernel_Barth(B_KERNEL_ARGS)
     dx[1] = 0.5*(xR[1] - xL[1]);
     dx[2] = 0.5*(xR[2] - xL[2]);
 
-    eqnset->ExtrapolateVariables(QL, qL, dQedge, gradL, dx, zeros);
+    eqnset->ExtrapolateVariables(QL, qL, dQedge, gradL, dx, ones);
     
     //compute the Barth limiters now
     for(j = 0; j < neqn; j++){
@@ -354,7 +350,7 @@ void Bkernel_Barth(B_KERNEL_ARGS)
       if(real(QL[j]) > real(qL[j])){
 	temp = (qmaxL[j] - qL[j])/(QL[j] - qL[j]);
       }
-      else{
+      else if(real(QL[j]) < real(qL[j])){
 	temp = (qminL[j] - qL[j])/(QL[j] - qL[j]);
       }
       
@@ -365,9 +361,6 @@ void Bkernel_Barth(B_KERNEL_ARGS)
       
       //pick the smallest phi required
       limiterL[j] = MIN(limiterL[j], temp);
-      if(std::isnan(real(limiterL[j]))){
-	limiterL[j] = 1.0;
-      }
     }
   }
   
@@ -383,6 +376,7 @@ void Kernel_Venkat(KERNEL_ARGS)
   Limiter<Type>* limiter = (Limiter<Type>*) custom;
   Mesh<Type>* m = space->m;
   Param<Type>* param = space->param;
+  EqnSet<Type>* eqnset = space->eqnset;
   
   Int neqn = limiter->neqn;
   Int nvars = limiter->nvars;
@@ -401,42 +395,40 @@ void Kernel_Venkat(KERNEL_ARGS)
   Type* limiterR = limiter->l + neqn*right_cv;
   Type* QL = (Type*)alloca(sizeof(Type)*nvars);
   Type* QR = (Type*)alloca(sizeof(Type)*nvars);
-  Type* dx = (Type*)alloca(sizeof(Type)*3);
+  Type* dx = (Type*)alloca(sizeof(Type)*3); 
+  Type* dQedge = (Type*)alloca(sizeof(Type)*neqn);
+  Type* ones = (Type*)alloca(sizeof(Type)*neqn);
+  Type one = 1.0;
+  MemSet(ones, one, neqn);
   Type temp;
 
-  Type chi = param->chi;
-  
   //compute extrapolations
   xL = m->cg + 3*left_cv;
   xR = m->cg + 3*right_cv;
   
   memcpy(QL, qL, sizeof(Type)*nvars);
   memcpy(QR, qR, sizeof(Type)*nvars);
-  
+
+  for(int i = 0; i < neqn; ++i){
+    dQedge[i] = qR[i] - qL[i];
+  }
+
   //TODO: generalize incase we want to use a non-midpoint edge CV
   dx[0] = 0.5*(xR[0] - xL[0]);
   dx[1] = 0.5*(xR[1] - xL[1]);
   dx[2] = 0.5*(xR[2] - xL[2]);
   
-  for (j = 0; j < neqn; j++){
-    QL[j] += 
-      (0.5*chi*(qR[j] - qL[j]) + (1.0 - chi)*
-       (gradL[j*3 + 0]*dx[0] +
-	gradL[j*3 + 1]*dx[1] +
-	gradL[j*3 + 2]*dx[2]));
-  }
+  eqnset->ExtrapolateVariables(QL, qL, dQedge, gradL, dx, ones);
   
   dx[0] = -dx[0];
   dx[1] = -dx[1];
   dx[2] = -dx[2];
   
-  for (j = 0; j < neqn; j++){
-    QR[j] += 
-      (0.5*chi*(qL[j] - qR[j]) + (1.0 - chi)*
-       (gradR[j*3 + 0]*dx[0] +
-	gradR[j*3 + 1]*dx[1] +
-	gradR[j*3 + 2]*dx[2]));
+  for(int i = 0; i < neqn; ++i){
+    dQedge[i] = -dQedge[i];
   }
+
+  eqnset->ExtrapolateVariables(QR, qR, dQedge, gradR, dx, ones);
   
   //compute the Venkat limiters now
   for(j = 0; j < neqn; j++){
@@ -444,15 +436,12 @@ void Kernel_Venkat(KERNEL_ARGS)
     if(real(QL[j]) > real(qL[j])){
       temp = (qmaxL[j] - qL[j])/(QL[j] - qL[j]);
     }
-    else{
+    else if(real(QL[j]) < real(qL[j])){
       temp = (qminL[j] - qL[j])/(QL[j] - qL[j]);
     }
     
     temp = (temp*temp + 2.0*temp)/(temp*temp + temp + 2.0);
     limiterL[j] = MIN(limiterL[j], temp);
-    if(std::isnan(real(limiterL[j]))){
-      limiterL[j] = 1.0;
-    }
   }
   
   for(j = 0; j < neqn; j++){
@@ -460,15 +449,12 @@ void Kernel_Venkat(KERNEL_ARGS)
     if(real(QR[j]) > real(qR[j])){
       temp = (qmaxR[j] - qR[j])/(QR[j] - qR[j]);
     }
-    else{
+    else if(real(QR[j]) < real(qR[j])){
       temp = (qminR[j] - qR[j])/(QR[j] - qR[j]);
     }
     
     temp = (temp*temp + 2.0*temp)/(temp*temp + temp + 2.0);
     limiterR[j] = MIN(limiterR[j], temp);
-    if(std::isnan(real(limiterR[j]))){
-      limiterR[j] = 1.0;
-    }
   }
   
 
@@ -486,6 +472,7 @@ void Bkernel_Venkat(B_KERNEL_ARGS)
   Limiter<Type>* limiter = (Limiter<Type>*) custom;
   Param<Type>* param = space->param;
   Mesh<Type>* m = space->m;
+  EqnSet<Type>* eqnset = space->eqnset;
 
   if(m->IsGhostNode(right_cv)){
     Int neqn = limiter->neqn;
@@ -502,9 +489,11 @@ void Bkernel_Venkat(B_KERNEL_ARGS)
     Type* QL = (Type*)alloca(sizeof(Type)*nvars);
     Type* QR = (Type*)alloca(sizeof(Type)*nvars);
     Type* dx = (Type*)alloca(sizeof(Type)*3);
+    Type* dQedge = (Type*)alloca(sizeof(Type)*neqn);
+    Type* ones = (Type*)alloca(sizeof(Type)*neqn);
+    Type one = 1.0;
+    MemSet(ones, one, neqn);
     Type temp;
-    
-    Type chi = param->chi;
     
     //compute extrapolations
     xL = m->cg + 3*left_cv;
@@ -518,13 +507,11 @@ void Bkernel_Venkat(B_KERNEL_ARGS)
     dx[1] = 0.5*(xR[1] - xL[1]);
     dx[2] = 0.5*(xR[2] - xL[2]);
     
-    for (j = 0; j < neqn; j++){
-      QL[j] += 
-	(0.5*chi*(qR[j] - qL[j]) + (1.0 - chi)*
-	 (gradL[j*3 + 0]*dx[0] +
-	  gradL[j*3 + 1]*dx[1] +
-	  gradL[j*3 + 2]*dx[2]));
+    for(int i = 0; i < neqn; ++i){
+      dQedge[i] = qR[i] - qL[i];
     }
+
+    eqnset->ExtrapolateVariables(QL, qL, dQedge, gradL, dx, ones);
     
     //compute the Venkat limiters now
     for(j = 0; j < neqn; j++){
@@ -532,15 +519,12 @@ void Bkernel_Venkat(B_KERNEL_ARGS)
       if(real(QL[j]) > real(qL[j])){
 	temp = (qmaxL[j] - qL[j])/(QL[j] - qL[j]);
       }
-      else{
+      if(real(QL[j]) < real(qL[j])){
 	temp = (qminL[j] - qL[j])/(QL[j] - qL[j]);
       }
       
       temp = (temp*temp + 2.0*temp)/(temp*temp + temp + 2.0);
       limiterL[j] = MIN(limiterL[j], temp);
-      if(std::isnan(real(limiterL[j]))){
-	limiterL[j] = 1.0;
-      }
     }
   }
   
@@ -577,9 +561,11 @@ void Kernel_VenkatMod(KERNEL_ARGS)
   Type* QL = (Type*)alloca(sizeof(Type)*nvars);
   Type* QR = (Type*)alloca(sizeof(Type)*nvars);
   Type* dx = (Type*)alloca(sizeof(Type)*3);
+  Type* dQedge = (Type*)alloca(sizeof(Type)*neqn);
+  Type* ones = (Type*)alloca(sizeof(Type)*neqn);
+  Type one = 1.0;
+  MemSet(ones, one, neqn);
   Type temp;
-
-  Type chi = param->chi;
 
   //Pi
   Type Pi = 3.141592653589793;
@@ -610,25 +596,21 @@ void Kernel_VenkatMod(KERNEL_ARGS)
   dx[1] = 0.5*(xR[1] - xL[1]);
   dx[2] = 0.5*(xR[2] - xL[2]);
   
-  for (j = 0; j < neqn; j++){
-    QL[j] += 
-      (0.5*chi*(qR[j] - qL[j]) + (1.0 - chi)*
-       (gradL[j*3 + 0]*dx[0] +
-	gradL[j*3 + 1]*dx[1] +
-	gradL[j*3 + 2]*dx[2]));
+  for(int i = 0; i < neqn; ++i){
+    dQedge[i] = qR[i] - qL[i];
   }
+
+  eqnset->ExtrapolateVariables(QL, qL, dQedge, gradL, dx, ones);
   
   dx[0] = -dx[0];
   dx[1] = -dx[1];
   dx[2] = -dx[2];
-  
-  for (j = 0; j < neqn; j++){
-    QR[j] += 
-      (0.5*chi*(qL[j] - qR[j]) + (1.0 - chi)*
-       (gradR[j*3 + 0]*dx[0] +
-	gradR[j*3 + 1]*dx[1] +
-	gradR[j*3 + 2]*dx[2]));
+
+  for(int i = 0; i < neqn; ++i){
+    dQedge[i] = -dQedge[i];
   }
+  
+  eqnset->ExtrapolateVariables(QR, qR, dQedge, gradR, dx, ones);
   
   //compute the Venkat limiters now
   for(j = 0; j < neqn; j++){
@@ -637,7 +619,7 @@ void Kernel_VenkatMod(KERNEL_ARGS)
     if(real(QL[j]) > real(qL[j])){
       DP = qmaxL[j] - qL[j];
     }
-    else{
+    else if(real(QL[j]) < real(qL[j])){
       DP = qminL[j] - qL[j];
     }
     
@@ -645,9 +627,6 @@ void Kernel_VenkatMod(KERNEL_ARGS)
     ep2 = Ll3*K3;
     temp = (DP*DP + ep2 + 2.0*DM*DP)/(DP*DP + 2.0*DM*DM + DM*DP + ep2);
     limiterL[j] = MIN(limiterL[j], temp);
-    if(std::isnan(real(limiterL[j]))){
-      limiterL[j] = 1.0;
-    }
   }
   
   for(j = 0; j < neqn; j++){
@@ -656,7 +635,7 @@ void Kernel_VenkatMod(KERNEL_ARGS)
     if(real(QR[j]) > real(qR[j])){
       DP = qmaxR[j] - qR[j];
     }
-    else{
+    if(real(QR[j]) < real(qR[j])){
       DP = qminR[j] - qR[j];
     }
 
@@ -664,9 +643,6 @@ void Kernel_VenkatMod(KERNEL_ARGS)
     ep2 = Lr3*K3;
     temp = (DP*DP + ep2 + 2.0*DM*DP)/(DP*DP + 2.0*DM*DM + DM*DP + ep2);
     limiterR[j] = MIN(limiterR[j], temp);
-    if(std::isnan(real(limiterR[j]))){
-      limiterR[j] = 1.0;
-    }
   }
   
 
@@ -701,6 +677,10 @@ void Bkernel_VenkatMod(B_KERNEL_ARGS)
     Type* QL = (Type*)alloca(sizeof(Type)*nvars);
     Type* QR = (Type*)alloca(sizeof(Type)*nvars);
     Type* dx = (Type*)alloca(sizeof(Type)*3);
+    Type* dQedge = (Type*)alloca(sizeof(Type)*neqn);
+    Type* ones = (Type*)alloca(sizeof(Type)*neqn);
+    Type one = 1.0;
+    MemSet(ones, one, neqn);
     Type temp;
 
     //Pi
@@ -710,8 +690,6 @@ void Bkernel_VenkatMod(B_KERNEL_ARGS)
     Type K = 1.0;
     Type K3 = K*K*K;
 
-
-    Type chi = param->chi;
 
     //compute a characteristic length of the control volume
     //use a sphere diameter with the same volume 4/3*pi*r^3
@@ -731,15 +709,13 @@ void Bkernel_VenkatMod(B_KERNEL_ARGS)
     dx[0] = 0.5*(xR[0] - xL[0]);
     dx[1] = 0.5*(xR[1] - xL[1]);
     dx[2] = 0.5*(xR[2] - xL[2]);
-    
-    for (j = 0; j < neqn; j++){
-      QL[j] += 
-	(0.5*chi*(qR[j] - qL[j]) + (1.0 - chi)*
-	 (gradL[j*3 + 0]*dx[0] +
-	  gradL[j*3 + 1]*dx[1] +
-	  gradL[j*3 + 2]*dx[2]));
+
+    for(int i = 0; i < neqn; ++i){
+      dQedge[i] = qR[i] - qL[i];
     }
     
+    eqnset->ExtrapolateVariables(QL, qL, dQedge, gradL, dx, ones);    
+
     //compute the Venkat limiters now
     for(j = 0; j < neqn; j++){
       //compute delta+ and delta- for the limiter
@@ -747,7 +723,7 @@ void Bkernel_VenkatMod(B_KERNEL_ARGS)
       if(real(QL[j]) > real(qL[j])){
 	DP = qmaxL[j] - QL[j];
       }
-      else{
+      else if(real(QL[j]) < real(qL[j])){
 	DP = qminL[j] - QL[j];
       }
       
@@ -755,9 +731,6 @@ void Bkernel_VenkatMod(B_KERNEL_ARGS)
       ep2 = Ll3*K3;
       temp = (DP*DP + ep2 + 2.0*DM*DP)/(DP*DP + 2.0*DM*DM + DM*DP + ep2);
       limiterL[j] = MIN(limiterL[j], temp);
-      if(std::isnan(real(limiterL[j]))){
-	limiterL[j] = 1.0;
-      }
     }
   }
   
@@ -795,7 +768,6 @@ void Kernel_PressureClip(KERNEL_ARGS)
   Type Pmin = 1.0e-10;
   Type Emin = 1.0e-10;
 
-  Type chi = param->chi;
   Type gamma = param->gamma;
 
   xL = m->cg + 3*left_cv;
