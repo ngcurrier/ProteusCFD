@@ -1,8 +1,10 @@
 #include "dataInfo.h"
 #include "h5layer.h"
+#include "exceptions.h"
 #include <fstream>
 #include <string>
 #include <vector>
+#include <sstream>
 
 DataInfo::DataInfo()
 {
@@ -41,14 +43,20 @@ void DataInfo::AddVector(Int dof, std::string name)
 {
   Int i;
   if(dof > ndof){
-    std::cerr << "WARNING: degree of freedom " << dof << " greater than allocated space of " << ndof << " -- FAILING! "
-	      << " in data descriptor of name " << name << " !" << std::endl;
+    std::stringstream ss;
+    ss << "WARNING: degree of freedom " << dof << " greater than allocated space of "
+       << ndof << " -- FAILING! "
+       << " in data descriptor of name " << name << " !" << std::endl;
+    Abort << ss.str();
     return;
   }
   for(i = dof; i < dof+3; i++){
     if(descriptorS[i] != -1){
-      std::cerr << "WARNING: degree of freedom " << dof << " has already been declared a scalar -- FAILING! " 
-		<< " in data descriptor of name " << name << " !" << std::endl;
+      std::stringstream ss;
+      ss << "WARNING: degree of freedom " << dof
+	 << " has already been declared a scalar -- FAILING! " 
+	 << " in data descriptor of name " << name << " !" << std::endl;
+      Abort << ss.str();
       return;
     }
     descriptorV[i] = nvector;
@@ -60,13 +68,19 @@ void DataInfo::AddVector(Int dof, std::string name)
 void DataInfo::AddScalar(Int dof, std::string name)
 {
   if(dof > ndof){
-    std::cerr << "WARNING: degree of freedom " << dof << " greater than allocated space of " << ndof << " -- FAILING! " 
-	      << " in data descriptor of name " << name << " !" << std::endl;
+    std::stringstream ss;
+    ss << "WARNING: degree of freedom " << dof << " greater than allocated space of "
+       << ndof << " -- FAILING! " 
+       << " in data descriptor of name " << name << " !" << std::endl;
+    Abort << ss.str();
     return;
   }
   if(descriptorV[dof] != -1){
-    std::cerr << "WARNING: degree of freedom " << dof << " has already been declared a vector -- FAILING! " 
-	      << " in data descriptor of name " << name << " !" << std::endl;
+    std::stringstream ss;
+    ss << "WARNING: degree of freedom " << dof
+       << " has already been declared a vector -- FAILING! " 
+       << " in data descriptor of name " << name << " !" << std::endl;
+    Abort << ss.str();
     return;
   }
   descriptorS[dof] = nscalar;
@@ -79,8 +93,10 @@ void DataInfo::Verify()
   Int i;
   for(i = 0; i < ndof; i++){
     if((descriptorS[i] == -1) && (descriptorV[i] == -1)){
-      std::cerr << "WARNING: degree of freedom " <<  i  << " in data descriptor of name " 
-		<< name << " is not set!" << std::endl;
+      std::stringstream ss;
+      ss << "WARNING: degree of freedom " <<  i  << " in data descriptor of name " 
+	 << name << " is not set!" << std::endl;
+      Abort << ss.str();
     }
   }
 }

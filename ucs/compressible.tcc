@@ -28,7 +28,7 @@ CompressibleEqnSet<Type>::CompressibleEqnSet(SolutionSpace<Type>* space, Param<T
    this->idata->Verify();
 
    //set gradients required
-   this->gdata = new DataInfo((this->neqn+1)*3, "gradVariableQ");
+   this->gdata = new DataInfo((this->neqn+1+3)*3, "gradVariableQ");
    this->gdata->AddVector(0*3, "Grad-Density");
    this->gdata->AddVector(1*3, "Grad-rhou");
    this->gdata->AddVector(2*3, "Grad-rhov");
@@ -815,14 +815,18 @@ Int CompressibleEqnSet<Type>::GetGradientsLocation(std::vector<Int>& gradientLoc
   gradientLoc.clear();
   //density
   gradientLoc.push_back(0);
-  //velocity
+  //momentum
   gradientLoc.push_back(1);
   gradientLoc.push_back(2);
   gradientLoc.push_back(3);
   //total energy
   gradientLoc.push_back(4);
-  //temperature if viscous
+  //temperature 
   gradientLoc.push_back(5);
+  //velocity for viscous terms
+  gradientLoc.push_back(7);
+  gradientLoc.push_back(8);
+  gradientLoc.push_back(9);
   return gradientLoc.size();
 }
 
@@ -844,7 +848,7 @@ void CompressibleEqnSet<Type>::ExtrapolateVariables(Type* Qho, const Type* q, co
   //momentum
   #pragma ivdep
   for(Int i = 1; i < 4; i++){
-    //get higher order u,v,w
+    //get higher order ru,rv,rw
     Qho[i] = q[i] + this->ExtrapolateCorrection(dQedge[i], &gradQ[i*3], dx)*limiter[i];
   }
   //total energy
@@ -1037,8 +1041,9 @@ void CompressibleEqnSet<Type>::ComputeAuxiliaryVariables(Type* Q)
   Type P = gm1 * (Q[4] - 0.5 * Q[0] * V2);
   Q[6] = P;
   Q[5] = ComputeTemperature(Q, GetGamma(Q));
-  
-  return;
+  Q[7] = u;
+  Q[8] = v;
+  Q[9] = w;
 }
 
 template <class Type>
@@ -1169,7 +1174,6 @@ void CompressibleEqnSet<Type>::GetFarfieldBoundaryVariables(Type* QL, Type* QR, 
       return;
     }
   }
-  return;
 }
 
 template <class Type>
@@ -1270,7 +1274,6 @@ void CompressibleEqnSet<Type>::GetInviscidWallBoundaryVariables(Type* QL, Type* 
 #endif
     
   }
-  return;
 }
 
 template <class Type>
@@ -1304,8 +1307,6 @@ void CompressibleEqnSet<Type>::GetInternalInflowBoundaryVariables(Type* QL, Type
   //QR[0] = Qinf[0];
   QR[4] = pi/(gamma - 1.0) + 0.5*rhoi*(u*u + v*v + w*w);
   //QR[4] = pressure;
-
-  return;
 }
 
 template <class Type>
