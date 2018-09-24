@@ -68,9 +68,16 @@ METISINSTALLDIR = ./$(METISDIR)/build/Linux-x86_64/libmetis
 METIS_LIB = $(METISINSTALLDIR)
 METIS_INCLUDES = .$(METISDIR)/include
 
-HDF5DIR = /TPLs/hdf5/hdf5-1.8.10-patch1
-HDF5_LIB = ./$(HDF5DIR)/build/lib
-HDF5_INCLUDES = ./$(HDF5DIR)/build/include
+# Self-TPLs build
+#HDF5DIR = /TPLs/hdf5/hdf5-1.8.10-patch1
+#HDF5_LIB = ./$(HDF5DIR)/build/lib
+#HDF5_INCLUDES = ./$(HDF5DIR)/build/include
+
+# Debian installs this kind of weird you may need to symlink it like:
+# ln -s /usr/lib/x86_64-linux-gnu/libhdf5_serial.a /usr/lib/x86_64-linux-gnu/libhdf5.a
+# ln -s /usr/lib/x86_64-linux-gnu/libhdf5_serial.so /usr/lib/x86_64-linux-gnu/libhdf5.so
+HDF5_LIB = /usr/lib/x86_64-linux-gnu/
+HDF5_INCLUDES = /usr/include/hdf5/serial/
 
 GTESTDIR = ./TPLs/gtest/gtest-1.7.0/
 GTEST_LIB = $(GTESTDIR)/lib/
@@ -86,16 +93,12 @@ ifeq ($(TARGET),papertape)
 endif
 
 
-#INCLUDES = -I$(METIS_INCLUDES) -I$(HDF5_INCLUDES) -I$(TINYXML_INCLUDES) -I$(GTEST_INCLUDES)\
-#	  -I$(LAPACK_INCLUDES) -I./structuralDynamics -I./ucs
-INCLUDES = -I$(METIS_INCLUDES) -I$(TINYXML_INCLUDES) -I$(GTEST_INCLUDES)\
+INCLUDES = -I$(HDF5_INCLUDES) -I$(METIS_INCLUDES) -I$(TINYXML_INCLUDES) -I$(GTEST_INCLUDES)\
 	  -I$(LAPACK_INCLUDES) -I./structuralDynamics -I./ucs
-#LCXXFLAGS = -L$(HDF5_LIB) -L./structuralDynamics -L$(TINYXML_LIB) -L$(GTEST_LIB) -L$(LAPACK_LIB) -L./ucs
-LCXXFLAGS = -L./structuralDynamics -L$(TINYXML_LIB) -L$(GTEST_LIB) -L$(LAPACK_LIB) -L./ucs
+LCXXFLAGS = -L$(HDF5_LIB) -L./structuralDynamics -L$(TINYXML_LIB) -L$(GTEST_LIB) -L$(LAPACK_LIB) -L./ucs
 LFXXFLAGS = 
 
 #CXXLIBS = -lmetis -lgomp -lmpi_cxx -lmpi -lefence
-#CXXLIBS = $(HDF5_LIB)/libhdf5.a -lcommon -lz 
 CXXLIBS = -lcommon -lz -lhdf5
 #more mpi stuff from running mpiCC --showme
 CXXLIBS += -lstdc++ 
