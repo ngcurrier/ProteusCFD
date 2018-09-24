@@ -69,7 +69,7 @@ METIS_LIB = $(METISINSTALLDIR)
 METIS_INCLUDES = .$(METISDIR)/include
 
 # Self-TPLs build
-#HDF5DIR = /TPLs/hdf5/hdf5-1.8.10-patch1
+HDF5DIR = /TPLs/hdf5/hdf5-1.8.10-patch1
 #HDF5_LIB = ./$(HDF5DIR)/build/lib
 #HDF5_INCLUDES = ./$(HDF5DIR)/build/include
 
