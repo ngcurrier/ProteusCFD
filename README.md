@@ -123,6 +123,8 @@ Dependencies for OS (you need to install these on the system prior to building)
 * Dev version of python for inclusion of python headers libpython-dev
 * H5PY (package python-h5py on Debian) - needed for chemistry database
 * Package libz-dev on Debian
+* Packages for HDF5 > 1.10: libhdf5-dev AND libhdf5-serial-dev on Debian (you can run script hdf5_fix.sh as root if you are getting linking errors due to serial/parallel HDF5 package installs)
+* Package for CGNS support: libcgns-dev on Debian
 
 Dependencies for GUI
 ====================
