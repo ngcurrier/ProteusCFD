@@ -155,17 +155,17 @@ void Spalart<Type>::BC_Kernel(B_KERNEL_ARGS)
   *ptrL = NULL;
   *size = 0;
 
-  if(bcId == ParallelBoundary){
+  if(bcId == Proteus_ParallelBoundary){
     //do nothing this is a parallel updated edge/node
     return;
   }
-  else if(bcId == NoSlip){
+  else if(bcId == Proteus_NoSlip){
     //this is a viscous surface, set the bc to zero
     *tR = 0.0;
     *tL = 0.0;
     return;
   }
-  else if(bcId == Symmetry || bcId == ImpermeableWall){
+  else if(bcId == Proteus_Symmetry || bcId == Proteus_ImpermeableWall){
     *tR = *tL;
     return;
   }
@@ -190,11 +190,11 @@ void Spalart<Type>::BC_Jac_Kernel(B_KERNEL_ARGS)
   *ptrL = NULL;
   *size = 0;
 
-  if(bcId == ParallelBoundary){
+  if(bcId == Proteus_ParallelBoundary){
     //do nothing this is a parallel updated edge/node
     return;
   }
-  else if(bcId == NoSlip){
+  else if(bcId == Proteus_NoSlip){
     //this is a viscous surface, set the bc to zero
     //we need to nuke the off-diagonal terms in the jacobian
     //as well as the residual since the bc is dirichlet on the wall

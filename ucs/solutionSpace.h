@@ -11,6 +11,7 @@
 #include "gaussian.h"
 #include "postPlugin.h"
 #include "exceptions.h"
+#include "h5layer.h"
 
 #include <string>
 #include <vector>

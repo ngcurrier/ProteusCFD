@@ -5,6 +5,7 @@
 #include "dataInfo.h"
 #include "parallel.h"
 #include "exceptions.h"
+#include "h5layer.h"
 #include <string>
 #ifdef _OPENMP
 #include <pthread.h>

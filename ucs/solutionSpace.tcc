@@ -1068,7 +1068,7 @@ void SolutionSpace<Type>::WriteSolution()
       }
       std::string timevaluedir = "/SolutionTime/" + timeflag + "/";
       HDF_WriteScalar(h5out, timevaluedir, "time", &this->time);
-      HDF_CloseFile(h5out);
+      H5Fclose(h5out);
     }
 		    
   }
@@ -1140,7 +1140,7 @@ void SolutionSpace<Type>::WriteRestartFile()
   HDF_WriteArray(h5out, "/Mesh State/", "Nodal Coordinates Base", m->xyz_base, 3*(nnode+gnode));
   HDF_WriteArray(h5out, "/Mesh State/", "Nodal Coordinates N", m->xyzold, 3*nnode);
   HDF_WriteArray(h5out, "/Mesh State/", "Nodal Coordinates N-1", m->xyzoldm1, 3*nnode);
-  HDF_CloseFile(h5out);
+  H5Fclose(h5out);
 }
 
 template <class Type>
@@ -1181,7 +1181,7 @@ void SolutionSpace<Type>::ReadRestartFile()
   ntnodes = 3*nnode;
   HDF_ReadArray(h5in, "/Mesh State/", "Nodal Coordinates N", &m->xyzold, &ntnodes);
   HDF_ReadArray(h5in, "/Mesh State/", "Nodal Coordinates N-1", &m->xyzoldm1, &ntnodes);
-  HDF_CloseFile(h5in);
+  H5Fclose(h5in);
 }
 
 

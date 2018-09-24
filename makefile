@@ -73,7 +73,7 @@ DEPS_TEST = $(SRCS_TEST:.cpp=.d)
 # --------- BEGIN EXECUTABLE TARGETS SECTION
 
 $(EXE_SOLVER):  $(TINYXMLDIR)/libtinyxml.a $(HDF5_LIB)/libhdf5.a $(DEPS_SOLVER) $(OBJS_SOLVER) ./ucs/libcommon.a structuralDynamics/libstructdyn.a $(LAPACK_LIB)/liblapacke.a 
-	$(MPICXX) $(LINK_OPTS) -o $(EXE_SOLVER) $(LCXXFLAGS) $(OBJS_SOLVER) $(CXXLIBS) -lstructdyn -ltinyxml
+	$(MPICXX) $(LINK_OPTS) -o $(EXE_SOLVER) $(LCXXFLAGS) $(OBJS_SOLVER) $(CXXLIBS) -lstructdyn -ltinyxml 
 
 $(EXE_DECOMP): $(METISINSTALLDIR)/libmetis.a $(HDF5_LIB)/libhdf5.a ./ucs/libcommon.a  $(DEPS_DECOMP) $(OBJS_DECOMP) 
 	$(MPICXX) $(LINK_OPTS) -o $(EXE_DECOMP) $(LCXXFLAGS) -L$(METIS_LIB) $(OBJS_DECOMP) $(CXXLIBS) -lmetis -ltinyxml
@@ -91,13 +91,13 @@ $(EXE_CHEMPROPS): $(DEPS_CHEMPROPS) $(OBJS_CHEMPROPS) ./ucs/libcommon.a $(HDF5_L
 	$(MPICXX) $(LINK_OPTS) -o $(EXE_CHEMPROPS) $(LCXXFLAGS) $(OBJS_CHEMPROPS) $(CXXLIBS)
 
 $(EXE_STRUCT_SOLVER): $(DEPS_STRUCT_SOLVER) $(OBJS_STRUCT_SOLVER) $(LAPACK_LIB)/liblapacke.a ./ucs/libcommon.a
-	$(MPICXX) -o $(EXE_STRUCT_SOLVER) $(LCXXFLAGS) $(OBJS_STRUCT_SOLVER) $(CXXLIBS) -llapacke -ltinyxml
+	$(MPICXX) -o $(EXE_STRUCT_SOLVER) $(LCXXFLAGS) $(OBJS_STRUCT_SOLVER) $(CXXLIBS) -llapacke -ltinyxml -lhdf5
 
 $(EXE_STRUCT_ERROR): ./structuralDynamics/error.o ./ucs/libcommon.a
 	$(MPICXX) -o $(EXE_STRUCT_ERROR) $(LCXXFLAGS) ./structuralDynamics/error.o $(CXXLIBS)
 
 $(EXE_TESTS): $(DEPS_TEST) $(OBJS_TEST) $(GTEST_LIB)/.libs/libgtest.a ./ucs/libcommon.a
-	$(MPICXX) $(LINK_OPTS) -o $(EXE_TESTS) $(LCXXFLAGS) $(OBJS_TEST) $(CXXLIBS) $(GTEST_LIB)/.libs/libgtest.a
+	$(MPICXX) $(LINK_OPTS) -o $(EXE_TESTS) $(LCXXFLAGS) $(OBJS_TEST) $(CXXLIBS) $(GTEST_LIB)/.libs/libgtest.a 
 
 SRCDIRS = ./structuralDynamics ./ucs
 ROOT = $$PWD

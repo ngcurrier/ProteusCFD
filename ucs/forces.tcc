@@ -170,7 +170,7 @@ void FORCE_Kernel(B_KERNEL_ARGS)
     }
 
     //add the viscous forces
-    if(bcId == NoSlip && param->viscous){
+    if(bcId == Proteus_NoSlip && param->viscous){
       Type* stress = (Type*)alloca(sizeof(Type)*3);
       Type mu, rho, nu;
       mu = eqnset->ComputeViscosity(Qsurf);
@@ -439,7 +439,7 @@ void YpCf_Kernel(B_KERNEL_ARGS)
   }
 
   //only compute y+ and cf for viscous surfaces
-  if(bcId == NoSlip && param->viscous){
+  if(bcId == Proteus_NoSlip && param->viscous){
     //we need to find the distance to the first grid point off the wall in the 
     //normal direction, can include parallel nodes
     Int indx, indx1, indx2;
@@ -488,7 +488,7 @@ void Forces<Type>::ReportYpCf()
     Int factag = m->bedges[eid].factag;
     Int bcId = bc->GetBCId(factag);
     //we only care about the min and max yplus on viscous boundaries
-    if(bcId == NoSlip){
+    if(bcId == Proteus_NoSlip){
       maxYp = MAX(maxYp, real(forces->yp[eid]));
       if(real(forces->yp[eid]) >= maxYp){
 	maxYp = real(forces->yp[eid]);

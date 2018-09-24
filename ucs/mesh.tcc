@@ -2538,7 +2538,7 @@ Int Mesh<Type>::WriteCurrentCoords(std::string casename, Int timestep)
   //write local and ghost coords
   HDF_WriteArray(h5out, directory, "Nodal Coordinates", xyz, (nnode+gnode)*3);
   
-  HDF_CloseFile(h5out);
+  H5Fclose(h5out);
 
   return err;
 }
@@ -2614,7 +2614,7 @@ Int Mesh<Type>::WriteParallelMesh(std::string casename)
   HDF_WriteArray(h5out, directory, "Element Data", &vint.front(), vint.size());
   HDF_WriteArray(h5out, directory, "Element Factags", &vint2.front(), vint2.size());
 
-  HDF_CloseFile(h5out);
+  H5Fclose(h5out);
 
   return err;
 }
@@ -2646,7 +2646,7 @@ Int Mesh<Type>::ReadPartedMesh(std::string casename)
     std::stringstream ss;
     ss << "WARNING: Number of processors does not match partition file!!\n";
     ss << "Running with " << p->GetNp() << " but file contains " << npCheck << "\n";
-    HDF_CloseFile(h5in);
+    H5Fclose(h5in);
     Abort << ss.str();
     return (-1);
   }
@@ -2767,7 +2767,7 @@ Int Mesh<Type>::ReadPartedMesh(std::string casename)
   delete [] factagTempLocal;
   delete [] elementDataTemp;
   
-  HDF_CloseFile(h5in);
+  H5Fclose(h5in);
 
   // do some basic sanity checks knowing that we need a field mesh to solve
   if(lnelem == 0){
@@ -3979,7 +3979,41 @@ Int Mesh<Type>::ReadGMSH4_Ascii(std::string filename)
   
   return 0;
 }
+
+#ifdef _HAS_CGNS
+template <class Type>
+Int Mesh<Type>::GetCGNSSizes(std::string filename, int** isize)
+{
+  int index_file;
+  char zonename[100];
+
+  cg_open(filename.c_str(), CG_MODE_READ, &index_file);
+  cg_zone_read(index_file, 1, 1, zonename, isize[0]);
+
+  nnode = isize[0][0];
+  lnelem = isize[0][1];
   
+  std::cout << "CGNS ASCII I/O: Number of nodes " << nnode << std::endl;
+  std::cout << "CGNS ASCII I/O: Number of elements " << lnelem << std::endl;
+
+  cg_close(index_file);
+
+  return 0;
+}
+
+template <class Type>
+Int Mesh<Type>::ReadCGNS(std::string filename)
+{
+  int* isize = new int[100];
+  Int error = GetCGNSSizes(filename, &isize);
+
+  delete[] isize;
+  
+  return 0;
+}
+
+#endif //end _HAS_CGNS
+
 template <class Type>
 Int Mesh<Type>::WriteCRUNCH_Ascii(std::string casename)
 {
@@ -4339,7 +4373,7 @@ Int Mesh<Type>::WriteGridXDMF(PObj<Type> &p, std::string filebase, std::string m
   std::cout << "Writing to : " << directory+dataname << std::endl;
   HDF_WriteArray(fileId, directory, dataname, xyz, (nnode+gnode)*3);
 						     
-  HDF_CloseFile(fileId);
+  H5Fclose(fileId);
 
   delete [] elements;
 

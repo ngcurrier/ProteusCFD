@@ -214,5 +214,4 @@ void DataInfo::WriteHDFAttribute(hid_t file_id, std::string directory)
   HDF_WriteStringAttribute(file_id, directory, name, "variable_names", names);
   HDF_WriteArrayAttribute(file_id, directory, name, "scalars", descriptorS);
   HDF_WriteArrayAttribute(file_id, directory, name, "vectors", descriptorV);
-  return;
 }

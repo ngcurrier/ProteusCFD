@@ -142,12 +142,12 @@ void ComputeWallDistOct(Type* wallDist, SolutionSpace<Type>* space)
     Int bcNum = bc->bc_map[factag];
     Int bcId;
     if(factag == 0){
-      bcId = ParallelBoundary;
+      bcId = Proteus_ParallelBoundary;
     }
     else{
       bcId = bc->bc_applied[bcNum];
     }  
-    if(bcId == NoSlip){
+    if(bcId == Proteus_NoSlip){
       nptsLocal++;
     }
   }
@@ -164,12 +164,12 @@ void ComputeWallDistOct(Type* wallDist, SolutionSpace<Type>* space)
     Int bcNum = bc->bc_map[factag];
     Int bcId;
     if(factag == 0){
-      bcId = ParallelBoundary;
+      bcId = Proteus_ParallelBoundary;
     }
     else{
       bcId = bc->bc_applied[bcNum];
     }  
-    if(bcId == NoSlip){
+    if(bcId == Proteus_NoSlip){
       //the left node is the node on the surface
       Int left_cv = m->bedges[eid].n[0];
       memcpy(&xyzLocal[count*3], &m->xyz[left_cv*3], sizeof(Type)*3);
@@ -496,16 +496,16 @@ void BKernel_WallDistBC(B_KERNEL_ARGS)
   Type* phi = pstruct->C;
 
   if(factag == 0){
-    bcId = ParallelBoundary;
+    bcId = Proteus_ParallelBoundary;
   }
   else{
     bcId = bc->bc_applied[bcNum];
   }  
-  if(bcId == NoSlip){
+  if(bcId == Proteus_NoSlip){
     phi[left_cv] = 0.0;
     phi[right_cv] = 0.0;
   }
-  else if(bcId == ParallelBoundary){
+  else if(bcId == Proteus_ParallelBoundary){
     //do nothing.. updates take care of this
   }
   else{

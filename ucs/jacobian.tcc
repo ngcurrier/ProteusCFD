@@ -501,7 +501,7 @@ void Bkernel_NumJac(B_KERNEL_ARGS){
   Type betaL = beta[left_cv];
 
   if(factag == 0){
-    bcId = ParallelBoundary;
+    bcId = Proteus_ParallelBoundary;
   }
   else{
     bcId = bc->bc_applied[bc->bc_map[factag]];
@@ -591,7 +591,7 @@ void Bkernel_NumJac_Centered(B_KERNEL_ARGS){
   Type betaL = beta[left_cv];
 
   if(factag == 0){
-    bcId = ParallelBoundary;
+    bcId = Proteus_ParallelBoundary;
   }
   else{
     bcId = bc->bc_applied[bcNum];
@@ -710,7 +710,7 @@ void Bkernel_NumJac_Complex(B_KERNEL_ARGS){
   RCmplx cbetaL = betaL;
 
   if(factag == 0){
-    bcId = ParallelBoundary;
+    bcId = Proteus_ParallelBoundary;
   }
   else{
     bcId = bc->bc_applied[bcNum];
@@ -840,7 +840,7 @@ void Bkernel_Viscous_Jac(B_KERNEL_ARGS)
   Int bcNum = bc->bc_map[factag];
   Int bcId; 
   if(factag == 0){
-    bcId = ParallelBoundary;
+    bcId = Proteus_ParallelBoundary;
   }
   else{
     bcId = bc->bc_applied[bcNum];

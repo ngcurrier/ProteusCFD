@@ -104,7 +104,7 @@ void Post_Force_Kernel(B_KERNEL_ARGS)
     }
 
     //add the viscous forces
-    if(bcId == NoSlip && param->viscous){
+    if(bcId == Proteus_NoSlip && param->viscous){
       Type* stress = (Type*)alloca(sizeof(Type)*3);
       Type mu, rho, nu;
       mu = eqnset->ComputeViscosity(Qsurf);

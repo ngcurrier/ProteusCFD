@@ -1188,7 +1188,8 @@ void Compute_dQdBeta_II(Real* dQdB, SolutionSpace<Real>& space, Int beta)
   
   //Get the direct computed dQdB on boundaries which are dirchlet(TODO) or viscous
   Int* vnodeslist;
-  Int vnodes = GetNodesOnBCType(m, space.bc, &vnodeslist, NoSlip);
+
+  Int vnodes = GetNodesOnBCType(m, space.bc, &vnodeslist, Proteus_NoSlip);
   Real* vnodesdQdB = new Real[vnodes*neqn];
   ComputedQdBeta_HardsetBC(vnodes, vnodeslist, vnodesdQdB, space, beta);
 

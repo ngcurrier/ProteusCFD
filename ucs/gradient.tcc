@@ -555,7 +555,7 @@ void Bkernel_Symmetry_Fix(B_KERNEL_ARGS)
   Type dot;
   Type* gradL = &g->grad[left_cv*nterms*3];
 
-  if(bcId == Symmetry){
+  if(bcId == Proteus_Symmetry){
     //ensure gradients are zero in the normal direction
     for(i = 0; i < nterms; i++){
       dot = DotProduct(&gradL[i*3], avec);

@@ -1,6 +1,7 @@
 # Uncomment any below to change compiler behavior
 TOOLCHAIN = GNU
 HAS_PYTHON = TRUE
+HAS_CGNS = TRUE
 DEBUG = TRUE
 #EFENCE = TRUE
 
@@ -85,16 +86,25 @@ ifeq ($(TARGET),papertape)
 endif
 
 
-INCLUDES = -I$(METIS_INCLUDES) -I$(HDF5_INCLUDES) -I$(TINYXML_INCLUDES) -I$(GTEST_INCLUDES)\
+#INCLUDES = -I$(METIS_INCLUDES) -I$(HDF5_INCLUDES) -I$(TINYXML_INCLUDES) -I$(GTEST_INCLUDES)\
+#	  -I$(LAPACK_INCLUDES) -I./structuralDynamics -I./ucs
+INCLUDES = -I$(METIS_INCLUDES) -I$(TINYXML_INCLUDES) -I$(GTEST_INCLUDES)\
 	  -I$(LAPACK_INCLUDES) -I./structuralDynamics -I./ucs
-LCXXFLAGS = -L$(HDF5_LIB) -L./structuralDynamics -L$(TINYXML_LIB) -L$(GTEST_LIB) -L$(LAPACK_LIB) -L./ucs
+#LCXXFLAGS = -L$(HDF5_LIB) -L./structuralDynamics -L$(TINYXML_LIB) -L$(GTEST_LIB) -L$(LAPACK_LIB) -L./ucs
+LCXXFLAGS = -L./structuralDynamics -L$(TINYXML_LIB) -L$(GTEST_LIB) -L$(LAPACK_LIB) -L./ucs
 LFXXFLAGS = 
 
 #CXXLIBS = -lmetis -lgomp -lmpi_cxx -lmpi -lefence
-CXXLIBS = $(HDF5_LIB)/libhdf5.a -lcommon -lz 
+#CXXLIBS = $(HDF5_LIB)/libhdf5.a -lcommon -lz 
+CXXLIBS = -lcommon -lz -lhdf5
 #more mpi stuff from running mpiCC --showme
 CXXLIBS += -lstdc++ 
 FXXLIBS = -lstdc++ -lmpi -lmpi_cxx
+
+ifdef HAS_CGNS
+      CXX_OPTS += -D_HAS_CGNS
+      CXXLIBS += -lcgns 
+endif
 
 ifdef DEBUG
       CXX_OPTS += -g
@@ -116,3 +126,4 @@ ifdef HAS_PYTHON
       CXXLIBS += -lpython2.7 -lpthread -ldl -lutil
       CXX_OPTS += -D_HAS_PYTHON
 endif
+

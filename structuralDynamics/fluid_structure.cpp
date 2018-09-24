@@ -216,7 +216,7 @@ void TypicalSection::WriteRestartFile()
   HDF_WriteArray(h5out, "/Fields/", "x_n", x_n, dof);
   HDF_WriteArray(h5out, "/Fields/", "xd_n", xd_n, dof);
   HDF_WriteArray(h5out, "/Fields/", "xdd_n", xdd_n, dof);
-  HDF_CloseFile(h5out);
+  H5Fclose(h5out);
 
   return;
 }
@@ -232,7 +232,7 @@ void TypicalSection::ReadRestartFile()
   HDF_ReadArray(h5in, "/Fields/", "x_n", &x_n, &dof);
   HDF_ReadArray(h5in, "/Fields/", "xd_n", &xd_n, &dof);
   HDF_ReadArray(h5in, "/Fields/", "xdd_n", &xdd_n, &dof);
-  HDF_CloseFile(h5in);
+  H5Fclose(h5in);
 
   //echo the input
   std::cout << "TYPICAL SECTION: Restarting dx: " << dx[0] << " " << dx[1] << std::endl;

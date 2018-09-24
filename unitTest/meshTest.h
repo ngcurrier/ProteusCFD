@@ -32,6 +32,23 @@ class MeshTestGmsh4 : public testing::Test
   Mesh<Real> m;
 };
 
+#ifdef _HAS_CGNS
+class MeshTestCGNS : public testing::Test
+{
+ protected:
+ MeshTestCGNS():
+  ierr(0)
+    { };
+  ~MeshTestCGNS(){};
+
+  void SetUp(){};
+  void TearDown(){};
+
+  int ierr;
+  Mesh<Real> m;
+};
+#endif
+
 class MeshTestUgrid : public testing::Test
 {
  protected:
@@ -104,6 +121,22 @@ TEST_F(MeshTestGmsh4, testGmshRead)
   m.CalcMetrics();
   EXPECT_NEAR(0.00201639, m.GetVolumeTotal(), 1.0e-7);
 }
+
+#ifdef _HAS_CGNS
+TEST_F(MeshTestCGNS, testCGNSRead)
+{
+  PObj<Real> pobj;
+  EXPECT_EQ(0, m.ReadCGNS("../unitTest/meshResources/CGNS/demo.cgns"));
+  m.SetParallelPointer(&pobj);
+
+  EXPECT_EQ(21632,m.GetNumNodes());
+  EXPECT_EQ(19296, m.GetNumElem());
+
+  //m.BuildMaps();
+  //m.CalcMetrics();
+  //EXPECT_NEAR(0.00201639, m.GetVolumeTotal(), 1.0e-7);
+}
+#endif
 
 TEST_F(MeshTestUgrid, testUgridRead)
 {

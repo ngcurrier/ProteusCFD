@@ -326,7 +326,7 @@ void Bkernel_Inviscid_Flux(B_KERNEL_ARGS)
   Int bcNum = bc->bc_map[factag];
   Int bcId; 
   if(factag == 0){
-    bcId = ParallelBoundary;
+    bcId = Proteus_ParallelBoundary;
   }
   else{
     bcId = bc->bc_applied[bcNum];
@@ -502,7 +502,7 @@ void Bkernel_Viscous_Flux(B_KERNEL_ARGS)
   Int bcNum = bc->bc_map[factag];
   Int bcId; 
   if(factag == 0){
-    bcId = ParallelBoundary;
+    bcId = Proteus_ParallelBoundary;
   }
   else{
     bcId = bc->bc_applied[bcNum];
@@ -803,7 +803,7 @@ void Bkernel_Viscous_Src(B_KERNEL_ARGS)
   Int bcNum = bc->bc_map[factag];
   Int bcId; 
   if(factag == 0){
-    bcId = ParallelBoundary;
+    bcId = Proteus_ParallelBoundary;
   }
   else{
     bcId = bc->bc_applied[bcNum];

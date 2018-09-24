@@ -26,6 +26,10 @@
 #include <iostream>
 #include <map>
 
+#ifdef _HAS_CGNS
+#include <cgnslib.h>
+#endif
+
 #include "geometry.h"
 #include "mem_util.h"
 #include "macros.h"
@@ -134,6 +138,10 @@ class Mesh
   Int ReadSU2_Ascii(std::string filename);
   Int ReadGMSH2_Ascii(std::string filename);
   Int ReadGMSH4_Ascii(std::string filename);
+#ifdef _HAS_CGNS
+  Int GetCGNSSizes(std::string filename, int** isize);
+  Int ReadCGNS(std::string filename);
+#endif
   Int WriteCRUNCH_Ascii(std::string casename);
   Int WriteVTK_Ascii(std::string casename, std::vector<SolutionField<Type>*>& fields);
   Int WriteVTK_Binary(std::string casename, std::vector<SolutionField<Type>*>& fields);

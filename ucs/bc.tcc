@@ -20,7 +20,7 @@ Int BoundaryConditions<Type>::GetBCId(Int factag)
   Int bcId;
   Int bcNum = bc_map[factag];
   if(factag == 0){
-    bcId = ParallelBoundary;
+    bcId = Proteus_ParallelBoundary;
   }
   else{
     bcId = bc_applied[bcNum];
@@ -794,7 +794,7 @@ void Bkernel_BC_Jac_Modify(B_KERNEL_ARGS)
   Type* Qref = (Type*)alloca(sizeof(Type)*nvars);
   bcobj->GetQref(Qref);
 
-  if(bcId == NoSlip){
+  if(bcId == Proteus_NoSlip){
     //find the most normal node to the wall
     Type* dx = (Type*)alloca(sizeof(Type)*3);
     Type* wallx = &m->xyz[left_cv*3];
@@ -942,7 +942,7 @@ void Bkernel_BC_Res_Modify(B_KERNEL_ARGS)
   Type* Qref = (Type*)alloca(sizeof(Type)*nvars);
   bcobj->GetQref(Qref);
 
-  if(bcId == NoSlip){
+  if(bcId == Proteus_NoSlip){
     //find the most normal node to the wall
     Type* dx = (Type*)alloca(sizeof(Type)*3);
     Type* wallx = &m->xyz[left_cv*3];
@@ -1082,11 +1082,11 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
   Type3* beta = space->GetField("beta", FIELDS::STATE_NONE);
   Type betaL = beta[left_cv];
 
-  if(bcId == ParallelBoundary){
+  if(bcId == Proteus_ParallelBoundary){
     //do nothing this is a parallel updated edge/node
     return;
   }
-  else if(bcId == SonicInflow || bcId == Dirichlet){
+  else if(bcId == Proteus_SonicInflow || bcId == Proteus_Dirichlet){
     for(i = 0; i < nvars; i++){
       //TODO: implement this correctly with param file
       Type* Qref = (Type*)alloca(sizeof(Type2)*nvars);
@@ -1094,15 +1094,15 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
       QR[i] = QL[i] = Qref[i];
     }
   }
-  else if(bcId == SonicOutflow || bcId == Neumann){
+  else if(bcId == Proteus_SonicOutflow || bcId == Proteus_Neumann){
     for(i = 0; i < neqn; i++){
       QR[i] = QL[i];
     }
   }
-  else if(bcId == FarField){
+  else if(bcId == Proteus_FarField){
     eqnset->GetFarfieldBoundaryVariables(QL, QR, Qinf, avec, vdotn, betaL);
   }
-  else if(bcId == FarFieldViscous){
+  else if(bcId == Proteus_FarFieldViscous){
     //modify qinf to follow the powerlaw assumption b/c it intersects
     //with a viscous surface, this aids stability of the solver
     Type3* dist = space->GetField("wallDistance", FIELDS::STATE_NONE);
@@ -1118,10 +1118,10 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
     }
     eqnset->GetFarfieldBoundaryVariables(QL, QR, Qinf, avec, vdotn, betaL);
   }
-  else if(bcId == ImpermeableWall || bcId == Symmetry){
+  else if(bcId == Proteus_ImpermeableWall || bcId == Proteus_Symmetry){
     eqnset->GetInviscidWallBoundaryVariables(QL, QR, Qinf, avec, vdotn, betaL);
   }
-  else if(bcId == InternalInflow || bcId == InternalInflowDuctBL){
+  else if(bcId == Proteus_InternalInflow || bcId == Proteus_InternalInflowDuctBL){
     Type pressure = bcobj->backPressure;
     Type* densities = NULL;
     if(bcobj->massFractions != NULL){
@@ -1145,7 +1145,7 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
     }
     Type vel = bcobj->velocity;
     Type ubar = 1.0;
-    if(bcId == InternalInflowDuctBL){
+    if(bcId == Proteus_InternalInflowDuctBL){
       //modify qinf to follow the powerlaw assumption b/c it intersects
       //with a viscous surface, this aids stability of the solver
       Type3* dist = space->GetField("wallDistance", FIELDS::STATE_NONE);
@@ -1157,13 +1157,13 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
 					       flowDirection, ubar*vel);
     delete [] densities;
   }
-  else if(bcId == InternalOutflow){
+  else if(bcId == Proteus_InternalOutflow){
     Type pressure = bcobj->backPressure;
     //this only works for eqnsets where gamma is constant
     Type gamma = eqnset->param->gamma;
     eqnset->GetInternalOutflowBoundaryVariables(QL, QR, pressure, gamma);
   }
-  else if(bcId == TotalTempAndPressure){
+  else if(bcId == Proteus_TotalTempAndPressure){
     Type pressure = bcobj->backPressure;
     Type T = bcobj->twall;
     Type flowDirection[3];
@@ -1181,7 +1181,7 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
     }
     eqnset->GetTotalTempPressureBoundaryVariables(QL, QR, pressure, T, flowDirection);
   }
-  else if(bcId == NoSlip){
+  else if(bcId == Proteus_NoSlip){
     //find the most normal node to the wall
     Type3* dx = (Type3*)alloca(sizeof(Type3)*3);
     Type3* wallx = &m->xyz[left_cv*3];
@@ -1309,13 +1309,13 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
     }
     delete [] densities;
   }
-  else if(bcId == PitchingFarField){
+  else if(bcId == Proteus_PitchingFarField){
     //we compute the farfield Qinf inflow angles externally to 
     //avoid repititve computation and simply apply the farfield BC
     //here, now compute the farfield BCs with the new AOA
     eqnset->GetFarfieldBoundaryVariables(QL, QR, Qinf, avec, vdotn, betaL);
   }
-  else if(bcId == HeatFlux){
+  else if(bcId == Proteus_HeatFlux){
     //find the most normal node to the wall
     Type3* dx = (Type3*)alloca(sizeof(Type3)*3);
     Type* ndx = (Type*)alloca(sizeof(Type)*3);
@@ -1358,11 +1358,11 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
     Type flux = bcobj->flux;
     eqnset->GetHeatFluxBoundaryVariables(QL, QR, nQ, ndx, flux);
   }
-  else if(bcId == Isothermal){
+  else if(bcId == Proteus_Isothermal){
     Type Twall = bcobj->twall;
     eqnset->GetIsothermalBoundaryVariables(QL, QR, Twall);
   }
-  else if(bcId == PythonBC){
+  else if(bcId == Proteus_PythonBC){
     Type wallx[3];
     wallx[0] = m->xyz[left_cv*3 + 0];
     wallx[1] = m->xyz[left_cv*3 + 1];
@@ -1395,7 +1395,7 @@ void UpdateBCs(SolutionSpace<Type>* space)
   Bool pitching = false;
   for(i = 0; i <= bc->num_bcs; i++){
     Int bcId = bc->GetBCId(bc->bcs[i].factag);
-    if(bcId == PitchingFarField){
+    if(bcId == Proteus_PitchingFarField){
       pitching = true;
       std::cout << "RUNNING PITCHING MOTION" << std::endl;
       break;
@@ -1465,7 +1465,7 @@ Int GetNodesOnSymmetryPlanes(const Mesh<Type>* m, BoundaryConditions<Real>* bc, 
     factag = m->bedges[eid].factag;
     bcId = bc->GetBCId(factag);
     node = m->bedges[eid].n[0];
-    if(bcId == Symmetry){
+    if(bcId == Proteus_Symmetry){
       //if node is connected to symmetry/parallel plane 
       //ensure it is not on another type of surface as well
       //this keeps us from moving solid boundaries around
@@ -1477,7 +1477,7 @@ Int GetNodesOnSymmetryPlanes(const Mesh<Type>* m, BoundaryConditions<Real>* bc, 
 	Int lfactag = m->bedges[leid].factag;
 	Int lbcId;
 	lbcId = bc->GetBCId(lfactag);
-	if(lbcId != Symmetry){
+	if(lbcId != Proteus_Symmetry){
 	  //mark dirty and move to next node
 	  clean = false;
 	  break;
@@ -1750,10 +1750,10 @@ void SetBCStatFlags(Mesh<Type>* m, BoundaryConditions<Real>* bc)
     Int factag = m->bedges[eid].factag;
     Int bcId = bc->GetBCId(factag);
     Int node = m->bedges[eid].n[0];
-    if(bcId == NoSlip){
+    if(bcId == Proteus_NoSlip){
       m->cvstat[node].SetViscous();
     }
-    else if(bcId == Dirichlet){
+    else if(bcId == Proteus_Dirichlet){
       m->cvstat[node].SetDirichlet();
     }
   }
