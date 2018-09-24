@@ -4002,6 +4002,114 @@ Int Mesh<Type>::GetCGNSSizes(std::string filename, int** isize)
 }
 
 template <class Type>
+void Mesh<Type>::CGNSreadCoordElem(char *name, int** isize)
+{
+  int 			index_file,irmin,irmax,istart,iend,nbndry,iparent_flag,iparentdata;
+  int 			*ielem, counter;
+  ElementType_t 	itype;
+  char 			sectionname[100];
+
+  //TODO: allocate temporary arrays to read x,y,z, and con
+  Type* x;
+  Type* y;
+  Type* z;
+  Int** con;
+  
+  irmin = 1;
+  irmax = isize[0][0];
+
+  ielem = new int[isize[0][1]*3];
+
+  //read coordinates
+  cg_open(name,CG_MODE_READ,&index_file);
+  cg_coord_read(index_file,1,1,"CoordinateX",RealDouble,&irmin,&irmax,x);
+  cg_coord_read(index_file,1,1,"CoordinateY",RealDouble,&irmin,&irmax,y);
+  cg_coord_read(index_file,1,1,"CoordinateZ",RealDouble,&irmin,&irmax,z);
+
+  //read elements
+  cg_section_read(index_file,1,1,1,sectionname,&itype,&istart,&iend,&nbndry,&iparent_flag);
+  cg_elements_read(index_file,1,1,1,&ielem[0],&iparentdata);
+
+  counter = 0;
+  for (int i = 0; i < isize[0][1]; i++)
+    {
+      for (int j = 0; j < 3; ++j)
+	{
+	  con[i][j] = ielem[counter];
+	  counter += 1;
+	}
+    }
+
+  cg_close(index_file);
+}
+
+template <class Type>
+int Mesh<Type>::CGNSgetBCNum(char *name)
+{
+  int index_file,nbocos;
+
+  cg_open(name,CG_MODE_READ,&index_file);
+  cg_nbocos(index_file,1,1,&nbocos);
+  cg_close(index_file);
+
+  return nbocos-1;
+}
+
+template <class Type>
+int Mesh<Type>::CGNSgetBCIndNum(char *name, int ib)
+{
+  int 			index_file,nbocos;
+  int 			normalindex[3],ndataset;
+  char 			boconame[100];
+  BCType_t 		ibocotype;
+  PointSetType_t	iptset;
+  cgsize_t 		npts,normallistflag;
+  DataType_t 		normaldatatype;
+
+  cg_open(name,CG_MODE_READ,&index_file);
+  cg_boco_info(index_file,1,1,ib,boconame,&ibocotype,
+	       &iptset,&npts,normalindex,&normallistflag,&normaldatatype,&ndataset);
+  cg_close(index_file);
+
+  return npts;
+}
+
+template <class Type>
+void Mesh<Type>::CGNSreadBCConditions(char *name, int **bc)
+{
+  int 			index_file,nbocos,normallist;
+  int 			normalindex[3],ndataset;
+  char 			boconame[100];
+  BCType_t 		ibocotype;
+  PointSetType_t	iptset;
+  cgsize_t 		npts,normallistflag;
+  DataType_t 		normaldatatype;
+  cgsize_t 		*ipnts;
+
+
+  cg_open(name,CG_MODE_READ,&index_file);
+  cg_nbocos(index_file,1,1,&nbocos);
+
+  for (int ib = 2; ib <= nbocos; ib++)
+    {
+      cg_boco_info(index_file,1,1,ib,boconame,&ibocotype,
+                   &iptset,&npts,normalindex,&normallistflag,&normaldatatype,&ndataset);
+
+      ipnts    = new cgsize_t[npts];
+
+      cg_boco_read(index_file,1,1,ib,ipnts,&normallist);
+      for (int i=0; i < npts; i++)
+	{
+	  bc[ib-2][i] = ipnts[i];
+	}
+
+      delete ipnts;
+    }
+
+  cg_close(index_file);
+}
+
+template <class Type>
 Int Mesh<Type>::ReadCGNS(std::string filename)
 {
   int* isize = new int[100];
