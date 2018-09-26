@@ -1,0 +1,5 @@
+/path/to/OpenFoam/mesh/files
+/path/where/to/create/SU2mesh
+NameMeshFile.su2
+2D
+Z
