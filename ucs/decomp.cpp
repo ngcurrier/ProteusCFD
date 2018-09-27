@@ -67,6 +67,9 @@ int main(int argc, char* argv[]){
   else if(fileextension == "msh"){
     ierr = m.ReadGMSH4_Ascii(filename);
   }
+  else if(fileextension == "cgns"){
+    ierr = m.ReadCGNS(filename);
+  }
   else{
     cerr << "File extension " << fileextension << " not recognized" << endl;
     return 0;

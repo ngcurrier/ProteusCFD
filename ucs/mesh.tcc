@@ -3467,7 +3467,7 @@ Int Mesh<Type>::ReadGMSH2_Ascii(std::string filename)
 	    nodes[1]--;
 	    nodes[2]--;
 	    TranslateWinding(nodes, translation, mnode[TRI], TRI, 0);
-	    tempe = new Triangle<Type>;
+ 	    tempe = new Triangle<Type>;
 	    tempe->Init(nodes);
 	    tempe->SetFactag(physicalId);
 	    elementList.push_back(tempe);
@@ -3981,6 +3981,28 @@ Int Mesh<Type>::ReadGMSH4_Ascii(std::string filename)
 }
 
 #ifdef _HAS_CGNS
+
+template <class Type>
+Int Mesh<Type>::ReadCGNS(std::string filename)
+{
+  int** isize = new int*[3];
+  for(int i = 0; i < 3; ++i){
+    isize[i] = new int[3];
+  }
+  Int error = GetCGNSSizes(filename, isize);
+
+  MemInitMesh();
+
+  CGNSreadCoordElem(filename, isize);
+
+  for(int i = 0; i < 3; ++i){
+    delete [] isize[i];
+  }
+  delete [] isize;
+  
+  return 0;
+}
+
 template <class Type>
 Int Mesh<Type>::GetCGNSSizes(std::string filename, int** isize)
 {
@@ -4002,43 +4024,253 @@ Int Mesh<Type>::GetCGNSSizes(std::string filename, int** isize)
 }
 
 template <class Type>
-void Mesh<Type>::CGNSreadCoordElem(char *name, int** isize)
+void Mesh<Type>::CGNSreadCoordElem(std::string filename, int** isize)
 {
+  //This code borrows heavily from https://cgns.github.io/CGNS_docs_current/slides/VANDERWEIDE_tutorial.html
+  
   int 			index_file,irmin,irmax,istart,iend,nbndry,iparent_flag,iparentdata;
   int 			*ielem, counter;
   ElementType_t 	itype;
-  char 			sectionname[100];
 
   //TODO: allocate temporary arrays to read x,y,z, and con
-  Type* x;
-  Type* y;
-  Type* z;
-  Int** con;
+  Type* xtmp = new Type[isize[0][0]];
+  Int con[isize[0][1]][3];
   
   irmin = 1;
   irmax = isize[0][0];
 
-  ielem = new int[isize[0][1]*3];
-
   //read coordinates
-  cg_open(name,CG_MODE_READ,&index_file);
-  cg_coord_read(index_file,1,1,"CoordinateX",RealDouble,&irmin,&irmax,x);
-  cg_coord_read(index_file,1,1,"CoordinateY",RealDouble,&irmin,&irmax,y);
-  cg_coord_read(index_file,1,1,"CoordinateZ",RealDouble,&irmin,&irmax,z);
+  cg_open(filename.c_str(),CG_MODE_READ,&index_file);
+  cg_coord_read(index_file, 1, 1, "CoordinateX", RealDouble, &irmin, &irmax, xtmp); //X
+  for(int i = 0; i < nnode; ++i){
+    xyz[i*3 + 0] = xtmp[i];
+  }
+  cg_coord_read(index_file, 1, 1, "CoordinateY", RealDouble, &irmin, &irmax, xtmp); //Y
+  for(int i = 0; i < nnode; ++i){
+    xyz[i*3 + 1] = xtmp[i];
+  }
+  cg_coord_read(index_file, 1, 1, "CoordinateZ", RealDouble, &irmin, &irmax, xtmp); //Z
+  for(int i = 0; i < nnode; ++i){
+    xyz[i*3 + 2] = xtmp[i];
+  }
 
-  //read elements
-  cg_section_read(index_file,1,1,1,sectionname,&itype,&istart,&iend,&nbndry,&iparent_flag);
-  cg_elements_read(index_file,1,1,1,&ielem[0],&iparentdata);
+  int nBases,base;
+  if(cg_nbases(index_file, &nBases)!= CG_OK){
+    Abort << "readGridCGNS got error";
+    std::cerr << "CGNS error code " << cg_get_error() << std::endl;
+  }
+  if(nBases != 1){
+    std::cerr << "CGNS error code " << cg_get_error() << std::endl;
+    Abort << "readGridCGNS - reader assumes one base";
+  }
+  base = 1;
 
-  counter = 0;
-  for (int i = 0; i < isize[0][1]; i++)
-    {
-      for (int j = 0; j < 3; ++j)
-	{
-	  con[i][j] = ielem[counter];
-	  counter += 1;
-	}
+  char basename[100];
+  int cellDim, physDim;
+  if(cg_base_read(index_file, base, basename, &cellDim, &physDim) != CG_OK){
+    std::cerr << "CGNS error code " << cg_get_error() << std::endl;
+    Abort << "readGridCGNS got dimension error";
+  }
+  std::cout << "CGNS ASCII I/O: cell dimension " << cellDim << std::endl;
+  std::cout << "CGNS ASCII I/O: physical dimension " << physDim << std::endl;
+  std::cout << "CGNS ASCII I/O: reading base - " << std::string(basename) << std::endl;
+  
+
+  /* Read the number of zones in the grid. */
+  int zone, nZones;
+  if(cg_nzones(index_file, base, &nZones) != CG_OK)
+    Abort << "readGridCGNS got nzone error";
+  if(nZones != 1)
+    Abort << "readGridCGNS got more than one zone";
+  zone = 1;
+  
+  /* Check the zone type. This should be Unstructured. */
+  ZoneType_t zoneType;
+  if(cg_zone_type(index_file, base, zone, &zoneType) != CG_OK)
+    Abort << "readGridCGNS got zone type error";
+  if(zoneType != Unstructured)
+    Abort << "readGridCGNS - Unstructured zone expected";
+  else{
+    std::cout << "CGNS ASCII I/O: reading zone - " << zone << std::endl;
+  }
+  
+  /* Determine the number of vertices and volume elements in this */
+  /* We've already done this assuming one zone elsewhere*/
+
+  /* Determine the number of sections for this zone. Note that */
+  /* surface elements can be stored in a volume zone, but they */
+  /* are NOT taken into account in the number obtained from */
+  /* cg_zone_read. */
+
+  int nSections;
+  if(cg_nsections(index_file, base, zone, &nSections) != CG_OK){
+    std::cerr << "CGNS error code " << cg_get_error() << std::endl;
+    Abort << "readGridCGNS got error reading n-sections";
+  }
+
+  std::cout << "CGNS ASCII I/O: number of sections - " << nSections << std::endl;
+
+  int ecount = 0;
+  //read elements - note CGNS starts section numbering at 1 not zero
+  for(int isec = 1; isec <= nSections; ++isec){
+    char sectionname[100];
+    if(cg_section_read(index_file, base, zone, isec, sectionname, &itype, &istart, &iend, &nbndry, &iparent_flag) != CG_OK){
+      std::cerr << "CGNS error code " << cg_get_error() << std::endl;
+      Abort << "readGridCGNS got error reading section";
     }
+    std::cout << "CGNS ASCII I/O: reading section - " << std::string(sectionname) << std::endl;
+    cgsize_t elementDataSize;
+    if(cg_ElementDataSize(index_file, base, zone, isec, &elementDataSize) != CG_OK){
+      std::cerr << "CGNS error code " << cg_get_error() << std::endl;
+      Abort << "readGridCGNS got error reading element data size";
+    }
+    std::cout << "CGNS ASCII I/O: element data size is - " << elementDataSize << std::endl;
+
+    cgsize_t* conn = new cgsize_t[elementDataSize+1];
+
+    if(cg_elements_read(index_file, base, zone, isec, conn, NULL) != CG_OK){
+     std::cerr << "CGNS error code " << cg_get_error() << std::endl;
+     Abort << "readGridCGNS got error reading connectivities";
+    }
+
+    int factagSection = isec; //using different terminology than Proteus but same effect
+    switch (itype)
+      {
+      case TETRA_4:
+	std::cout << "CGNS ASCII I/O: reading section of TETRA_4 elements" << std::endl;
+	break;
+      case PYRA_5:
+	std::cout << "CGNS ASCII I/O: reading section of PYRA_5 elements" << std::endl;
+	break;
+      case PENTA_6:
+	std::cout << "CGNS ASCII I/O: reading section of PENTA_6 elements" << std::endl;
+	break;
+      case HEXA_8:
+	std::cout << "CGNS ASCII I/O: reading section of HEXA_8 elements" << std::endl;
+	break;
+      case TRI_3:
+	std::cout << "CGNS ASCII I/O: reading section of TRI_3 elements" << std::endl;
+	break;
+      case QUAD_4:
+	std::cout << "CGNS ASCII I/O: reading section of QUAD_4 elements" << std::endl;
+	break;
+      case MIXED:
+	std::cout << "CGNS ASCII I/O: reading section of MIXED elements" << std::endl;
+	break;
+      default:
+	// we should be aware that MIXED types are also support and contain
+	// an extra integer to support identifying the element type
+	Abort << "readGridCGNS Unsupported element encountered.";
+	break;
+      }
+
+    //
+    // table converts from cngs --> our format
+    //
+    Int translation[][8] = {
+      {0,1,2}, // Triangle
+      {0,1,2,3}, // Quad
+      {0,1,2,3},  // Tet
+      {0,1,2,3,4},  // Pyramid
+      {0,1,2,3,4,5},  // Prism
+      {0,1,2,3,4,5,6,7}  // Hex
+    };
+    
+    int idx = 0;
+    while(idx < elementDataSize && ecount < lnelem){
+      int type = itype;
+      Int nodes[8];
+      if(itype == MIXED){
+	type = conn[idx]; //read in the first value which is element type
+	idx++;
+      }
+      Element<Type>* tempe = NULL;
+      switch (type){
+      case TETRA_4:
+	tempe = new Tetrahedron<Type>;
+	for(int i = 0; i < 4; ++i){
+	  nodes[i] = conn[idx + i]--;
+	}
+	TranslateWinding(nodes, translation, mnode[TET], TET, 0);
+	idx+=4;
+	nelem[TET]++;
+	ecount++;
+	break;
+      case PYRA_5:
+	tempe = new Pyramid<Type>;
+	for(int i = 0; i < 5; ++i){
+	  nodes[i] = conn[idx + i]--;
+	}
+	TranslateWinding(nodes, translation, mnode[PYRAMID], PYRAMID, 0);
+	idx+=5;
+	nelem[PYRAMID]++;
+	ecount++;
+	break;
+      case PENTA_6:
+	tempe = new Prism<Type>;
+	for(int i = 0; i < 6; ++i){
+	  nodes[i] = conn[idx + i]--;
+	}
+	TranslateWinding(nodes, translation, mnode[PRISM], PRISM, 0);
+	idx+=6;
+	nelem[PRISM];
+	ecount++;
+	break;
+      case HEXA_8:
+	tempe = new Hexahedron<Type>;
+	for(int i = 0; i < 8; ++i){
+	  nodes[i] = conn[idx + i]--;
+	}
+	TranslateWinding(nodes, translation, mnode[HEX], HEX, 0);
+	idx+= 8;
+	nelem[HEX]++;
+	ecount++;
+	break;
+      case TRI_3:
+	tempe = new Triangle<Type>;
+	for(int i = 0; i < 3; ++i){
+	  nodes[i] = conn[idx + i]--;
+	}
+	TranslateWinding(nodes, translation, mnode[TRI], TRI, 0);
+	idx+=3;
+	nelem[TRI]++;
+	ecount++;
+	break;
+      case QUAD_4:
+	tempe = new Quadrilateral<Type>;
+	for(int i = 0; i < 4; ++i){
+	  nodes[i] = conn[idx + i]--;
+	}
+	TranslateWinding(nodes, translation, mnode[QUAD], QUAD, 0);
+	idx+=4;
+	nelem[QUAD]++;
+	ecount++;
+	break;
+      default:
+	// we should be aware that MIXED types are also support and contain
+	// an extra integer to support identifying the element type
+	std::cerr << "Found element label type " << type << std::endl;
+	std::cerr << "Type available are: " << TETRA_4 << " " << PYRA_5 << " " << PENTA_6 << " " << HEXA_8 << " " << TRI_3 << " " << QUAD_4 << std::endl;
+	Abort << "readGridCGNS Unsupported element encountered after parsing.";
+	break;
+      }
+      tempe->Init(nodes);
+      tempe->SetFactag(factagSection);
+      elementList.push_back(tempe);
+    }
+    
+    delete [] conn;
+  }
+
+  std::cout << "CGNS ASCII I/O: Number of nodes " << nnode << std::endl;
+  std::cout << "CGNS ASCII I/O: Number of elements " << lnelem << std::endl;
+  std::cout << "CGNS ASCII I/O: Number of Tris " << nelem[TRI] << std::endl;
+  std::cout << "CGNS ASCII I/O: Number of Quads " << nelem[QUAD] << std::endl;
+  std::cout << "CGNS ASCII I/O: Number of Tets " << nelem[TET] << std::endl;
+  std::cout << "CGNS ASCII I/O: Number of Pyramids " << nelem[PYRAMID] << std::endl;
+  std::cout << "CGNS ASCII I/O: Number of Prisms " << nelem[PRISM] << std::endl;
+  std::cout << "CGNS ASCII I/O: Number of Hexes " << nelem[HEX] << std::endl;
+  std::cout << "CGNS ASCII I/O: Number of tagged boundaries " << nSections << std::endl;
 
   cg_close(index_file);
 }
@@ -4107,17 +4339,6 @@ void Mesh<Type>::CGNSreadBCConditions(char *name, int **bc)
     }
 
   cg_close(index_file);
-}
-
-template <class Type>
-Int Mesh<Type>::ReadCGNS(std::string filename)
-{
-  int* isize = new int[100];
-  Int error = GetCGNSSizes(filename, &isize);
-
-  delete[] isize;
-  
-  return 0;
 }
 
 #endif //end _HAS_CGNS

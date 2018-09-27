@@ -140,11 +140,11 @@ class Mesh
   Int ReadGMSH4_Ascii(std::string filename);
 #ifdef _HAS_CGNS
   Int ReadCGNS(std::string filename); // master function calling utilities below
-  void CGNSreadCoordElem(char* name, int**isize);
+  Int GetCGNSSizes(std::string filename, int** isize);
+  void CGNSreadCoordElem(std::string filename, int**isize);
   int CGNSgetBCNum(char* name);
   void CGNSreadBCConditions(char *name, int **bc);
   int CGNSgetBCIndNum(char *name, int ib);
-  Int GetCGNSSizes(std::string filename, int** isize);
 #endif
   Int WriteCRUNCH_Ascii(std::string casename);
   Int WriteVTK_Ascii(std::string casename, std::vector<SolutionField<Type>*>& fields);
