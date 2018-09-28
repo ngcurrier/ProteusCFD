@@ -1,7 +1,7 @@
 # Uncomment any below to change compiler behavior
 TOOLCHAIN = GNU
-#HAS_PYTHON = TRUE
-#HAS_CGNS = TRUE
+HAS_PYTHON = TRUE
+HAS_CGNS = TRUE
 DEBUG = TRUE
 #EFENCE = TRUE
 
