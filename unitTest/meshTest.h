@@ -130,11 +130,11 @@ TEST_F(MeshTestCGNS, testCGNSRead)
   m.SetParallelPointer(&pobj);
 
   EXPECT_EQ(21632,m.GetNumNodes());
-  EXPECT_EQ(19296, m.GetNumElem());
+  EXPECT_EQ(23880, m.GetNumElem());
 
-  //m.BuildMaps();
-  //m.CalcMetrics();
-  //EXPECT_NEAR(0.00201639, m.GetVolumeTotal(), 1.0e-7);
+  m.BuildMaps();
+  m.CalcMetrics();
+  EXPECT_NEAR(7.5438554e-6, m.GetVolumeTotal(), 1.0e-10);
 }
 #endif
 
