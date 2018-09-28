@@ -68,7 +68,11 @@ int main(int argc, char* argv[]){
     ierr = m.ReadGMSH4_Ascii(filename);
   }
   else if(fileextension == "cgns"){
+#ifdef _HAS_CGNS
     ierr = m.ReadCGNS(filename);
+#elseif
+    Abort << "Proteus was not compiled with CGNS support. Please rebuild.";
+#endif
   }
   else{
     cerr << "File extension " << fileextension << " not recognized" << endl;
