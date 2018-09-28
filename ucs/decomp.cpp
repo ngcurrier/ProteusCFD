@@ -70,7 +70,7 @@ int main(int argc, char* argv[]){
   else if(fileextension == "cgns"){
 #ifdef _HAS_CGNS
     ierr = m.ReadCGNS(filename);
-#elseif
+#else
     Abort << "Proteus was not compiled with CGNS support. Please rebuild.";
 #endif
   }
