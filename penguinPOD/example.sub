@@ -1,0 +1,39 @@
+#PBS -q B30
+#PBS -l nodes=2:ppn=28
+#PBS -l walltime=00:10:00
+
+module load proteusCFD.mod
+
+echo
+echo "================== nodes ===================="
+cat $PBS_NODEFILE
+echo
+echo "================= job info  ================="
+echo "Date:   $(date)"
+echo "Job ID: $PBS_JOBID"
+echo "Queue:  $PBS_QUEUE"
+echo "Cores:  $PBS_NP"
+echo "mpirun: $(which mpirun)"
+echo
+echo "=================== run ====================="
+
+# Enter the PBS folder from which qsub is run
+echo "=================== run directory ==========="
+echo $PBS_O_WORKDIR
+cd $PBS_O_WORKDIR
+
+echo "=================== linking output  ==========="
+ldd $(which ucs.x)
+mpirun -np 56 ucs.x wedge
+#ucs.x
+
+retval=$?
+
+# Display end date and return value
+
+echo
+echo "================== done ====================="
+echo "Date:   $(date)"
+echo "retval: $retval"
+echo
+
