@@ -66,7 +66,7 @@ Usage:
   
   1) Use udecomp.x <gridfile - e.g. test.ugrid> <number of processors/cores> tool to 
      decompose the geometry into multiple parallel partitions. This tool currently expects .ugrid (MSU), 
-     .su2 (Stanford SU2), .msh (GMSH), or .crunch mesh files. Other formats may be added in the future 
+     .su2 (Stanford SU2), .msh (GMSH), .cgns (CGNS - i.e. ANSYS Meshing) or .crunch mesh files. Other formats may be added in the future 
      if there is a request and possibly user support (testers) for them. The proteus test suite has several examples. 
      You can check it out by typing at the command line:
      * git clone https://github.com/ngcurrier/ProteusTestSuite/
