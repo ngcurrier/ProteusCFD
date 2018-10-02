@@ -1,0 +1,30 @@
+# .bashrc
+
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+	. /etc/bashrc
+fi
+
+# Uncomment the following line if you don't like systemctl's auto-paging feature:
+# export SYSTEMD_PAGER=
+
+# User specific aliases and functions
+#module load h5py/2.7.0/hdf5.1.8.18/gcc.6.2.0
+module load hdf5/1.8.18/gcc.6.2.0 
+module load gcc/6.2.0
+module load openmpi/1.10.6/gcc.6.2.0
+module load cmake/3.8.2
+module load anaconda/5.0.1/python2.7
+#module load paraview/5.6.0
+module load numpy/1.11.2/avx2/gcc.6.2.0
+module load gmsh/gmsh-git-Linux64
+module load gnuplot/5.2.2/gcc.6.2.0
+module load qt/5.9.3
+
+#This is to deal with gcc weirdness
+export LIBRARY_PATH=~$LD_LIBRARY_PATH
+
+export PATH
+PATH=~/bin/ProteusCFD/bin:$PATH
+
+export MODULEPATH=$HOME/bin/ProteusCFD/penguinPOD:$MODULEPATH
