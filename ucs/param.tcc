@@ -143,7 +143,6 @@ void Param<Type>::SetupParams()
   paramListEnum.push_back(ParameterEnum("fluxType", fluxList, &this->flux_id, RoeFluxType));
 
   //SET THE BOOLEAN VALUED PARAMTERS
-  paramListBool.push_back(ParameterBool("pseudoTimeStepping", &this->pseudotimestepping, false));
   paramListBool.push_back(ParameterBool("localTimeStepping", &this->useLocalTimeStepping, true));
   paramListBool.push_back(ParameterBool("higherOrderJacobians", &this->hojac, false));
   paramListBool.push_back(ParameterBool("noCVBC", &this->no_cvbc, false));   //default to using CVBCs where available
@@ -189,8 +188,7 @@ void Param<Type>::SetupParams()
   paramListReal.push_back(Parameter<Type>("startingCFL", &this->cflStart, 0.5, 0.0, 10000.0));
   paramListReal.push_back(Parameter<Type>("CFL", &this->cfl, 5.0, 0.0, 10000.0));
   paramListReal.push_back(Parameter<Type>("VNN", &this->VNN, 20.0, 0.0, 10000.0));
-  paramListReal.push_back(Parameter<Type>("timeStep", &this->dt, 0.0, 0.0, 10000.0));
-  paramListReal.push_back(Parameter<Type>("pseudoTimeStep", &this->dtau, 0.0, 0.0, 10000.0));
+  paramListReal.push_back(Parameter<Type>("timeStep", &this->dt, -1.0, -1.0, 10000.0));
   paramListReal.push_back(Parameter<Type>("velocity", &this->velocity, 1.0, 0.0, 999.0));
   paramListReal.push_back(Parameter<Type>("startingVelocity", &this->velocityStart, 0.0, 0.0, 999.0));
   paramListReal.push_back(Parameter<Type>("gamma", &this->gamma, 1.4, 0.0, 999.0));
@@ -508,13 +506,11 @@ void Param<Type>::PrintSolverParams()
       }
     }
   }
-  if(pseudotimestepping){
-    std::cout << "\tPseudotimestepping enabled!!" << std::endl;
-    std::cout << "\tDimensional timestep size: " << dt*ref_time << std::endl;
-  }
   if(useLocalTimeStepping){
     std::cout << "\tUsing Local Timestepping!!" << std::endl;
     std::cout << "\tCFL: " << cfl << std::endl;
+    std::cout << "\tNondimensional timestep size: " << dt << std::endl;
+    std::cout << "\tDimensional timestep size: " << dt*ref_time << std::endl;
     //set previous iteration cfl equal to cfl
     if(cflRampingSteps > 0){
       std::cout << "\tCFL ramping enabled!!" << std::endl;
@@ -524,14 +520,22 @@ void Param<Type>::PrintSolverParams()
     if(dynamicCFL){
       std::cout << "\tDynamic CFL enabled!!" << std::endl;
     }
+    if(real(dt) > 0.0){
+      std::cout << "\tRunning unsteady" << std::endl;
+    }
+    else{
+      std::cout << "\tRunning steady" << std::endl;
+    }
   }
   else{
     std::cout << "\tUsing Minimum Timestepping!!" << std::endl;
     if(real(dt) > 0.0){
+      std::cout << "\tRunning unsteady" << std::endl;
       std::cout << "\tNondimensional timestep size: " << dt << std::endl;
       std::cout << "\tDimensional timestep size: " << dt*ref_time << std::endl;
     }
     else{
+      std::cout << "Running steady" << std::endl;
       std::cout << "\tCFL: " << cfl << std::endl;
       if(cflRampingSteps > 0){
 	std::cout << "\tCFL ramping enabled!!" << std::endl;

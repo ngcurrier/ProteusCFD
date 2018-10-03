@@ -96,8 +96,6 @@ public:
 
   Type dt;              // minimum time step (unsteady only); if negative, use
                         // local time stepping
-  Bool pseudotimestepping; // use pseudotimestepping
-  Type dtau;            // minimum pseudo time step
   int torder;           // temporal order (1 or 2)
   int sorder;           // spatial order
   Type chi;             // 0.5 - quadratic reconstruction, 0.0 - linear reconstruction

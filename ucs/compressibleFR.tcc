@@ -1318,6 +1318,10 @@ void CompressibleFREqnSet<Type>::SourceTerm(Type* Q, Type vol, Type* source)
   return;
 }
 
+//some eqnsets will have dQ/dq terms if they are in non-conservative variables
+//this is cnp1*vol/dt*M where M is dq/dQ - this is one of those eqnsets
+//dt - real time step used for residuals
+//dtau - pseudotimestep used for convergence enhancement only
 template <class Type>
 void CompressibleFREqnSet<Type>::ContributeTemporalTerms(Type* Q, Type vol, Type cnp1, 
 							 Type dt, Type dtau, Type* A, Type beta)
@@ -1326,7 +1330,7 @@ void CompressibleFREqnSet<Type>::ContributeTemporalTerms(Type* Q, Type vol, Type
   Int neqn = this->neqn;
   Type* dEtdRhoi = new Type[nspecies];
   Type vOverDt;
-  if(this->param->pseudotimestepping){
+  if(this->param->useLocalTimeStepping){
     vOverDt = cnp1*vol/dt + vol/dtau;
   }
   else{
@@ -1463,8 +1467,6 @@ void CompressibleFREqnSet<Type>::ContributeTemporalTerms(Type* Q, Type vol, Type
   delete [] Yi;
   delete [] c2i;
   delete [] thetaOBetai;
-
-  return;
 }
 
 template <class Type>

@@ -160,15 +160,13 @@ template <class Type>
 void TurbulenceModel<Type>::ContributeTemporalTerms(Type vol, Type cnp1, Type dt, Type dtau, Type* A)
 {
   for(Int i = 0; i < neqn; i++){
-    if(space->param->pseudotimestepping){
+    if(space->param->useLocalTimeStepping){
       A[i*neqn + i] += cnp1*vol/dt + vol/dtau;
     }
     else{
       A[i*neqn + i] += cnp1*vol/dtau;
     }
   }
-
-  return;
 }
 
 template <class Type>

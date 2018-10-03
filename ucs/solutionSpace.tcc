@@ -1069,7 +1069,7 @@ void SolutionSpace<Type>::WriteSolution()
     std::string timeflag = "timestep-" + ss.str() + "/";
     //modify path with timestep information if running unsteady
     directoryBase += timeflag;
-    if(!param->useLocalTimeStepping || (param->pseudotimestepping && param->useLocalTimeStepping)){
+    if(real(param->dt) > 0.0){
       hid_t h5out = HDF_OpenFile(filename, 1);
       if(h5out < 0){
 	Abort << "SolutionSpace::WriteSolution() could not open file -- " + filename;

@@ -172,20 +172,19 @@ void EqnSet<Type>::SourceTermJacobian(Type* Q, Type vol, Type* A)
       A[j*neqn + i] = (sourceP[j] - source[j])/h;      
     }
   }
-  
-  return;
 }
 
 //default is to just add v/dt terms to the diagonal
 //some eqnsets will have dQ/dq terms if they are in non-conservative variables
 //this is cnp1*vol/dt*M where M is dq/dQ
+//dt - real time step used for residuals
+//dtau - pseudotimestep used for convergence enhancement only
 template <class Type>
 void EqnSet<Type>::ContributeTemporalTerms(Type* Q, Type vol, Type cnp1, 
 					   Type dt, Type dtau, Type* A, Type beta)
 {
-  Int i;
-  for(i = 0; i < neqn; i++){
-    if(param->pseudotimestepping){
+  for(Int i = 0; i < neqn; i++){
+    if(param->useLocalTimeStepping){
       //the second part of this term comes from pseudo timestepping
       A[i*neqn + i] += cnp1*vol/dt + vol/dtau;
     }
@@ -193,7 +192,6 @@ void EqnSet<Type>::ContributeTemporalTerms(Type* Q, Type vol, Type cnp1,
       A[i*neqn + i] += cnp1*vol/dtau;
     }
   }
-  return;
 }
 
 template <class Type>

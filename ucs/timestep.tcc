@@ -24,6 +24,7 @@ Type ComputeTimesteps(SolutionSpace<Type>* space)
   for(i = 0; i < nnode; i++){
     dt[i] = 0.0;
   }
+  
   // if we use local time stepping, compute the dt in the standard way
   if(param->useLocalTimeStepping){
     Driver(space, Timestep, nvars, (void*)dt);
@@ -43,20 +44,13 @@ Type ComputeTimesteps(SolutionSpace<Type>* space)
   }
   // if we don't use local time stepping nor pseudotime 
   // and the time step is specified, use that value everywhere
-  else if(!param->pseudotimestepping && real(param->dt) > 0.0){
+  else if(!param->useLocalTimeStepping && real(param->dt) > 0.0){
     for(i = 0; i < nnode; i++){
       dt[i] = param->dt;
     }
   }
-  // if we don't use local time stepping and we use pseudotime
-  // and the pseudo time step is specified, use that value everywhere
-  else if(param->pseudotimestepping && real(param->dtau) > 0.0){
-    for(i = 0; i < nnode; i++){
-      dt[i] = param->dtau;
-    }
-  }
   // if we don't use local time stepping and the time step is 
-  // NOT specified in pseudo nor real time, use the minimum allowable
+  // NOT specified, use the minimum allowable
   // timestep by the CFL condition in everycell
   // This keeps all the cells at the same time level but allows us
   // to march at the maximum allowable timestep by the CFL condition
