@@ -6,14 +6,13 @@
 #include <vector>
 #include <sstream>
 
-DataInfo::DataInfo()
+DataInfo::DataInfo():
+  name("NULL"), ndof(0), nvector(0), nscalar(0)
 {
-  ndof = 0;
-  nscalar = nvector = 0;
 }
 
 DataInfo::DataInfo(Int ndof, std::string bulkName):
-  ndof(ndof), name(bulkName)
+  ndof(ndof), name(bulkName), nvector(0), nscalar(0)
 {
   descriptorS.resize(ndof);
   descriptorV.resize(ndof);
@@ -22,8 +21,6 @@ DataInfo::DataInfo(Int ndof, std::string bulkName):
     descriptorS[i] = -1;
     descriptorV[i] = -1;
   }
-  nvector = 0;
-  nscalar = 0;
 }
 
 void DataInfo::SetFromHDF(hid_t fileId, std::string directory, std::string dataName)
@@ -215,3 +212,15 @@ void DataInfo::WriteHDFAttribute(hid_t file_id, std::string directory)
   HDF_WriteArrayAttribute(file_id, directory, name, "scalars", descriptorS);
   HDF_WriteArrayAttribute(file_id, directory, name, "vectors", descriptorV);
 }
+
+std::ostream& operator<<(std::ostream& os, const DataInfo& obj){
+  os << "\t" << obj.name << "\n";
+  os << "\t-----------------------------------------------\n";
+  for(int i = 0; i < obj.names.size(); ++i){
+    os << "\t" << obj.names[i] << "\t"
+       << "\t" << obj.descriptorS[i] << "\t"
+       << "\t" << obj.descriptorV[i] << "\n";
+  }
+  return os;
+}
+

@@ -214,8 +214,6 @@ void ComputeSpatialJacobian(SolutionSpace<Type>* space)
     }
   }
   delete [] A;
-
-  return;
 }
 
 
@@ -227,8 +225,8 @@ void ContributeTemporalTerms(SolutionSpace<Type>* space)
   Mesh<Type>* m = space->m;
   Param<Type>* param = space->param; //add temporal diagonal contributions
   CRS<Type>& crs = *space->crs;
-  Type* dt = space->GetField("timestep", FIELDS::STATE_NONE);
-  Type* beta = space->GetField("beta", FIELDS::STATE_NONE);
+  Type* dt = space->GetFieldData("timestep", FIELDS::STATE_NONE);
+  Type* beta = space->GetFieldData("beta", FIELDS::STATE_NONE);
   Int neqn = eqnset->neqn;
   Int nvars = neqn + eqnset->nauxvars;
   Type cnp1 = 1.0;
@@ -256,8 +254,6 @@ void ContributeTemporalTerms(SolutionSpace<Type>* space)
   //this is a hook which allow us to modify the boundary nodes' jacobians
   Kernel<Type> JacModifyBC(Bkernel_BC_Jac_Modify);
   BdriverNoScatter(space, JacModifyBC, eqnset->neqn*eqnset->neqn, (void*)&crs);
-
-  return;
 }
 
 
@@ -278,7 +274,7 @@ void Kernel_NumJac(KERNEL_ARGS){
   Type* fluxR = (Type*)alloca(sizeof(Type)*neqn);
   Type h = 1.0e-8;
 
-  Type* beta = space->GetField("beta", FIELDS::STATE_NONE);
+  Type* beta = space->GetFieldData("beta", FIELDS::STATE_NONE);
   Type betaL = beta[left_cv];
   Type betaR = beta[right_cv];
   Type avbeta = 0.5*(betaL + betaR);
@@ -335,7 +331,7 @@ void Kernel_NumJac_Centered(KERNEL_ARGS){
   Type* fluxRu = (Type*)alloca(sizeof(Type)*neqn);
   Type h = 1.0e-8;
 
-  Type* beta = space->GetField("beta", FIELDS::STATE_NONE);
+  Type* beta = space->GetFieldData("beta", FIELDS::STATE_NONE);
   Type betaL = beta[left_cv];
   Type betaR = beta[right_cv];
   Type avbeta = 0.5*(betaL + betaR);
@@ -413,7 +409,7 @@ void Kernel_NumJac_Complex(KERNEL_ARGS){
     avecC[j] = avec[j];
   }
 
-  Type* beta = space->GetField("beta", FIELDS::STATE_NONE);
+  Type* beta = space->GetFieldData("beta", FIELDS::STATE_NONE);
   Type betaL = beta[left_cv];
   Type betaR = beta[right_cv];
   Type avbeta = 0.5*(betaL + betaR);
@@ -493,23 +489,16 @@ void Bkernel_NumJac(B_KERNEL_ARGS){
   Type h = 1.0e-8;
 
   BoundaryConditions<Real>* bc = space->bc;
-  Int bcNum = bc->bc_map[factag];
-  BCObj<Real>* bcobj = &bc->bcs[bcNum];
+  Int bcType = bc->GetBCType(factag);
+  BCObj<Real>* bcobj = bc->GetBCObj(factag);
   Int bcId; 
 
-  Type* beta = space->GetField("beta", FIELDS::STATE_NONE);
+  Type* beta = space->GetFieldData("beta", FIELDS::STATE_NONE);
   Type betaL = beta[left_cv];
-
-  if(factag == 0){
-    bcId = Proteus_ParallelBoundary;
-  }
-  else{
-    bcId = bc->bc_applied[bc->bc_map[factag]];
-  }  
 
   Type* Qref = (Type*)alloca(sizeof(Type)*nvars);
   bcobj->GetQref(Qref);
-  CalculateBoundaryVariables(eqnset, m, space, QL, QR, Qref, avec, bcId, eid, bcobj, vdotn, velw);
+  CalculateBoundaryVariables(eqnset, m, space, QL, QR, Qref, avec, bcType, eid, bcobj, vdotn, velw);
   //get reference state
   eqnset->BoundaryFlux(QL, QR, avec, vdotn, fluxS, betaL);
   
@@ -528,7 +517,7 @@ void Bkernel_NumJac(B_KERNEL_ARGS){
     if(!param->boundaryJacEval && !m->IsGhostNode(right_cv)){
       memcpy(QPR, QR, sizeof(Type)*nvars);
       eqnset->ComputeAuxiliaryVariables(QPR);
-      CalculateBoundaryVariables(eqnset, m, space, QPL, QPR, Qref, avec, bcId, eid, bcobj, vdotn, velw);
+      CalculateBoundaryVariables(eqnset, m, space, QPL, QPR, Qref, avec, bcType, eid, bcobj, vdotn, velw);
       eqnset->BoundaryFlux(QPL, QPR, avec, vdotn, fluxL, betaL);
     }
     else{
@@ -581,23 +570,15 @@ void Bkernel_NumJac_Centered(B_KERNEL_ARGS){
   Type h = 1.0e-8;
 
   BoundaryConditions<Real>* bc = space->bc;
-  Int bcNum = bc->bc_map[factag];
-  BCObj<Real>* bcobj = &bc->bcs[bcNum];
-  Int bcId; 
+  BCObj<Real>* bcobj = bc->GetBCObj(factag);
+  Int bcType = bc->GetBCType(factag); 
   Type* Qref = (Type*)alloca(sizeof(Type)*nvars);
   bcobj->GetQref(Qref);
 
-  Type* beta = space->GetField("beta", FIELDS::STATE_NONE);
+  Type* beta = space->GetFieldData("beta", FIELDS::STATE_NONE);
   Type betaL = beta[left_cv];
 
-  if(factag == 0){
-    bcId = Proteus_ParallelBoundary;
-  }
-  else{
-    bcId = bc->bc_applied[bcNum];
-  }  
-
-  CalculateBoundaryVariables(eqnset, m, space, QL, QR, Qref, avec, bcId, eid, bcobj, vdotn, velw);
+  CalculateBoundaryVariables(eqnset, m, space, QL, QR, Qref, avec, bcType, eid, bcobj, vdotn, velw);
 
   for(i = 0; i < neqn; i++){
     memcpy(QPL, QL, sizeof(Type)*nvars);
@@ -616,7 +597,7 @@ void Bkernel_NumJac_Centered(B_KERNEL_ARGS){
       eqnset->ComputeAuxiliaryVariables(QPR);
       //calculate new external variables using
       //applied BCs
-      CalculateBoundaryVariables(eqnset, m, space, QPL, QPR, Qref, avec, bcId, eid, bcobj, vdotn, velw);
+      CalculateBoundaryVariables(eqnset, m, space, QPL, QPR, Qref, avec, bcType, eid, bcobj, vdotn, velw);
       eqnset->BoundaryFlux(QPL, QPR, avec, vdotn, fluxLu, betaL);
     }
     else{
@@ -639,7 +620,7 @@ void Bkernel_NumJac_Centered(B_KERNEL_ARGS){
       eqnset->ComputeAuxiliaryVariables(QPR);
       //calculate new external variables using
       //applied BCs
-      CalculateBoundaryVariables(eqnset, m, space, QPL, QPR, Qref, avec, bcId, eid, bcobj, vdotn, velw);
+      CalculateBoundaryVariables(eqnset, m, space, QPL, QPR, Qref, avec, bcType, eid, bcobj, vdotn, velw);
       eqnset->BoundaryFlux(QPL, QPR, avec, vdotn, fluxLd, betaL);
     }
     else{
@@ -698,23 +679,15 @@ void Bkernel_NumJac_Complex(B_KERNEL_ARGS){
   EqnSet<RCmplx>* ceqnset = space->ceqnset;
 
   BoundaryConditions<Real>* bc = space->bc;
-  Int bcNum = bc->bc_map[factag];
-  BCObj<Real>* bcobj = &bc->bcs[bcNum];
-  Int bcId; 
+  BCObj<Real>* bcobj = bc->GetBCObj(factag);
+  Int bcType = bc->GetBCType(factag); 
 
   RCmplx* Qref = (RCmplx*)alloca(sizeof(RCmplx)*nvars);
   bcobj->GetQref(Qref);
 
-  Type* beta = space->GetField("beta", FIELDS::STATE_NONE);
+  Type* beta = space->GetFieldData("beta", FIELDS::STATE_NONE);
   Type betaL = beta[left_cv];
   RCmplx cbetaL = betaL;
-
-  if(factag == 0){
-    bcId = Proteus_ParallelBoundary;
-  }
-  else{
-    bcId = bc->bc_applied[bcNum];
-  }  
 
   for(j = 0; j < 4; j++){
     avecC[j] = avec[j];
@@ -724,7 +697,7 @@ void Bkernel_NumJac_Complex(B_KERNEL_ARGS){
     QR[j] = qR[j];
   }
 
-  CalculateBoundaryVariables(ceqnset, m, space, QL, QR, Qref, avecC, bcId, eid, bcobj, vdotn, velw);
+  CalculateBoundaryVariables(ceqnset, m, space, QL, QR, Qref, avecC, bcType, eid, bcobj, vdotn, velw);
   
   for(i = 0; i < neqn; i++){
     memcpy(QPL, QL, sizeof(RCmplx)*nvars);
@@ -742,7 +715,7 @@ void Bkernel_NumJac_Complex(B_KERNEL_ARGS){
       memcpy(QPR, QR, sizeof(RCmplx)*nvars);
       ceqnset->ComputeAuxiliaryVariables(QPR);
       //calculate new external variables using applied BCs
-      CalculateBoundaryVariables(ceqnset, m, space, QPL, QPR, Qref, avecC, bcId, eid, bcobj, vdotn, velw);
+      CalculateBoundaryVariables(ceqnset, m, space, QPL, QPR, Qref, avecC, bcType, eid, bcobj, vdotn, velw);
       ceqnset->BoundaryFlux(QPL, QPR, avecC, vdotnC, fluxL, cbetaL);
     }
     else{
@@ -772,8 +745,6 @@ void Bkernel_NumJac_Complex(B_KERNEL_ARGS){
   *size = neqn2;
   *ptrL = crs.A->GetPointer(cvid, cvid);
   *ptrR = NULL;
-
-  return;
 }
 
 
@@ -784,7 +755,7 @@ void Kernel_Viscous_Jac(KERNEL_ARGS)
   EqnSet<Type>* eqnset = space->eqnset;
   Mesh<Type>* m = space->m;
   CRS<Type>& crs = *(CRS<Type>*)custom;
-  Type* mut = space->GetField("mut", FIELDS::STATE_NONE);
+  Type* mut = space->GetFieldData("mut", FIELDS::STATE_NONE);
   Int neqn = eqnset->neqn;
   Int neqn2 = neqn*neqn;
   Int nvars = neqn + eqnset->nauxvars;
@@ -813,8 +784,6 @@ void Kernel_Viscous_Jac(KERNEL_ARGS)
   *size = neqn2;
   *ptrL = crs.A->GetPointer(right_cv, left_cv);
   *ptrR = crs.A->GetPointer(left_cv, right_cv);
-
-  return;
 }
 
 
@@ -825,7 +794,7 @@ void Bkernel_Viscous_Jac(B_KERNEL_ARGS)
   EqnSet<Type>* eqnset = space->eqnset;
   Mesh<Type>* m = space->m;
   CRS<Type>& crs = *(CRS<Type>*)custom;
-  Type* mut = space->GetField("mut", FIELDS::STATE_NONE);
+  Type* mut = space->GetFieldData("mut", FIELDS::STATE_NONE);
   Int neqn = eqnset->neqn;
   Int neqn2 = neqn*neqn;
   Int nvars = neqn + eqnset->nauxvars;
@@ -837,14 +806,7 @@ void Bkernel_Viscous_Jac(B_KERNEL_ARGS)
   Type s2 = 0.0;
 
   BoundaryConditions<Real>* bc = space->bc;
-  Int bcNum = bc->bc_map[factag];
-  Int bcId; 
-  if(factag == 0){
-    bcId = Proteus_ParallelBoundary;
-  }
-  else{
-    bcId = bc->bc_applied[bcNum];
-  }  
+  Int bcType = bc->GetBCType(factag);
 
   xL = m->cg + 3*left_cv;
   xR = m->cg + 3*right_cv;

@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <fstream>
 #include "general.h"
 #include "h5layer.h"
 
@@ -29,7 +30,8 @@ public:
   Bool DofIsVector(Int dof) const;
   //use HDF file and a path to a dataset to set interior
   void SetFromHDF(hid_t fileId, std::string directory, std::string dataName);
-
+  friend std::ostream& operator<<(std::ostream& os, const DataInfo& obj);
+  
 private:
   Int ndof;
   std::string name;
@@ -42,5 +44,7 @@ private:
   Int nvector;
   Int nscalar;
 };
+
+
 
 #endif

@@ -10,7 +10,7 @@ template <class Type>
 Gradient<Type>::Gradient(Int nterms, Int stride, Int* list, Type* data,  
 			 SolutionSpace<Type>* space, Int gradType, Type* grad, Bool weighted) :
   nterms(nterms), nnode(space->m->GetNumNodes() + space->m->GetNumParallelNodes()),  stride(stride), 
-  type(gradType), weighted(weighted), space(space), data(data)
+  type(gradType), weighted(weighted), space(space), data(data), grad(grad), list(NULL)
 {
   if(data == NULL){
     std::cerr << "WARNING: In gradient constructor, data pointer is NULL!" << std::endl;
@@ -35,24 +35,22 @@ Gradient<Type>::Gradient(Int nterms, Int stride, Int* list, Type* data,
   }
   
   if(grad == NULL){
-    this->grad = new Type[nterms*3*nnode];
-    allocated = true;
+    //should be of size nterms*3*nnode
+    Abort << "Gradient::Gradient() gradient memory is NULL external pointer";
   }
-  else{
-    this->grad = grad;
-    allocated = false;
+  if(data == NULL){
+    Abort << "Gradient::Gradient() data memory is NULL external pointer";
   }
-  return;
+  if(space == NULL){
+    Abort << "Gradient::Gradient() solution space memory is NULL external pointer";
+  }
+  
 }
 
 template <class Type>
 Gradient<Type>::~Gradient()
 {
-  if(allocated){
-    delete [] grad;
-  }
   delete [] list;
-  return;
 }
 
 template <class Type>
@@ -550,12 +548,12 @@ void Bkernel_Symmetry_Fix(B_KERNEL_ARGS)
   Gradient<Type>* g = (Gradient<Type>*) custom;
   BoundaryConditions<Real>* bc = space->bc;
   Mesh<Type>* m = space->m;
-  Int bcId = space->bc->GetBCId(factag); 
+  Int bcType = space->bc->GetBCType(factag); 
   Int nterms = g->GetNterms();
   Type dot;
   Type* gradL = &g->grad[left_cv*nterms*3];
 
-  if(bcId == Proteus_Symmetry){
+  if(bcType == Proteus_Symmetry){
     //ensure gradients are zero in the normal direction
     for(i = 0; i < nterms; i++){
       dot = DotProduct(&gradL[i*3], avec);

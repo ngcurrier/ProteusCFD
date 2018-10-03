@@ -12,7 +12,7 @@ class Gradient{
 
 public:
   Gradient(Int nterms, Int stride, Int* list, Type* data, 
-	   SolutionSpace<Type>* space, Int gradType=0, Type* grad=NULL, Bool weighted = true);
+	   SolutionSpace<Type>* space, Int gradType, Type* grad, Bool weighted = true);
 
   ~Gradient();
 
@@ -38,9 +38,6 @@ private:
   Bool weighted; //boolean flag to use weighted or non-weighted LSQ-grad
   
   SolutionSpace<Type>* space;
-
-
-  Bool allocated; //check to see if we should free the memory
 
 };
 

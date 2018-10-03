@@ -68,11 +68,9 @@ void IncompressibleEqnSet<Type>::InitEqnSet()
   this->space->qoldm1 = field.GetData(FIELDS::STATE_NM1);
 
   //allocate solution memory for the gradients we need
-  if(this->param->viscous || (this->param->sorder > 1)){
-    this->space->AddField(*this->gdata, FIELDS::STATE_NONE, FIELDS::VAR_INTERIOR);
-    SolutionField<Type> & gfield  = this->space->GetField("gradVariableQ");
-    this->space->qgrad = gfield.GetData(FIELDS::STATE_NONE);
-  }
+  this->space->AddField(*this->gdata, FIELDS::STATE_NONE, FIELDS::VAR_INTERIOR);
+  SolutionField<Type> & gfield  = this->space->GetField("gradVariableQ");
+  this->space->qgrad = gfield.GetData(FIELDS::STATE_NONE);
 
   //maybe this should be different? Use ideal gas law or something to set freestream density?  Unsure.
   Type rho = 1.0;

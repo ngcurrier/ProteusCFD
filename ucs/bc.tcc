@@ -15,81 +15,60 @@
 #include <set>
 
 template <class Type>
-Int BoundaryConditions<Type>::GetBCId(Int factag)
+Int BoundaryConditions<Type>::GetBCType(Int factag)
 {
-  Int bcId;
-  Int bcNum = bc_map[factag];
-  if(factag == 0){
-    bcId = Proteus_ParallelBoundary;
-  }
-  else{
-    bcId = bc_applied[bcNum];
-  }  
-  return bcId;
+  return GetBCObj(factag)->GetBCType();;
 }
 
 template <class Type>
 BCObj<Type>* BoundaryConditions<Type>::GetBCObj(Int factag)
 {
-  Int bcNum = bc_map[factag];
-  return (&bcs[bcNum]);
+  return bc_objs[factag];
 }
 
 template <class Type>
 BoundaryConditions<Type>::BoundaryConditions()
 {
-  surface_names = NULL;
-  bc_applied = NULL;
-  bcs = NULL;
   num_bcs = 0;
 }
 
 template <class Type>
 BoundaryConditions<Type>::~BoundaryConditions()
 {
-  delete [] bcs;
-  delete [] surface_names;
-  delete [] bc_applied;
-  delete [] bc_map;
 }
 
 template <class Type>
 void BoundaryConditions<Type>::AllocateBCObjects()
 {
-  Int i;
-  surface_names = new std::string[num_bcs+1];
-  surface_names[0] = "PARALLEL_COMM_BOUNDARY";
-  bc_applied = new Int[num_bcs+1];
-  bcs = new BCObj<Type>[num_bcs+1];
-  bc_map = new Int[largest_bc_id+1];
-  for(i = 0; i <= num_bcs; i++){
-    bc_applied[i] = -1;
+  std::cout << "BC: Allocating boundary condition objects" << std::endl;
+  for(Int i = 0; i <= largest_bc_id; i++){
+    bc_objs[i] = new BCObj<Type>;
+    bc_objs[i]->SetBCFactag(i);
   }
-  for(i = 0; i <= largest_bc_id; i++){
-    bc_map[i] = 0;
-  }
-
-  return;
+  //setup the parallel object for internal use
+  bc_objs[0]->SetName("PARALLEL_COMM_BOUNDARY");
+  bc_objs[0]->SetBCType(Proteus_ParallelBoundary);
+  std::cout << "BC: Finished allocating boundary condition objects" << std::endl;
 }
 
 template <class Type>
 Int BoundaryConditions<Type>::InitInternals(EqnSet<Type>* eqnset)
 {
-  Int i;
-  for(i = 0; i <= num_bcs; i++){
-    bcs[i].neqn = eqnset->neqn;
-    bcs[i].nvars = bcs[i].neqn + eqnset->nauxvars;
+  for(Int i = 0; i <= num_bcs; i++){
+    BCObj<Type>* bcobj = GetBCObj(i);
+    bcobj->neqn = eqnset->neqn;
+    bcobj->nvars = bcobj->neqn + eqnset->nauxvars;
     //if we haven't already set the Qref state from file
     //go ahead and set it to point at the eqnset version
-    if(bcs[i].Qref == NULL){
-      bcs[i].Qref = eqnset->Qinf;
+    if(bcobj->Qref == NULL){
+      bcobj->Qref = eqnset->Qinf;
     }
     else{
-      if(bcs[i].QrefFromFile == true){
-	eqnset->ComputeAuxiliaryVariables(bcs[i].Qref);	
+      if(bcobj->QrefFromFile == true){
+	eqnset->ComputeAuxiliaryVariables(bcobj->Qref);	
       }
       else{
-	std::cerr << "BC: WARNING -- BCs not set from file and pointer not NULL" << std::endl;
+	Abort << "BC: WARNING -- BCs not set from file and pointer not NULL";
 	return (-1);
       }
     }
@@ -115,7 +94,7 @@ Int BoundaryConditions<Type>::ReadFile(std::string casename)
     std::cout << "BC: Reading boundary conditions file --> " << filename << std::endl;
 
     //count bcs in file
-    CountNumberBCsInFile(fin);
+    CountBCsInFile(fin);
     //count and allocate the composite bodies in the file
     CountBodiesInFile(fin);
     //allocate all bc objects
@@ -134,7 +113,7 @@ Int BoundaryConditions<Type>::ReadFile(std::string casename)
 	continue;
       }
       else{
-	err = ParseLine(temp);
+	err = BCParseLine(temp);
 	if(err != 0){
 	  std::cerr << "BC: could not parse line -- " << temp << " in file " 
 	       << filename << std::endl;
@@ -161,14 +140,6 @@ Int BoundaryConditions<Type>::ReadFile(std::string casename)
     err = 1;
   }
 
-  //check that all bcs were read in
-  for(Int i = 1; i <= num_bcs; i++){
-    if(bc_applied[i] == -1){
-      std::cerr << "BC: condition for face " << i 
-	   << " was not read... please check " << filename << std::endl;
-      err = 1;
-    }
-  }
   
   if(err2 == 0 && err == 0){
     PrintBCs();
@@ -178,14 +149,14 @@ Int BoundaryConditions<Type>::ReadFile(std::string casename)
 }
 
 template <class Type>
-void BoundaryConditions<Type>::CountNumberBCsInFile(std::ifstream& fin)
+void BoundaryConditions<Type>::CountBCsInFile(std::ifstream& fin)
 {
   std::string surf_str = "surface";
   size_t loc;
   char c;
   std::string line;
   std::string subline;
-  Int sid;
+  Int surf_id;
   std::stringstream ss (std::stringstream::in | std::stringstream::out);
   largest_bc_id = -999;
   num_bcs = 0;
@@ -208,8 +179,8 @@ void BoundaryConditions<Type>::CountNumberBCsInFile(std::ifstream& fin)
 	loc += 1;
 	subline = line.substr(loc);
 	ss << subline;
-	ss >> sid;
-	largest_bc_id = MAX(largest_bc_id, sid);
+	ss >> surf_id;
+	largest_bc_id = MAX(largest_bc_id, surf_id);
 	//if we found a surface flag and a number assume the bc is complete
 	num_bcs++;
 	ss.clear();
@@ -237,8 +208,6 @@ void BoundaryConditions<Type>::CountNumberBCsInFile(std::ifstream& fin)
   fin.clear();
   //return to file beginning
   fin.seekg(0, std::ios::beg);
-  
-  return;
 }
 
 template <class Type>
@@ -249,7 +218,7 @@ void BoundaryConditions<Type>::CountBodiesInFile(std::ifstream& fin)
   char c;
   std::string line;
   std::string subline;
-  Int sid;
+  Int surf_id;
   std::stringstream ss (std::stringstream::in | std::stringstream::out);
   largest_body_id = -999;
   num_bodies = 0;
@@ -272,8 +241,8 @@ void BoundaryConditions<Type>::CountBodiesInFile(std::ifstream& fin)
 	loc += 1;
 	subline = line.substr(loc);
 	ss << subline;
-	ss >> sid;
-	largest_body_id = MAX(largest_body_id, sid);
+	ss >> surf_id;
+	largest_body_id = MAX(largest_body_id, surf_id);
 	//if we found a body flag and a number assume the composite body is complete
 	num_bodies++;
 	ss.clear();
@@ -307,11 +276,10 @@ void BoundaryConditions<Type>::CountBodiesInFile(std::ifstream& fin)
 
 
 template <class Type>
-Int BoundaryConditions<Type>::ParseLine(std::string& line)
+Int BoundaryConditions<Type>::BCParseLine(std::string& line)
 {
-  Int i, j;
   size_t loc, loc2;
-  Int sid;
+  Int surf_id;
   std::string subline;
   std::string tempstring;
   std::stringstream ss (std::stringstream::in | std::stringstream::out);
@@ -334,26 +302,26 @@ Int BoundaryConditions<Type>::ParseLine(std::string& line)
     loc += 1;
     subline = line.substr(loc);
     ss << subline;
-    ss >> sid;
-    bc_map[sid] = num_bcs+1;
+    ss >> surf_id;
     //set factag in bcobj for this surface
-    bcs[num_bcs+1].factag = sid;
+    BCObj<Type>* bcobj = GetBCObj(surf_id);
+    bcobj->SetBCFactag(surf_id);
     loc = line.find('=');
     loc += 1;
     subline = line.substr(loc);
-    for(i = 0; i < NUM_BC_TYPES; i++){
-      loc = subline.find(BCs[i]);
+    for(Int itype = 0; itype < NUM_BC_TYPES; itype++){
+      loc = subline.find(BCs[itype]);
       if(loc != std::string::npos){
-	bc_applied[num_bcs+1] = i;
+	bcobj->SetBCType(itype);
 	subline = line.substr(loc);
-	SetVarsFromLine(num_bcs+1, subline);
+	SetVarsFromLine(*bcobj, subline);
 	break;
       }
-      if(i == NUM_BC_TYPES - 1){
+      if(itype == NUM_BC_TYPES - 1){
 	std::cerr << "BC: type not found" << std::endl;
 	std::cerr << "Line read: " << line << std::endl;
 	std::cerr << "VALID types: " << std::endl;
-	for(j = 0; j < NUM_BC_TYPES; j++){
+	for(Int j = 0; j < NUM_BC_TYPES; j++){
 	  std::cerr << "\t" << BCs[j] << std::endl;
 	}
 	return (1);
@@ -362,14 +330,14 @@ Int BoundaryConditions<Type>::ParseLine(std::string& line)
     loc = line.find('"');
     loc2 = line.rfind('"');
     if(loc == std::string::npos){
-      surface_names[num_bcs+1] = "Default_Face_Name";
+      bcobj->SetName("Default_Face_Name");
     }
     else{
       loc2 --;
       loc2 -= loc;
       loc += 1;
       subline = line.substr(loc, loc2);
-      surface_names[num_bcs+1] = subline;
+      bcobj->SetName(subline);
     }
     ss.clear();
     ss.str("");
@@ -382,17 +350,15 @@ Int BoundaryConditions<Type>::ParseLine(std::string& line)
 
 
 template <class Type>
-Int BoundaryConditions<Type>::SetVarsFromLine(Int ObjId, std::string& line)
+Int BoundaryConditions<Type>::SetVarsFromLine(BCObj<Type>& bcobj, std::string& line)
 {
-  Int i, j;
-  size_t loc;
   std::string subline;
   std::stringstream ss (std::stringstream::in | std::stringstream::out);
   Int flagsfound[NUM_BC_VAR_IDS];
   
   //look for the flags.. we'll parse them later
-  for(i = 0; i < NUM_BC_VAR_IDS; i++){
-    loc = line.find(BCVars[i]);
+  for(Int i = 0; i < NUM_BC_VAR_IDS; i++){
+    size_t loc = line.find(BCVars[i]);
     if(loc != std::string::npos){
       flagsfound[i] = 1;
     }
@@ -400,25 +366,27 @@ Int BoundaryConditions<Type>::SetVarsFromLine(Int ObjId, std::string& line)
       flagsfound[i] = 0;
     }
   }
-  
-  for(i = 0; i < NUM_BC_VAR_IDS; i++){
+
+  Int ObjId = bcobj.GetBCFactag();
+  for(Int i = 0; i < NUM_BC_VAR_IDS; i++){
+    size_t loc;
     if(flagsfound[i]){
       switch (i){
       case QREF:
 	loc = line.find(BCVars[QREF]);
 	if(loc != std::string::npos){
 	  if(!GetStringBetween("[","]",line,subline,loc)){
-	    Int nitems = StripCSV(subline, &bcs[ObjId].Qref);
+	    Int nitems = StripCSV(subline, &bcobj.Qref);
 	    std::cout << "BC: BC #" << ObjId << " Qref found ( ";
 	    for(Int j = 0; j < nitems; j++){
-	      std::cout << bcs[ObjId].Qref[j] << " ";
+	      std::cout << bcobj.Qref[j] << " ";
 	    }
 	    std::cout << ")" << std::endl;
-	    bcs[ObjId].QrefFromFile = true;
+	    bcobj.QrefFromFile = true;
 	  }
 	  else{
 	    std::cerr << "Found key " << BCVars[QREF]
-		 << " but no [...] for definition" << std::endl;
+		      << " but no [...] for definition" << std::endl;
 	  }
 	}
 	break;
@@ -427,21 +395,21 @@ Int BoundaryConditions<Type>::SetVarsFromLine(Int ObjId, std::string& line)
 	if(loc != std::string::npos){
 	  if(!GetStringBetween("[","]",line,subline,loc)){
 	    ss << subline;
-	    ss >> bcs[ObjId].flowDirection[0];
-	    ss >> bcs[ObjId].flowDirection[1];
-	    ss >> bcs[ObjId].flowDirection[2];
+	    ss >> bcobj.flowDirection[0];
+	    ss >> bcobj.flowDirection[1];
+	    ss >> bcobj.flowDirection[2];
 	    //normalize the flow direction so we don't get momentum sources/sinks
-	    Normalize(bcs[ObjId].flowDirection, bcs[ObjId].flowDirection);
+	    Normalize(bcobj.flowDirection, bcobj.flowDirection);
 	    std::cout << "BC: BC #" << ObjId << " flow direction found ( " 
-		 <<  bcs[ObjId].flowDirection[0] << " " 
-		 <<  bcs[ObjId].flowDirection[1] << " "  
-		 <<  bcs[ObjId].flowDirection[2] << " )" << std::endl;
+		      <<  bcobj.flowDirection[0] << " " 
+		      <<  bcobj.flowDirection[1] << " "  
+		      <<  bcobj.flowDirection[2] << " )" << std::endl;
 	    ss.clear();
 	    ss.str("");
 	  }
 	  else{
 	    std::cerr << "Found key " << BCVars[FlowDirection] 
-		 << " but no [...] for definition" << std::endl;
+		      << " but no [...] for definition" << std::endl;
 	  }
 	}
 	
@@ -451,15 +419,15 @@ Int BoundaryConditions<Type>::SetVarsFromLine(Int ObjId, std::string& line)
 	if(loc != std::string::npos){
 	  if(!GetStringBetween("[","]",line,subline,loc)){
 	    ss << subline;
-	    ss >> bcs[ObjId].velocity;
+	    ss >> bcobj.velocity;
 	    std::cout << "BC: BC #" << ObjId << " flow velocity magnitude found ( "
-		 << bcs[ObjId].velocity << " )" << std::endl;
+		      << bcobj.velocity << " )" << std::endl;
 	    ss.clear();
 	    ss.str("");
 	  }
 	  else{
 	    std::cerr << "Found key " << BCVars[Velocity] 
-		 << " but no [...] for definition" << std::endl;
+		      << " but no [...] for definition" << std::endl;
 	  }
 	}
 	break;
@@ -468,15 +436,15 @@ Int BoundaryConditions<Type>::SetVarsFromLine(Int ObjId, std::string& line)
 	if(loc != std::string::npos){
 	  if(!GetStringBetween("[","]",line,subline,loc)){
 	    ss << subline;
-	    ss >> bcs[ObjId].backPressure;
+	    ss >> bcobj.backPressure;
 	    std::cout << "BC: BC #" << ObjId << " back pressure found ( "
-		 << bcs[ObjId].backPressure << " )" << std::endl;
+		      << bcobj.backPressure << " )" << std::endl;
 	    ss.clear();
 	    ss.str("");
 	  }
 	  else{
 	    std::cerr << "Found key " << BCVars[Velocity] 
-		 << " but no [...] for definition" << std::endl;
+		      << " but no [...] for definition" << std::endl;
 	  }
 	}
 	break;
@@ -485,15 +453,15 @@ Int BoundaryConditions<Type>::SetVarsFromLine(Int ObjId, std::string& line)
 	if(loc != std::string::npos){
 	  if(!GetStringBetween("[","]",line,subline,loc)){
 	    ss << subline;
-	    ss >> bcs[ObjId].density;
+	    ss >> bcobj.density;
 	    std::cout << "BC: BC #" << ObjId << " density found ( "
-		 << bcs[ObjId].density << " )" << std::endl;
+		      << bcobj.density << " )" << std::endl;
 	    ss.clear();
 	    ss.str("");
 	  }
 	  else{
 	    std::cerr << "Found key " << BCVars[Density] 
-		 << " but no [...] for definition" << std::endl;
+		      << " but no [...] for definition" << std::endl;
 	  }
 	}
 	break;
@@ -502,22 +470,22 @@ Int BoundaryConditions<Type>::SetVarsFromLine(Int ObjId, std::string& line)
 	if(loc != std::string::npos){
 	  if(!GetStringBetween("[","]",line,subline,loc)){
 	    ss << subline;
-	    ss >> bcs[ObjId].rotationAxis[0];
-	    ss >> bcs[ObjId].rotationAxis[1];
-	    ss >> bcs[ObjId].rotationAxis[2];
+	    ss >> bcobj.rotationAxis[0];
+	    ss >> bcobj.rotationAxis[1];
+	    ss >> bcobj.rotationAxis[2];
 	    //normalize the rotation axis so we don't get momentum sources/sinks
-	    Normalize(bcs[ObjId].rotationAxis, bcs[ObjId].rotationAxis);
+	    Normalize(bcobj.rotationAxis, bcobj.rotationAxis);
 	    std::cout << "BC: BC #" << ObjId << " rotation axis found ( " 
-		 <<  bcs[ObjId].rotationAxis[0] << " " 
-		 <<  bcs[ObjId].rotationAxis[1] << " "  
-		 <<  bcs[ObjId].rotationAxis[2] << " )" << std::endl;
+		      <<  bcobj.rotationAxis[0] << " " 
+		      <<  bcobj.rotationAxis[1] << " "  
+		      <<  bcobj.rotationAxis[2] << " )" << std::endl;
 	    ss.clear();
 	    ss.str("");
-	    bcs[ObjId].movement = 2;
+	    bcobj.movement = 2;
 	  }
 	  else{
 	    std::cerr << "Found key " << BCVars[Axis] 
-		 << " but no [...] for definition" << std::endl;
+		      << " but no [...] for definition" << std::endl;
 	  }
 	}
 	break;
@@ -526,20 +494,20 @@ Int BoundaryConditions<Type>::SetVarsFromLine(Int ObjId, std::string& line)
 	if(loc != std::string::npos){
 	  if(!GetStringBetween("[","]",line,subline,loc)){
 	    ss << subline;
-	    ss >> bcs[ObjId].rotationPoint[0];
-	    ss >> bcs[ObjId].rotationPoint[1];
-	    ss >> bcs[ObjId].rotationPoint[2];
+	    ss >> bcobj.rotationPoint[0];
+	    ss >> bcobj.rotationPoint[1];
+	    ss >> bcobj.rotationPoint[2];
 	    std::cout << "BC: BC #" << ObjId << " rotation point found ( " 
-		 <<  bcs[ObjId].rotationPoint[0] << " " 
-		 <<  bcs[ObjId].rotationPoint[1] << " "  
-		 <<  bcs[ObjId].rotationPoint[2] << " )" << std::endl;
+		      <<  bcobj.rotationPoint[0] << " " 
+		      <<  bcobj.rotationPoint[1] << " "  
+		      <<  bcobj.rotationPoint[2] << " )" << std::endl;
 	    ss.clear();
 	    ss.str("");
-	    bcs[ObjId].movement = 2;
+	    bcobj.movement = 2;
 	  }
 	  else{
 	    std::cerr << "Found key " << BCVars[Point] 
-		 << " but no [...] for definition" << std::endl;
+		      << " but no [...] for definition" << std::endl;
 	  }
 	}
 	break;     
@@ -548,16 +516,16 @@ Int BoundaryConditions<Type>::SetVarsFromLine(Int ObjId, std::string& line)
 	if(loc != std::string::npos){
 	  if(!GetStringBetween("[","]",line,subline,loc)){
 	    ss << subline;
-	    ss >> bcs[ObjId].omega;
+	    ss >> bcobj.omega;
 	    std::cout << "BC: BC #" << ObjId << " wall rotation speed found ( "
-		 << bcs[ObjId].omega << " )" << std::endl;
+		      << bcobj.omega << " )" << std::endl;
 	    ss.clear();
 	    ss.str("");
-	    bcs[ObjId].movement = 2;
+	    bcobj.movement = 2;
 	  }
 	  else{
 	    std::cerr << "Found key " << BCVars[Omega] 
-		 << " but no [...] for definition" << std::endl;
+		      << " but no [...] for definition" << std::endl;
 	  }
 	}
 	break;
@@ -566,16 +534,16 @@ Int BoundaryConditions<Type>::SetVarsFromLine(Int ObjId, std::string& line)
 	if(loc != std::string::npos){
 	  if(!GetStringBetween("[","]",line,subline,loc)){
 	    ss << subline;
-	    ss >> bcs[ObjId].slipSpeed;
+	    ss >> bcobj.slipSpeed;
 	    std::cout << "BC: BC #" << ObjId << " wall velocity found ( "
-		 << bcs[ObjId].slipSpeed << " )" << std::endl;
+		      << bcobj.slipSpeed << " )" << std::endl;
 	    ss.clear();
 	    ss.str("");
-	    bcs[ObjId].movement = 1;
+	    bcobj.movement = 1;
 	  }
 	  else{
 	    std::cerr << "Found key " << BCVars[SlipSpeed] 
-		 << " but no [...] for definition" << std::endl;
+		      << " but no [...] for definition" << std::endl;
 	  }
 	}
 	break;
@@ -584,22 +552,22 @@ Int BoundaryConditions<Type>::SetVarsFromLine(Int ObjId, std::string& line)
 	if(loc != std::string::npos){
 	  if(!GetStringBetween("[","]",line,subline,loc)){
 	    ss << subline;
-	    ss >> bcs[ObjId].slipDirection[0];
-	    ss >> bcs[ObjId].slipDirection[1];
-	    ss >> bcs[ObjId].slipDirection[2];
+	    ss >> bcobj.slipDirection[0];
+	    ss >> bcobj.slipDirection[1];
+	    ss >> bcobj.slipDirection[2];
 	    //normalize the slip direction so we don't get momentum sources/sinks
-	    Normalize(bcs[ObjId].slipDirection, bcs[ObjId].slipDirection);
+	    Normalize(bcobj.slipDirection, bcobj.slipDirection);
 	    std::cout << "BC: BC #" << ObjId << " wall slip direction found ( " 
-		 <<  bcs[ObjId].slipDirection[0] << " " 
-		 <<  bcs[ObjId].slipDirection[1] << " "  
-		 <<  bcs[ObjId].slipDirection[2] << " )" << std::endl;
+		      <<  bcobj.slipDirection[0] << " " 
+		      <<  bcobj.slipDirection[1] << " "  
+		      <<  bcobj.slipDirection[2] << " )" << std::endl;
 	    ss.clear();
 	    ss.str("");
-	    bcs[ObjId].movement = 1;
+	    bcobj.movement = 1;
 	  }
 	  else{
 	    std::cerr << "Found key " << BCVars[SlipDirection] 
-		 << " but no [...] for definition" << std::endl;
+		      << " but no [...] for definition" << std::endl;
 	  }
 	}
 	break;     
@@ -607,27 +575,27 @@ Int BoundaryConditions<Type>::SetVarsFromLine(Int ObjId, std::string& line)
 	loc = line.find(BCVars[MassFractions]);
 	if(loc != std::string::npos){
 	  if(!GetStringBetween("[","]",line,subline,loc)){
-	    bcs[ObjId].nspecies = StripCSV(subline, &bcs[ObjId].massFractions);
+	    bcobj.nspecies = StripCSV(subline, &bcobj.massFractions);
 	    //make sure that the mass fractions add up specifically to unity
 	    //this will modify the each value slightly but is necessary for 
 	    //consistency, normalize them
 	    Type sum = 0.0;
-	    for(j = 0; j < bcs[ObjId].nspecies; j++){
-	      sum += bcs[ObjId].massFractions[j];
+	    for(Int j = 0; j < bcobj.nspecies; j++){
+	      sum += bcobj.massFractions[j];
 	    }
-	    for(j = 0; j < bcs[ObjId].nspecies; j++){
-	      bcs[ObjId].massFractions[j] = bcs[ObjId].massFractions[j]/sum;
+	    for(Int j = 0; j < bcobj.nspecies; j++){
+	      bcobj.massFractions[j] = bcobj.massFractions[j]/sum;
 	    }
-	    std::cout << "BC: BC #" << ObjId << " " << bcs[ObjId].nspecies 
-		 << " mass fractions found:" << std::endl;
+	    std::cout << "BC: BC #" << ObjId << " " << bcobj.nspecies 
+		      << " mass fractions found:" << std::endl;
 	    std::cout << " ---------------------------" << std::endl;
-	    for(j = 0; j < bcs[ObjId].nspecies; j++){
-	      std::cout << "\tSpecies # " << j << ": " << bcs[ObjId].massFractions[j] << std::endl;
+	    for(Int j = 0; j < bcobj.nspecies; j++){
+	      std::cout << "\tSpecies # " << j << ": " << bcobj.massFractions[j] << std::endl;
 	    }
 	  }
 	  else{
 	    std::cerr << "Found key " << BCVars[MassFractions] 
-		 << " but no [...] for definition" << std::endl;
+		      << " but no [...] for definition" << std::endl;
 	  }
 	}
 	break;     	
@@ -636,15 +604,15 @@ Int BoundaryConditions<Type>::SetVarsFromLine(Int ObjId, std::string& line)
 	if(loc != std::string::npos){
 	  if(!GetStringBetween("[","]",line,subline,loc)){
 	    ss << subline;
-	    ss >> bcs[ObjId].movingBC;
+	    ss >> bcobj.movingBC;
 	    std::cout << "BC: BC #" << ObjId << " movement flag found ( "
-		 << bcs[ObjId].movingBC << " )" << std::endl;
+		      << bcobj.movingBC << " )" << std::endl;
 	    ss.clear();
 	    ss.str("");
 	  }
 	  else{
 	    std::cerr << "Found key " << BCVars[Moving] 
-		 << " but no [...] for definition" << std::endl;
+		      << " but no [...] for definition" << std::endl;
 	  }
 	}
 	break;
@@ -653,15 +621,15 @@ Int BoundaryConditions<Type>::SetVarsFromLine(Int ObjId, std::string& line)
 	if(loc != std::string::npos){
 	  if(!GetStringBetween("[","]",line,subline,loc)){
 	    ss << subline;
-	    ss >> bcs[ObjId].bleedSteps;
+	    ss >> bcobj.bleedSteps;
 	    std::cout << "BC: BC #" << ObjId << " bleed steps flag found ( "
-		 << bcs[ObjId].bleedSteps << " )" << std::endl;
+		      << bcobj.bleedSteps << " )" << std::endl;
 	    ss.clear();
 	    ss.str("");
 	  }
 	  else{
 	    std::cerr << "Found key " << BCVars[BleedSteps] 
-		 << " but no [...] for definition" << std::endl;
+		      << " but no [...] for definition" << std::endl;
 	  }
 	}
 	break;
@@ -670,9 +638,9 @@ Int BoundaryConditions<Type>::SetVarsFromLine(Int ObjId, std::string& line)
 	if(loc != std::string::npos){
 	  if(!GetStringBetween("[","]",line,subline,loc)){
 	    ss << subline;
-	    ss >> bcs[ObjId].twall;
+	    ss >> bcobj.twall;
 	    std::cout << "BC: BC #" << ObjId << " twall flag found ( "
-		      << bcs[ObjId].twall << " )" << std::endl;
+		      << bcobj.twall << " )" << std::endl;
 	    ss.clear();
 	    ss.str("");
 	  }
@@ -687,9 +655,9 @@ Int BoundaryConditions<Type>::SetVarsFromLine(Int ObjId, std::string& line)
 	if(loc != std::string::npos){
 	  if(!GetStringBetween("[","]", line, subline, loc)){
 	    ss << subline;
-	    ss >> bcs[ObjId].flux;
+	    ss >> bcobj.flux;
 	    std::cout << "BC: BC #" << ObjId << " heatFlux flag found ( "
-		      << bcs[ObjId].flux << " )" << std::endl;
+		      << bcobj.flux << " )" << std::endl;
 	    ss.clear();
 	    ss.str("");
 	  }
@@ -710,21 +678,14 @@ Int BoundaryConditions<Type>::SetVarsFromLine(Int ObjId, std::string& line)
 template <class Type>
 void BoundaryConditions<Type>::PrintBCs()
 {
-  Int i,j;
   std::cout << "BC: Runtime boundary conditions from file" << std::endl;
   std::cout << "=========================================" << std::endl;
   
   //NOTE: zeroth face not used.... defaulted to volume factag
-  for(i = 1; i <= this->num_bcs; i++){
-    for(j = 0; j < this->largest_bc_id; j++){
-      if(this->bc_map[j] == i) break;
-    }
-    std::cout << "\tSurface " << j << " moved to BC #" << i << " internally "  
-	 << " -- " << BCs[bc_applied[i]] << " " << this->surface_names[i] << std::endl;
+  for(Int i = 1; i <= this->largest_bc_id; i++){
+    std::cout << "\tSurface " <<  i << "\t" << BCs[this->GetBCObj(i)->GetBCType()] << "\t : " << this->GetBCObj(i)->GetName() << std::endl;
   }
   std::cout << std::endl;
-
-  return;
 }
 
 template <class Type> template <class Type2>
@@ -734,8 +695,8 @@ Bool BoundaryConditions<Type>::IsNodeOnBC(Int nodeid, Mesh<Type2>* m, Int bcType
   for(Int* indx = m->SelspBegin(nodeid); indx != m->SelspEnd(nodeid); ++indx){
     Int selemid = *indx;;
     Int factag = m->elementList[selemid]->GetFactag();
-    Int bcId = GetBCId(factag); 
-    if(bcType == bcId){
+    Int bcTypeLocal = GetBCType(factag); 
+    if(bcType == bcTypeLocal){
       return true;
     }
   }
@@ -753,7 +714,7 @@ void BC_Kernel(B_KERNEL_ARGS)
   Type* QL = &space->q[left_cv*nvars];    //boundary point
   Type* QR = &space->q[right_cv*nvars];   //ghost point
   BoundaryConditions<Real>* bc = space->bc;
-  Int bcId = bc->GetBCId(factag); 
+  Int bcType = bc->GetBCType(factag); 
   BCObj<Real>* bcobj = bc->GetBCObj(factag);
 
   //TODO: how to handle this with the driver module
@@ -763,7 +724,7 @@ void BC_Kernel(B_KERNEL_ARGS)
 
   Type* Qref = (Type*)alloca(sizeof(Type)*nvars);
   bcobj->GetQref(Qref);
-  CalculateBoundaryVariables(eqnset, m, space, QL, QR, Qref, avec, bcId, eid, bcobj, vdotn, velw);
+  CalculateBoundaryVariables(eqnset, m, space, QL, QR, Qref, avec, bcType, eid, bcobj, vdotn, velw);
 
   return;
 }
@@ -783,7 +744,7 @@ void Bkernel_BC_Jac_Modify(B_KERNEL_ARGS)
   Type* QL = &space->q[left_cv*nvars];    //boundary point
   Type* QR = &space->q[right_cv*nvars];   //ghost point
 
-  Int bcId = bc->GetBCId(factag); 
+  Int bcType = bc->GetBCType(factag); 
   BCObj<Real>* bcobj = bc->GetBCObj(factag);
 
   //TODO: how to handle this with the driver module
@@ -794,7 +755,7 @@ void Bkernel_BC_Jac_Modify(B_KERNEL_ARGS)
   Type* Qref = (Type*)alloca(sizeof(Type)*nvars);
   bcobj->GetQref(Qref);
 
-  if(bcId == Proteus_NoSlip){
+  if(bcType == Proteus_NoSlip){
     //find the most normal node to the wall
     Type* dx = (Type*)alloca(sizeof(Type)*3);
     Type* wallx = &m->xyz[left_cv*3];
@@ -882,8 +843,8 @@ void Bkernel_BC_Jac_Modify(B_KERNEL_ARGS)
     Bool holeCut = false;
     Type tmp_src = 0.0;
     Type* densities = new Type[param->massfractions.size()];
-    if(param->gaussianSource && bc->bc_map[factag] == param->gaussianBCid){
-      Type* src = space->GetField("gaussian", FIELDS::STATE_NONE);
+    if(param->gaussianSource && bc->GetBCType(factag) == param->gaussianBCid){
+      Type* src = space->GetFieldData("gaussian", FIELDS::STATE_NONE);
       tmp_src = src[left_cv];
       vel[2] += src[left_cv]*param->gaussianVelAmpl;
       if(real(Abs(src[left_cv])) >= 1.0e-15){
@@ -932,7 +893,7 @@ void Bkernel_BC_Res_Modify(B_KERNEL_ARGS)
   Int neqn = eqnset->neqn;
   Int nvars = neqn + eqnset->nauxvars;
   BCObj<Real>* bcobj = bc->GetBCObj(factag);
-  Int bcId = bc->GetBCId(factag); 
+  Int bcType = bc->GetBCType(factag); 
 
   //TODO: how to handle this with the driver module
   //until then hack it out
@@ -942,7 +903,7 @@ void Bkernel_BC_Res_Modify(B_KERNEL_ARGS)
   Type* Qref = (Type*)alloca(sizeof(Type)*nvars);
   bcobj->GetQref(Qref);
 
-  if(bcId == Proteus_NoSlip){
+  if(bcType == Proteus_NoSlip){
     //find the most normal node to the wall
     Type* dx = (Type*)alloca(sizeof(Type)*3);
     Type* wallx = &m->xyz[left_cv*3];
@@ -1030,8 +991,8 @@ void Bkernel_BC_Res_Modify(B_KERNEL_ARGS)
     Bool holeCut = false;
     Type* densities = new Type[param->massfractions.size()];
     Type tmp_src = 0.0;
-    if(param->gaussianSource && bc->bc_map[factag] == param->gaussianBCid){
-      Type* src = space->GetField("gaussian", FIELDS::STATE_NONE);
+    if(param->gaussianSource && bc->GetBCType(factag) == param->gaussianBCid){
+      Type* src = space->GetFieldData("gaussian", FIELDS::STATE_NONE);
       tmp_src = src[left_cv];
       vel[2] += src[left_cv]*param->gaussianVelAmpl;
       if(real(Abs(src[left_cv])) >= 1.0e-15){
@@ -1065,12 +1026,11 @@ void Bkernel_BC_Res_Modify(B_KERNEL_ARGS)
     delete [] densities;
   }
 
-  return;
 }
 
 template <class Type, class Type2, class Type3>
 void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSpace<Type3>* space, 
-				Type* QL, Type* QR, Type* Qinf, Type* avec, Int bcId, 
+				Type* QL, Type* QR, Type* Qinf, Type* avec, Int bcType, 
 				Int eid, BCObj<Type2>* bcobj, Type3 vdotn, Type3* velw)
 {
   Int i;
@@ -1079,14 +1039,14 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
   Param<Type>* param = eqnset->param;
   BoundaryConditions<Real>* bc = space->bc;
   Int left_cv = m->bedges[eid].n[0];
-  Type3* beta = space->GetField("beta", FIELDS::STATE_NONE);
+  Type3* beta = space->GetFieldData("beta", FIELDS::STATE_NONE);
   Type betaL = beta[left_cv];
 
-  if(bcId == Proteus_ParallelBoundary){
+  if(bcType == Proteus_ParallelBoundary){
     //do nothing this is a parallel updated edge/node
     return;
   }
-  else if(bcId == Proteus_SonicInflow || bcId == Proteus_Dirichlet){
+  else if(bcType == Proteus_SonicInflow || bcType == Proteus_Dirichlet){
     for(i = 0; i < nvars; i++){
       //TODO: implement this correctly with param file
       Type* Qref = (Type*)alloca(sizeof(Type2)*nvars);
@@ -1094,18 +1054,18 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
       QR[i] = QL[i] = Qref[i];
     }
   }
-  else if(bcId == Proteus_SonicOutflow || bcId == Proteus_Neumann){
+  else if(bcType == Proteus_SonicOutflow || bcType == Proteus_Neumann){
     for(i = 0; i < neqn; i++){
       QR[i] = QL[i];
     }
   }
-  else if(bcId == Proteus_FarField){
+  else if(bcType == Proteus_FarField){
     eqnset->GetFarfieldBoundaryVariables(QL, QR, Qinf, avec, vdotn, betaL);
   }
-  else if(bcId == Proteus_FarFieldViscous){
+  else if(bcType == Proteus_FarFieldViscous){
     //modify qinf to follow the powerlaw assumption b/c it intersects
     //with a viscous surface, this aids stability of the solver
-    Type3* dist = space->GetField("wallDistance", FIELDS::STATE_NONE);
+    Type3* dist = space->GetFieldData("wallDistance", FIELDS::STATE_NONE);
     Type d = dist[left_cv];
     Type one = 1.0;
     Type ubar = PowerLawU(one, d, param->Re);
@@ -1118,10 +1078,10 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
     }
     eqnset->GetFarfieldBoundaryVariables(QL, QR, Qinf, avec, vdotn, betaL);
   }
-  else if(bcId == Proteus_ImpermeableWall || bcId == Proteus_Symmetry){
+  else if(bcType == Proteus_ImpermeableWall || bcType == Proteus_Symmetry){
     eqnset->GetInviscidWallBoundaryVariables(QL, QR, Qinf, avec, vdotn, betaL);
   }
-  else if(bcId == Proteus_InternalInflow || bcId == Proteus_InternalInflowDuctBL){
+  else if(bcType == Proteus_InternalInflow || bcType == Proteus_InternalInflowDuctBL){
     Type pressure = bcobj->backPressure;
     Type* densities = NULL;
     if(bcobj->massFractions != NULL){
@@ -1145,10 +1105,10 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
     }
     Type vel = bcobj->velocity;
     Type ubar = 1.0;
-    if(bcId == Proteus_InternalInflowDuctBL){
+    if(bcType == Proteus_InternalInflowDuctBL){
       //modify qinf to follow the powerlaw assumption b/c it intersects
       //with a viscous surface, this aids stability of the solver
-      Type3* dist = space->GetField("wallDistance", FIELDS::STATE_NONE);
+      Type3* dist = space->GetFieldData("wallDistance", FIELDS::STATE_NONE);
       Type d = dist[left_cv];
       Type one = 1.0;
       ubar = PowerLawU(one, d, param->Re);
@@ -1157,13 +1117,13 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
 					       flowDirection, ubar*vel);
     delete [] densities;
   }
-  else if(bcId == Proteus_InternalOutflow){
+  else if(bcType == Proteus_InternalOutflow){
     Type pressure = bcobj->backPressure;
     //this only works for eqnsets where gamma is constant
     Type gamma = eqnset->param->gamma;
     eqnset->GetInternalOutflowBoundaryVariables(QL, QR, pressure, gamma);
   }
-  else if(bcId == Proteus_TotalTempAndPressure){
+  else if(bcType == Proteus_TotalTempAndPressure){
     Type pressure = bcobj->backPressure;
     Type T = bcobj->twall;
     Type flowDirection[3];
@@ -1181,7 +1141,7 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
     }
     eqnset->GetTotalTempPressureBoundaryVariables(QL, QR, pressure, T, flowDirection);
   }
-  else if(bcId == Proteus_NoSlip){
+  else if(bcType == Proteus_NoSlip){
     //find the most normal node to the wall
     Type3* dx = (Type3*)alloca(sizeof(Type3)*3);
     Type3* wallx = &m->xyz[left_cv*3];
@@ -1274,8 +1234,8 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
     Bool holeCut = false;
     Type* densities = new Type[param->massfractions.size()];
     Type tmp_src = 0.0;
-    if(param->gaussianSource && bc->bc_map[factag] == param->gaussianBCid){
-      Type3* src = space->GetField("gaussian", FIELDS::STATE_NONE);
+    if(param->gaussianSource && bc->GetBCType(factag) == param->gaussianBCid){
+      Type3* src = space->GetFieldData("gaussian", FIELDS::STATE_NONE);
       tmp_src = src[left_cv];
       vel[2] += src[left_cv]*param->gaussianVelAmpl;
       if(real(Abs(src[left_cv])) >= 1.0e-15){
@@ -1309,13 +1269,13 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
     }
     delete [] densities;
   }
-  else if(bcId == Proteus_PitchingFarField){
+  else if(bcType == Proteus_PitchingFarField){
     //we compute the farfield Qinf inflow angles externally to 
     //avoid repititve computation and simply apply the farfield BC
     //here, now compute the farfield BCs with the new AOA
     eqnset->GetFarfieldBoundaryVariables(QL, QR, Qinf, avec, vdotn, betaL);
   }
-  else if(bcId == Proteus_HeatFlux){
+  else if(bcType == Proteus_HeatFlux){
     //find the most normal node to the wall
     Type3* dx = (Type3*)alloca(sizeof(Type3)*3);
     Type* ndx = (Type*)alloca(sizeof(Type)*3);
@@ -1358,11 +1318,11 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
     Type flux = bcobj->flux;
     eqnset->GetHeatFluxBoundaryVariables(QL, QR, nQ, ndx, flux);
   }
-  else if(bcId == Proteus_Isothermal){
+  else if(bcType == Proteus_Isothermal){
     Type Twall = bcobj->twall;
     eqnset->GetIsothermalBoundaryVariables(QL, QR, Twall);
   }
-  else if(bcId == Proteus_PythonBC){
+  else if(bcType == Proteus_PythonBC){
     Type wallx[3];
     wallx[0] = m->xyz[left_cv*3 + 0];
     wallx[1] = m->xyz[left_cv*3 + 1];
@@ -1394,8 +1354,9 @@ void UpdateBCs(SolutionSpace<Type>* space)
   Int i;
   Bool pitching = false;
   for(i = 0; i <= bc->num_bcs; i++){
-    Int bcId = bc->GetBCId(bc->bcs[i].factag);
-    if(bcId == Proteus_PitchingFarField){
+    Int factag = i;
+    Int bcType = bc->GetBCType(factag);
+    if(bcType == Proteus_PitchingFarField){
       pitching = true;
       std::cout << "RUNNING PITCHING MOTION" << std::endl;
       break;
@@ -1451,33 +1412,24 @@ Int GetNodesOnSymmetryPlanes(const Mesh<Type>* m, BoundaryConditions<Real>* bc, 
 
   *nodes = new Int[memChunk];
 
-  Int i, indx1, indx2;
-  Int eid;
-  Int factag;
-  Int bcId;
-  Int node;
-
-  Bool clean;
-
   Int nbedge = m->GetNumBoundaryEdges();
   Int ngedge = m->GetNumParallelEdges();
-  for(eid = 0; eid < nbedge+ngedge; eid++){
-    factag = m->bedges[eid].factag;
-    bcId = bc->GetBCId(factag);
-    node = m->bedges[eid].n[0];
-    if(bcId == Proteus_Symmetry){
+  for(Int eid = 0; eid < nbedge+ngedge; eid++){
+    Int factag = m->bedges[eid].factag;
+    Int bcType = bc->GetBCType(factag);
+    Int node = m->bedges[eid].n[0];
+    if(bcType == Proteus_Symmetry){
       //if node is connected to symmetry/parallel plane 
       //ensure it is not on another type of surface as well
       //this keeps us from moving solid boundaries around
-      indx1 = m->ibesp[node];
-      indx2 = m->ibesp[node+1];
-      clean = true;
-      for(i = indx1; i < indx2; i++){
+      Int indx1 = m->ibesp[node];
+      Int indx2 = m->ibesp[node+1];
+      bool clean = true;
+      for(Int i = indx1; i < indx2; i++){
 	Int leid = m->besp[i];
 	Int lfactag = m->bedges[leid].factag;
-	Int lbcId;
-	lbcId = bc->GetBCId(lfactag);
-	if(lbcId != Proteus_Symmetry){
+	Int lbcType = bc->GetBCType(lfactag);
+	if(lbcType != Proteus_Symmetry){
 	  //mark dirty and move to next node
 	  clean = false;
 	  break;
@@ -1503,57 +1455,6 @@ Int GetNodesOnSymmetryPlanes(const Mesh<Type>* m, BoundaryConditions<Real>* bc, 
 }
 
 template <class Type>
-Int GetNodesOnBCType(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int** nodes, 
-		     Int BCType)
-{
-  Int ncount = 0;
-  Int memChunk = 50;
-  Int memSize = 50;
-
-  *nodes = new Int[memChunk];
-
-  Int i, indx1, indx2;
-  Int eid;
-  Int factag;
-  Int bcId;
-  Int node;
-
-  BCObj<Real>* bcobj;
-
-  //check for duplicates as we go along
-  Int nnode = m->GetNumNodes();
-  Bool* dupeCheck = new Bool[nnode];
-  for(i = 0; i < nnode; i++){
-    dupeCheck[i] = false;
-  }
-  
-  Int nbedge = m->GetNumBoundaryEdges();
-  Int ngedge = m->GetNumParallelEdges();
-  for(eid = 0; eid < nbedge+ngedge; eid++){
-    factag = m->bedges[eid].factag;
-    node = m->bedges[eid].n[0];
-    bcobj = bc->GetBCObj(factag);
-    bcId = bc->GetBCId(factag);
-    if( bcId == BCType && !dupeCheck[node]){
-      //if the node was only connected to parallel/symmetry planes
-      //add it to the list
-      if(memSize <= ncount){
-	MemResize(nodes, memSize, memSize+memChunk);
-	memSize += memChunk;
-      }
-      (*nodes)[ncount] = node;
-      dupeCheck[node] = true;
-      ncount++;
-    }
-  }
-
-  //do final memory resizing operation
-  MemResize(nodes, memSize, ncount);
-
-  return ncount;
-}
-
-template <class Type>
 Int GetNodesOnMovingBC(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int** nodes)
 {
   Int ncount = 0;
@@ -1562,31 +1463,20 @@ Int GetNodesOnMovingBC(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int** 
 
   *nodes = new Int[memChunk];
 
-  BCObj<Real>* bcobj;
-  BCObj<Real>* lbcobj;
-
-  Int i, indx1, indx2;
-  Int eid;
-  Int factag;
-  Int bcId, lbcId;
-  Int node;
-  Int bcNum;
-
   //check for duplicates as we go along
   Int nnode = m->GetNumNodes();
   Bool* dupeCheck = new Bool[nnode];
-  for(i = 0; i < nnode; i++){
+  for(Int i = 0; i < nnode; i++){
     dupeCheck[i] = false;
   }
   
   Int nbedge = m->GetNumBoundaryEdges();
   Int ngedge = m->GetNumParallelEdges();
-  for(eid = 0; eid < nbedge+ngedge; eid++){
-    factag = m->bedges[eid].factag;
-    node = m->bedges[eid].n[0];
-    bcobj = bc->GetBCObj(factag);
-    bcId = bc->GetBCId(factag);
-
+  for(Int eid = 0; eid < nbedge+ngedge; eid++){
+    Int factag = m->bedges[eid].factag;
+    Int node = m->bedges[eid].n[0];
+    BCObj<Real>* bcobj = bc->GetBCObj(factag);
+    Int bcType = bc->GetBCType(factag);
     if( bcobj->IsMovingBC() && !dupeCheck[node]){
       //if the node was only connected to parallel/symmetry planes
       //add it to the list
@@ -1621,13 +1511,6 @@ Int GetNodesOnMovingBC(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int be
 
   *nodes = new Int[memChunk];
 
-  BCObj<Real>* bcobj;
-
-  Int eid;
-  Int factag;
-  Int node;
-  Int bcNum;
-
   //check for duplicates as we go along
   Int nnode = m->GetNumNodes();
   Bool* dupeCheck = new Bool[nnode];
@@ -1637,11 +1520,10 @@ Int GetNodesOnMovingBC(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int be
  
   Int nbedge = m->GetNumBoundaryEdges();
   Int ngedge = m->GetNumParallelEdges();
-  for(eid = 0; eid < nbedge+ngedge; eid++){
-    factag = m->bedges[eid].factag;
-    node = m->bedges[eid].n[0];
-    bcNum = bc->bc_map[factag];
-    bcobj= &bc->bcs[bcNum];
+  for(Int eid = 0; eid < nbedge+ngedge; eid++){
+    Int factag = m->bedges[eid].factag;
+    int node = m->bedges[eid].n[0];
+    BCObj<Real>* bcobj= bc->GetBCObj(factag);
     if( bcobj->movingBC >= 0 && !dupeCheck[node]){
       if(memSize <= ncount){
 	MemResize(nodes, memSize, memSize+memChunk);
@@ -1662,37 +1544,29 @@ Int GetNodesOnMovingBC(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int be
 }
  
 template <class Type>
-Int GetNodesOnBCId(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int bcid,
+Int GetNodesOnBCType(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int bcType,
 		   Int** nodes)
 {
-  Int i;
   Int ncount = 0;
   Int memChunk = 50;
   Int memSize = 50;
 
   *nodes = new Int[memChunk];
 
-  BCObj<Real>* bcobj;
-
-  Int eid;
-  Int factag;
-  Int node;
-  Int bcNum;
-
   //check for duplicates as we go along
   Int nnode = m->GetNumNodes();
   Bool* dupeCheck = new Bool[nnode];
-  for(i = 0; i < nnode; i++){
+  for(Int i = 0; i < nnode; i++){
     dupeCheck[i] = false;
   }
  
   Int nbedge = m->GetNumBoundaryEdges();
   Int ngedge = m->GetNumParallelEdges();
-  for(eid = 0; eid < nbedge+ngedge; eid++){
-    factag = m->bedges[eid].factag;
-    node = m->bedges[eid].n[0];
-    bcNum = bc->bc_map[factag];
-    if(bcNum == bcid && !dupeCheck[node]){
+  for(Int eid = 0; eid < nbedge+ngedge; eid++){
+    Int factag = m->bedges[eid].factag;
+    Int node = m->bedges[eid].n[0];
+    Int bcTypel = bc->GetBCType(factag);
+    if(bcTypel== bcType && !dupeCheck[node]){
       if(memSize <= ncount){
 	MemResize(nodes, memSize, memSize+memChunk);
 	memSize += memChunk;
@@ -1712,11 +1586,11 @@ Int GetNodesOnBCId(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int bcid,
 }
 
 template <class Type>
-void GetSElemsOnBCId(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int bcid, 
+void GetSElemsOnBCType(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int bcType, 
 		     std::vector<Element<Type>*>& elementList)
 {
   Int* bcnodes;
-  Int nbcnodes = GetNodesOnBCId(m, bc, bcid, &bcnodes);
+  Int nbcnodes = GetNodesOnBCType(m, bc, bcType, &bcnodes);
 
   std::set<Element<Type>*, ElementPtrComp<Type> > uniqueElems;
 
@@ -1725,8 +1599,8 @@ void GetSElemsOnBCId(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int bcid
     for(const Int* indx = m->SelspBegin(node); indx != m->SelspEnd(node); ++indx){
       Int selemid = *indx;;
       Int factag = m->elementList[selemid]->GetFactag();
-      Int bcNum = bc->bc_map[factag];
-      if(bcNum == bcid){
+      Int bcTypeLocal = bc->GetBCType(factag);
+      if(bcTypeLocal == bcType){
 	//attempt to insert into the set, it will be rejected if non-unique
 	uniqueElems.insert(m->elementList[selemid]);
       }
@@ -1748,12 +1622,12 @@ void SetBCStatFlags(Mesh<Type>* m, BoundaryConditions<Real>* bc)
   Int ngedge = m->GetNumParallelEdges();
   for(Int eid = 0; eid < nbedge+ngedge; eid++){
     Int factag = m->bedges[eid].factag;
-    Int bcId = bc->GetBCId(factag);
+    Int bcType = bc->GetBCType(factag);
     Int node = m->bedges[eid].n[0];
-    if(bcId == Proteus_NoSlip){
+    if(bcType == Proteus_NoSlip){
       m->cvstat[node].SetViscous();
     }
-    else if(bcId == Proteus_Dirichlet){
+    else if(bcType == Proteus_Dirichlet){
       m->cvstat[node].SetDirichlet();
     }
   }

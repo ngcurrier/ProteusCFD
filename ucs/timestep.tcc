@@ -19,7 +19,7 @@ Type ComputeTimesteps(SolutionSpace<Type>* space)
   Kernel<Type> Timestep(Kernel_Timestep);
   Kernel<Type> BTimestep(Bkernel_Timestep);
 
-  Type* dt = space->GetField("timestep", FIELDS::STATE_NONE);
+  Type* dt = space->GetFieldData("timestep", FIELDS::STATE_NONE);
   // zero out the out timesteps
   for(i = 0; i < nnode; i++){
     dt[i] = 0.0;
@@ -85,7 +85,7 @@ void Kernel_Timestep(KERNEL_ARGS)
   Int i;
   EqnSet<Type>* eqnset = space->eqnset;
   Type* dt = (Type*)custom;
-  Type* beta = space->GetField("beta", FIELDS::STATE_NONE);
+  Type* beta = space->GetFieldData("beta", FIELDS::STATE_NONE);
   Int neqn = eqnset->neqn;
   Int nvars = neqn + eqnset->nauxvars;
   Type* QL = &space->q[left_cv*nvars];
@@ -112,8 +112,6 @@ void Kernel_Timestep(KERNEL_ARGS)
   *ptrR = &dt[right_cv];
   tempL[0] = maxeig*area;
   tempR[0] = maxeig*area;
-
-  return;
 }
 
 template <class Type>
@@ -136,7 +134,7 @@ void Bkernel_Timestep(B_KERNEL_ARGS)
   }
   eqnset->ComputeAuxiliaryVariables(tempL);
 
-  Type* beta = space->GetField("beta", FIELDS::STATE_NONE);
+  Type* beta = space->GetFieldData("beta", FIELDS::STATE_NONE);
   Type betaL = beta[left_cv];
 
   maxeig = eqnset->MaxEigenvalue(tempL, avec, vdotn, gamma, betaL); 
@@ -145,6 +143,4 @@ void Bkernel_Timestep(B_KERNEL_ARGS)
   *size = 1;
   *ptrL = &dt[left_cv];
   tempL[0] = maxeig*area;
-  
-  return;
 }

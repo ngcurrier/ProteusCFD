@@ -136,11 +136,9 @@ void CompressibleFREqnSet<Type>::InitEqnSet()
   this->space->qoldm1 = field.GetData(FIELDS::STATE_NM1);
 
   //allocate solution memory for the gradients we need
-  if(this->param->viscous || (this->param->sorder > 1)){
-    this->space->AddField(*this->gdata, FIELDS::STATE_NONE, FIELDS::VAR_INTERIOR);
-    SolutionField<Type> & gfield  = this->space->GetField("gradVariableQ");
-    this->space->qgrad = gfield.GetData(FIELDS::STATE_NONE);
-  }
+  this->space->AddField(*this->gdata, FIELDS::STATE_NONE, FIELDS::VAR_INTERIOR);
+  SolutionField<Type> & gfield  = this->space->GetField("gradVariableQ");
+  this->space->qgrad = gfield.GetData(FIELDS::STATE_NONE);
 
   //set Reynold's number - rho*v*d/mu
   Type rho = this->Qinf[nspecies+5];

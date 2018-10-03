@@ -6,7 +6,7 @@
 //we only need the most recent NP1 storage to have all the boundary data included, fix this -- expensive
 
 template <class Type>
-SolutionField<Type>::SolutionField(Mesh<Type> & mesh, DataInfo dataInfo, Int stateType, Int varLocation):
+SolutionField<Type>::SolutionField(Mesh<Type>& mesh, DataInfo dataInfo, Int stateType, Int varLocation):
   mesh(mesh), dataInfo(dataInfo), mystate(stateType), varLoc(varLocation)
 {
   Int mnnode = mesh.GetNumNodes();
@@ -15,12 +15,17 @@ SolutionField<Type>::SolutionField(Mesh<Type> & mesh, DataInfo dataInfo, Int sta
   Int mnallnode = mnnode + mgnode + mnbnode;
   Int narrays = 0;
   ndof = dataInfo.GetNdof();
+
+    
   if(varLoc == FIELDS::VAR_EVERYWHERE){
+    //this includes interior, ghost, and boundary nodes
     nentities = mnallnode;
   }
   else if(varLoc == FIELDS::VAR_INTERIOR){
+    //this includes interior and ghost nodes only
     nentities = mnnode + mgnode;
   }
+
   if(mystate == FIELDS::STATE_NONE){
     narrays = 1;
   }
@@ -31,7 +36,22 @@ SolutionField<Type>::SolutionField(Mesh<Type> & mesh, DataInfo dataInfo, Int sta
     Abort << "State passed to solution field named " + dataInfo.GetName() + " not valid\n";
   }
 
-  data = new Type[nentities*ndof*narrays];
+  size_t totalsize = nentities*ndof*narrays;
+  
+#ifdef _DEBUG
+  std::cout << "SolutionField::SolutionField() allocating "
+	    << dataInfo.GetName() << std::endl;
+  std::cout << "Allocating " << nentities << " spatially discrete locations"
+	    << std::endl;
+  std::cout << "Allocating " << ndof << " DOFs" << std::endl;
+  std::cout << "Allocating " << narrays << " time arrays" << std::endl;
+  std::cout << "Allocating " << sizeof(Type)*totalsize << " bytes" << std::endl;
+  std::cout << "\tnnode: " << mnnode << "\tgnode: " << mgnode << "\tbnode: "
+	    << mnbnode << std::endl;
+  std::cout << this->dataInfo << std::endl;
+#endif
+
+  data = new Type[totalsize];
 
 #ifdef _OPENMP
   mutexes = new pthread_mutex_t[nentities];
@@ -79,8 +99,22 @@ SolutionField<Type>::SolutionField(Mesh<Type>& mesh, hid_t fileId, std::string p
     return;
   }
   //we simply allocate enough space for the data, reading has to be done elsewhere
-  Int size = nentities*ndof*narrays;
-  data = new Type[size];
+  Int totalsize = nentities*ndof*narrays;
+
+#ifdef _DEBUG
+  std::cout << "SolutionField::SolutionField() allocating through read "
+	    << dataInfo.GetName() << std::endl;
+  std::cout << "Allocating " << nentities << " spatially discrete locations"
+	    << std::endl;
+  std::cout << "Allocating " << ndof << " DOFs" << std::endl;
+  std::cout << "Allocating " << narrays << " time arrays" << std::endl;
+  std::cout << "Allocating " << sizeof(Type)*totalsize << " bytes" << std::endl;
+  std::cout << "\tnnode: " << mnnode << "\tgnode: " << mgnode << "\tbnode: "
+	    << mnbnode << std::endl;
+  std::cout << this->dataInfo << std::endl;
+#endif
+
+  data = new Type[totalsize];
 
 #ifdef _OPENMP
   mutexes = new pthread_mutex_t[nentities];
@@ -88,8 +122,6 @@ SolutionField<Type>::SolutionField(Mesh<Type>& mesh, hid_t fileId, std::string p
     pthread_mutex_init(&mutexes[i], NULL);
   }
 #endif
-
-  return;
 }
 
 template <class Type>
@@ -227,8 +259,6 @@ void SolutionField<Type>::Reorder(Int* newOrder)
       mesh.p->UpdateGeneralVectors(ptr, ndof);
     }
   }
-
-  return;
 }
 
 template <class Type>

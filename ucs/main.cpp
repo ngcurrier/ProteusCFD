@@ -296,7 +296,7 @@ int main(int argc, char* argv[]){
   if(mode == Adjoint){
     SolutionSpace<Real>& space = *dynamic_cast<SolutionSpace<Real>*>(solSpaces[0]);
     //adjoint
-    Real* lambda = space.GetField("Adjoint", FIELDS::STATE_NONE);
+    Real* lambda = space.GetFieldData("Adjoint", FIELDS::STATE_NONE);
     //Compute_dObjdQ(lambda, eqnset, 0);
     Compute_Adjoint_Variables_II(lambda, space);
     for(Int beta = 0; beta < ndv; beta++){

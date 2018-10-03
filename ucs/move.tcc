@@ -759,7 +759,7 @@ void SetBCLinearElastic(Mesh<Type>* m, CRS<Type>* crs, BoundaryConditions<Real>*
 
   //we are going to fix all nodes on the farfield BC
   Int* farNodes;
-  Int nFarNodes = GetNodesOnBCType(m, bc, &farNodes, Proteus_FarField);
+  Int nFarNodes = GetNodesOnBCType(m, bc, Proteus_FarField, &farNodes);
 
   //init all nodes as moving
   for(i = 0; i < nnode+gnode; i++){

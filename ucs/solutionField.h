@@ -75,15 +75,16 @@ public:
   PObj<Type>* GetPObj();
 
 private:
+  SolutionField();    //DO NOT USE
 
-  Mesh<Type> & mesh;
-  std::string name;
-  Int ndof;
-  DataInfo dataInfo;
-  Int mystate;
-  Type * data;
-  Int varLoc;
-  Int nentities;
+  Mesh<Type> & mesh;  //reference to spatial field (mesh) to which data is tied
+  std::string name;   //name of field
+  Int ndof;           //number of values (data) stored at each spatial location
+  DataInfo dataInfo;  //data info descriptor
+  Int mystate;        //FIELDS:: enum which determines whether or not the field is time aware, etc.
+  Type * data;        //raw flat array of data
+  Int varLoc;         //Enum value which indicates internal, boundaries, or all locations are stored
+  Int nentities;      //number of spatial locations at which data is stored
 
 #ifdef _OPENMP
   pthread_mutex_t* mutexes;  //declare global mutexes for each cv

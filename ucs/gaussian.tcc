@@ -41,7 +41,7 @@ void GaussianSource<Type>::ApplyToResidual()
   Type* src = fsrc.GetData(FIELDS::STATE_NONE);
 
   std::vector<Element<Type>*> selemList;
-  GetSElemsOnBCId(m, space.bc, bcid, selemList);
+  GetSElemsOnBCType(m, space.bc, bcid, selemList);
 
   SpatialFunctor<Type>* GFunc = new GaussianFunctor<Type>(*this);
 

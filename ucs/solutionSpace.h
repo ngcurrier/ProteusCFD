@@ -53,7 +53,7 @@ public:
   void RemoveField(std::string name);
   SolutionField<Type> & GetField(std::string name);
   const SolutionField<Type> & GetField(std::string name) const;
-  Type* GetField(std::string name, Int state);
+  Type* GetFieldData(std::string name, Int state);
   //check for a fields existence
   Bool CheckField(std::string name) const;
   void WriteAvailableFields() const;
@@ -93,9 +93,9 @@ public:
   Mesh<Type>* m;
   EqnSet<Type>* eqnset;
   EqnSet<RCmplx>* ceqnset;
+  Param<Type> * param;
   Param<RCmplx>* cparam;
   BoundaryConditions<Real>* bc;
-  Param<Type> * param;
   Sensors<Type>* sensors;
   TurbulenceModel<Type>* turb;
   Forces<Type>* forces;

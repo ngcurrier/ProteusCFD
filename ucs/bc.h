@@ -8,6 +8,7 @@
 #include "elementClass.h"
 #include <string>
 #include <vector>
+#include <map>
 
 //forward declarations
 template <class Type> class Mesh;
@@ -27,7 +28,7 @@ class BoundaryConditions
   void PrintBCs();
 
   //returns the numerical bc type id with input of the factag id
-  Int GetBCId(Int factag);
+  Int GetBCType(Int factag);
   //returns the correct BCObj pointer with input of the factag id
   BCObj<Type>* GetBCObj(Int factag);
 
@@ -37,13 +38,6 @@ class BoundaryConditions
   template <class Type2>
   Bool IsNodeOnBC(Int nodeid, Mesh<Type2>* m, Int bcId);
 
-  std::string* surface_names;   //plain text identifiers for surfaces
-  Int* bc_applied;              //list which holds bc's applied to surfaces
-  Int* bc_map;                  //maps bc number in file to lower order number in code
-                                //this is in case surface id numbers are non-consecutive i.e. 1, 3, 199, etc.
-
-  BCObj<Type>* bcs;             //list of reference states, i.e. the conditions themselves
-
   Int GetNumBodies() const {return num_bodies;};
   
   Int num_bcs;                  //number of bcs present in domain
@@ -52,12 +46,14 @@ class BoundaryConditions
   Int largest_body_id;          //largest composite body id found
 
  private:
- 
-  void CountNumberBCsInFile(std::ifstream& fin); //sets number of BCs in file, return largest id found
+
+  std::map<Int, BCObj<Type>*> bc_objs;     //maps bc <factag> number in file to <bcobj> we create to manage the boundary
+  
+  void CountBCsInFile(std::ifstream& fin); //sets number of BCs in file, return largest id found
   void CountBodiesInFile(std::ifstream& fin);  //sets number of composite bodies in file
-  Int ParseLine(std::string& line);
-  Int ParseBody(std::string& line);
-  Int SetVarsFromLine(Int ObjId, std::string& line);  //parse variables from line into BCObj
+  Int BCParseLine(std::string& line);
+  Int BCParseBody(std::string& line);
+  Int SetVarsFromLine(BCObj<Type>& bcobj, std::string& line);  //parse variables from line into BCObj
   void AllocateBCObjects();     //allocate required bc objects - one per bc
 
 };
@@ -75,7 +71,7 @@ void Bkernel_BC_Res_Modify(B_KERNEL_ARGS);
 //complex jacobians...
 template <class Type, class Type2, class Type3>
 void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSpace<Type3>* space, 
-				Type* QL, Type* QR, Type* Qinf, Type* avec, Int bcId, 
+				Type* QL, Type* QR, Type* Qinf, Type* avec, Int bcType, 
 				Int eid, BCObj<Type2>* bcobj, Type3 vdotn, Type3* velw);
 
 //this is the master call to update the boundary conditions
@@ -91,12 +87,6 @@ void BC_Kernel(B_KERNEL_ARGS);
 template <class Type>
 Int GetNodesOnSymmetryPlanes(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int** nodes);
 
-//function returns number of points on a particular type of bc... used for smoothing meshes
-//allocates memory.. pass NULL pointer
-template <class Type>
-Int GetNodesOnBCType(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int** nodes, 
-		     Int BCType);
-
 //function returns number of points which are on a bc with any design tag
 //allocates memory.. pass NULL pointer
 template <class Type>
@@ -111,7 +101,7 @@ Int GetNodesOnMovingBC(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int be
 //function returns number of points on a particular bcid
 //allocates memory pass NULL pointer
 template <class Type>
-Int GetNodesOnBCId(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int bcid, Int** nodes);
+Int GetNodesOnBCType(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int bcType, Int** nodes);
 
 //function takes a node list and returns a unique list of surface elements which
 //those nodes are connected to

@@ -649,10 +649,10 @@ Type Param<Type>::GetCFL()
 template <class Type>
 void Param<Type>::UpdateCFL(Int iter, Type deltaResidual)
 {
-  if(dynamicCFL){
+  if(dynamicCFL){ //CFL solution steering 
     if(iter > 1){
       //allow 10% change per iteration
-      Type beta = 0.1;
+      Type delta = 0.1;
       Type sgn;
       if(real(deltaResidual) > 0.0){
 	sgn = 1.0;
@@ -660,14 +660,16 @@ void Param<Type>::UpdateCFL(Int iter, Type deltaResidual)
       else{
 	sgn = -1.0;
       }
-      Type cflnew = MIN(MAX(0.0, cflPrev + beta * sgn * cflPrev), cfl);
+      //A = MAX(0, previousCFL * delta * sign (+/-)) --- only take positive CFLS
+      Type A = MAX(0.0, cflPrev + delta * sgn * cflPrev);
+      Type cflnew = MIN(A, cfl);
       cflPrev = cflnew;
     }
     else{
       cflPrev = cflStart;
     }
   }
-  else{
+  else{ //prescribed CFL ramping over time
     if(cflRampingSteps > 0 && iter < cflRampingSteps){
       cflPrev = ( (cfl-cflStart) / (Type)cflRampingSteps * (Type)iter + cflStart);
     }

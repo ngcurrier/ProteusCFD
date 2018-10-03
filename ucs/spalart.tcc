@@ -46,22 +46,20 @@ Spalart<Type>::Spalart(SolutionSpace<Type>* space) :
   this->idata->AddScalar(0, "Turb-nu");
   this->idata->Verify();
   this->space->AddField(*this->idata, FIELDS::STATE_TIME, FIELDS::VAR_EVERYWHERE);
-  this->tvar = this->space->GetField("TurbulentVariables", FIELDS::STATE_NP1);
-  this->tvarold = this->space->GetField("TurbulentVariables", FIELDS::STATE_N);
-  this->tvaroldm1 = this->space->GetField("TurbulentVariables", FIELDS::STATE_NM1);
+  this->tvar = this->space->GetFieldData("TurbulentVariables", FIELDS::STATE_NP1);
+  this->tvarold = this->space->GetFieldData("TurbulentVariables", FIELDS::STATE_N);
+  this->tvaroldm1 = this->space->GetFieldData("TurbulentVariables", FIELDS::STATE_NM1);
 
   DataInfo tdata(3, std::string("Grad-TurbNu"));
   tdata.AddVector(0, "Grad-TurbNu");
   tdata.Verify();
   this->space->AddField(tdata, FIELDS::STATE_NONE, FIELDS::VAR_INTERIOR);
-  this->tgrad = this->space->GetField("Grad-TurbNu", FIELDS::STATE_NONE);
+  this->tgrad = this->space->GetFieldData("Grad-TurbNu", FIELDS::STATE_NONE);
 
   //allocate array for storing infinity values
   this->tvarinf = new Type[this->neqn];
   //set infinity values for turbulence variables
   SetTinf();
-
-  return;
 }
 
 template <class Type>
@@ -95,8 +93,8 @@ void Spalart<Type>::Initialize()
   Int nnode = m->GetNumNodes();
   Int gnode = m->GetNumParallelNodes();
   
-  Type* mut = this->space->GetField("mut", FIELDS::STATE_NONE);
-  Type* dist = this->space->GetField("wallDistance", FIELDS::STATE_NONE);
+  Type* mut = this->space->GetFieldData("mut", FIELDS::STATE_NONE);
+  Type* dist = this->space->GetFieldData("wallDistance", FIELDS::STATE_NONE);
   Type* q = this->space->q;
 
   Type Re = param->Re;
@@ -148,24 +146,24 @@ void Spalart<Type>::BC_Kernel(B_KERNEL_ARGS)
   TurbulenceModel<Type>* turb = (TurbulenceModel<Type>*) custom;
   BoundaryConditions<Real>* bc = space->bc;
   Mesh<Type>* m = space->m;
-  Int bcId = bc->GetBCId(factag); 
+  Int bcType = bc->GetBCType(factag); 
   Type* tL = &turb->tvar[left_cv*turb->neqn];
   Type* tR = &turb->tvar[right_cv*turb->neqn];
 
   *ptrL = NULL;
   *size = 0;
 
-  if(bcId == Proteus_ParallelBoundary){
+  if(bcType == Proteus_ParallelBoundary){
     //do nothing this is a parallel updated edge/node
     return;
   }
-  else if(bcId == Proteus_NoSlip){
+  else if(bcType == Proteus_NoSlip){
     //this is a viscous surface, set the bc to zero
     *tR = 0.0;
     *tL = 0.0;
     return;
   }
-  else if(bcId == Proteus_Symmetry || bcId == Proteus_ImpermeableWall){
+  else if(bcType == Proteus_Symmetry || bcType == Proteus_ImpermeableWall){
     *tR = *tL;
     return;
   }
@@ -185,16 +183,16 @@ void Spalart<Type>::BC_Jac_Kernel(B_KERNEL_ARGS)
   CRS<Type>* crs = (CRS<Type>*) &turb->crs;
   BoundaryConditions<Real>* bc = space->bc;
   Int neqn = turb->neqn;
-  Int bcId = bc->GetBCId(factag); 
+  Int bcType = bc->GetBCType(factag); 
 
   *ptrL = NULL;
   *size = 0;
 
-  if(bcId == Proteus_ParallelBoundary){
+  if(bcType == Proteus_ParallelBoundary){
     //do nothing this is a parallel updated edge/node
     return;
   }
-  else if(bcId == Proteus_NoSlip){
+  else if(bcType == Proteus_NoSlip){
     //this is a viscous surface, set the bc to zero
     //we need to nuke the off-diagonal terms in the jacobian
     //as well as the residual since the bc is dirichlet on the wall

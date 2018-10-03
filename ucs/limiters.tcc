@@ -33,7 +33,7 @@ Limiter<Type>::Limiter(SolutionSpace<Type>* space, Type* q, Type* grad, Int neqn
 
   //register the field on the solution space
   space->AddField(*this->idata, FIELDS::STATE_NONE, FIELDS::VAR_INTERIOR);
-  l = space->GetField("limiter_"+name, FIELDS::STATE_NONE);
+  l = space->GetFieldData("limiter_"+name, FIELDS::STATE_NONE);
   
   //init limiters to one in case we never use them, otherwise we
   //could get junk values
@@ -110,7 +110,7 @@ void Limiter<Type>::Compute(SolutionSpace<Type>* space)
   //conservative solution variables, this limiter can also be run on turb
   //models, etc. and this doesn't make sense in that context
   if(param->limiter != 0){
-    if(this->q == space->GetField("variableQ", FIELDS::STATE_NP1)){
+    if(this->q == space->GetFieldData("variableQ", FIELDS::STATE_NP1)){
       Kernel<Type> PressureClip(Kernel_PressureClip);
       DriverNoScatter(space, PressureClip, this->neqn, (void*)this);
     }

@@ -1,5 +1,6 @@
 template <class Type>
-BCObj<Type>::BCObj()
+BCObj<Type>::BCObj() :
+  name(BCs[Proteus_NULL]), bcType(Proteus_NULL)
 {
   neqn = 0;
   nvars = 0;
@@ -26,10 +27,8 @@ BCObj<Type>::BCObj()
   twall = 1.0;
   flux = 0.0;
 
-  //default to have the parallel factag of zero
-  //this is done since we make a bcobj that never gets initialized
-  //for this one
-  factag = 0;
+  //default to have the parallel factag of negative number --> NULL BC
+  factag = -1;
 }
 
 template <class Type>
@@ -49,8 +48,6 @@ void BCObj<Type>::GetQref(Real* QrefRet)
   for(i = 0; i < this->nvars; i++){
     QrefRet[i] = Qref[i];
   }
-  return;
-
 }
 
 template <class Type>
@@ -60,12 +57,25 @@ void BCObj<Type>::GetQref(RCmplx* QrefRet)
   for(i = 0; i < this->nvars; i++){
     QrefRet[i] = Qref[i];
   }
-  return;
-
 }
 
 template <class Type>
-Int BCObj<Type>::IsMovingBC()
+bool BCObj<Type>::IsMovingBC()
 {
-  return ((movingBC >= 0));
+  return (movingBC >= 0);
+}
+
+template <class Type>
+void BCObj<Type>::SetBCType(Int setType)
+{
+  if(setType < 0 || setType > NUM_BC_TYPES){
+    std::stringstream ss;
+    ss << "BCObj::SetBCType() requested to set invalid bc type: ";
+    ss << "type requested is - " << setType <<  " and max available is " << NUM_BC_TYPES << std::endl;
+    Abort << ss.str();
+  }
+  else{
+    bcType = setType;
+    std::cout << "Setting BC [" << factag << "] to type: " << BCs[setType] << std::endl;
+  }
 }

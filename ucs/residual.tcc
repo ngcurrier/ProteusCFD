@@ -87,7 +87,7 @@ void SpatialResidual(SolutionSpace<Type>* space)
 
   if(param->viscous){
     //pre-fetch "mut" to avoid the lookup at every node
-    Type* mut = space->GetField("mut", FIELDS::STATE_NONE);
+    Type* mut = space->GetFieldData("mut", FIELDS::STATE_NONE);
 
     Kernel<Type> Viscous_Flux(Kernel_Viscous_Flux);
     Kernel<Type> BViscous_Flux(Bkernel_Viscous_Flux);
@@ -209,7 +209,7 @@ void Kernel_Inviscid_Flux(KERNEL_ARGS)
   Type* limiterR = &space->limiter->l[right_cv*neqn];
   Type chi = param->chi;
 
-  Type* beta = space->GetField("beta", FIELDS::STATE_NONE);
+  Type* beta = space->GetFieldData("beta", FIELDS::STATE_NONE);
   Type betaL = beta[left_cv];
   Type betaR = beta[right_cv];
   Type avbeta = 0.5*(betaL + betaR);
@@ -319,18 +319,11 @@ void Bkernel_Inviscid_Flux(B_KERNEL_ARGS)
   Type* dx = (Type*)alloca(sizeof(Type)*3);
   Type chi = param->chi;
 
-  Type* beta = space->GetField("beta", FIELDS::STATE_NONE);
+  Type* beta = space->GetFieldData("beta", FIELDS::STATE_NONE);
   Type betaL = beta[left_cv];
 
   BoundaryConditions<Real>* bc = space->bc;
-  Int bcNum = bc->bc_map[factag];
-  Int bcId; 
-  if(factag == 0){
-    bcId = Proteus_ParallelBoundary;
-  }
-  else{
-    bcId = bc->bc_applied[bcNum];
-  }  
+  Int bcType = bc->GetBCType(factag); 
 
   xL = m->cg + 3*left_cv;
   xR = m->cg + 3*right_cv;
@@ -499,14 +492,7 @@ void Bkernel_Viscous_Flux(B_KERNEL_ARGS)
   xR = m->cg + 3*right_cv;
 
   BoundaryConditions<Real>* bc = space->bc;
-  Int bcNum = bc->bc_map[factag];
-  Int bcId; 
-  if(factag == 0){
-    bcId = Proteus_ParallelBoundary;
-  }
-  else{
-    bcId = bc->bc_applied[bcNum];
-  }  
+  Int bcType = bc->GetBCType(factag);
 
   //use directional derivatives to get gradient at face
   //TODO: generalize in case we want to use a non-midpoint edge CV
@@ -760,7 +746,7 @@ void Kernel_Viscous_Src(KERNEL_ARGS)
     tempR[i] -= tempR_LO[i];
   }
 
-  Type* ETE_src = space->GetField("ETEVisc", FIELDS::STATE_NONE);
+  Type* ETE_src = space->GetFieldData("ETEVisc", FIELDS::STATE_NONE);
   
   //set data necessary for driver scatter
   *size = neqn;
@@ -800,14 +786,7 @@ void Bkernel_Viscous_Src(B_KERNEL_ARGS)
   xR = m->cg + 3*right_cv;
 
   BoundaryConditions<Real>* bc = space->bc;
-  Int bcNum = bc->bc_map[factag];
-  Int bcId; 
-  if(factag == 0){
-    bcId = Proteus_ParallelBoundary;
-  }
-  else{
-    bcId = bc->bc_applied[bcNum];
-  }  
+  Int bcType = bc->GetBCType(factag); 
 
   //use directional derivatives to get gradient at face
   //TODO: generalize in case we want to use a non-midpoint edge CV
@@ -880,7 +859,7 @@ void Bkernel_Viscous_Src(B_KERNEL_ARGS)
     tempL[i] -= tempL_LO[i];
   }
 
-  Type* ETE_src = space->GetField("ETEVisc", FIELDS::STATE_NONE);
+  Type* ETE_src = space->GetFieldData("ETEVisc", FIELDS::STATE_NONE);
   
   //set data necessary for driver scatter
   *size = neqn;

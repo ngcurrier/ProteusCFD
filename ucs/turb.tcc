@@ -12,8 +12,6 @@ TurbulenceModel<Type>::TurbulenceModel(SolutionSpace<Type>* space):
 {
   //add turbulent viscosity field
   space->AddField("mut");
-  
-  return;
 }
 
 template <class Type>
@@ -186,8 +184,8 @@ void TurbulenceModel<Type>::Compute()
   Int qneqn = eqnset->neqn;
   Int qnvars = qneqn + eqnset->nauxvars;
   Param<Type>* param = space->param;
-  Type* dt = space->GetField("timestep", FIELDS::STATE_NONE);
-  Type* mut = space->GetField("mut", FIELDS::STATE_NONE);
+  Type* dt = space->GetFieldData("timestep", FIELDS::STATE_NONE);
+  Type* mut = space->GetFieldData("mut", FIELDS::STATE_NONE);
 
   //blank the crs system
   crs.BlankSystem();
@@ -219,7 +217,7 @@ void TurbulenceModel<Type>::Compute()
   Int vloc = eqnset->GetVelocityGradLocation()*3;
   
   //compute source terms
-  Type* dist = space->GetField("wallDistance", FIELDS::STATE_NONE);
+  Type* dist = space->GetFieldData("wallDistance", FIELDS::STATE_NONE);
   for(i = 0; i < nnode; i++){
     Type* q = &space->q[i*qnvars];
     Type vol = m->vol[i];

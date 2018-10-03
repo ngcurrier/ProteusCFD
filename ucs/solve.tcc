@@ -80,7 +80,7 @@ void ExplicitSolve(SolutionSpace<Type>& solSpace)
   CRS<Type>& crs = *solSpace.crs;
   Int nnode = m->GetNumNodes();
 
-  Type* dt = solSpace.GetField("timestep", FIELDS::STATE_NONE);
+  Type* dt = solSpace.GetFieldData("timestep", FIELDS::STATE_NONE);
 
 #ifdef _OPENMP
     omp_set_num_threads(NUM_THREADS);
@@ -101,7 +101,7 @@ void ExplicitSolve(SolutionSpace<Type>& solSpace)
       }
       else{
 #if 0
-	Type* betaa = solSpace.GetField("beta", FIELDS::STATE_NONE);
+	Type* betaa = solSpace.GetFieldData("beta", FIELDS::STATE_NONE);
 	Type* A = (Type*)alloca(sizeof(Type)*neqn*neqn);
 	Int p[neqn];
 	//This works but is not currently functional for any boundary condition where the 

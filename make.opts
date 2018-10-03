@@ -2,7 +2,8 @@
 TOOLCHAIN = GNU
 HAS_PYTHON = TRUE
 HAS_CGNS = TRUE
-DEBUG = TRUE
+#HAS_OPENMP = TRUE
+#DEBUG = TRUE
 #EFENCE = TRUE
 
 ifndef TARGET
@@ -20,10 +21,9 @@ endif
 ifeq ($(TOOLCHAIN),INTEL)
 	CXX = icc
 	MPICXX = mpicxx
-	CXX_OPTS = -O3  -g 
-	#CXX_OPTS = -O0 -g -D_DEBUG -guide 
+	CXX_OPTS = -O3 -g 
+	#CXX_OPTS = -O0 -g -guide 
 	#CXX_OPTS += -opt-report[3] -march=core2
-
 	LINK_OPTS = 
 	FXX = ifort
 	FXX_OPTS = -O3
@@ -35,9 +35,8 @@ endif
 ifeq ($(TOOLCHAIN),GNU)
 	CXX = g++
 	MPICXX = mpicxx
-	#CXX_OPTS = -O0 -g -std=c++11
-	#CXX_OPTS = -fopenmp -D_DEBUG
-	CXX_OPTS = -O3 -g -std=c++11
+	CXX_OPTS = -O0 -g -std=c++11
+	#CXX_OPTS = -O3 -g -std=c++11
 	LINK_OPTS = 
 	FXX = mpif90
 	FXX_OPTS = -O3 
@@ -106,13 +105,17 @@ CXXLIBS = -lcommon -lz -lhdf5
 CXXLIBS += -lstdc++ 
 FXXLIBS = -lstdc++ -lmpi 
 
+ifdef HAS_OPENMP
+      CXX_OPTS += -fopenmp -D_OPENMP
+endif
+
 ifdef HAS_CGNS
       CXX_OPTS += -D_HAS_CGNS
       CXXLIBS += -lcgns 
 endif
 
 ifdef DEBUG
-      CXX_OPTS += -g
+      CXX_OPTS += -g -D_DEBUG
 endif
 
 ifdef EFENCE

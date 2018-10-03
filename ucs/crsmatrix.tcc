@@ -7,21 +7,13 @@
 #include <list>
 
 template <class Type>
-CRSMatrix<Type>::CRSMatrix()
+CRSMatrix<Type>::CRSMatrix():
+  p(NULL), M(NULL), pv(NULL), ia(NULL), ja(NULL), iau(NULL), neqn(0), neqn2(0), nblocks(0), ludiag(false)
 {
   //DO NOT allocate any memory in here... That
   //should always be handled in Init() since we want to 
   //be able to control memory allocations directly, while
   //still being able to declare things for future use
-
-  M = NULL;
-  pv = NULL;
-
-  ia = NULL;
-  ja = NULL;
-  iau = NULL;
-
-  ludiag = false;
 }
 
 template <class Type>

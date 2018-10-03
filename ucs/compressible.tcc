@@ -8,6 +8,19 @@
 #include <iostream>
 #include <cmath>
 
+// NATIVE VARIABLES
+// rho
+// rho-u
+// rho-v
+// rho-w
+// rho-et
+// NON-NATIVE AUX
+// T
+// P
+// u
+// v
+// w
+
 template <class Type>
 CompressibleEqnSet<Type>::CompressibleEqnSet(SolutionSpace<Type>* space, Param<Type>* p)
 {
@@ -18,37 +31,36 @@ CompressibleEqnSet<Type>::CompressibleEqnSet(SolutionSpace<Type>* space, Param<T
   //variable set is conservative
   this->varsConservative = 1;
 
-   //set types of variables for output i.e. scalar, vector, etc.
-   this->idata = new DataInfo(this->neqn+this->nauxvars, std::string("variableQ"));
-   this->idata->AddScalar(0, std::string("Density"));
-   this->idata->AddVector(1, std::string("Momentum"));
-   this->idata->AddScalar(4, std::string("TotalEnergy"));
-   this->idata->AddScalar(5, std::string("Temperature"));
-   this->idata->AddScalar(6, std::string("Pressure"));
-   this->idata->AddVector(7, std::string("Velocity"));
-   this->idata->Verify();
-
-   //set gradients required
-   this->gdata = new DataInfo((this->neqn+1+3)*3, "gradVariableQ");
-   this->gdata->AddVector(0*3, "Grad-Density");
-   this->gdata->AddVector(1*3, "Grad-rhou");
-   this->gdata->AddVector(2*3, "Grad-rhov");
-   this->gdata->AddVector(3*3, "Grad-rhow");
-   this->gdata->AddVector(4*3, "Grad-TotalEnergy");
-   this->gdata->AddVector(5*3, "Grad-Temperature");
-   this->gdata->AddVector(6*3, "Grad-u");
-   this->gdata->AddVector(7*3, "Grad-v");
-   this->gdata->AddVector(8*3, "Grad-w");
-   this->gdata->Verify();
-
-   this->Qinf = new Type[this->neqn + this->nauxvars];
+  //set types of variables for output i.e. scalar, vector, etc.
+  this->idata = new DataInfo(this->neqn+this->nauxvars, std::string("variableQ"));
+  this->idata->AddScalar(0, std::string("Density"));
+  this->idata->AddVector(1, std::string("Momentum"));
+  this->idata->AddScalar(4, std::string("TotalEnergy"));
+  this->idata->AddScalar(5, std::string("Temperature"));
+  this->idata->AddScalar(6, std::string("Pressure"));
+  this->idata->AddVector(7, std::string("Velocity"));
+  this->idata->Verify();
+  
+  //set gradients required
+  this->gdata = new DataInfo((this->neqn+1+3)*3, "gradVariableQ");
+  this->gdata->AddVector(0*3, "Grad-Density");
+  this->gdata->AddVector(1*3, "Grad-rhou");
+  this->gdata->AddVector(2*3, "Grad-rhov");
+  this->gdata->AddVector(3*3, "Grad-rhow");
+  this->gdata->AddVector(4*3, "Grad-TotalEnergy");
+  this->gdata->AddVector(5*3, "Grad-Temperature");
+  this->gdata->AddVector(6*3, "Grad-u");
+  this->gdata->AddVector(7*3, "Grad-v");
+  this->gdata->AddVector(8*3, "Grad-w");
+  this->gdata->Verify();
+  
+  this->Qinf = new Type[this->neqn + this->nauxvars];
  }
 
  template <class Type>
  CompressibleEqnSet<Type>::~CompressibleEqnSet()
  {
    delete [] this->Qinf;
-   return;
  }
 
  template <class Type>
@@ -66,11 +78,10 @@ CompressibleEqnSet<Type>::CompressibleEqnSet(SolutionSpace<Type>* space, Param<T
    this->space->qoldm1 = field.GetData(FIELDS::STATE_NM1);
 
    //allocate solution memory for the gradients we need
-   if(this->param->viscous || (this->param->sorder > 1)){
-     this->space->AddField(*this->gdata, FIELDS::STATE_NONE, FIELDS::VAR_INTERIOR);
-     SolutionField<Type> & gfield  = this->space->GetField("gradVariableQ");
-     this->space->qgrad = gfield.GetData(FIELDS::STATE_NONE);
-   }
+   this->space->AddField(*this->gdata, FIELDS::STATE_NONE, FIELDS::VAR_INTERIOR);
+   SolutionField<Type> & gfield  = this->space->GetField("gradVariableQ");
+   this->space->qgrad = gfield.GetData(FIELDS::STATE_NONE);
+
    //set Reynold's number - rho*V*d/mu
    Type rho = this->Qinf[0];
    Type V = this->param->GetVelocity(this->space->iter);
@@ -428,7 +439,7 @@ template <class Type>
    Type P = gm1*(rE - rho*v2h);
    Type c2 = gamma*P/rho;
    Type c = sqrt(c2);
-
+   
    //Right eigenvectors
    T[0] = nx;
    T[5] = u*nx;
@@ -731,7 +742,11 @@ Type CompressibleEqnSet<Type>::MaxEigenvalue(Type* Q, Type* avec, Type vdotn, Ty
      std::cout << "Attempting to use python interface to set initial conditions" << std::endl;
 #ifdef _HAS_PYTHON
      PythonWrapper pywrap("./", "setInitialConditions", "setInitialConditions");
+     std::cout << nnode << std::endl;
+     std::cout << gnode << std::endl;
+     std::cout << nbnode << std::endl;
      for(i = 0; i < (nnode+gnode+nbnode); ++i){
+       std::cout << i << std::endl;
        pywrap.SetInitialConditions(this->Qinf, neqn, nauxvars, &this->space->q[i*(neqn+nauxvars)], &m->xyz[i*3]);
        ComputeAuxiliaryVariables(&this->space->q[i*(neqn+nauxvars)]);
      }
@@ -794,8 +809,12 @@ Type CompressibleEqnSet<Type>::MaxEigenvalue(Type* Q, Type* avec, Type vdotn, Ty
      std::cerr << "WARNING: pressure clip";
      std::cerr << "  Coordinates: " << xyz[0] 
 	       << " " << xyz[1] << " " << xyz[2] << std::endl;
+     std::cerr << "Dynamic pressure is : " << 0.5*rho*v2 << std::endl;
      Type v2mod = 2.0*(E - minP/gm1);
-     Type frac = sqrt(v2mod/v2);
+     Type frac = 0.0;
+     if(real(v2mod) > 0.0){
+       frac = sqrt(v2mod/v2);
+     }
      //modify velocities based on fraction of minimum
      //velocities needed
      u *= frac;

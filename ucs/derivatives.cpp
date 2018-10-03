@@ -1003,7 +1003,7 @@ void Get_dXdB(std::string path, Real* dxdb, Mesh<Real>* m, Int beta)
   }
   if(rankRead != rank){
     std::cerr << "WARNING: Get_dXdB() Mesh movement sensitivities opened with wrong rank!"
-       << std::endl;
+	      << std::endl;
   }
   if(nnodeRead != nnode){
     std::cerr << "WARNING: Get_dXdB() Mesh movement sensitivities opened with wrong number "
@@ -1189,7 +1189,7 @@ void Compute_dQdBeta_II(Real* dQdB, SolutionSpace<Real>& space, Int beta)
   //Get the direct computed dQdB on boundaries which are dirchlet(TODO) or viscous
   Int* vnodeslist;
 
-  Int vnodes = GetNodesOnBCType(m, space.bc, &vnodeslist, Proteus_NoSlip);
+  Int vnodes = GetNodesOnBCType(m, space.bc, Proteus_NoSlip, &vnodeslist);
   Real* vnodesdQdB = new Real[vnodes*neqn];
   ComputedQdBeta_HardsetBC(vnodes, vnodeslist, vnodesdQdB, space, beta);
 

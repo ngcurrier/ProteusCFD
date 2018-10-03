@@ -139,15 +139,8 @@ void ComputeWallDistOct(Type* wallDist, SolutionSpace<Type>* space)
   //but concern regarding the threading there kept me away
   for(Int eid = 0; eid < nbedge+ngedge; eid++){
     Int factag = m->bedges[eid].factag;
-    Int bcNum = bc->bc_map[factag];
-    Int bcId;
-    if(factag == 0){
-      bcId = Proteus_ParallelBoundary;
-    }
-    else{
-      bcId = bc->bc_applied[bcNum];
-    }  
-    if(bcId == Proteus_NoSlip){
+    Int bcType = bc->GetBCType(factag);
+    if(bcType == Proteus_NoSlip){
       nptsLocal++;
     }
   }
@@ -161,15 +154,8 @@ void ComputeWallDistOct(Type* wallDist, SolutionSpace<Type>* space)
   Int count = 0;
   for(Int eid = 0; eid < nbedge+ngedge; eid++){
     Int factag = m->bedges[eid].factag;
-    Int bcNum = bc->bc_map[factag];
-    Int bcId;
-    if(factag == 0){
-      bcId = Proteus_ParallelBoundary;
-    }
-    else{
-      bcId = bc->bc_applied[bcNum];
-    }  
-    if(bcId == Proteus_NoSlip){
+    Int bcType = bc->GetBCType(factag);
+    if(bcType == Proteus_NoSlip){
       //the left node is the node on the surface
       Int left_cv = m->bedges[eid].n[0];
       memcpy(&xyzLocal[count*3], &m->xyz[left_cv*3], sizeof(Type)*3);
@@ -488,24 +474,17 @@ void BKernel_WallDistBC(B_KERNEL_ARGS)
   //TODO: set only viscous walls to zero... set all others to zero derivative condition
   Int i;
   BoundaryConditions<Real>* bc = space->bc;
-  Int bcNum = bc->bc_map[factag];
-  Int bcId; 
+  Int bcType = bc->GetBCType(factag); 
   PointerStruct<Type>* pstruct = (PointerStruct<Type>*) custom;
   Type* flux = pstruct->A;
   Type* grad = pstruct->B;
   Type* phi = pstruct->C;
 
-  if(factag == 0){
-    bcId = Proteus_ParallelBoundary;
-  }
-  else{
-    bcId = bc->bc_applied[bcNum];
-  }  
-  if(bcId == Proteus_NoSlip){
+  if(bcType == Proteus_NoSlip){
     phi[left_cv] = 0.0;
     phi[right_cv] = 0.0;
   }
-  else if(bcId == Proteus_ParallelBoundary){
+  else if(bcType == Proteus_ParallelBoundary){
     //do nothing.. updates take care of this
   }
   else{
@@ -518,8 +497,6 @@ void BKernel_WallDistBC(B_KERNEL_ARGS)
   }
   *ptrL = NULL;
   *size = 0;
-  
-  return;
 }
 
 template <class Type>

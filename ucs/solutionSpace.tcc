@@ -25,7 +25,9 @@
 template <class Type>
 SolutionSpace<Type>::SolutionSpace(Param<Type>* param, PObj<Real>* p, std::string name, 
 				   TemporalControl<Real>& temporalControl):
-  SolutionSpaceBase<Type>(name, temporalControl), param(param), p(p), turb(NULL), gaussian(NULL)
+  SolutionSpaceBase<Type>(name, temporalControl), param(param), p(p), turb(NULL), gaussian(NULL),
+  q(NULL), qold(NULL), qoldm1(NULL), qgrad(NULL)
+  
 {
   isCopy = false;
   Int ierr = 0;
@@ -162,7 +164,7 @@ void SolutionSpace<Type>::Init()
     Abort << "Mesh metrics calulation failed";
   }
 
-  //init eqnset for solve - init solution vector storage
+  //init eqnset for solve - init solution vector storage (q, qold, qoldm1, qgrad, etc)
   eqnset->InitEqnSet();
 
   //set status flags for boundary conditions
@@ -231,7 +233,7 @@ void SolutionSpace<Type>::Init()
   //allocate forces object if appropriate
   forces = new Forces<Type>(this);
   //allocate memory for composite surfaces
-  forces->AllocateForcesMemory(bc->num_bcs, bc->num_bodies);
+  forces->AllocateForcesMemory(bc->largest_bc_id, bc->num_bodies);
   //read in bc file again to look for the composite bodies
   BodiesReadFile(forces->bodies, param->path+param->spacename);
 
@@ -253,7 +255,7 @@ void SolutionSpace<Type>::Init()
   }
   //add field for partition id
   AddField("partition");
-  Type* part = GetField("partition", FIELDS::STATE_NONE);
+  Type* part = GetFieldData("partition", FIELDS::STATE_NONE);
   Int rank = p->GetRank();
   for(Int i = 0; i < nnode; i++){
     part[i] = rank; 
@@ -321,7 +323,7 @@ void SolutionSpace<Type>::Init()
     std::cout << "Wall distance results: " << std::endl;
     std::cout << "=======================" << std::endl;
     this->timers.StartTimer("WallDistanceTimer");
-    Type* dist = GetField("wallDistance", FIELDS::STATE_NONE);
+    Type* dist = GetFieldData("wallDistance", FIELDS::STATE_NONE);
     if(false){
       ComputeWallDist(dist, this);
     }
@@ -376,7 +378,7 @@ void SolutionSpace<Type>::Init()
   postPlugins.push_back(new PostForcePlugin<Type>(*this));
 }
 
-//add a field by name alone
+//add a field by name alone - single scalar
 template <class Type>
 void SolutionSpace<Type>::AddField(std::string name)
 {
@@ -391,31 +393,31 @@ void SolutionSpace<Type>::AddField(std::string name)
 template <class Type>
 void SolutionSpace<Type>::AddField(DataInfo dataInfo, Int stateType, Int varLocation)
 {
+  std::cout << "SolutionSpace: adding field " << dataInfo.GetName() << std::endl;
   for(typename std::vector<SolutionField<Type>*>::iterator it = fields.begin(); it != fields.end(); ++it){
     SolutionField<Type>& field = **it;
     if(field.IsNamed(dataInfo.GetName())){
-      Abort << "Field of name " + dataInfo.GetName() + " already exists... must have unique name";
+      Abort << "SolutionSpace::AddField() Field of name " + dataInfo.GetName()
+	+ " already exists... must have unique name";
       return;
     }
   }
   SolutionField<Type> * temp =  new SolutionField<Type>(*m, dataInfo,  stateType, varLocation);
   fields.push_back(temp);
-  return;
 }
 
 //remove a field by name alone
 template <class Type>
 void SolutionSpace<Type>::RemoveField(std::string name)
 {
-  Int i;
-  for(i = 0; i < fields.size(); i++){
+  std::cout << "SolutionSpace: removing field " << name << std::endl;
+  for(Int i = 0; i < fields.size(); i++){
     if(fields[i]->IsNamed(name)){
       delete fields[i];
       fields.erase(fields.begin()+i);
     }
   }
   Abort << "Field of name " + name + " does not exist... cannot remove";
-  return;
 }
 
 //get a field by name alone
@@ -443,13 +445,13 @@ const SolutionField<Type> & SolutionSpace<Type>::GetField(std::string name) cons
     }
   }
   Abort << "Solution field \'" + name + "\' not found! ";
-  return (**fields.begin());
+  return (**fields.begin()); //this will never be executed - squash compiler warnings
 }
 
 
 //get a field array by name and temporal state, returns a raw pointer
 template <class Type>
-Type* SolutionSpace<Type>::GetField(std::string name, Int state)
+Type* SolutionSpace<Type>::GetFieldData(std::string name, Int state)
 {
   for(typename std::vector<SolutionField<Type>*>::iterator it = fields.begin(); it != fields.end(); ++it){
     SolutionField<Type> & field = **it;
@@ -543,7 +545,10 @@ void SolutionSpace<Type>::PreIterate()
 
   //this has to be precomputed so temporal jacobians
   //have timestep information
-  Type residualDelta = (residualnm1 - residual)/residualnm1;
+  Type residualDelta = 9999.0;
+  if(real(residualnm1) > 1.0e-21){ // protect against FPE
+    residualDelta = (residualnm1 - residual)/residualnm1;
+  }
   param->UpdateCFL(this->iter, real(residualDelta));
   dtmin = ComputeTimesteps(this);
 
@@ -612,7 +617,7 @@ void SolutionSpace<Type>::PreTimeAdvance()
       std::cout << "Wall distance results: " << std::endl;
       std::cout << "=======================" << std::endl;
       this->timers.StartTimer("WallDistanceTimer"); 
-      Type* dist = GetField("wallDistance", FIELDS::STATE_NONE);
+      Type* dist = GetFieldData("wallDistance", FIELDS::STATE_NONE);
       //ComputeWallDist(dist, this);
       ComputeWallDistOct(dist, this);
       //Update dist vectors via MPI
@@ -623,7 +628,10 @@ void SolutionSpace<Type>::PreTimeAdvance()
   }
 
   //calculate timesteps, do once per timestep
-  Type residualDelta = (residualnm1 - residual)/residualnm1;
+  Type residualDelta = 9999.0;
+  if(real(residualnm1) > 1.0e-21){ // protect against FPE
+    residualDelta = (residualnm1 - residual)/residualnm1;
+  }
   param->UpdateCFL(this->iter, real(residualDelta));
   dtmin = ComputeTimesteps(this);
   

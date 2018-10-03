@@ -25,6 +25,7 @@ enum BCTypes
     Proteus_HeatFlux,
     Proteus_Isothermal,
     Proteus_PythonBC,
+    Proteus_NULL,
     NUM_BC_TYPES
   };
 const std::string BCs[] =
@@ -48,7 +49,8 @@ const std::string BCs[] =
     "totalTempAndPressure",
     "heatFlux",
     "isothermal",
-    "pythonBC"
+    "pythonBC",
+    "NULL"
   }; 
 
 enum BCvarsId

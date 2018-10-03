@@ -62,7 +62,7 @@ void Post_Force_Kernel(B_KERNEL_ARGS)
   Int neqn = eqnset->neqn;
   Int nvars = neqn + eqnset->nauxvars;
   Type* Qsurf = &space->q[left_cv*nvars];
-  Int bcId = bc->GetBCId(factag);
+  Int bcType = bc->GetBCType(factag);
   Type gamma = param->gamma;
   Type cp = eqnset->GetCp(Qsurf, gamma);
   Type p = eqnset->GetPressure(Qsurf);
@@ -104,7 +104,7 @@ void Post_Force_Kernel(B_KERNEL_ARGS)
     }
 
     //add the viscous forces
-    if(bcId == Proteus_NoSlip && param->viscous){
+    if(bcType == Proteus_NoSlip && param->viscous){
       Type* stress = (Type*)alloca(sizeof(Type)*3);
       Type mu, rho, nu;
       mu = eqnset->ComputeViscosity(Qsurf);

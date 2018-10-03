@@ -2,6 +2,9 @@
 #define BCOBJ_H__
 
 #include "general.h"
+#include "bc_defines.h"
+#include <string>
+#include <sstream>
 
 template <class Type>
 class BCObj
@@ -11,6 +14,23 @@ class BCObj
   BCObj();
   ~BCObj();
 
+  //function which will modify Qref according to set dynamic boundary
+  void UpdateBCObj(Type tstep);  
+  //helper functions so we can return the correct type regardless of what is in BCObj
+  void GetQref(Real* Qref);
+  void GetQref(RCmplx* Qref);
+
+  //returns >0 if a bc is associated with movement from a design
+  //specification, i.e. we know the exact displacements of the boundary node
+  bool IsMovingBC();
+
+  void SetBCType(Int setType);                    //sets the numeric type of bc to apply
+  void SetName(std::string name){this->name = name;};   //sets the human readable name of the BC
+  Int GetBCFactag(){return factag;};              //gets the surface tag
+
+  Int GetBCType(){return bcType;};                //returns the enum type of the BC
+  std::string GetName(){return name;};            //returns the name of the boundary condition
+  void SetBCFactag(Int factag){this->factag = factag;}; //sets the surface tag
   
   Int neqn;          //number of eqn vars held in qref
   Int nvars;         //number of total vars held in qref
@@ -45,7 +65,6 @@ class BCObj
   Type density;
   Type* massFractions;
   Int nspecies;
-  Int factag;        //holds facetag for which the surface can be identified
   Int movingBC;      //flag to identify computational design active or movement bcs
 
   Int bleedSteps;    //number of steps to close off boundary condition
@@ -53,19 +72,14 @@ class BCObj
 
   Type twall;        //used to specify the kind of viscous wall condition we are using
                      //twall > 0.0 is specified temp. ratio, twall < 0.0 is adiabatic
-  Type flux;          //used for heat conduction object - heat flux
+  Type flux;         //used for heat conduction object - heat flux
 
-  //function which will modify Qref according to set dynamic boundary
-  void UpdateBCObj(Type tstep);  
-  //helper functions so we can return the correct type regardless of what is in BCObj
-  void GetQref(Real* Qref);
-  void GetQref(RCmplx* Qref);
-
-  //returns >0 if a bc is associated with movement from a design
-  //specification, i.e. we know the exact displacements of the boundary node
-  Int IsMovingBC();
   
  private:
+
+  Int bcType;       //holds an integer which identifies the type of boundary condition which is applied (see bc_defines.h)
+  Int factag;       //holds facetag for which the surface can be identified
+  std::string name; //holds the name of the bc described by this bcobj
 };
 
 #include "bcobj.tcc"

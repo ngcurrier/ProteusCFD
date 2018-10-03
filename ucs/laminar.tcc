@@ -33,7 +33,7 @@ void Laminar<Type>::Initialize()
   Int nnode = m->GetNumNodes();
   Int gnode = m->GetNumParallelNodes();
 
-  Type* mut = this->space->GetField("mut", FIELDS::STATE_NONE);
+  Type* mut = this->space->GetFieldData("mut", FIELDS::STATE_NONE);
 
   //set all turbulent viscosities in the mesh to zero
   for(i = 0; i < nnode+gnode; i++){

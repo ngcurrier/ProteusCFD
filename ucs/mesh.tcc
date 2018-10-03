@@ -3735,6 +3735,9 @@ Int Mesh<Type>::ReadGMSH4_Ascii(std::string filename)
 	  ss >> version;	
 	  std::cout << "GMSH ASCII I/O: Reading mesh format version " << version << std::endl;
 	  if (version != 4){
+	    if( int(version) == 2){
+	      return ReadGMSH2_Ascii(filename);
+	    }
 	    std::cerr << "GMSH ASCII I/O: Expecting version 4.0. Quitting" << std::endl;
 	    std::cerr << "GMSH ASCII I/O: line # " << lineCount << std::endl;
 	    return(-1);

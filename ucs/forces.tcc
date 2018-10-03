@@ -128,7 +128,7 @@ void FORCE_Kernel(B_KERNEL_ARGS)
   Int neqn = eqnset->neqn;
   Int nvars = neqn + eqnset->nauxvars;
   Type* Qsurf = &space->q[left_cv*nvars];
-  Int bcId = bc->GetBCId(factag);
+  Int bcType = bc->GetBCType(factag);
   Type gamma = param->gamma;
   Type cp = eqnset->GetCp(Qsurf, gamma);
   Type p = eqnset->GetPressure(Qsurf);
@@ -170,7 +170,7 @@ void FORCE_Kernel(B_KERNEL_ARGS)
     }
 
     //add the viscous forces
-    if(bcId == Proteus_NoSlip && param->viscous){
+    if(bcType == Proteus_NoSlip && param->viscous){
       Type* stress = (Type*)alloca(sizeof(Type)*3);
       Type mu, rho, nu;
       mu = eqnset->ComputeViscosity(Qsurf);
@@ -195,7 +195,6 @@ void ComputeSurfaceAreas(SolutionSpace<Type>* space, Int verbosity)
   Int i;
   BoundaryConditions<Real>* bc = space->bc;
   Forces<Type>* forces = space->forces;
-  BCObj<Real>* bcs = bc->bcs;
   MPI_Datatype mpit;
 
   //get mpi datatype to send
@@ -229,7 +228,7 @@ void ComputeSurfaceAreas(SolutionSpace<Type>* space, Int verbosity)
     for(i = 1; i <= forces->num_bcs; i++){
       //calculate area magnitude
       Type amag = Magnitude(&forces->surfArea[i*3]);
-      std::cout << "Area for factag[" << bcs[i].factag << "] : " << amag << std::endl;   
+      std::cout << "Area for factag[" << i  << "] : " << amag << std::endl;   
     }
     std::cout << std::endl;
   }
@@ -259,17 +258,17 @@ void SURFACE_AREA_Kernel(B_KERNEL_ARGS)
   Forces<Type>* forces = space->forces;
   BoundaryConditions<Real>* bc = space->bc;
   Param<Type>* param = space->param;
-  Int bcId = bc->bc_map[factag];
   Type dot;
   Type* liftdir = (Type*)alloca(sizeof(Type)*3);
   //if parallel boundary don't do anything.. 
-  if(factag == 0){
+  Int bcType = bc->GetBCType(factag);
+  if(bcType == Proteus_ParallelBoundary){
     return;
   }
 
-  forces->surfArea[bcId*3 + 0] += (CAbs(avec[0]*avec[3]));
-  forces->surfArea[bcId*3 + 1] += (CAbs(avec[1]*avec[3]));
-  forces->surfArea[bcId*3 + 2] += (CAbs(avec[2]*avec[3]));
+  forces->surfArea[factag*3 + 0] += (CAbs(avec[0]*avec[3]));
+  forces->surfArea[factag*3 + 1] += (CAbs(avec[1]*avec[3]));
+  forces->surfArea[factag*3 + 2] += (CAbs(avec[2]*avec[3]));
 
   for(i = 0; i < 3; i++){
     liftdir[i] = param->liftdir[i];
@@ -293,8 +292,6 @@ void SURFACE_AREA_Kernel(B_KERNEL_ARGS)
 #endif
     } 
   }
-  
-  return;
 }
 
 template <class Type>
@@ -418,7 +415,7 @@ void YpCf_Kernel(B_KERNEL_ARGS)
   Int neqn = eqnset->neqn;
   Int nvars = neqn + eqnset->nauxvars;
   Type* Qsurf = &space->q[left_cv*nvars];
-  Int bcId = bc->GetBCId(factag);
+  Int bcType = bc->GetBCType(factag);
 
   Type* stress = (Type*)alloca(sizeof(Type)*3);
   Type tauw, mu, nu, Tsurf, rho;
@@ -439,7 +436,7 @@ void YpCf_Kernel(B_KERNEL_ARGS)
   }
 
   //only compute y+ and cf for viscous surfaces
-  if(bcId == Proteus_NoSlip && param->viscous){
+  if(bcType == Proteus_NoSlip && param->viscous){
     //we need to find the distance to the first grid point off the wall in the 
     //normal direction, can include parallel nodes
     Int indx, indx1, indx2;
@@ -486,9 +483,9 @@ void Forces<Type>::ReportYpCf()
   Real minYpLoc[3];
   for(eid = 0; eid < m->GetNumBoundaryEdges(); eid++){
     Int factag = m->bedges[eid].factag;
-    Int bcId = bc->GetBCId(factag);
+    Int bcType = bc->GetBCType(factag);
     //we only care about the min and max yplus on viscous boundaries
-    if(bcId == Proteus_NoSlip){
+    if(bcType == Proteus_NoSlip){
       maxYp = MAX(maxYp, real(forces->yp[eid]));
       if(real(forces->yp[eid]) >= maxYp){
 	maxYp = real(forces->yp[eid]);
