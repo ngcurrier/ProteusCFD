@@ -110,7 +110,7 @@ void HeatTransferEqnSet<Type>::SetInitialConditions()
      std::cout << "Attempting to use python interface to set initial conditions" << std::endl;
 #ifdef _HAS_PYTHON
      PythonWrapper pywrap("./", "setInitialConditions", "setInitialConditions");
-     for(i = 0; i < (nnode+gnode+nbnode); ++i){
+     for(i = 0; i < (nnode+gnode); ++i){
        pywrap.SetInitialConditions(this->Qinf, neqn, nauxvars, &this->space->q[i*(neqn+nauxvars)], &m->xyz[i*3]);
        ComputeAuxiliaryVariables(&this->space->q[i*(neqn+nauxvars)]);
        if(real(this->space->q[i*(neqn+nauxvars)]) < 0.0){

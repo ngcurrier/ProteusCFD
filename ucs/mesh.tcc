@@ -2503,6 +2503,15 @@ Int Mesh<Type>::FindPointsWithFactag(Int** pts, Int factag)
   return n;
 }
 
+//returns the largest numerical value of any factag
+template <class Type>
+Int Mesh<Type>::GetMaximumFactag(){
+  Int max = -999;
+  for(Int ielem = 0; ielem < elementList.size(); ++ielem){
+    max = MAX(max, elementList[ielem]->GetFactag());
+  }
+}
+
 template <class Type> 
 void Mesh<Type>::GetCoordsForPoints(Type* rxyz, Int* pts, Int n)
 {

@@ -106,6 +106,7 @@ class Mesh
 
   //allocates array and returns ids of points with desired factag
   Int FindPointsWithFactag(Int** pts, Int factag);
+  Int GetMaximumFactag();
   void GetCoordsForPoints(Type* rxyz, Int* pts, Int n); 
 
   //list of elements in the mesh

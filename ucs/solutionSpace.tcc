@@ -86,7 +86,7 @@ SolutionSpace<Type>::SolutionSpace(Param<Type>* param, PObj<Real>* p, std::strin
   //after reading bc file all internal counters etc. are set
   //the only exception is the qref states not read from file
   //explicitly do not yet point at eqnset->qref
-  ierr = bc->ReadFile(param->path+param->spacename);
+  ierr = bc->ReadFile(param->path+param->spacename, m->GetMaximumFactag());
   if(ierr){
     Abort << "BC file read failed";
   }

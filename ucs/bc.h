@@ -24,7 +24,7 @@ class BoundaryConditions
   BoundaryConditions();
   ~BoundaryConditions();
 
-  Int ReadFile(std::string casename);
+  Int ReadFile(std::string casename, Int maximumFactagExpected);
   void PrintBCs();
 
   //returns the numerical bc type id with input of the factag id

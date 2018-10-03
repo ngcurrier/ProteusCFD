@@ -228,8 +228,11 @@ void ComputeSurfaceAreas(SolutionSpace<Type>* space, Int verbosity)
     for(i = 1; i <= forces->num_bcs; i++){
       //calculate area magnitude
       Type amag = Magnitude(&forces->surfArea[i*3]);
-      std::cout << "Area for factag[" << i  << "] : " << amag << std::endl;   
+      if(real(amag) > 0.0){
+	std::cout << "Area for factag[" << i  << "] : " << amag << std::endl;   
+      }
     }
+    std::cout << "All other factags zero" << std::endl;
     std::cout << std::endl;
   }
 

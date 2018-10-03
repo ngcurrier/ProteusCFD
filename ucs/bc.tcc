@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <vector>
 #include <set>
+#include <sstream>
 
 template <class Type>
 Int BoundaryConditions<Type>::GetBCType(Int factag)
@@ -23,7 +24,14 @@ Int BoundaryConditions<Type>::GetBCType(Int factag)
 template <class Type>
 BCObj<Type>* BoundaryConditions<Type>::GetBCObj(Int factag)
 {
-  return bc_objs[factag];
+  BCObj<Type>* bco = bc_objs[factag];
+  if(bco != NULL){
+    return bco;
+  }
+  std::stringstream ss;
+  ss << "GetBCObj() got a NULL pointer -- this shouldn't happen -- dying\n";
+  ss << "Request made for factag " << factag;
+  Abort << ss.str();
 }
 
 template <class Type>
@@ -78,8 +86,9 @@ Int BoundaryConditions<Type>::InitInternals(EqnSet<Type>* eqnset)
 }
 
 template <class Type>
-Int BoundaryConditions<Type>::ReadFile(std::string casename)
+Int BoundaryConditions<Type>::ReadFile(std::string casename, Int maximumFactagExpected)
 {
+  largest_bc_id = maximumFactagExpected;
   std::ifstream fin;
   std::string temp;
   Int err = 0;
@@ -158,7 +167,6 @@ void BoundaryConditions<Type>::CountBCsInFile(std::ifstream& fin)
   std::string subline;
   Int surf_id;
   std::stringstream ss (std::stringstream::in | std::stringstream::out);
-  largest_bc_id = -999;
   num_bcs = 0;
 
   while(!fin.eof()){
@@ -180,7 +188,6 @@ void BoundaryConditions<Type>::CountBCsInFile(std::ifstream& fin)
 	subline = line.substr(loc);
 	ss << subline;
 	ss >> surf_id;
-	largest_bc_id = MAX(largest_bc_id, surf_id);
 	//if we found a surface flag and a number assume the bc is complete
 	num_bcs++;
 	ss.clear();
@@ -198,9 +205,9 @@ void BoundaryConditions<Type>::CountBCsInFile(std::ifstream& fin)
   }
 
   std::cout << "BC: Surfaces found in file: " << num_bcs << std::endl;
-  std::cout << "BC: Largest surface ID found in file: " << largest_bc_id << std::endl;
+  std::cout << "BC: Largest surface ID expected: " << largest_bc_id << std::endl;
 
-  if(largest_bc_id < 0){
+  if(num_bcs == 0){
     Abort << "Did not read any BCs in boundary condition file ";
   }
   
@@ -683,7 +690,9 @@ void BoundaryConditions<Type>::PrintBCs()
   
   //NOTE: zeroth face not used.... defaulted to volume factag
   for(Int i = 1; i <= this->largest_bc_id; i++){
-    std::cout << "\tSurface " <<  i << "\t" << BCs[this->GetBCObj(i)->GetBCType()] << "\t : " << this->GetBCObj(i)->GetName() << std::endl;
+    if(this->GetBCObj(i)->GetBCType() != Proteus_NULL){
+      std::cout << "\tSurface " <<  i << "\t" << BCs[this->GetBCObj(i)->GetBCType()] << "\t : " << this->GetBCObj(i)->GetName() << std::endl;
+    }
   }
   std::cout << std::endl;
 }
@@ -725,8 +734,6 @@ void BC_Kernel(B_KERNEL_ARGS)
   Type* Qref = (Type*)alloca(sizeof(Type)*nvars);
   bcobj->GetQref(Qref);
   CalculateBoundaryVariables(eqnset, m, space, QL, QR, Qref, avec, bcType, eid, bcobj, vdotn, velw);
-
-  return;
 }
 
 template <class Type>

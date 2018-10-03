@@ -460,8 +460,6 @@ void IncompressibleEqnSet<Type>::SetInitialConditions()
     }
     this->ComputeAuxiliaryVariables(&this->space->q[i*(neqn+nauxvars)]);
   }
-  
-  return;
 }
 
 template <class Type>

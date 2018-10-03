@@ -742,13 +742,10 @@ Type CompressibleEqnSet<Type>::MaxEigenvalue(Type* Q, Type* avec, Type vdotn, Ty
      std::cout << "Attempting to use python interface to set initial conditions" << std::endl;
 #ifdef _HAS_PYTHON
      PythonWrapper pywrap("./", "setInitialConditions", "setInitialConditions");
-     std::cout << nnode << std::endl;
-     std::cout << gnode << std::endl;
-     std::cout << nbnode << std::endl;
-     for(i = 0; i < (nnode+gnode+nbnode); ++i){
-       std::cout << i << std::endl;
+     for(i = 0; i < (nnode+gnode); ++i){
        pywrap.SetInitialConditions(this->Qinf, neqn, nauxvars, &this->space->q[i*(neqn+nauxvars)], &m->xyz[i*3]);
        ComputeAuxiliaryVariables(&this->space->q[i*(neqn+nauxvars)]);
+
      }
 #else
      Abort << "Python not built with solver";
