@@ -12,7 +12,6 @@ equationSet = compressibleNSFR
 fluxType = roeFlux
 reorderMesh = 1
 localTimeStepping = 1
-pseudoTimeStepping = 0
 CFL = 100.0
 timeOrder = 0
 spatialOrder = 2
