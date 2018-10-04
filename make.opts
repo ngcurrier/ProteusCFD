@@ -7,6 +7,8 @@ HAS_CGNS = TRUE
 #EFENCE = TRUE
 #PENGUIN = TRUE
 
+SHELL :=/bin/bash
+
 ifndef TARGET
        $(warning TARGET must be defined on command line. Try make TARGET=home)
        $(warning Setting TARGET=home because I'm a nice guy)
@@ -133,16 +135,14 @@ ifdef PENGUIN
       PYTHONDIR = /public/apps/python/2.7.15/gcc.6.2.0
       INCLUDES += -I$(PYTHONDIR)/include/python2.7
       INCLUDES += -I$(PYTHONDIR)/lib/python2.7/site-packages/numpy/core/include
-      PYTHON_LIB = $(PYTHONDIR)/lib
+      LCXXFLAGS += -L$(PYTHONDIR)/lib
 else
-      PYTHONDIR = /usr/lib/python2.7
-      # Find this by running python2.7-config --cflags
-      INCLUDES += -I$(PYTHONDIR)
-      # Find this by running python2.7-config --ldflags
-      PYTHON_LIB = $(PYTHONDIR)/config-x86-64-linux-gnu
-   
+     PYTHONCFLAGS := $(shell source ~/.bashrc && python-config --cflags)
+     PYTHONLDFLAGS := $(shell source ~/.bashrc && python-config --ldflags)
+     PYTHONINCLUDES := $(shell source ~/.bashrc && python-config --includes)
+
+     INCLUDES += $(PYTHONINCLUDES)
+     LCXXFLAGS += $(PYTHONLDFLAGS)
 endif
-      LCXXFLAGS += -L$(PYTHON_LIB)
-      CXXLIBS += -lpython2.7 -lpthread -ldl -lutil
-      CXX_OPTS += -D_HAS_PYTHON
+     CXX_OPTS += -D_HAS_PYTHON
 endif
