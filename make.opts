@@ -5,7 +5,7 @@ HAS_CGNS = TRUE
 #HAS_OPENMP = TRUE
 #DEBUG = TRUE
 #EFENCE = TRUE
-PENGUIN = TRUE
+#PENGUIN = TRUE
 
 ifndef TARGET
        $(warning TARGET must be defined on command line. Try make TARGET=home)
