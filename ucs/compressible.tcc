@@ -743,9 +743,15 @@ Type CompressibleEqnSet<Type>::MaxEigenvalue(Type* Q, Type* avec, Type vdotn, Ty
 #ifdef _HAS_PYTHON
      PythonWrapper pywrap("./", "setInitialConditions", "setInitialConditions");
      for(i = 0; i < (nnode+gnode); ++i){
-       pywrap.SetInitialConditions(this->Qinf, neqn, nauxvars, &this->space->q[i*(neqn+nauxvars)], &m->xyz[i*3]);
-       ComputeAuxiliaryVariables(&this->space->q[i*(neqn+nauxvars)]);
-
+       Type* iq = &this->space->q[i*(neqn+nauxvars)];
+       pywrap.SetInitialConditions(this->Qinf, neqn, nauxvars, iq, &m->xyz[i*3]);
+       ComputeAuxiliaryVariables(iq);
+       if(real(GetPressure(iq)) < 0.0){
+	 Abort << "CompressibleEqnSet::SetInitialConditions got a negative pressure - check python script";
+       }
+       if(real(GetTemperature(iq)) < 0.0){
+	 Abort << "CompressibleEqnSet::SetInitialConditions got a negative temperature - check python script";
+       }
      }
 #else
      Abort << "Python not built with solver";

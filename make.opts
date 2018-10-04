@@ -5,6 +5,7 @@ HAS_CGNS = TRUE
 #HAS_OPENMP = TRUE
 #DEBUG = TRUE
 #EFENCE = TRUE
+#PENGUIN = TRUE
 
 ifndef TARGET
        $(warning TARGET must be defined on command line. Try make TARGET=home)
@@ -104,6 +105,10 @@ CXXLIBS = -lcommon -lz -lhdf5
 #more mpi stuff from running mpiCC --showme
 CXXLIBS += -lstdc++ 
 FXXLIBS = -lstdc++ -lmpi 
+
+ifdef PENGUIN
+      CXX_OPTS += -D_PENGUIN
+endif
 
 ifdef HAS_OPENMP
       CXX_OPTS += -fopenmp -D_OPENMP

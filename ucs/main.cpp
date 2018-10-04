@@ -124,6 +124,7 @@ int main(int argc, char* argv[]){
   stdoutname = pathname + casestring + stdoutname + (temposs.str()); 
   stderrname = pathname + casestring + stderrname + (temposs.str());
   //only write to file if we are the last process
+#ifndef _PENGUIN
 #ifndef _DEBUG
   if(pobj.GetRank() == pobj.GetNp()-1){
     freopen(stdoutname.c_str(), "w", stdout);
@@ -138,7 +139,10 @@ int main(int argc, char* argv[]){
   freopen(stdoutname.c_str(), "w", stdout);
   freopen(stderrname.c_str(), "w", stderr);
 #endif
-
+#else
+  std::cout << "RUNNING FOR PENGUIN COMPUTING BUILD - NO STDOUT REDIRECTION" << std::endl;
+#endif
+  
   //get hostname, etc.
   struct utsname sysinfo;
   uname(&sysinfo);
