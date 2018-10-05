@@ -135,7 +135,8 @@ ifdef PENGUIN
       PYTHONDIR = /public/apps/python/2.7.15/gcc.6.2.0
       INCLUDES += -I$(PYTHONDIR)/include/python2.7
       INCLUDES += -I$(PYTHONDIR)/lib/python2.7/site-packages/numpy/core/include
-      LCXXFLAGS += -L$(PYTHONDIR)/lib
+      LCXXFLAGS += -L$(PYTHONDIR)/lib -L/public/apps/python/2.7.15/gcc.6.2.0/lib/python2.7/site-packages/numpy/core 
+      CXXLIBS += -lpython2.7 -ldl -lutil -lpthread -lm
 else
      PYTHONCFLAGS := $(shell source ~/.bashrc && python-config --cflags)
      PYTHONLDFLAGS := $(shell source ~/.bashrc && python-config --ldflags)
