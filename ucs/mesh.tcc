@@ -4054,9 +4054,6 @@ void Mesh<Type>::CGNSreadCoordElem(std::string filename, int** isize)
   int 			*ielem, counter;
   ElementType_t 	itype;
 
-  //TODO: allocate temporary arrays to read x,y,z, and con
-  Type* xtmp = new Type[isize[0][0]];
-  Int con[isize[0][1]][3];
   
   irmin = 1;
   irmax = isize[0][0];
@@ -4105,6 +4102,7 @@ void Mesh<Type>::CGNSreadCoordElem(std::string filename, int** isize)
 
 
   //read coordinates
+  Type* xtmp = new Type[isize[0][0]];
   cg_coord_read(index_file, base, zone, "CoordinateX", RealDouble, &irmin, &irmax, xtmp); //X
   for(int i = 0; i < nnode; ++i){
     xyz[i*3 + 0] = xtmp[i];
@@ -4117,6 +4115,7 @@ void Mesh<Type>::CGNSreadCoordElem(std::string filename, int** isize)
   for(int i = 0; i < nnode; ++i){
     xyz[i*3 + 2] = xtmp[i];
   }
+  delete [] xtmp;
   
   /* Determine the number of vertices and volume elements in this */
   /* We've already done this assuming one zone elsewhere*/
