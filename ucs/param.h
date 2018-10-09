@@ -85,6 +85,8 @@ public:
   Bool scaleMesh;     // If set true, we scale the mesh by ref_length before computation
 
   Type gamma;         // ratio of specific heats
+  Type MW;            // used only for calorically perfect gases (i.e. compressible, constant Cp)
+  Type Cp;            // used only for calorically perfect gases 
   Bool dynamicCFL;    // turns on CFL dynamic scaling
   Type cflStart;      // CFL number to start ramping from
   Type cflPrev;       // CFL from previous timestep

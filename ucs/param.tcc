@@ -10,6 +10,8 @@
 
 #define REF_PRESSURE_DEFAULT 1.0
 #define REF_DENSITY_DEFAULT 1.0
+#define R_UNIV 8.314459848      // J/mol.K
+
 
 template <class Type>
 Param<Type>::Param()
@@ -191,7 +193,8 @@ void Param<Type>::SetupParams()
   paramListReal.push_back(Parameter<Type>("timeStep", &this->dt, -1.0, -1.0, 10000.0));
   paramListReal.push_back(Parameter<Type>("velocity", &this->velocity, 1.0, 0.0, 999.0));
   paramListReal.push_back(Parameter<Type>("startingVelocity", &this->velocityStart, 0.0, 0.0, 999.0));
-  paramListReal.push_back(Parameter<Type>("gamma", &this->gamma, 1.4, 0.0, 999.0));
+  paramListReal.push_back(Parameter<Type>("MW", &this->MW, 28.966, 0.0, 999.0));  // default to air
+  paramListReal.push_back(Parameter<Type>("Cp", &this->Cp, 1006.43, 0.0, 999.0)); // default to air
   paramListReal.push_back(Parameter<Type>("betaMin", &this->betaMin, 0.0, 0.0, 999.0));
   paramListReal.push_back(Parameter<Type>("beta", &this->beta, 15.0, 0.0, 999.0)); 
   paramListReal.push_back(Parameter<Type>("prandtlNumber", &this->Pr, 0.72, 0.0, 999.0));
@@ -204,7 +207,6 @@ void Param<Type>::SetupParams()
   paramListReal.push_back(Parameter<Type>("refDensity", &this->ref_density, REF_DENSITY_DEFAULT, 0.0, 300.0));
   paramListReal.push_back(Parameter<Type>("refVelocity", &this->ref_velocity, 1.0, 0.0, 9999.0));
   paramListReal.push_back(Parameter<Type>("refLength", &this->ref_length, 1.0, 0.0, 9999999.0));
-  paramListReal.push_back(Parameter<Type>("refTemperature", &this->ref_temperature, 1.0, 0.0, 99999.0));
   paramListReal.push_back(Parameter<Type>("refThermalConductivity", &this->ref_k, 1.0, 0.0, 99999.0));
   paramListReal.push_back(Parameter<Type>("refViscosity", &this->ref_viscosity, 1.0, 0.0, 99999.0));
   paramListReal.push_back(Parameter<Type>("gaussianX", &this->gaussianXloc, 0.0, -999.0, 999.0));
@@ -358,15 +360,28 @@ void Param<Type>::PostCompute()
   //ref_viscosity = ref_density*ref_velocity*ref_length;
   ref_enthalpy = ref_velocity*ref_velocity;
 
-  // warning: this does not do error checking but only one should ever be specified
-  //          this code gives preference to ref_pressure
+  // warning: only one should ever be specified at a time
+  // we assume reference pressure takes precedence if both do show up in the input deck
   if(real(ref_pressure) != REF_PRESSURE_DEFAULT){
     ref_density = ref_pressure/(ref_velocity*ref_velocity);
   }
   else if(real(ref_density) != REF_DENSITY_DEFAULT){
     ref_pressure = ref_density*ref_velocity*ref_velocity;
   }
-    
+
+  Type Rs = R_UNIV/(MW/1000.0); //J/kg.K
+  std::cout << "PARAM: specific gas constant - " << Rs << " (J/kg.K)" << std::endl;
+  
+  Type Cv = Cp - Rs; //Cp = Cv + Rs - for ideal gas only
+  std::cout << "PARAM: specific heat Cv - " << Rs << " (J/kg.K)" << std::endl;
+  this->gamma = Cp/Cv;
+
+  //Compute the required reference temperature to ensure that the isentropic relations hold
+  // i.e. (T*) = gamma * (P*) / (rho*) and that the ideal gas equations hold dimensionally T = P/(rho*Rs)
+  // and (T*) * Tref = T
+  // this implies  Tref = {P/(rho*Rs)} / {gamma * (P*) /(rho*)} = Pref/(gamma * rhoref * Rs)
+  ref_temperature = ref_pressure/(gamma * ref_density * Rs);
+  
   //Reynolds number is now set in eqnset object initialization
   if(eqnset_id == IncompressibleNS || eqnset_id == CompressibleNS || 
      eqnset_id == CompressibleNSFR){
@@ -544,7 +559,6 @@ void Param<Type>::PrintSolverParams()
       }
     }
   }
-  std::cout << "\tGamma (Cp/Cv): " << gamma << std::endl;
   std::cout << "\tVelocity: " << velocity << std::endl;
   if(velocityRampingSteps > 0){
     std::cout << "\tVelocity ramping enabled!!" << std::endl;
@@ -571,6 +585,9 @@ void Param<Type>::PrintSolverParams()
   std::cout << "\ttime : " << ref_time << std::endl;
   std::cout << "\tenthalpy: " << ref_enthalpy << std::endl;
   std::cout << "\tdensity: " << ref_density << std::endl;
+  std::cout << "\tGamma (Cp/Cv): " << gamma << std::endl;
+  std::cout << "\tMW: " << MW << " (g/mol)" << std::endl;
+  std::cout << "\tCp: " << Cp << std::endl;
   std::cout << std::endl;
   std::cout << "\tFlow direction vector " << flowdir[0] <<" "<< flowdir[1] <<" "<< flowdir[2] << std::endl;
   std::cout << "\tLift direction vector " << liftdir[0] <<" "<< liftdir[1] <<" "<< liftdir[2] << std::endl;
