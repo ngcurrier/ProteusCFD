@@ -78,9 +78,15 @@ public:
   Type Pr;            // Prandtl number - Cp*Mu/k
   Type PrT;           // Turbulent prandtl number ~0.7-0.9
 
+  // values required for conduction problems
   Type kThermalConductivity;  // Thermal conductivity - W/(m.K)
   Type cpSpecificHeat;        // Specific heat of material J/kg.K
   Type rhoDensity;            // Density of material kg/m^3
+
+  // initial conditions for fluids problems
+  Type initialVelocity;    // (m/s)
+  Type initialPressure;    // (Pa)
+  Type initialTemperature; // (K)
   
   Bool scaleMesh;     // If set true, we scale the mesh by ref_length before computation
 

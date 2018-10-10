@@ -1466,7 +1466,7 @@ void CompressibleFREqnSet<Type>::ContributeTemporalTerms(Type* Q, Type vol, Type
 template <class Type>
 void CompressibleFREqnSet<Type>::UpdateQinf()
 {
-  //non-dimensionalization here is by p_inf, u_in, T_inf plus massfractions
+  //non-dimensionalization here is by p_inf, u_inf, T_inf plus massfractions
 
   //use GetVelocity() function for ramping
   Type V = this->param->GetVelocity(this->space->iter);
@@ -1489,20 +1489,20 @@ void CompressibleFREqnSet<Type>::UpdateQinf()
 
   //we assume the pressure non-dimensionalization 
   //is set to be equal to state conditions
-  Type pDim = 1.0*this->param->ref_pressure;
+  Type pDim = this->param->initialPressure;
 
-  //assume that the reference temperature we give is the 
-  //farfield temperature, this is a reasonable assumption
-  Type T = 1.0;
-
+  //from user input
+  Type TDim = this->param->initialTemperature;
+  Type T = TDim/this->param->ref_temperature;
+  
   //Densities are additive in a fixed volume, sum them up
-  Type r = 0;
+  Type rDim = 0;
   for(Int i = 0; i < nspecies; ++i){
     Type Yi = this->Qinf[i];
     Type piDim = pDim*Yi; //for ideal gases, Dalton's law applies (partial pressures), TODO: check for mixtures of phases
-    r += chem->eos[i]->GetRho(chem->species[i].R, piDim, T*this->param->ref_temperature);
+    rDim += chem->eos[i]->GetRho(chem->species[i].R, piDim, TDim);
   }
-  r /= this->param->ref_density;
+  Type r = rDim/this->param->ref_density;
   
   //scale mass fractions by total density, rhoi = rho*Yi
   for(Int i = 0; i < nspecies; i++){
@@ -2343,7 +2343,7 @@ Type CompressibleFREqnSet<Type>::NewtonFindTGivenP(const Type* rhoi, const Type 
     ss << "WARNING: Newton iteration did not converge on a temperature in NewtonFindTGivenP()" << std::endl;
     ss << "Last dT = " << dT << std::endl;
     std::cerr << ss.str() << std::endl;
-    Abort << ss.str();
+    std::cout << ss.str() << std::endl;
   }
   return TDim/this->param->ref_temperature;
 }

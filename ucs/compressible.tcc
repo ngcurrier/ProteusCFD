@@ -666,16 +666,15 @@ Type CompressibleEqnSet<Type>::MaxEigenvalue(Type* Q, Type* avec, Type vdotn, Ty
    //non-dimensionalization here is by rho_inf, c_inf, T_inf
    
    //use GetVelocity() function for ramping
-   Type V = this->param->GetVelocity(this->space->iter);
-   Type Mach = V;
+   Type velocity = this->param->GetVelocity(this->space->iter);
    Type gamma = this->param->gamma;
    Type gm1 = gamma - 1.0;
 
    //since we don't enforce it directly, check that the param object
    //contains a reasonable speed of sound c^2 = gamma*P/rho
-   Type T = 1.0; //assume freestream temp is non-dim temp
-   Type rho = 1.0; //assume non-dim density is freestream density
-   Type p = T*rho/gamma;
+   Type T = this->param->initialTemperature/this->param->ref_temperature; //from input file
+   Type p = this->param->initialPressure/this->param->ref_pressure; //from input file
+   Type rho = p*gamma/T;
    Type c2avg = gamma*(p/rho);
    Type cavg = sqrt(c2avg);
    Type cavg_dim = cavg * this->param->ref_velocity;
@@ -690,9 +689,9 @@ Type CompressibleEqnSet<Type>::MaxEigenvalue(Type* Q, Type* avec, Type vdotn, Ty
      Abort << ss.str();
    }
    
-   Type u = this->param->flowdir[0]*Mach;
-   Type v = this->param->flowdir[1]*Mach;
-   Type w = this->param->flowdir[2]*Mach;
+   Type u = this->param->flowdir[0]*velocity;
+   Type v = this->param->flowdir[1]*velocity;
+   Type w = this->param->flowdir[2]*velocity;
 
    //now set total energy
    Type E = p/gm1 + 0.5*rho*(u*u + v*v + w*w);
@@ -705,8 +704,6 @@ Type CompressibleEqnSet<Type>::MaxEigenvalue(Type* Q, Type* avec, Type vdotn, Ty
    this->Qinf[4] = E;
 
    ComputeAuxiliaryVariables(this->Qinf);
-
-   return;
  }
 
  template <class Type>
@@ -1145,8 +1142,7 @@ void CompressibleEqnSet<Type>::GetFarfieldBoundaryVariables(Type* QL, Type* QR, 
     Type uinf = Qinf[1]/Qinf[0] + u;
     Type vinf = Qinf[2]/Qinf[0] + v;
     Type winf = Qinf[3]/Qinf[0] + w;
-    //Type pinf = this->ComputePressure(Qinf, gamma);
-    Type pinf = 1.0/gamma;
+    Type pinf = this->GetPressure(Qinf);
     
     //use average state to calculate speed of sound
     Type pavg = ComputePressure(tempspace, gamma);

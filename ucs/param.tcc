@@ -201,11 +201,12 @@ void Param<Type>::SetupParams()
   paramListReal.push_back(Parameter<Type>("thermalConductivity", &this->kThermalConductivity, 1.0, 0, 99999.0));
   paramListReal.push_back(Parameter<Type>("specificHeat", &this->cpSpecificHeat, 1.0, 0, 9999.0)); 
   paramListReal.push_back(Parameter<Type>("density", &this->rhoDensity, 1.0, 0, 9999.0)); 
-  
+  paramListReal.push_back(Parameter<Type>("initialPressure", &this->initialPressure, 101325, 0, 1013250));    //assumed in Pa
+  paramListReal.push_back(Parameter<Type>("initialTemperature", &this->initialTemperature, 300, 0, 1013250)); //assumed in K
+ 
   //no non-dimensionalization default
   paramListReal.push_back(Parameter<Type>("refPressure", &this->ref_pressure, REF_PRESSURE_DEFAULT, 0.0, 300000.0));
-  paramListReal.push_back(Parameter<Type>("refDensity", &this->ref_density, REF_DENSITY_DEFAULT, 0.0, 300.0));
-  paramListReal.push_back(Parameter<Type>("refVelocity", &this->ref_velocity, 1.0, 0.0, 9999.0));
+  paramListReal.push_back(Parameter<Type>("refTemperature", &this->ref_temperature, 300.0, 0.0, 9999.0));
   paramListReal.push_back(Parameter<Type>("refLength", &this->ref_length, 1.0, 0.0, 9999999.0));
   paramListReal.push_back(Parameter<Type>("refThermalConductivity", &this->ref_k, 1.0, 0.0, 99999.0));
   paramListReal.push_back(Parameter<Type>("refViscosity", &this->ref_viscosity, 1.0, 0.0, 99999.0));
@@ -354,21 +355,9 @@ void Param<Type>::PrintAllParams()
 template <class Type>
 void Param<Type>::PostCompute()
 {
-  ref_time = ref_length/ref_velocity;
-  //Type v3 = ref_velocity*ref_velocity*ref_velocity;
-  //ref_k = ref_density*v3*ref_length/ref_temperature;
-  //ref_viscosity = ref_density*ref_velocity*ref_length;
-  ref_enthalpy = ref_velocity*ref_velocity;
-
-  // warning: only one should ever be specified at a time
-  // we assume reference pressure takes precedence if both do show up in the input deck
-  if(real(ref_pressure) != REF_PRESSURE_DEFAULT){
-    ref_density = ref_pressure/(ref_velocity*ref_velocity);
-  }
-  else if(real(ref_density) != REF_DENSITY_DEFAULT){
-    ref_pressure = ref_density*ref_velocity*ref_velocity;
-  }
-
+  //ref_pressure and ref_temperature are read directly
+  //-------------------------------------------------------
+  
   Type Rs = R_UNIV/(MW/1000.0); //J/kg.K
   std::cout << "PARAM: specific gas constant - " << Rs << " (J/kg.K)" << std::endl;
   
@@ -376,11 +365,19 @@ void Param<Type>::PostCompute()
   std::cout << "PARAM: specific heat Cv - " << Cv << " (J/kg.K)" << std::endl;
   this->gamma = Cp/Cv;
 
-  //Compute the required reference temperature to ensure that the isentropic relations hold
-  // i.e. (T*) = gamma * (P*) / (rho*) and that the ideal gas equations hold dimensionally T = P/(rho*Rs)
-  // and (T*) * Tref = T
-  // this implies  Tref = {P/(rho*Rs)} / {gamma * (P*) /(rho*)} = Pref/(gamma * rhoref * Rs)
-  ref_temperature = ref_pressure/(gamma * ref_density * Rs);
+  //we use the speed of sound to dimensionalize velocity - compressible demands it
+  ref_velocity = sqrt(gamma*Rs*initialTemperature);
+  std::cout << "PARAM: estimated speed of sound - " << ref_velocity << " (m/s)" << std::endl;
+    
+  // warning: only one should ever be specified at a time (pressure or density)
+  // we assume reference pressure takes precedence since it is easier to measure directly
+  ref_density = ref_pressure/(ref_velocity*ref_velocity);
+
+  ref_time = ref_length/ref_velocity;
+  //Type v3 = ref_velocity*ref_velocity*ref_velocity;
+  //ref_k = ref_density*v3*ref_length/ref_temperature;
+  //ref_viscosity = ref_density*ref_velocity*ref_length;
+  ref_enthalpy = ref_velocity*ref_velocity;
   
   //Reynolds number is now set in eqnset object initialization
   if(eqnset_id == IncompressibleNS || eqnset_id == CompressibleNS || 
@@ -559,12 +556,19 @@ void Param<Type>::PrintSolverParams()
       }
     }
   }
-  std::cout << "\tVelocity: " << velocity << std::endl;
+  std::cout << "Fluid/solid properties for initialization" << std::endl;
+  std::cout << "=========================================" << std::endl;
+  std::cout << "\tMW: " << MW << " (g/mol)" << std::endl;
+  std::cout << "\tCp: " << Cp << " (J/kg.K)" << std::endl;
+  std::cout << "\tThermal conductivity is: " << kThermalConductivity << " (W/m.K)" << std::endl;
+  std::cout << "\tInitial velocity: " << velocity*ref_velocity << " (m/s)" << std::endl;
   if(velocityRampingSteps > 0){
     std::cout << "\tVelocity ramping enabled!!" << std::endl;
     std::cout << "\tVelocity start: " << velocityStart << std::endl;
     std::cout << "\tVelocity ramping steps: " << velocityRampingSteps << std::endl;
   }
+  std::cout << "\tInitial pressure: " << initialPressure << " (Pa)" << std::endl;
+  std::cout << "\tInitial temperature: " << initialTemperature << " (K)" << std::endl;
   if(rxnOn){
     std::cout << "Chemical reactions turned ON" << std::endl;
   }
@@ -575,19 +579,17 @@ void Param<Type>::PrintSolverParams()
     std::cout << "CVBCs turned OFF" << std::endl;
   }
   std::cout << "Reference variables (specified OR derived)" << std::endl;
-  std::cout << "===============================" << std::endl;
-  std::cout << "\tvelocity : " << ref_velocity << std::endl;
-  std::cout << "\tlength : " << ref_length << std::endl;
-  std::cout << "\ttemperature : " << ref_temperature << std::endl;
-  std::cout << "\tpressure : " << ref_pressure<< std::endl;
-  std::cout << "\tviscosity: " << ref_viscosity << std::endl;
-  std::cout << "\tconductivity: " << ref_k << std::endl;
-  std::cout << "\ttime : " << ref_time << std::endl;
-  std::cout << "\tenthalpy: " << ref_enthalpy << std::endl;
-  std::cout << "\tdensity: " << ref_density << std::endl;
+  std::cout << "==========================================" << std::endl;
+  std::cout << "\tvelocity : " << ref_velocity << " (m/s)" << std::endl;
+  std::cout << "\tlength : " << ref_length << " (m)" << std::endl;
+  std::cout << "\ttemperature : " << ref_temperature << " (K)" << std::endl;
+  std::cout << "\tpressure : " << ref_pressure << " (Pa)" << std::endl;
+  std::cout << "\tdynamic viscosity: " << ref_viscosity << " (Pa.s)" << std::endl;
+  std::cout << "\tconductivity: " << ref_k << " (W/m.K)" << std::endl;
+  std::cout << "\ttime : " << ref_time << " (seconds)" << std::endl;
+  std::cout << "\tenthalpy: " << ref_enthalpy << " (J/kg)" << std::endl;
+  std::cout << "\tdensity: " << ref_density << " (kg/m^3)" << std::endl;
   std::cout << "\tGamma (Cp/Cv): " << gamma << std::endl;
-  std::cout << "\tMW: " << MW << " (g/mol)" << std::endl;
-  std::cout << "\tCp: " << Cp << std::endl;
   std::cout << std::endl;
   std::cout << "\tFlow direction vector " << flowdir[0] <<" "<< flowdir[1] <<" "<< flowdir[2] << std::endl;
   std::cout << "\tLift direction vector " << liftdir[0] <<" "<< liftdir[1] <<" "<< liftdir[2] << std::endl;

@@ -51,7 +51,6 @@ template <class Type>
 IncompressibleEqnSet<Type>::~IncompressibleEqnSet()
 {
   delete [] this->Qinf;
-  return;
 }
 
 template <class Type>
@@ -201,8 +200,6 @@ void IncompressibleEqnSet<Type>::RoeFlux(Type QL[], Type QR[], Type avec[], Type
       flux[3] = 0.0;
     }
   }
-
-  return;
 }
 
 template <class Type>
@@ -215,7 +212,7 @@ Bool IncompressibleEqnSet<Type>::RoeVariables(Type QL[], Type QR[], Type gamma, 
     Qroe[i] = 0.5*(QL[i] + QR[i]);
   }
 
-  return (true);
+  return true;
 }
 
 template <class Type>
@@ -317,8 +314,6 @@ void IncompressibleEqnSet<Type>::Eigensystem(Type* Q, Type* avec, Type vdotn, Ty
     std::cerr << "Eigensystem not valid -- inverse check failed!!" << std::endl;
   } 
 #endif
-
-  return;
 }
 
 template <class Type>
@@ -333,8 +328,6 @@ void IncompressibleEqnSet<Type>::Flux(Type* Q, Type* avec, Type vdotn, Type gamm
   flux[1] = area*(Q[1]*theta + Q[0]*avec[0]);
   flux[2] = area*(Q[2]*theta + Q[0]*avec[1]);
   flux[3] = area*(Q[3]*theta + Q[0]*avec[2]);
-
-  return;
 }
 
 template <class Type>
@@ -374,8 +367,6 @@ void IncompressibleEqnSet<Type>::ViscousFlux(Type* Q, Type* grad, Type* avec, Ty
       flux[3] = 0.0;
     }
   }
-
-  return;
 }
 
 template <class Type>
@@ -399,7 +390,7 @@ Type IncompressibleEqnSet<Type>::MaxEigenvalue(Type* Q, Type* avec, Type vdotn, 
   
   maxeig = MAX(CAbs(eig3),CAbs(eig4));
   
-  return (maxeig);
+  return maxeig;
 }
 
 template <class Type>
@@ -410,21 +401,18 @@ void IncompressibleEqnSet<Type>::UpdateQinf()
   //this is the correct non-dimensionlization for all regimes involving flow
   //for compressible it is uinf/(Mach_ref/C_ref).. and so forth... oh well
   Type V = this->param->GetVelocity(this->space->iter);
-  Type Mach = V;
   
-  Type u = this->param->flowdir[0]*Mach;
-  Type v = this->param->flowdir[1]*Mach;
-  Type w = this->param->flowdir[2]*Mach;
+  Type u = this->param->flowdir[0]*V;
+  Type v = this->param->flowdir[1]*V;
+  Type w = this->param->flowdir[2]*V;
 
   //set class variables to default initialization for Qinf
-  this->Qinf[0] = 0.0; //p
+  this->Qinf[0] = 0.0; //p - always computes gauge pressure relative to initial conditions
   this->Qinf[1] = u;
   this->Qinf[2] = v;
   this->Qinf[3] = w;
 
   this->ComputeAuxiliaryVariables(this->Qinf);
-
-  return;
 }
 
 template <class Type>
@@ -492,43 +480,43 @@ Type IncompressibleEqnSet<Type>::GetTheta(Type* Q, Type* avec, Type vdotn)
 template <class Type>
 Type IncompressibleEqnSet<Type>::GetDensity(Type* Q)
 {
-  return (1.0);
+  return 1.0;
 }
 
 template <class Type>
 Type IncompressibleEqnSet<Type>::GetPressure(Type* Q)
 {
-  return (Q[0]);
+  return Q[0];
 }
 
 template <class Type>
 Type IncompressibleEqnSet<Type>::GetTemperature(Type* Q)
 {
-  return (1.0);
+  return 1.0;
 }
 
 template <class Type>
 Type IncompressibleEqnSet<Type>::GetGamma(Type* Q)
 {
-  return (this->param->gamma);
+  return this->param->gamma;
 }
 
 template <class Type>
 Type IncompressibleEqnSet<Type>::GetCp(Type* Q, Type gamma)
 {
-  return (2.0*GetPressure(Q));
+  return 2.0*GetPressure(Q);
 }
 
 template <class Type>
 Type IncompressibleEqnSet<Type>::GetCf(Type tauw, Type rho)
 {
-  return (2.0*tauw);
+  return 2.0*tauw;
 }
 
 template <class Type>
 Type IncompressibleEqnSet<Type>::ComputeViscosity(Type* Q)
 {
-  return (1.0);
+  return 1.0;
 }
 
 template <class Type>
@@ -579,7 +567,7 @@ void IncompressibleEqnSet<Type>::ExtrapolateVariables(Type* Qho, const Type* Q, 
 template <class Type>
 Type IncompressibleEqnSet<Type>::ComputePressure(Type* Q, Type gamma)
 {
-  return (GetPressure(Q));
+  return GetPressure(Q);
 }
 
 template <class Type>
@@ -604,8 +592,6 @@ void IncompressibleEqnSet<Type>::ComputeStressVector(Type* grad, Type* avec, Typ
   stress[0] = -c1*(mu*(2.0*ux*avec[0] + (uy + vx)*avec[1] + (uz + wx)*avec[2]));
   stress[1] = -c1*(mu*((vx + uy)*avec[0] + 2.0*vy*avec[1] + (vz + wy)*avec[2]));
   stress[2] = -c1*(mu*((wx + uz)*avec[0] + (wy + vz)*avec[1] + 2.0*wz*avec[2]));
-
-  return;
 }
 
 template <class Type>
@@ -683,8 +669,6 @@ void IncompressibleEqnSet<Type>::GetFarfieldBoundaryVariables(Type* QL, Type* QR
       memcpy(QR, rhs, neqn*sizeof(Type));
     }
   }
-    
-  return;
 }
 
 template <class Type>
@@ -760,7 +744,6 @@ void IncompressibleEqnSet<Type>::GetInviscidWallBoundaryVariables(Type* QL, Type
     QR[0] = QL[0];
     MirrorVector(effVel, avec, &QR[1]);
   }
-  return;
 }
 
 template <class Type>
@@ -791,8 +774,6 @@ void IncompressibleEqnSet<Type>::GetInternalInflowBoundaryVariables(Type* QL, Ty
   QR[2] = Qinf[2];
   QR[3] = Qinf[3];
 #endif
-
-  return;
 }
 
 template <class Type>
@@ -809,7 +790,6 @@ void IncompressibleEqnSet<Type>::GetInternalOutflowBoundaryVariables(Type* QL, T
   QR[1] = u;
   QR[2] = v;
   QR[3] = w;
-  return;
 }
 
 template <class Type> 
@@ -822,8 +802,6 @@ void IncompressibleEqnSet<Type>::GetViscousWallBoundaryVariables(Type* QL, Type*
 
   //we need to enforce the zero pressure gradient condition with the normal off wall node
   QR[0] = QL[0];
-
-  return;
 }
 
 
@@ -835,8 +813,6 @@ void IncompressibleEqnSet<Type>::ModifyViscousWallJacobian(Type* QL, Type* QR, T
   crs->A->BlankSubRow(cvid, 1);
   crs->A->BlankSubRow(cvid, 2);
   crs->A->BlankSubRow(cvid, 3);
-
-  return;
 }
 
 template <class Type>
@@ -848,7 +824,6 @@ void IncompressibleEqnSet<Type>::ModifyViscousWallResidual(Type* res, Type* vel,
   res[1] = 0.0;
   res[2] = 0.0;
   res[3] = 0.0;
-  return;
 }
 
 template <class Type>
@@ -895,6 +870,4 @@ void IncompressibleEqnSet<Type>::ViscousJacobian(Type* QL, Type* QR, Type* dx, T
   for(Int i = 0; i < neqn*neqn; i++){
     aL[i] = aR[i];
   }
-
-  return;
 }

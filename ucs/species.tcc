@@ -100,19 +100,25 @@ void Species<Type>::GetThermoCoeff(Type T, Type* a)
     std::stringstream ss;
     ss << "WARNING: Temperature outside of thermo valid range! Low range @ 200K";
     ss << " -- T = " << T << std::endl;
-    Abort << ss.str();
+    ss << "Pinning coefficients at low range" << std::endl;
+    std::cerr << ss.str();
+    std::cout << ss.str();
     for(i = 0; i < 7; i++){
       a[i] = thermo_coeff[0][i];
     }
+    T = 200.0; //pin low
   }
   else if(real(T) > 6000.0){
     std::stringstream ss;
     ss << "WARNING: Temperature outside of thermo valid range! High range @ 6000K";
     ss << " -- T = " << T << std::endl;
-    Abort << ss.str();
+    ss << "Pinning coefficients at high range" << std::endl;
+    std::cerr << ss.str();
+    std::cout << ss.str();
     for(i = 0; i < 7; i++){
       a[i] = thermo_coeff[1][i];
     }
+    T = 6000.0; //pin high
   }
   else{
     //use the upper curvefit
