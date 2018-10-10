@@ -38,8 +38,8 @@ endif
 ifeq ($(TOOLCHAIN),GNU)
 	CXX = g++
 	MPICXX = mpicxx
-	CXX_OPTS = -O0 -g -std=c++11 -fPIC
-	#CXX_OPTS = -O3 -g -std=c++11
+	#CXX_OPTS = -O0 -g -std=c++11 -fPIC
+	CXX_OPTS = -O3 -g -std=c++11 -fPIC
 	LINK_OPTS = -Bstatic
 	FXX = mpif90
 	FXX_OPTS = -O3 

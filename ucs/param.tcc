@@ -182,7 +182,7 @@ void Param<Type>::SetupParams()
   paramListInt.push_back(Parameter<Int>("solutionWrite" , &this->solutionWrite, 0, 0, 9999999)); 
   paramListInt.push_back(Parameter<Int>("gradientType", &this->gradType, 0, 0, 1));
   paramListInt.push_back(Parameter<Int>("rampCFL", &this->cflRampingSteps, 0, 0, 999999));
-  paramListInt.push_back(Parameter<Int>("symmetry2D", &this->symmetry2D, -1, 0, 2));
+  paramListInt.push_back(Parameter<Int>("symmetry2D", &this->symmetry2D, -1, 0, 3));
   paramListInt.push_back(Parameter<Int>("gaussianEqn", &this->gaussianEqn, 0, 0, 999));
   paramListInt.push_back(Parameter<Int>("gaussianBCid", &this->gaussianBCid, 0, 0, 999));
 
@@ -194,7 +194,7 @@ void Param<Type>::SetupParams()
   paramListReal.push_back(Parameter<Type>("velocity", &this->velocity, 1.0, 0.0, 999.0));
   paramListReal.push_back(Parameter<Type>("startingVelocity", &this->velocityStart, 0.0, 0.0, 999.0));
   paramListReal.push_back(Parameter<Type>("MW", &this->MW, 28.966, 0.0, 999.0));  // default to air
-  paramListReal.push_back(Parameter<Type>("Cp", &this->Cp, 1006.43, 0.0, 999.0)); // default to air
+  paramListReal.push_back(Parameter<Type>("Cp", &this->Cp, 1006.43, 0.0, 3000.0)); // default to air
   paramListReal.push_back(Parameter<Type>("betaMin", &this->betaMin, 0.0, 0.0, 999.0));
   paramListReal.push_back(Parameter<Type>("beta", &this->beta, 15.0, 0.0, 999.0)); 
   paramListReal.push_back(Parameter<Type>("prandtlNumber", &this->Pr, 0.72, 0.0, 999.0));

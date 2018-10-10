@@ -635,8 +635,6 @@ void CompressibleFREqnSet<Type>::ViscousFlux(Type* Q, Type* grad, Type* avec, Ty
       flux[nspecies+2] = 0.0;
     }
   }
-
-  return;
 }
 
 template <class Type>
@@ -1039,8 +1037,6 @@ void CompressibleFREqnSet<Type>::GetFarfieldBoundaryVariables(Type* QL, Type* QR
   delete [] scr;
   delete [] ql;
   delete [] qinf;
-
-  return;
 }
 
 template <class Type>
@@ -1314,8 +1310,6 @@ void CompressibleFREqnSet<Type>::SourceTerm(Type* Q, Type vol, Type* source)
     source[nspecies+1] += g*(rho-1.0)*vol*this->param->gravdir[1];
     source[nspecies+2] += g*(rho-1.0)*vol*this->param->gravdir[2];
   }
-
-  return;
 }
 
 //some eqnsets will have dQ/dq terms if they are in non-conservative variables
@@ -1504,13 +1498,13 @@ void CompressibleFREqnSet<Type>::UpdateQinf()
   //Densities are additive in a fixed volume, sum them up
   Type r = 0;
   for(Int i = 0; i < nspecies; ++i){
-    Type Xi = this->Qinf[i];
-    Type piDim = pDim*Xi; //for ideal gases, Dalton's law applies, TODO: check for mixtures of phases
+    Type Yi = this->Qinf[i];
+    Type piDim = pDim*Yi; //for ideal gases, Dalton's law applies (partial pressures), TODO: check for mixtures of phases
     r += chem->eos[i]->GetRho(chem->species[i].R, piDim, T*this->param->ref_temperature);
   }
   r /= this->param->ref_density;
   
-  //scale mass fractions by total density, rhoi = rho*Xi
+  //scale mass fractions by total density, rhoi = rho*Yi
   for(Int i = 0; i < nspecies; i++){
     this->Qinf[i] *= r;
   }
@@ -1876,8 +1870,6 @@ void CompressibleFREqnSet<Type>::ViscousJacobian(Type* QL, Type* QR, Type* dx, T
   row[nspecies+2] = -RKT*dR4_drhow;
   row[nspecies+3] = 0.0;
 
-  Type gm1 = (gamma - 1.0);
-
   Type v2L = (uL*uL + vL*vL + wL*wL);
   Type v2R = (uR*uR + vR*vR + wR*wR);
 
@@ -2022,8 +2014,6 @@ void CompressibleFREqnSet<Type>::ViscousJacobian(Type* QL, Type* QR, Type* dx, T
   delete [] rhoiRdim;
   delete [] dTdRhoiL;
   delete [] dTdRhoiR;
-
-  return;
 }
 
 template <class Type>
@@ -2076,8 +2066,6 @@ void CompressibleFREqnSet<Type>::ModifyViscousWallJacobian(Type* QL, Type* QR,
   else{
     crs->A->BlankSubRow(cvid, nspecies+3);
   }
-
-  return;
 }
 
 template <class Type>
@@ -2093,8 +2081,6 @@ void CompressibleFREqnSet<Type>::ModifyViscousWallResidual(Type* res, Type* vel,
 
   //this is done in Anderson's paper, d(rho*Et) ~ drho
   res[nspecies+3] = 0.0;
-
-  return;
 }
 
 
@@ -2110,8 +2096,6 @@ void CompressibleFREqnSet<Type>::NativeToConservative(Type* Q)
   Q[nspecies+2] *= rho;
   //replace the pressure term with Et
   Q[nspecies+3] = Et;
-
-  return;
 }
 
 // Takes a vector of form [rhoi, rhou, rhov, rhow, rhoEt] and converts it back to
@@ -2225,8 +2209,6 @@ void CompressibleFREqnSet<Type>::ComputeStressVector(Type* grad, Type* avec, Typ
   stress[0] = -(mu/Re)*tauxn;
   stress[1] = -(mu/Re)*tauyn;
   stress[2] = -(mu/Re)*tauzn;
-
-  return;
 
 }
 

@@ -24,7 +24,10 @@ jacobianFieldType = 0     #0 - upwind, 1 - central, 2 - complex
 jacobianBoundaryType = 0  #0 - upwind, 1 - central, 2 - complex		  
 jacobianBoundaryEval = 1
 numberSGS = 5
-gamma = 1.4
+
+MW = 28.966
+Cp = 1006.43
+
 velocity = 0.5
 flowDirection = [1.0, 0.0, 0.0]
 liftDirection = [0.0, 1.0, 0.0]
@@ -43,7 +46,6 @@ refDensity = 1.153
 refVelocity = 382.2
 refLength = 0.01
 refViscosity = 1.98E-3
-refTemperature = 2800
 
 #The default chemdb location is here, change this line if installed in another location
 #chemicalDatabase = /usr/local/database/chemdb.hdf5
