@@ -15,24 +15,6 @@
 #include <set>
 #include <sstream>
 
-template <class Type>
-Int BoundaryConditions<Type>::GetBCType(Int factag)
-{
-  return GetBCObj(factag)->GetBCType();;
-}
-
-template <class Type>
-BCObj<Type>* BoundaryConditions<Type>::GetBCObj(Int factag)
-{
-  BCObj<Type>* bco = bc_objs[factag];
-  if(bco != NULL){
-    return bco;
-  }
-  std::stringstream ss;
-  ss << "GetBCObj() got a NULL pointer -- this shouldn't happen -- dying\n";
-  ss << "Request made for factag " << factag;
-  Abort << ss.str();
-}
 
 template <class Type>
 BoundaryConditions<Type>::BoundaryConditions()
@@ -84,6 +66,26 @@ Int BoundaryConditions<Type>::InitInternals(EqnSet<Type>* eqnset)
 
   return 0;
 }
+
+template <class Type>
+Int BoundaryConditions<Type>::GetBCType(Int factag)
+{
+  return GetBCObj(factag)->GetBCType();;
+}
+
+template <class Type>
+BCObj<Type>* BoundaryConditions<Type>::GetBCObj(Int factag)
+{
+  BCObj<Type>* bco = bc_objs[factag];
+  if(bco != NULL){
+    return bco;
+  }
+  std::stringstream ss;
+  ss << "GetBCObj() got a NULL pointer -- this shouldn't happen -- dying\n";
+  ss << "Request made for factag " << factag;
+  Abort << ss.str();
+}
+
 
 template <class Type>
 Int BoundaryConditions<Type>::ReadFile(std::string casename, Int maximumFactagExpected)

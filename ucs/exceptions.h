@@ -9,20 +9,10 @@
 #include <fstream>
 #include <stdexcept>
 #include <execinfo.h>
+#include <unistd.h>
 
-#define GetStack(errorstr){                                 \
-    void* message[500];					    \
-    char** strings;					    \
-    int nptrs;                                              \
-    nptrs = backtrace(message, 500);                        \
-    strings = backtrace_symbols(message, nptrs);	    \
-    std::stringstream ERROR_MESSAGE;			    \
-    for (int II = 0; II < nptrs; II++) {		    \
-      ERROR_MESSAGE << std::endl << strings[II];	    \
-    }							    \
-    ERROR_MESSAGE << std::endl << __FILE__<<": " << __LINE__ << ": " << errorstr; \
-    std::cerr << ERROR_MESSAGE.str() << std::endl;		                  \
-  }
+//returns a stack trace
+std::string GetStack(std::string errorstr);
 
 class Abort
 {
@@ -45,15 +35,15 @@ public:
     std::ofstream fout;
     std::string filename = rootDirectory + "Abort.Log";
 
-    GetStack(message);
+    std::string stack = GetStack(message);
     
-    std::cerr << "Aborting (Process Id - " << rank << "): " << message << std::endl;
-    std::cout << "Aborting (Process Id - " << rank << "): " << message << std::endl;
+    std::cerr << "Aborting (Process Id - " << rank << "): " << message << stack << std::endl << std::flush;
+    std::cout << "Aborting (Process Id - " << rank << "): " << message << stack << std::endl << std::flush;
     
     fout.open(filename.c_str());
-    fout << "Aborting (Process Id - " << rank << "): " << message << std::endl;
-    
+    fout << "Aborting (Process Id - " << rank << "): " << message << stack << std::endl;
     fout.close();
+    sleep(1); //wait 1 sec, this sometimes prevents a race condition with the file I/O
 
     MPI_Abort(MPI_COMM_WORLD, -999);
   };

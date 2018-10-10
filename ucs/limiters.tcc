@@ -782,7 +782,8 @@ void Kernel_PressureClip(KERNEL_ARGS)
     dQ[j] = qR[j] - qL[j];
   }
   eqnset->ExtrapolateVariables(QL, qL, dQ, gradL, dx, limiterL);
-
+  eqnset->ComputeAuxiliaryVariables(QL);
+  
   //check for sanity of extrapolation
   if(eqnset->BadExtrapolation(QL)){
     for(i = 0; i < neqn; i++){
@@ -798,6 +799,7 @@ void Kernel_PressureClip(KERNEL_ARGS)
     dQ[j] = -dQ[j];
   }
   eqnset->ExtrapolateVariables(QR, qR, dQ, gradR, dx, limiterR);
+  eqnset->ComputeAuxiliaryVariables(QR);
 
   //check for sanity of extrapolation
   if(eqnset->BadExtrapolation(QR)){

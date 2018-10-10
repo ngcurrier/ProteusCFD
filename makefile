@@ -21,13 +21,14 @@ DEPS_COMMON = $(SRCS_COMMON:.cpp=.d)
 
 SRCS_SOLVER = ./ucs/main.cpp ./ucs/eqnset.cpp ./ucs/etypes.cpp ./ucs/threaded.cpp ./ucs/parallel.cpp \
 	./ucs/customics.cpp ./ucs/oddsNends.cpp ./ucs/portFileio.cpp \
-	./ucs/elements.cpp ./ucs/dataInfo.cpp ./ucs/derivatives.cpp ./ucs/pythonInterface.cpp ./ucs/xmlreader.cpp
+	./ucs/elements.cpp ./ucs/dataInfo.cpp ./ucs/derivatives.cpp ./ucs/pythonInterface.cpp ./ucs/xmlreader.cpp \
+	./ucs/exceptions.cpp
 SRCS_DECOMP = ./ucs/decomp.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/parallel.cpp \
-	./ucs/oddsNends.cpp ./ucs/dataInfo.cpp
+	./ucs/oddsNends.cpp ./ucs/dataInfo.cpp ./ucs/exceptions.cpp
 SRCS_RECOMP = ./ucs/recomp.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/parallel.cpp \
-	./ucs/oddsNends.cpp ./ucs/dataInfo.cpp
+	./ucs/oddsNends.cpp ./ucs/dataInfo.cpp ./ucs/exceptions.cpp
 SRCS_FINDPOINT = ./ucs/find_point.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/parallel.cpp \
-	./ucs/oddsNends.cpp ./ucs/dataInfo.cpp
+	./ucs/oddsNends.cpp ./ucs/dataInfo.cpp ./ucs/exceptions.cpp
 
 OBJS_SOLVER = $(SRCS_SOLVER:.cpp=.o)
 DEPS_SOLVER = $(SRCS_SOLVER:.cpp=.d)
@@ -40,13 +41,13 @@ DEPS_FINDPOINT = $(SRCS_FINDPOINT:.cpp=.d)
 
 # --------- BEGIN CHEMICAL PROPERTIES UTILITY SECTION
 
-SRCS_CHEMPROPS = ./ucs/chemprops.cpp ./ucs/elements.cpp 
+SRCS_CHEMPROPS = ./ucs/chemprops.cpp ./ucs/elements.cpp ./ucs/exceptions.cpp
 OBJS_CHEMPROPS = $(SRCS_CHEMPROPS:.cpp=.o)
 DEPS_CHEMPROPS = $(SRCS_CHEMPROPS:.cpp=.d)
 
 # --------- BEGIN OPTIMIZATION TOOLKIT SECTION
 
-CSRCS_PORTOPT = ./ucs/portDriver.cpp ./ucs/portFunctions.cpp ./ucs/portFileio.cpp ./ucs/lineSearch.cpp ./ucs/xmlreader.cpp
+CSRCS_PORTOPT = ./ucs/portDriver.cpp ./ucs/portFunctions.cpp ./ucs/portFileio.cpp ./ucs/lineSearch.cpp ./ucs/xmlreader.cpp ./ucs/exceptions.cpp
 FSRCS_PORTOPT = ./ucs/portF.f
 OBJS_PORTOPT = $(CSRCS_PORTOPT:.cpp=.o) $(FSRCS_PORTOPT:.cpp=.o)
 
@@ -66,7 +67,7 @@ OBJS_ALL = $(SRCS_ALL:.cpp=.o)
 DEPS_ALL = $(SRCS_ALL:.cpp=.d)
 
 # --------- BEGIN TEST SECTION
-SRCS_TEST = ./unitTest/main.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/parallel.cpp ./ucs/dataInfo.cpp ./ucs/pythonInterface.cpp
+SRCS_TEST = ./unitTest/main.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/parallel.cpp ./ucs/dataInfo.cpp ./ucs/pythonInterface.cpp ./ucs/exceptions.cpp
 OBJS_TEST = $(SRCS_TEST:.cpp=.o) 
 DEPS_TEST = $(SRCS_TEST:.cpp=.d)
 

@@ -184,7 +184,8 @@ void EqnSet<Type>::ContributeTemporalTerms(Type* Q, Type vol, Type cnp1,
 					   Type dt, Type dtau, Type* A, Type beta)
 {
   for(Int i = 0; i < neqn; i++){
-    if(param->useLocalTimeStepping){
+    if(param->useLocalTimeStepping && (real(param->dt) > 0.0)){
+      //unsteady solution - add dt term
       //the second part of this term comes from pseudo timestepping
       A[i*neqn + i] += cnp1*vol/dt + vol/dtau;
     }

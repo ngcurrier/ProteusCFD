@@ -373,7 +373,7 @@ void Param<Type>::PostCompute()
   std::cout << "PARAM: specific gas constant - " << Rs << " (J/kg.K)" << std::endl;
   
   Type Cv = Cp - Rs; //Cp = Cv + Rs - for ideal gas only
-  std::cout << "PARAM: specific heat Cv - " << Rs << " (J/kg.K)" << std::endl;
+  std::cout << "PARAM: specific heat Cv - " << Cv << " (J/kg.K)" << std::endl;
   this->gamma = Cp/Cv;
 
   //Compute the required reference temperature to ensure that the isentropic relations hold

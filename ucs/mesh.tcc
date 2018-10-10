@@ -2507,9 +2507,14 @@ Int Mesh<Type>::FindPointsWithFactag(Int** pts, Int factag)
 template <class Type>
 Int Mesh<Type>::GetMaximumFactag(){
   Int max = -999;
+  MPI_Datatype mpit;
+  mpit = MPI_GetType(max);
+
   for(Int ielem = 0; ielem < elementList.size(); ++ielem){
-    max = MAX(max, elementList[ielem]->GetFactag());
+    max = MAX(max, (elementList[ielem]->GetFactag()));
   }
+  MPI_Allreduce(MPI_IN_PLACE, &max, 1, mpit, MPI_MAX, MPI_COMM_WORLD);
+  return max;
 }
 
 template <class Type> 
@@ -2521,7 +2526,6 @@ void Mesh<Type>::GetCoordsForPoints(Type* rxyz, Int* pts, Int n)
       rxyz[i*3 + j] = xyz[pts[i]*3 + j];
     }
   }
-  return;
 }
 
 template <class Type>

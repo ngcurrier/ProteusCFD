@@ -26,7 +26,9 @@ Type ComputeTimesteps(SolutionSpace<Type>* space)
   }
   
   // if we use local time stepping, compute the dt in the standard way
+  // unsteady and/or steady solution
   if(param->useLocalTimeStepping){
+    //dt holds the maximum eigenvalue after the return from driver code
     Driver(space, Timestep, nvars, (void*)dt);
     Bdriver(space, BTimestep, nvars, (void*)dt);
     dt[0] = CFL*(m->vol[0]/dt[0]);
@@ -42,8 +44,9 @@ Type ComputeTimesteps(SolutionSpace<Type>* space)
       dtmin = MIN(dtmin, dt[i]);
     }
   }
-  // if we don't use local time stepping nor pseudotime 
+  // if we don't use local time stepping 
   // and the time step is specified, use that value everywhere
+  // unstead solution
   else if(!param->useLocalTimeStepping && real(param->dt) > 0.0){
     for(i = 0; i < nnode; i++){
       dt[i] = param->dt;
