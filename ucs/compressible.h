@@ -13,6 +13,7 @@ class CompressibleEqnSet : public EqnSet<Type>
 
   void InitEqnSet();
   void RoeFlux(Type* QL, Type* QR, Type* avec, Type vdotn, Type gamma, Type* flux, Type beta);
+  void AUSMFlux(Type* QL, Type* QR, Type* avec, Type vdotn, Type gamma, Type* flux, Type beta);
   void OneSidedRoeFlux(Type* QL, Type* QR, Type* avec, Type vdotn, Type gamma, Type* flux, Type beta);
   Bool RoeVariables(Type* QL, Type* QR, Type gamma, Type* Qroe);
   void Eigensystem(Type* Q, Type* avec, Type vdotn, Type gamma, Type* eigenvalues,

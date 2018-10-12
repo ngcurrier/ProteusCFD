@@ -73,6 +73,11 @@ class EqnSet
   {
     std::cerr << "No default implementation for RoeFlux()";
   };
+  
+  virtual void AUSMFlux(Type* QL, Type* QR, Type* avec, Type vdotn, Type gamma, Type* flux, Type beta)
+  {
+    std::cerr << "No default implementation for AUSMFlux()";
+  };
   virtual void OneSidedRoeFlux(Type* QL, Type* QR, Type* avec, Type vdotn, Type gamma, Type* flux, Type beta)
   {
     Abort << "No default implementation for OneSidedRoeFlux()";
@@ -230,7 +235,7 @@ class EqnSet
 	    (gradQ[0]*dx[0] +
 	     gradQ[1]*dx[1] +
 	     gradQ[2]*dx[2]));
-  }
+  };
   virtual Type ComputePressure(Type* Q, Type gamma)
   {
     Abort << "ComputePressure() not implemented";
@@ -279,7 +284,7 @@ class EqnSet
   virtual void ComputeStressVector(Type* vgrad, Type* avec, Type mu, Type* stress)
   {
     Abort << "ComputeStressVector() not implemented";
-  }
+  };
 
   virtual void NativeToConservative(Type* Q)
   {

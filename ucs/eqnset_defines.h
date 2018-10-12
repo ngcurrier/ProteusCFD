@@ -37,13 +37,15 @@ enum FluxTypes
     AlgebraicFluxType,
     RoeFluxType,
     HLLCFluxType,
+    AUSMFluxType,
     NUM_FLUX_TYPES
   };
 const std::string fluxTypes[] = 
   {
     "algebraicFlux",
     "roeFlux",
-    "HLLCFlux"
+    "HLLCFlux",
+    "AUSM"
     //this matches FluxTypes enumeration in eqnset.h
     //must be consistent --- be warned!!!
   };

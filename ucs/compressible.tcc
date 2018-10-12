@@ -230,6 +230,169 @@ void CompressibleEqnSet<Type>::RoeFlux(Type QL[], Type QR[], Type avec[], Type v
 }  
 
 template <class Type>
+void CompressibleEqnSet<Type>::AUSMFlux(Type QL[], Type QR[], Type avec[], Type vdotn,  
+					Type gamma, Type flux[], Type beta)
+{
+  //From paper: An Enhanced AUSM+-up Scheme for High-Speed Compressible Two-Phase Flows on Hybrid Grids by A.K. Pandare
+  //http://www.iccfd.org/iccfd10/papers/ICCFD10-141-Paper.pdf
+  
+  Type area = avec[3];
+  Type gm1 = gamma - 1.0;
+
+  const Type rhoL   = QL[0];
+  const Type uL     = QL[1]/rhoL;
+  const Type vL     = QL[2]/rhoL;
+  const Type wL     = QL[3]/rhoL;
+  const Type EL     = QL[4];
+  const Type vmag2L = uL*uL + vL*vL + wL*wL; 
+  const Type PL     = gm1*(EL - 0.5*rhoL*vmag2L);
+  const Type thetaL  = uL*avec[0] + vL*avec[1] + wL*avec[2];
+  const Type thetabarL  = uL*avec[0] + vL*avec[1] + wL*avec[2] + vdotn;
+  const Type hL = (EL + PL)/rhoL;
+  
+  const Type rhoR   = QR[0];
+  const Type uR     = QR[1]/rhoR;
+  const Type vR     = QR[2]/rhoR;
+  const Type wR     = QR[3]/rhoR;
+  const Type ER     = QR[4];
+  const Type vmag2R = uR*uR + vR*vR + wR*wR; 
+  const Type PR     = gm1*(ER - 0.5*rhoR*vmag2R);
+  const Type thetaR = uR*avec[0] + vR*avec[1] + wR*avec[2];
+  const Type thetabarR = uR*avec[0] + vR*avec[1] + wR*avec[2] + vdotn;
+  const Type hR = (ER + PR)/rhoR;
+
+  Type cL = sqrt(gamma*PL/rhoL);
+  Type cR = sqrt(gamma*PR/rhoR);
+
+  //compute mach numbers
+  Type ML = thetabarL/cL;
+  Type MR = thetabarR/cR;
+  
+  // eigenvalues 1,2,3 (u)
+  // eigenvalue 4 (u+c)
+  // eigenvalue 5 (u-c)
+
+  //AUSM splits the flux into the pressure and convective parts
+
+  //mass flux, mdot_i = a_i * M_i * rho_LR
+  const Type V_i = 0.5*(thetabarL + thetabarR); //we use the avg. not sure if this is correct
+
+  Type rho_LR = 0.0;
+  if (real(V_i) >= 0.0){
+    rho_LR = rhoL;
+  }
+  else{
+    rho_LR = rhoR;
+  }
+
+  const Type mdot = rho_LR*V_i; //rho * V
+  
+  Type* psi = (Type*)alloca(sizeof(Type)*this->neqn);
+
+  if (real(mdot) >= 0.0){
+    //pick left state
+    psi[0] = 1.0;
+    psi[1] = uL;
+    psi[2] = vL;
+    psi[3] = wL;
+    psi[4] = hL;
+  }
+  else{
+    //pick right state
+    psi[0] = 1.0;
+    psi[1] = uR;
+    psi[2] = vR;
+    psi[3] = wR;
+    psi[4] = hR;
+  }
+
+
+  //Pplus is a function of Mach L
+  //Pminus is a funtions of Mach R
+  Type M1plus = 0.5*(ML + CAbs(ML));
+  Type M2plus = 0.25*(ML + 1.0)*(ML + 1.0);
+  Type M1minus = 0.5*(MR - CAbs(MR));
+  Type M2minus = 0.25*(MR - 1.0)*(MR - 1.0);
+  Type M4plus = 0.0;
+  if(real(CAbs(ML)) >= 1.0){
+    M4plus  = M1plus;
+  }
+  else{
+    M4plus = M2plus*(1.0 - 2.0*M2minus);
+    //M4plus = M2plus*(1.0 + 2.0*M2plus); is this correct, or did I interpret the flux wrong
+  }
+  Type M4minus = 0.0;
+  if(real(CAbs(MR)) >= 1.0){
+    M4minus = M1minus;
+  }
+  else{
+    M4minus = M2minus*(1.0 + 2.0*M2plus);
+    //M4minus = M2minus*(1.0 - 2.0*M2plus); is this correct, or did I interpret the flux wrong
+  }
+  
+  Type pdiffusion = 0.0;
+
+  Type M = ML; //not sure if I should blend theis here?
+  
+  //this is all based on the left state
+  Type Pplus = 0.0;
+  if(real(CAbs(ML)) >= 1.0){
+    Pplus = 1.0/ML*M;
+  }
+  else{
+    Pplus = 1.0/ML*M2plus*(2.0 - ML - 3.0*ML*M2minus);
+  }
+
+  //this is all based on the right state
+  Type Pminus = 0.0;
+  if(real(CAbs(MR)) >= 1.0){
+    Pminus = 1.0/MR*M;
+  }
+  else{
+    Pminus = 1.0/MR*M2minus*(-2.0 - MR + 3.0*MR*M2plus);
+  }
+
+  //determine P based on the wave speeds
+  Type P = Pplus*PL + Pminus*PR + pdiffusion;
+  
+  Type* fluxc = (Type*)alloca(sizeof(Type)*this->neqn);
+  Type* fluxp = (Type*)alloca(sizeof(Type)*this->neqn);
+
+  fluxc[0] = mdot*psi[0];
+  fluxc[1] = mdot*psi[1];
+  fluxc[2] = mdot*psi[2];
+  fluxc[3] = mdot*psi[3];
+  fluxc[4] = mdot*psi[4];
+  
+  fluxp[0] = 0.0;
+  fluxp[1] = P*avec[0]; //P nx
+  fluxp[2] = P*avec[1]; //P ny
+  fluxp[3] = P*avec[2]; //P nz
+  fluxp[4] = -vdotn*P;
+  
+  //Get standard fluxes on both sides of
+  //control surface
+  flux[0] = area*(fluxc[0] + fluxp[0]);
+  flux[1] = area*(fluxc[1] + fluxp[1]);
+  flux[2] = area*(fluxc[2] + fluxp[2]);
+  flux[3] = area*(fluxc[3] + fluxp[3]);
+  flux[4] = area*(fluxc[4] + fluxp[4]);
+  
+  //pseudo-2D simulations
+  if(this->param->symmetry2D > 0){
+    if(this->param->symmetry2D == 1){
+      flux[1] = 0.0;
+    }
+    else if(this->param->symmetry2D == 2){
+      flux[2] = 0.0;
+    }
+    else if(this->param->symmetry2D == 3){
+      flux[3] = 0.0;
+    }
+  }
+}
+
+template <class Type>
 void CompressibleEqnSet<Type>::OneSidedRoeFlux(Type* QL, Type* QR, Type* avec, 
 					       Type vdotn, Type gamma, Type* flux, Type beta)
 {
@@ -365,7 +528,6 @@ void CompressibleEqnSet<Type>::OneSidedRoeFlux(Type* QL, Type* QR, Type* avec,
     }
   }
   
-  return;
 }
  
 template <class Type>
@@ -545,8 +707,6 @@ template <class Type>
    flux[2] = (v*rhotheta + P*avec[1]);
    flux[3] = (w*rhotheta + P*avec[2]);
    flux[4] = (ht*rhotheta - vdotn*P);
-   
-   return;
 }
 
 template <class Type>

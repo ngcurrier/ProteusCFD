@@ -37,8 +37,15 @@ bool EqnSet<Type>::BoundaryFlux(Type* QL, Type* QR, Type* avec, Type vdotn, Type
   for(int i = 0; i < this->neqn; ++i){
     if(std::isnan(real(flux[i]))){
       std::cerr << "WARNING: EqnSet::BoundaryFlux() kneecapping a nan flux term - flux[" << i << "]" << std::endl;
-      std::cerr << "QL = " << QL[i] << std::endl;
-      std::cerr << "QR = " << QR[i] << std::endl;
+      for(int j = 0; j < this->neqn; ++j){
+	std::cerr << "flux[" << j << "] = " << flux[j] << std::endl;
+      }      
+      for(int j = 0; j < this->neqn; ++j){
+	std::cerr << "QL[" << j << "] = " << QL[j] << std::endl;
+      }
+      for(int j = 0; j < this->neqn; ++j){
+	std::cerr << "QR[" << j << "] = " << QR[j] << std::endl;
+      }
       flux[i] = 0.0;
       error = true;
     }
@@ -68,8 +75,15 @@ bool EqnSet<Type>::NumericalFlux(Type QL[], Type QR[], Type avec[], Type vdotn, 
   for(int i = 0; i < this->neqn; ++i){
     if(std::isnan(real(flux[i]))){
       std::cerr << "WARNING: EqnSet::NumericalFlux() kneecapping a nan flux term - flux[" << i << "]" << std::endl;
-      std::cerr << "QL = " << QL[i] << std::endl;
-      std::cerr << "QR = " << QR[i] << std::endl;
+      for(int j = 0; j < this->neqn; ++j){
+	std::cerr << "flux[" << j << "] = " << flux[j] << std::endl;
+      }      
+      for(int j = 0; j < this->neqn; ++j){
+	std::cerr << "QL[" << j << "] = " << QL[j] << std::endl;
+      }
+      for(int j = 0; j < this->neqn; ++j){
+	std::cerr << "QR[" << j << "] = " << QR[j] << std::endl;
+      }
       flux[i] = 0.0;
       error = true;
     }
