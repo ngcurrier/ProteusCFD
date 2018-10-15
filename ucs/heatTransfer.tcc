@@ -62,7 +62,7 @@ template <class Type>
 void HeatTransferEqnSet<Type>::UpdateQinf()
 {
   //assume everything starts at equilibrium with reference temperature
-  this->Qinf[0] = this->param->ref_temperature;
+  this->Qinf[0] = this->param->initialTemperature;
 }
 
 template <class Type>
