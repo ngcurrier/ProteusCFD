@@ -206,7 +206,6 @@ void Param<Type>::SetupParams()
  
   //no non-dimensionalization default
   paramListReal.push_back(Parameter<Type>("refPressure", &this->ref_pressure, REF_PRESSURE_DEFAULT, 0.0, 300000.0));
-  paramListReal.push_back(Parameter<Type>("refTemperature", &this->ref_temperature, 300.0, 0.0, 9999.0));
   paramListReal.push_back(Parameter<Type>("refLength", &this->ref_length, 1.0, 0.0, 9999999.0));
   paramListReal.push_back(Parameter<Type>("refThermalConductivity", &this->ref_k, 1.0, 0.0, 99999.0));
   paramListReal.push_back(Parameter<Type>("refViscosity", &this->ref_viscosity, 1.0, 0.0, 99999.0));
@@ -355,7 +354,7 @@ void Param<Type>::PrintAllParams()
 template <class Type>
 void Param<Type>::PostCompute()
 {
-  //ref_pressure and ref_temperature are read directly
+  //ref_pressure is read directly
   //-------------------------------------------------------
   
   Type Rs = R_UNIV/(MW/1000.0); //J/kg.K
@@ -378,6 +377,14 @@ void Param<Type>::PostCompute()
   //ref_k = ref_density*v3*ref_length/ref_temperature;
   //ref_viscosity = ref_density*ref_velocity*ref_length;
   ref_enthalpy = ref_velocity*ref_velocity;
+
+  //we compute the reference temperature in this way b/c the compressible (Mach) based
+  //solver requires this to be true
+  Type rho_d = initialPressure/(Rs*initialTemperature);
+  Type P_nd = initialPressure/ref_pressure;
+  Type rho_nd = rho_d/ref_density;
+  Type c2_nd = gamma*P_nd/rho_nd;
+  ref_temperature = initialTemperature/c2_nd; //c2 = T when non-dimensionalized
   
   //Reynolds number is now set in eqnset object initialization
   if(eqnset_id == IncompressibleNS || eqnset_id == CompressibleNS || 
