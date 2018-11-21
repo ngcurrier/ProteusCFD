@@ -16,7 +16,7 @@
 #include "solutionSpace.h"
 #include "dataInfo.h"
 #include "solve.h"
-#include "solutionOperations.h"
+#include "solutionOrdering.h"
 #include "fluid_structure.h"
 #include "temporalControl.h"
 #include "pythonInterface.h"
@@ -159,11 +159,11 @@ int main(int argc, char* argv[]){
     Abort << "Error in param read";
     return (-1);
   }
-  if(ReadSolutionOrdering(operations, casestring, pathname)){
+  if(operations.Read(casestring, pathname)){
     Abort << "Error in solution ordering read";
     return (-1);
   }
-  if(ReadTemporalControl(temporalControl, casestring, pathname)){
+  if(temporalControl.Read(casestring, pathname)){
     Abort << "Error in temporal control read";
     return (-1);
   }

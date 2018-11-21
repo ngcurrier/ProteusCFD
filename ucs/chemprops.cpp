@@ -8,7 +8,7 @@
 #include "param.h"
 #include "general.h"
 #include "temporalControl.h"
-#include "solutionOperations.h"
+#include "solutionOrdering.h"
 
 int main(int argc, char* argv[])
 {
@@ -44,10 +44,10 @@ int main(int argc, char* argv[])
   if(ReadParamFile(paramList, casestring, pathname)){
     return (-1);
   }
-  if(ReadSolutionOrdering(operations, casestring, pathname)){
+  if(operations.Read(casestring, pathname)){
     return (-1);
   }
-  if(ReadTemporalControl(temporalControl, casestring, pathname)){
+  if(temporalControl.Read(casestring, pathname)){
     return (-1);
   }
 

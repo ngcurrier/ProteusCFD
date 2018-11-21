@@ -4,6 +4,7 @@
 #include <fstream>
 #include <string>
 #include "general.h"
+#include "solutionOperations.h"
 
 //not sure why but not including this causes the compiler
 //to complain about the > operator all over the place... 

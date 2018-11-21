@@ -4,9 +4,11 @@
 #include "general.h"
 #include "solutionSpaceBase.h"
 #include "solutionSpace.h"
-#include "solutionOperations.h"
-#include "temporalControl.h"
+#include "solutionOrdering.h"
 #include <vector>
+
+//forward declarations
+template <class Type> class SolutionOrdering;
 
 template <class Type>
 void Solve(std::vector<SolutionSpaceBase<Type>*>& solSpaces, SolutionOrdering<Type>& solOperations);

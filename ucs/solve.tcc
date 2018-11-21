@@ -1,5 +1,4 @@
-#include "bc.h"
-#include "solutionField.h"
+#include "solutionOperations.h"
 #include "forces.h"
 #include "mesh.h"
 #include "eqnset.h"

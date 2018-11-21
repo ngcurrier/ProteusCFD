@@ -40,6 +40,7 @@ void TranslateWinding(Int* nodes, Int translation[6][8], Int num_nodes, Int etyp
 
 //forward declarations
 template <class Type> class PObj;
+template <class Type> class SolutionField;
 
 template <class Type> 
 class Mesh

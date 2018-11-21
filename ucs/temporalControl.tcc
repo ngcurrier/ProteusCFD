@@ -25,8 +25,82 @@ void TemporalControl<Type>::Print()
   std::cout << "Number of Newton iterations: " << newtonIter << "\n\n";
 }
 
+//function which will parse temporal control things from the param file
+//casename - root of the case for instance cube.0.h5 files have a root of cube
+//pathname - path to the case files
 template <class Type>
-void TemporalControl<Type>::ReadTemporalControl(std::ifstream& fin, std::streampos locBegin, std::streampos locEnd)
+Int TemporalControl<Type>::Read(std::string casename, std::string pathname)
+{
+  std::ifstream fin;
+  std::string trash, temp;
+  Int err = 0;
+  Int err2 = 0;
+  char c;
+
+  std::string beginTemporalControl = "<<<BEGIN TEMPORAL CONTROL>>>";
+  std::string endTemporalControl = "<<<END TEMPORAL CONTROL>>>";
+  std::string filename = pathname+casename + ".param";
+
+  fin.open(filename.c_str());
+
+  if(fin.is_open()){
+    std::cout << "PARAM: Reading temporal control file --> " << filename << std::endl;
+    while(!fin.eof()){
+      c = fin.peek();
+      if(c == '#' || c == ' ' || c == '\n'){
+	getline(fin, trash);
+	trash.clear();
+	continue;
+      }
+      else{
+	size_t loc;
+	getline(fin, temp);
+	loc = temp.find(beginTemporalControl);
+	if(loc != std::string::npos){
+	  std::streampos beginTemppos = fin.tellg();
+	  std::streampos endTemppos = fin.tellg();
+	  //we have the beginning of the temporal control section, now find the end
+	  while(!fin.eof()){
+	    c = fin.peek();
+	    if(c == '#' || c == ' ' || c == '\n'){
+	      getline(fin, trash);
+	      trash.clear();
+	      continue;
+	    }
+	    else{
+	      std::streampos preEndTemppos = fin.tellg();
+	      getline(fin, temp);
+	      loc = temp.find(endTemporalControl);
+	      if(loc != std::string::npos){
+		endTemppos = fin.tellg();
+		ReadTemporalControlSegment(fin, beginTemppos, preEndTemppos);
+		//seek back to where we were to continue, routine readspace may modify stream
+		fin.seekg(endTemppos);
+		break;
+	      }
+	    }
+	  }
+	  if(beginTemppos == endTemppos){
+	    std::cerr << "WARNING: Temporal control end delimiter not found";
+	    return(1);
+	  }
+	}
+	temp.clear();
+      }
+    }
+    fin.close();
+  }
+  else{
+    Abort << "PARAM READFILE: Cannot open param file --> " + filename;
+    return (1);
+  }
+  return err2;
+
+}
+
+
+template <class Type>
+void TemporalControl<Type>::ReadTemporalControlSegment(std::ifstream& fin, std::streampos locBegin, std::streampos locEnd)
 {
   std::string trash, temp;
   Int err = 0;
@@ -82,77 +156,5 @@ Int TemporalControl<Type>::ParseLine(std::string& line)
   }
 
   return 1;
-}
-
-//free function which will parse temporal control things from the param file
-template <class Type>
-Int ReadTemporalControl(TemporalControl<Type>& temporalControl, std::string casename, std::string pathname)
-{
-  std::ifstream fin;
-  std::string trash, temp;
-  Int err = 0;
-  Int err2 = 0;
-  char c;
-
-  std::string beginTemporalControl = "<<<BEGIN TEMPORAL CONTROL>>>";
-  std::string endTemporalControl = "<<<END TEMPORAL CONTROL>>>";
-  std::string filename = pathname+casename + ".param";
-
-  fin.open(filename.c_str());
-
-  if(fin.is_open()){
-    std::cout << "PARAM: Reading temporal control file --> " << filename << std::endl;
-    //parse all of the solution spaces from the file
-    while(!fin.eof()){
-      c = fin.peek();
-      if(c == '#' || c == ' ' || c == '\n'){
-	getline(fin, trash);
-	trash.clear();
-	continue;
-      }
-      else{
-	size_t loc;
-	getline(fin, temp);
-	loc = temp.find(beginTemporalControl);
-	if(loc != std::string::npos){
-	  std::streampos beginTemppos = fin.tellg();
-	  std::streampos endTemppos = fin.tellg();
-	  //we have the beginning of the temporal control section, now find the end
-	  while(!fin.eof()){
-	    c = fin.peek();
-	    if(c == '#' || c == ' ' || c == '\n'){
-	      getline(fin, trash);
-	      trash.clear();
-	      continue;
-	    }
-	    else{
-	      std::streampos preEndTemppos = fin.tellg();
-	      getline(fin, temp);
-	      loc = temp.find(endTemporalControl);
-	      if(loc != std::string::npos){
-		endTemppos = fin.tellg();
-		temporalControl.ReadTemporalControl(fin, beginTemppos, preEndTemppos);
-		//seek back to where we were to continue, routine readspace may modify stream
-		fin.seekg(endTemppos);
-		break;
-	      }
-	    }
-	  }
-	  if(beginTemppos == endTemppos){
-	    std::cerr << "WARNING: Temporal control end delimiter not found";
-	    return(1);
-	  }
-	}
-	temp.clear();
-      }
-    }
-    fin.close();
-  }
-  else{
-    Abort << "PARAM READFILE: Cannot open param file --> " + filename;
-    return (1);
-  }
-  return err2;
-
 }
 

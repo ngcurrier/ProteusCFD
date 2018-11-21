@@ -3,7 +3,6 @@
 
 #include "general.h"
 #include "dataInfo.h"
-#include "parallel.h"
 #include "exceptions.h"
 #include "h5layer.h"
 #include <string>
@@ -13,6 +12,7 @@
 #endif
 
 template <class Type> class Mesh;
+template <class Type> class PObj;
 
 //states control how the field behaves in time
 namespace FIELDS{

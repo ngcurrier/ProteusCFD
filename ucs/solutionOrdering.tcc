@@ -1,36 +1,3 @@
-#include "solutionSpace.h"
-#include "solutionField.h"
-#include "exceptions.h"
-#include "fieldTransfer.h"
-
-template <class Type>
-OperationTransfer<Type>::OperationTransfer(SolutionSpaceBase<Type>& source, SolutionSpaceBase<Type>& dest, 
-					   ScalarField<Type>& fieldSource, ScalarField<Type>& fieldDest)
-{
-  //create a scalar transfer
-  transfer = new ScalarTransfer<Type>(&source, &dest, fieldSource, fieldDest);
-}
-
-template <class Type>
-OperationTransfer<Type>::OperationTransfer(SolutionSpaceBase<Type>& source, SolutionSpaceBase<Type>& dest, 
-					   SolutionField<Type>& fieldSource, SolutionField<Type>& fieldDest)
-{
-  //create a field transfer
-  transfer = new FieldTransfer<Type>(&source, &dest, fieldSource, fieldDest);
-}
-
-template <class Type>
-OperationTransfer<Type>::~OperationTransfer()
-{
-  delete transfer;
-}
-
-template <class Type>
-void OperationTransfer<Type>::Apply()
-{
-  transfer->DoTransfer();
-}
-
 template <class Type>
 SolutionOrdering<Type>::~SolutionOrdering()
 {
@@ -40,6 +7,7 @@ SolutionOrdering<Type>::~SolutionOrdering()
   }
 }
 
+// returns the number of operations that we execute per time step
 template <class Type>
 UInt SolutionOrdering<Type>::size()
 {
@@ -222,37 +190,6 @@ void SolutionOrdering<Type>::Iterate()
   }
 }
 
-template <class Type>
-Int SolutionOrdering<Type>::ReadOrdering(std::ifstream& fin, std::streampos locBegin, std::streampos locEnd)
-{
-  std::string trash, temp;
-  Int err = 0;
-  Int err2 = 0;
-  char c;
-  
-  fin.clear();
-  fin.seekg(locBegin);
-  std::cout << "SOLUTION ORDERING: Reading solution ordering from parameter file" << std::endl;
-  while(fin.tellg() < locEnd){
-    c = fin.peek();
-    if(c == '#' || c == ' ' || c == '\n'){
-      getline(fin, trash);
-      trash.clear();
-      continue;
-    }
-    else{
-      getline(fin, temp);
-      err = Insert(temp);
-      if(err != 0){
-	Abort << "SOLUTION ORDERING: could not parse line -- " + temp +
-	  "SOLUTION ORDERING: check that correct keyword is used";
-      }
-      err2 += err;
-      temp.clear();
-    }
-  }
-  return (err2);
-};
 
 template <class Type> template <class Type2>
 SolutionOrdering<Type>& SolutionOrdering<Type>::operator= (const SolutionOrdering<Type2>& orderingToCopy)
@@ -266,8 +203,11 @@ SolutionOrdering<Type>& SolutionOrdering<Type>::operator= (const SolutionOrderin
 }
 
 
+//function which will parse operation ordering information from the param file
+//casename - root of the case for instance cube.0.h5 files have a root of cube
+//pathname - path to the case files
 template <class Type>
-Int ReadSolutionOrdering(SolutionOrdering<Type>& operations, std::string casename, std::string pathname)
+Int SolutionOrdering<Type>::Read(std::string casename, std::string pathname)
 {
   std::ifstream fin;
   std::string trash, temp;
@@ -311,7 +251,7 @@ Int ReadSolutionOrdering(SolutionOrdering<Type>& operations, std::string casenam
 	      loc = temp.find(endSolutionOrdering);
 	      if(loc != std::string::npos){
 		endOrderpos = fin.tellg();
-		operations.ReadOrdering(fin, beginOrderpos, preEndOrderpos);
+		ReadOrderingSegment(fin, beginOrderpos, preEndOrderpos);
 		//seek back to where we were to continue, routine readspace may modify stream
 		fin.seekg(endOrderpos);
 		break;
@@ -333,14 +273,46 @@ Int ReadSolutionOrdering(SolutionOrdering<Type>& operations, std::string casenam
     return (1);
   }
   
-  if(operations.size() == 0){
+  if(this->size() == 0){
     Abort << "PARAM READFILE: Did not find any defined solution spaces\n\tThis is defined by <<<BEGIN SOLUTION ORDERING>>> and <<<END SOLUTION ORDERING>>> delimiters";
     return (1);
   }
 
   if(err2 == 0){
-    operations.Print();
+    this->Print();
   }
 
   return err2;
 }
+
+template <class Type>
+Int SolutionOrdering<Type>::ReadOrderingSegment(std::ifstream& fin, std::streampos locBegin, std::streampos locEnd)
+{
+  std::string trash, temp;
+  Int err = 0;
+  Int err2 = 0;
+  char c;
+  
+  fin.clear();
+  fin.seekg(locBegin);
+  std::cout << "SOLUTION ORDERING: Reading solution ordering from parameter file" << std::endl;
+  while(fin.tellg() < locEnd){
+    c = fin.peek();
+    if(c == '#' || c == ' ' || c == '\n'){
+      getline(fin, trash);
+      trash.clear();
+      continue;
+    }
+    else{
+      getline(fin, temp);
+      err = Insert(temp);
+      if(err != 0){
+	Abort << "SOLUTION ORDERING: could not parse line -- " + temp +
+	  "SOLUTION ORDERING: check that correct keyword is used";
+      }
+      err2 += err;
+      temp.clear();
+    }
+  }
+  return (err2);
+};
