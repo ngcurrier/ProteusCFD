@@ -28,6 +28,10 @@ numberSGS = 5
 MW = 28.966
 Cp = 1006.43
 
+initialPressure = 101325
+initialTemperature = 300
+velocity = 2.0
+
 velocity = 0.5
 flowDirection = [1.0, 0.0, 0.0]
 liftDirection = [0.0, 1.0, 0.0]
@@ -42,8 +46,6 @@ reactionsOn = 1
 symmetry2D = 2
 
 #these numbers are for air at 20C
-refDensity = 1.153
-refVelocity = 382.2
 refLength = 0.01
 refViscosity = 1.98E-3
 

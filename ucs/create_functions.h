@@ -11,6 +11,8 @@
 #include "param.h"
 #include "exceptions.h"
 #include "solutionSpace.h"
+#include "fluid_structure.h"
+#include <vector>
 
 template <class Type>
 Int CreateEqnSet(SolutionSpace<Type>* space)
@@ -68,6 +70,34 @@ Int CreateEqnSet(EqnSet<Type>** eqnset, Param<Type>* param){
     return (-1);
   }
   return (0);
+}
+
+// This is the factory for solution spaces from param files read
+template <class Type>
+std::vector<SolutionSpaceBase<Type>*> CreateSolutionSpaces(typename std::vector<Param<Type>* > paramList, PObj<Type>& pobj,
+							   TemporalControl<Type>& temporalControl){
+  std::vector<SolutionSpaceBase<Type>*> solSpaces;
+  for(typename std::vector<Param<Type>* >::iterator it = paramList.begin();
+      it != paramList.end(); ++it){
+    Param<Type>* param = *it;
+    SolutionSpaceBase<Type>* solSpace;
+    if(param->spacename == "structure"){
+      solSpace = new STRUCTDYN::Structure(param, param->spacename, temporalControl);
+    }
+    else if(param->spacename == "typicalSection"){
+      solSpace = new STRUCTDYN::TypicalSection(param, param->spacename, temporalControl);
+    }
+    else{
+      solSpace = new SolutionSpace<Type>(param, &pobj, param->spacename, temporalControl);
+    }
+    solSpaces.push_back(solSpace);
+  }
+  for(typename std::vector<SolutionSpaceBase<Type>* >::iterator it = solSpaces.begin(); 
+      it != solSpaces.end(); ++it){
+    SolutionSpaceBase<Type> & space = **it;
+    space.WriteAvailableFields();
+  }
+  return solSpaces;
 }
 
 #endif

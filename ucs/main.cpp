@@ -89,6 +89,7 @@ int main(int argc, char* argv[]){
     cerr << "<design type> - Compute Mesh Sensitivity = 6" << endl;
     cerr << "<design type> - Finite Difference = 7" << endl;
 
+    //dumps all options in param file to output
     Param<Real> tmp;
     tmp.PrintAllParams();
 
@@ -183,28 +184,9 @@ int main(int argc, char* argv[]){
       it != paramList.end(); ++it){
     (*it)->PrintSolverParams();
   }
-  //setup solution space container
-  vector<SolutionSpaceBase<Real>*> solSpaces;
-  for(std::vector<Param<Real>*>::iterator it = paramList.begin();
-      it != paramList.end(); ++it){
-    Param<Real>* param = *it;
-    SolutionSpaceBase<Real>* solSpace;
-    if(param->spacename == "structure"){
-      solSpace = new STRUCTDYN::Structure(param, param->spacename, temporalControl);
-    }
-    else if(param->spacename == "typicalSection"){
-      solSpace = new STRUCTDYN::TypicalSection(param, param->spacename, temporalControl);
-    }
-    else{
-      solSpace = new SolutionSpace<Real>(param, &pobj, param->spacename, temporalControl);
-    }
-    solSpaces.push_back(solSpace);
-  }
-  for(std::vector<SolutionSpaceBase<Real>*>::iterator it = solSpaces.begin(); 
-      it != solSpaces.end(); ++it){
-    SolutionSpaceBase<Real> & space = **it;
-    space.WriteAvailableFields();
-  }
+  //setup solution space container using information in parameter objects
+  vector<SolutionSpaceBase<Real>*> solSpaces = CreateSolutionSpaces(paramList, pobj, temporalControl);
+
   //setup the solution operations (advanements, transfers, etc.)
   if(operations.Finalize(solSpaces)){
     MPI_Finalize();

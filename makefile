@@ -13,22 +13,22 @@ EXE_TESTS = ./bin/tests.x
 # --------- BEGIN COMMON LIBRARY SECTION
 
 SRCS_COMMON = ./ucs/timer.cpp ./ucs/endian_util.cpp ./ucs/strings_util.cpp \
-	./ucs/h5layer.cpp ./ucs/parameterParser.cpp ./ucs/base64.cpp
+	./ucs/h5layer.cpp ./ucs/parameterParser.cpp ./ucs/base64.cpp ./ucs/oddsNends.cpp
 OBJS_COMMON = $(SRCS_COMMON:.cpp=.o)
 DEPS_COMMON = $(SRCS_COMMON:.cpp=.d)
 
 # --------- BEGIN FLUID DYNAMICS CORE SECTION
 
 SRCS_SOLVER = ./ucs/main.cpp ./ucs/eqnset.cpp ./ucs/etypes.cpp ./ucs/threaded.cpp ./ucs/parallel.cpp \
-	./ucs/customics.cpp ./ucs/oddsNends.cpp ./ucs/portFileio.cpp \
+	./ucs/customics.cpp ./ucs/portFileio.cpp \
 	./ucs/elements.cpp ./ucs/dataInfo.cpp ./ucs/derivatives.cpp ./ucs/pythonInterface.cpp ./ucs/xmlreader.cpp \
 	./ucs/exceptions.cpp
 SRCS_DECOMP = ./ucs/decomp.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/parallel.cpp \
-	./ucs/oddsNends.cpp ./ucs/dataInfo.cpp ./ucs/exceptions.cpp
+	 ./ucs/dataInfo.cpp ./ucs/exceptions.cpp
 SRCS_RECOMP = ./ucs/recomp.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/parallel.cpp \
-	./ucs/oddsNends.cpp ./ucs/dataInfo.cpp ./ucs/exceptions.cpp
+	 ./ucs/dataInfo.cpp ./ucs/exceptions.cpp
 SRCS_FINDPOINT = ./ucs/find_point.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/parallel.cpp \
-	./ucs/oddsNends.cpp ./ucs/dataInfo.cpp ./ucs/exceptions.cpp
+	 ./ucs/dataInfo.cpp ./ucs/exceptions.cpp
 
 OBJS_SOLVER = $(SRCS_SOLVER:.cpp=.o)
 DEPS_SOLVER = $(SRCS_SOLVER:.cpp=.d)
@@ -83,10 +83,10 @@ endif
 
 
 $(EXE_DECOMP): $(METISINSTALLDIR)/libmetis.a  ./ucs/libcommon.a  $(DEPS_DECOMP) $(OBJS_DECOMP) 
-	$(MPICXX) $(LINK_OPTS) -o $(EXE_DECOMP) $(LCXXFLAGS) -L$(METIS_LIB) $(OBJS_DECOMP) $(CXXLIBS) -lmetis -ltinyxml
+	$(MPICXX) $(LINK_OPTS) -o $(EXE_DECOMP) $(LCXXFLAGS) -L$(METIS_LIB) $(OBJS_DECOMP) $(CXXLIBS) -lmetis -ltinyxml -lcommon
 
-$(EXE_RECOMP):  $(DEPS_RECOMP) $(OBJS_RECOMP) 
-	$(MPICXX) $(LINK_OPTS) -o $(EXE_RECOMP) $(LCXXFLAGS) $(OBJS_RECOMP) $(CXXLIBS) -ltinyxml
+$(EXE_RECOMP):  $(DEPS_RECOMP) $(OBJS_RECOMP) ./ucs/libcommon.a
+	$(MPICXX) $(LINK_OPTS) -o $(EXE_RECOMP) $(LCXXFLAGS) $(OBJS_RECOMP) $(CXXLIBS) -ltinyxml -lcommon
 
 $(EXE_FINDPOINT): $(DEPS_FINDPOINT) $(OBJS_FINDPOINT)
 	$(MPICXX) $(LINK_OPTS) -o $(EXE_FINDPOINT) $(LCXXFLAGS) $(OBJS_FINDPOINT) $(CXXLIBS) -ltinyxml
@@ -103,8 +103,8 @@ $(EXE_STRUCT_SOLVER): $(DEPS_STRUCT_SOLVER) $(OBJS_STRUCT_SOLVER) $(LAPACK_LIB)/
 $(EXE_STRUCT_ERROR): ./structuralDynamics/error.o ./ucs/libcommon.a
 	$(MPICXX) -o $(EXE_STRUCT_ERROR) $(LCXXFLAGS) ./structuralDynamics/error.o $(CXXLIBS)
 
-$(EXE_TESTS): $(DEPS_TEST) $(OBJS_TEST) $(GTEST_LIB)/.libs/libgtest.a ./ucs/libcommon.a
-	$(MPICXX) $(LINK_OPTS) -o $(EXE_TESTS) $(LCXXFLAGS) $(OBJS_TEST) $(CXXLIBS) $(GTEST_LIB)/.libs/libgtest.a 
+$(EXE_TESTS): $(DEPS_TEST) $(OBJS_TEST) $(GTEST_LIB)/.libs/libgtest.a ./ucs/libcommon.a structuralDynamics/libstructdyn.a
+	$(MPICXX) $(LINK_OPTS) -o $(EXE_TESTS) $(LCXXFLAGS) $(OBJS_TEST) $(CXXLIBS) $(GTEST_LIB)/.libs/libgtest.a -lstructdyn -lcommon
 
 SRCDIRS = ./structuralDynamics ./ucs
 ROOT = $$PWD

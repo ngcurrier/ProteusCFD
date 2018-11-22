@@ -5,6 +5,7 @@
 #include "newtonTest.h"
 #include "chemTest.h"
 #include "compressibleFRTest.h"
+#include "gradientTest.h"
 #include "pythonTest.h"
 #include "pythonInterface.h"
 #include "elementTest.h"
@@ -13,6 +14,9 @@ int main(int argc, char** argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
 
+  //make HDF quiet
+  HDF_TurnOffErrorHandling();
+ 
   MPI_Init(&argc, &argv);
 
   Int rank, np;

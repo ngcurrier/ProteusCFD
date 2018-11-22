@@ -1049,19 +1049,24 @@ void SolutionSpace<Type>::InitCRSSystem()
 template <class Type>
 void SolutionSpace<Type>::WriteSolution()
 {
-  //solution writing is turned off, likely running complex, etc.
-  if(param->solutionWrite < 0){
-    return;
-  }
-  if(param->movement){
-    m->WriteCurrentCoords(param->path+param->spacename, this->iter);
-  }
-
   Int rank = p->GetRank();
   std::stringstream ss;
   ss.str("");
   ss << rank;
   std::string filename = param->path+param->spacename + "." + ss.str() + ".h5";
+  //solution writing is turned off, likely running complex, etc.
+  if(param->solutionWrite < 0){
+    return;
+  }
+  std::cout << "-----------------------------------------------------------------" << std::endl;
+  std::cout << "HDF_IO: Writing solution to file " << filename << std::endl;  
+  std::cout << "-----------------------------------------------------------------" << std::endl;
+
+  if(param->movement){
+    m->WriteCurrentCoords(param->path+param->spacename, this->iter);
+  }
+
+
   std::string directoryBase = "/Solution/";
   if(param->solutionTagStep){
     ss.str("");
@@ -1080,7 +1085,6 @@ void SolutionSpace<Type>::WriteSolution()
     }
 		    
   }
-  std::cout << "HDF_IO: Writing solution to file " << param->path+param->spacename + ".h5" << std::endl;
 
   //loop over the fields and write them to hdf5
   for(typename std::vector<std::string>::iterator it = param->fieldsRequested.begin(); 

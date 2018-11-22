@@ -878,8 +878,8 @@ const ParameterEnum& Param<Type>::GetParameterEnum(std::string name) const
 //This is the master param file reading call, will create and load a vector
 //of param files which correspond to each solution space defined in the param file
 template <class Type> 
-Int ReadParamFile(std::vector<Param<Type>*>& paramFileList, std::string casename, std::string pathname, 
-		  Bool verbose)
+Int ReadParamFile(std::vector<Param<Type>*>& paramFileList, std::string casename,
+		  std::string pathname, Bool verbose)
 {
   std::ifstream fin;
   std::string trash, temp;

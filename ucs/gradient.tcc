@@ -107,8 +107,6 @@ void Gradient<Type>::Compute()
     }
   }
 #endif
-
-  return;
 }
 
 template <class Type>
@@ -458,7 +456,6 @@ void Bkernel_LSQ_Coefficients(B_KERNEL_ARGS)
     *size = 0;
     *ptrL = NULL;
   }
-  return;
 }
 
 template <class Type>
@@ -538,7 +535,6 @@ void Bkernel_LSQ_CoefficientsWeighted(B_KERNEL_ARGS)
     *size = 0;
     *ptrL = NULL;
   }
-  return;
 }
 
 template <class Type>
@@ -562,7 +558,6 @@ void Bkernel_Symmetry_Fix(B_KERNEL_ARGS)
       }
     }
   }
-  return;
 }
 
 template <class Type>

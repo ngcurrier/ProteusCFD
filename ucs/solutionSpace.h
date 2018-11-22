@@ -12,6 +12,7 @@
 #include "postPlugin.h"
 #include "exceptions.h"
 #include "h5layer.h"
+#include "move.h"
 
 #include <string>
 #include <vector>
@@ -104,7 +105,6 @@ public:
   CRS<Type>* crs;
   Gradient<Type>* grad;
   GaussianSource<Type>* gaussian;
-  std::vector<PostPlugin<Type>*> postPlugins;
   
   //pointers for convenience
   Type* q;
@@ -112,15 +112,20 @@ public:
   Type* qoldm1;
   Type* qgrad;
 
-  //residual data storage for CFL scaling
-  Type residual;
-  Type residualnm1;
 
   std::ofstream timerOutFile;
   std::ofstream residOutFile;
 
 private:
+
+
+//residual data storage for CFL scaling
+  Type residual;
+  Type residualnm1;
+
   std::vector<SolutionField<Type>*> fields;
+  std::vector<PostPlugin<Type>*> postPlugins;
+
 
   Bool isCopy;
   Type dtmin, residGlobal;

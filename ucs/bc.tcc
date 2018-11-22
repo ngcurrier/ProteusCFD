@@ -70,12 +70,18 @@ Int BoundaryConditions<Type>::InitInternals(EqnSet<Type>* eqnset)
 template <class Type>
 Int BoundaryConditions<Type>::GetBCType(Int factag)
 {
-  return GetBCObj(factag)->GetBCType();;
+  return GetBCObj(factag)->GetBCType();
 }
 
 template <class Type>
 BCObj<Type>* BoundaryConditions<Type>::GetBCObj(Int factag)
 {
+  if(bc_objs.count(factag) == 0){
+    std::stringstream ss;
+    ss << "GetBCObj() couldn't find factag map -- this shouldn't happen -- dying\n";
+    ss << "Request made for factag " << factag;
+    Abort << ss.str();
+  }
   BCObj<Type>* bco = bc_objs[factag];
   if(bco != NULL){
     return bco;

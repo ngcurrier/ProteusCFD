@@ -1,0 +1,29 @@
+## This is a test infrastructure piece to allow for the testing
+## of gradient routines
+## There are three fidelities in this file
+
+<<<BEGIN TEMPORAL CONTROL>>>
+numTimeSteps = 300
+newtonIterations = 1
+<<<END TEMPORAL CONTROL>>>
+
+<<<BEGIN SOLUTION ORDERING>>>
+Iterate cube_LowFi
+Iterate cube_MedFi
+Iterate cube_HiFi
+<<<END SOLUTION ORDERING>>>
+
+<<<BEGIN SPACE cube_LowFi>>>
+equationSet = compressibleEuler
+fieldsRequested = [gradVariableQ]
+<<<END SPACE>>>
+
+<<<BEGIN SPACE cube_MedFi>>>
+equationSet = compressibleEuler
+fieldsRequested = [gradVariableQ]
+<<<END SPACE>>>
+
+<<<BEGIN SPACE cube_HiFi>>>
+equationSet = compressibleEuler
+fieldsRequested = [gradVariableQ]
+<<<END SPACE>>>

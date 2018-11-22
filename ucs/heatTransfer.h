@@ -3,6 +3,7 @@
 
 #include "general.h"
 #include "eqnset.h"
+#include "dataInfo.h"
 
 template <class Type>
 class HeatTransferEqnSet : public EqnSet<Type>
