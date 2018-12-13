@@ -356,6 +356,10 @@ void Param<Type>::PostCompute()
 {
   //ref_pressure is read directly
   //-------------------------------------------------------
+
+  if(ref_pressure == REF_PRESSURE_DEFAULT){
+    Abort << "WARNING: keyword refPressure wasn't set in the input deck, set to non-default value";
+  }
   
   Type Rs = R_UNIV/(MW/1000.0); //J/kg.K
   std::cout << "PARAM: specific gas constant - " << Rs << " (J/kg.K)" << std::endl;
