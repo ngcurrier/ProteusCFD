@@ -265,8 +265,8 @@ void Kernel_LSQ_Gradient(KERNEL_ARGS)
   Int nvars = g->GetStride();
   Int* list = g->list;
   Type dx[3];
-  Type* xL = &m->cg[left_cv*3];
-  Type* xR = &m->cg[right_cv*3];
+  Type* xL = &m->xyz[left_cv*3];
+  Type* xR = &m->xyz[right_cv*3];
   
   Subtract(xL, xR, dx);
   
@@ -333,8 +333,8 @@ void Bkernel_LSQ_Gradient(B_KERNEL_ARGS)
     Int nvars = g->GetStride();
     Int* list = g->list;
     Type dx[3];
-    Type* xL = &m->cg[left_cv*3];
-    Type* xR = &m->cg[right_cv*3];
+    Type* xL = &m->xyz[left_cv*3];
+    Type* xR = &m->xyz[right_cv*3];
     
     Subtract(xL, xR, dx);
     
@@ -389,8 +389,8 @@ void Kernel_LSQ_Coefficients(KERNEL_ARGS)
   Mesh<Type>* m = space->m;
 
   Type dx[3];
-  Type* x1 = &m->cg[left_cv*3];
-  Type* x2 = &m->cg[right_cv*3];
+  Type* x1 = &m->xyz[left_cv*3];
+  Type* x2 = &m->xyz[right_cv*3];
   
   Subtract(x1, x2, dx);
   
@@ -402,19 +402,19 @@ void Kernel_LSQ_Coefficients(KERNEL_ARGS)
   Type dz2 = dx[2]*dx[2];
   
   //add sum from this edge, s1
-  tempL[0] = dx2;
-  tempL[1] = dx[0]*dx[1];
-  tempL[2] = dx[0]*dx[2];
-  tempL[3] = dy2;
-  tempL[4] = dx[1]*dx[2];
-  tempL[5] = dz2;
+  tempL[0] = dx2;             //s11
+  tempL[1] = (dx[0]*dx[1]);   //s12
+  tempL[2] = (dx[0]*dx[2]);   //s13
+  tempL[3] = dy2;             //s22
+  tempL[4] = (dx[1]*dx[2]);   //s23
+  tempL[5] = dz2;             //s33
 
-  tempR[0] = dx2;
-  tempR[1] = dx[0]*dx[1];
-  tempR[2] = dx[0]*dx[2];
-  tempR[3] = dy2;
-  tempR[4] = dx[1]*dx[2];
-  tempR[5] = dz2;
+  tempR[0] = tempL[0];
+  tempR[1] = tempL[1];
+  tempR[2] = tempL[2];
+  tempR[3] = tempL[3];
+  tempR[4] = tempL[4];
+  tempR[5] = tempL[5];
 
   *size = 6;  
   *ptrL = s1;
@@ -428,8 +428,8 @@ void Bkernel_LSQ_Coefficients(B_KERNEL_ARGS)
 
   if(m->IsGhostNode(right_cv)){
     Type dx[3];
-    Type* x1 = &m->cg[left_cv*3];
-    Type* x2 = &m->cg[right_cv*3];
+    Type* x1 = &m->xyz[left_cv*3];
+    Type* x2 = &m->xyz[right_cv*3];
     
     Subtract(x1, x2, dx);
     
@@ -440,12 +440,12 @@ void Bkernel_LSQ_Coefficients(B_KERNEL_ARGS)
     Type dz2 = dx[2]*dx[2];
     
     //add sum from this edge, s1
-    tempL[0] = dx2;
-    tempL[1] = dx[0]*dx[1];
-    tempL[2] = dx[0]*dx[2];
-    tempL[3] = dy2;
-    tempL[4] = dx[1]*dx[2];
-    tempL[5] = dz2;
+    tempL[0] = dx2;                   //s11
+    tempL[1] = (dx[0]*dx[1]);         //s12
+    tempL[2] = (dx[0]*dx[2]);         //s13
+    tempL[3] = dy2;                   //s22
+    tempL[4] = (dx[1]*dx[2]);         //s23
+    tempL[5] = dz2;                   //s33
     
     //these are going to be weighted later so we're done here
     
@@ -464,8 +464,8 @@ void Kernel_LSQ_CoefficientsWeighted(KERNEL_ARGS)
   Mesh<Type>* m = space->m;
 
   Type dx[3];
-  Type* x1 = &m->cg[left_cv*3];
-  Type* x2 = &m->cg[right_cv*3];
+  Type* x1 = &m->xyz[left_cv*3];
+  Type* x2 = &m->xyz[right_cv*3];
   
   Subtract(x1, x2, dx);
   
@@ -505,8 +505,8 @@ void Bkernel_LSQ_CoefficientsWeighted(B_KERNEL_ARGS)
 
   if(m->IsGhostNode(right_cv)){
     Type dx[3];
-    Type* x1 = &m->cg[left_cv*3];
-    Type* x2 = &m->cg[right_cv*3];
+    Type* x1 = &m->xyz[left_cv*3];
+    Type* x2 = &m->xyz[right_cv*3];
     
     Subtract(x1, x2, dx);
     
