@@ -16,14 +16,17 @@ Iterate cube_HiFi
 <<<BEGIN SPACE cube_LowFi>>>
 equationSet = compressibleEuler
 fieldsRequested = [gradVariableQ]
+refPressure = 101325
 <<<END SPACE>>>
 
 <<<BEGIN SPACE cube_MedFi>>>
 equationSet = compressibleEuler
 fieldsRequested = [gradVariableQ]
+refPressure = 101325
 <<<END SPACE>>>
 
 <<<BEGIN SPACE cube_HiFi>>>
 equationSet = compressibleEuler
 fieldsRequested = [gradVariableQ]
+refPressure = 101325
 <<<END SPACE>>>
