@@ -479,19 +479,19 @@ void Kernel_LSQ_CoefficientsWeighted(KERNEL_ARGS)
   Type dz2 = dx[2]*dx[2]*ds2;
   
   //add sum from this edge, s1
-  tempL[0] = dx2;
-  tempL[1] = dx[0]*dx[1]*ds2;
-  tempL[2] = dx[0]*dx[2]*ds2;
-  tempL[3] = dy2;
-  tempL[4] = dx[1]*dx[2]*ds2;
-  tempL[5] = dz2;
+  tempL[0] = dx2;               //s11
+  tempL[1] = dx[0]*dx[1]*ds2;   //s12
+  tempL[2] = dx[0]*dx[2]*ds2;   //s13
+  tempL[3] = dy2;               //s22
+  tempL[4] = dx[1]*dx[2]*ds2;   //s23
+  tempL[5] = dz2;               //s33
 
-  tempR[0] = dx2;
-  tempR[1] = dx[0]*dx[1]*ds2;
-  tempR[2] = dx[0]*dx[2]*ds2;
-  tempR[3] = dy2;
-  tempR[4] = dx[1]*dx[2]*ds2;
-  tempR[5] = dz2;
+  tempR[0] = tempL[0];
+  tempR[1] = tempL[1];
+  tempR[2] = tempL[2];
+  tempR[3] = tempL[3];
+  tempR[4] = tempL[4];
+  tempR[5] = tempL[5];
 
   *size = 6;  
   *ptrL = s1;
