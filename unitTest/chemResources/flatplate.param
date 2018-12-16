@@ -46,6 +46,7 @@ reactionsOn = 1
 symmetry2D = 2
 
 #these numbers are for air at 20C
+refPressure = 101325
 refLength = 0.01
 refViscosity = 1.98E-3
 
