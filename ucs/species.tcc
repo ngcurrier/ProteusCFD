@@ -413,7 +413,7 @@ Type Species<Type>::GetViscosity(Type T)
   //Result is in microPoises we need N.s/m^2 (Pa.s)
   Type convFact = 1.0e-7;
   
-  return exp(logmu)*convFact;
+  return exp(logmu)*convFact; // Pa.s
 }
 
 template <class Type>
@@ -456,5 +456,5 @@ Type Species<Type>::GetThermalConductivity(Type T)
   //result is returned in microWatt/cm.K, we need W/m.K
   Type convFact = 0.0001;
 
-  return exp(logk)*convFact;
+  return exp(logk)*convFact; // W/(m.K)
 }

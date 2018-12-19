@@ -8,18 +8,18 @@
 #include <iostream>
 #include <cmath>
 
-// NATIVE VARIABLES
-// rho
-// rho-u
-// rho-v
-// rho-w
-// rho-et
+// NATIVE VARIABLES (all nondimensional in storage)
+// rho              (kg/m^3)
+// rho-u            (kg/(m^2.s))
+// rho-v            (kg/(m^2.s))
+// rho-w            (kg/(m^2.s))
+// rho-et           (J/m^3)
 // NON-NATIVE AUX
-// T
-// P
-// u
-// v
-// w
+// T                (K)
+// P                (Pa)
+// u                (m/s)
+// v                (m/s)
+// w                (m/s)
 
 template <class Type>
 CompressibleEqnSet<Type>::CompressibleEqnSet(SolutionSpace<Type>* space, Param<Type>* p)
