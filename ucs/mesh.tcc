@@ -17,15 +17,20 @@ Int NegativeQueue(theType* A, Int n){
 //default constructor
 template <class Type> 
 Mesh<Type>::Mesh() :
-  nnode(0), gnode(0), nbnode(0), nbedge(0), ngedge(0), meshInit(0), 
-  mapsInit(0), mapsInitPsp(0), edgeInit(0), metricsCalc(0), solMemAlloc(0),
-  reordered(false), scaled(false), edges(NULL), bedges(NULL), isel2el(NULL),
-  sel2el(NULL)
+  p(NULL), edges(NULL), bedges(NULL), cvstat(NULL),
+  gNodeOwner(NULL), gNodeLocalId(NULL), cg(NULL), nv(NULL), s(NULL), sw(NULL),
+  ordering(NULL), xyz(NULL), xyz_base(NULL), xyzold(NULL), xyzoldm1(NULL),
+  vol(NULL), volold(NULL), vololdm1(NULL), psp(NULL), ipsp(NULL), besp(NULL),
+  ibesp(NULL), nvnodes(0), vnodes(NULL), nsnodes(NULL), snodes(NULL),
+  gnnode(0), nnode(0), gnode(0), nbnode(0), nelem(NULL), gnelem(0), lnelem(0),
+  nedge(0), ngedge(0), nbedge(0), mnode(NULL), extentsMax(NULL), extentsMin(NULL),
+  meshInit(false), mapsInit(false), mapsInitPsp(false), edgeInit(false),
+  metricsCalc(false), solMemAlloc(false), scaled(false), reordered(false),
+  esp(NULL), iesp(NULL), el2el(NULL), iel2el(NULL), sel2el(NULL), isel2el(NULL),
+  elsp(NULL), ielsp(NULL), selsp(NULL), iselsp(NULL)
 {
-  //allocate space for element counts
-  nelem = new Int[MAX_E_TYPES];
-  mnode = new Int[MAX_E_TYPES];
 
+  nelem = new Int[MAX_E_TYPES];
   for(Int i = 0; i < MAX_E_TYPES; ++i){
     nelem[i] = 0;
   }
@@ -35,6 +40,7 @@ Mesh<Type>::Mesh() :
   extentsMin = new Type[3];
 
   //set number of vertices to expect for each elem type
+  mnode = new Int[MAX_E_TYPES];
   mnode[TRI] = 3;
   mnode[QUAD] = 4;
   mnode[TET] = 4;
@@ -55,10 +61,11 @@ Type* Mesh<Type>::GetNodeCoords()
   return xyz;
 }
 
+// This function returns the node coords prior to any movement routines being called
+// and is useful for preventing roundoff accumulation during long movement simulations
 template <class Type>
 Type const * Mesh<Type>::GetNodeCoordsBase() const
 {
-
   return xyz_base;
 }
 
@@ -66,7 +73,6 @@ template <class Type>
 void Mesh<Type>::SetParallelPointer(PObj<Type>* p_passed)
 {
   p = p_passed;
-  return;
 }
 
 template <class Type>
@@ -147,7 +153,7 @@ const Int* Mesh<Type>::SelspBegin(Int ptid) const
 }
 
 template <class Type>
-const Int* Mesh<Type>::SelspEnd(Int ptid) const
+const Int* Mesh<Type>::SelspEnd(Int ptid) const 
 {
   Int indx2 = iselsp[ptid+1];
   return &(selsp[indx2]);
@@ -163,6 +169,8 @@ Int Mesh<Type>::MemInitMesh()
 
   xyz = new Type[3*nnode + 3*gnode];
   xyz_base = new Type[3*nnode + 3*gnode];
+  xyzold = new Type[nnode*3 + 3*gnode];
+  xyzoldm1 = new Type[nnode*3 + 3*gnode];
   vol = new Type[nnode];
   volold = new Type[nnode];
   vololdm1 = new Type[nnode];
@@ -170,16 +178,16 @@ Int Mesh<Type>::MemInitMesh()
   //initliaze cv status flag objects
   cvstat = new CVStat[nnode];
 
-  //allocate parallel memory
-  gNodeOwner = new Int[gnode];
-  gNodeLocalId = new Int[gnode];
-
   //this must be set here incase mesh reordering is not use
   //i.e. this must be a valid list as it is used in the buildMaps() function
   ordering = new Int[nnode];
   for(Int i = 0; i < nnode; ++i){
     ordering[i] = i;
   }
+
+  //allocate parallel memory
+  gNodeOwner = new Int[gnode];
+  gNodeLocalId = new Int[gnode];
 
   meshInit = 1;
   return (0);
@@ -229,6 +237,13 @@ Int Mesh<Type>::ReorderC2nMap()
 template <class Type>
 Int Mesh<Type>::BuildMaps()
 {
+  //This function is valid to call after maps have been built
+  //Therefore we have to attempt to clean up previous iterations
+  //to avoid memory leaks
+  KillSolutionMemory();
+  KillMapMemory();
+  KillEdgesMemory();
+  
   int err = 0;
   err = BuildElsp();
   if(err != 0){
@@ -259,6 +274,8 @@ Int Mesh<Type>::BuildMaps()
     return (err);
   }
 
+  //this has to be called last because we need to resolve the nbnode size
+  //which is resolved from the BuildEdges() call
   AllocateSolutionMemory();
   
   mapsInit = 1;
@@ -271,6 +288,13 @@ Int Mesh<Type>::BuildMaps()
 template <class Type>
 Int Mesh<Type>::BuildMapsDecomp()
 {
+  //This function is valid to call after maps have been built
+  //Therefore we have to attempt to clean up previous iterations
+  //to avoid memory leaks
+  KillSolutionMemory();
+  KillMapMemory();
+  KillEdgesMemory();
+
   int err = 0;
   err = BuildElsp();
   if(err != 0){
@@ -298,7 +322,7 @@ void Mesh<Type>::CleanMapsDecomp()
     delete [] vnodes;
     delete [] snodes;
   }
-  mapsInitPsp = 0;
+  mapsInitPsp = false;
 }
 
 template <class Type>
@@ -317,7 +341,6 @@ void Mesh<Type>::KillMapMemory()
   }
   CleanMapsDecomp();
   mapsInit = mapsInitPsp = false;
-  return;
 }
 
 template <class Type>
@@ -327,11 +350,8 @@ void Mesh<Type>::KillSolutionMemory()
     delete [] s;
     delete [] sw;
     delete [] nv;
-    delete [] xyzold;
-    delete [] xyzoldm1;
   }
   solMemAlloc = false;
-  return;
 }
 
 
@@ -344,7 +364,6 @@ void Mesh<Type>::KillEdgesMemory()
     delete [] cg;
   }
   edgeInit = false;
-
 }
 
 template <class Type>
@@ -1230,25 +1249,30 @@ void Mesh<Type>::GetParallelTuple(Int node, Int& owningProcess, Int& localId) co
   }
 }
 
+// computes the normal vector for a node based on the average of all neigboring
+// surface element faces
+// ptid - the node id for which to compute the normal vector
+// normal - returned normal for the node based on neighbor faces
 template <class Type>
-void Mesh<Type>::GetNodeNeighborhoodNormal(Int npt, std::vector<Type>& normal) const
+void Mesh<Type>::GetNodeNeighborhoodNormal(Int ptid, std::vector<Type>& normal) const
 {
   Int count = 0;
   std::vector<Type> avg(4,0.0);
-  for(Int* indx = SelspBegin(npt); indx != SelspEnd(npt); ++indx){
+  for(const Int* indx = SelspBegin(ptid); indx != SelspEnd(ptid); ++indx){
     Int selemid = *indx;
-    std::vector<Type> normal;
-    elementList[selemid]->GetNormal(normal);
-    avg[0] += normal[0]; //x
-    avg[1] += normal[1]; //y
-    avg[2] += normal[2]; //z
-    avg[3] += normal[3]; //actually face area
+    std::vector<Type> inormal;
+    elementList[selemid]->GetNormal(inormal, xyz);
+    avg[0] += inormal[0]; //x
+    avg[1] += inormal[1]; //y
+    avg[2] += inormal[2]; //z
+    avg[3] += inormal[3]; //actually face area
     count++;
   }
   avg[0] /= (Type)count;
   avg[1] /= (Type)count;
   avg[2] /= (Type)count;
   avg[3] /= (Type)count;
+  normal = avg;
 }
 
 /******************************************/
@@ -2403,22 +2427,18 @@ Int Mesh<Type>::ReorderMeshCuthillMcKee(Int reverse)
 }
 
 template <class Type>
-Int Mesh<Type>::AllocateSolutionMemory()
+void Mesh<Type>::AllocateSolutionMemory()
 {
   //create space for LSQ gradient coeff.
   s = new Type[(nnode+gnode)*6];
   sw = new Type[(nnode+gnode)*6];
   //allocate memory for mesh movement velocities
   nv = new Type[(nnode+gnode+nbnode)*3];
-  xyzold = new Type[nnode*3];
-  xyzoldm1 = new Type[nnode*3];
 
   //blank out the grid velocities since this only gets used with a moving grid
   MemBlank(nv, (nnode+gnode+nbnode)*3);
 
   solMemAlloc = 1;
-  
-  return(0);
 }
 
 template <class Type>
@@ -2453,6 +2473,8 @@ Mesh<Type>::~Mesh()
   delete [] extentsMin;
   if(meshInit == 1){
     delete [] xyz;
+    delete [] xyzold;
+    delete [] xyzoldm1;
     delete [] xyz_base;
     delete [] vol;
     delete [] volold;
@@ -2466,7 +2488,25 @@ Mesh<Type>::~Mesh()
   KillMapMemory();
   KillEdgesMemory();
 }
- 
+
+// returns elements by id that are labeled with the appropriate factag
+// elementIds - vector which will contain list of elements on return
+// factag - factag of surface for which we'd like the elements
+template <class Type> 
+Int Mesh<Type>::FindSurfaceElementsWithFactag(std::vector<Int>& elementIds, Int factag)
+{
+  elementIds.resize(0);
+  for(Int ielem = 0; ielem < elementList.size(); ++ielem){
+    if(elementList[ielem]->GetFactag() == factag){
+      elementIds.push_back(ielem);
+    }
+  }
+}
+
+
+// returns nodes by id that are labeled with the appropriate factag
+// pts - unallocated pointer of Int which will contain list of nodes on return
+// factag - factag of surface for which we are finding nodes
 template <class Type> 
 Int Mesh<Type>::FindPointsWithFactag(Int** pts, Int factag)
 {
@@ -2517,6 +2557,10 @@ Int Mesh<Type>::GetMaximumFactag(){
   return max;
 }
 
+// returns coordinates for a list of points
+// rxyz - array of coordinates, must be pre-allocated
+// pts - array of points list by id
+// n - number of points in pts list
 template <class Type> 
 void Mesh<Type>::GetCoordsForPoints(Type* rxyz, Int* pts, Int n)
 {
@@ -2847,8 +2891,8 @@ Mesh<Type>::Mesh(const Mesh<Type2>& meshToCopy)
   DuplicateArray(&besp, meshToCopy.besp, ibesp[nnode+gnode]);
   
   DuplicateArray(&xyz, meshToCopy.xyz, 3*nnode + 3*gnode);
-  DuplicateArray(&xyzold, meshToCopy.xyzold, 3*nnode);
-  DuplicateArray(&xyzoldm1, meshToCopy.xyzoldm1, 3*nnode);
+  DuplicateArray(&xyzold, meshToCopy.xyzold, 3*nnode + 3*gnode);
+  DuplicateArray(&xyzoldm1, meshToCopy.xyzoldm1, 3*nnode + 3*gnode);
   DuplicateArray(&xyz_base, meshToCopy.xyz_base, 3*nnode + 3*gnode);
   
   DuplicateArray(&vol, meshToCopy.vol, nnode);
@@ -2945,6 +2989,58 @@ void Mesh<Type>::ScaleMesh(Type scaleFactor)
       xyz_base[i] *= scaleFactor;
     }
     scaled = true;
+  }
+}
+
+// Append nodes to the current mesh, this assumes that the nodes adding are not ghost
+// nodes but are on the mesh interior, does not fix elements, etc. and keep in mind that
+// hanging nodes may wreak havoc on the core solver if not connected correctly
+// see memInitMesh() for the things we have to adjust for
+// numNewNodes - number of nodes we are appending
+// xyz_new - list of new node coordinates  in flat array [x0,y0,z0, ..., zn,yn,zn)
+template <class Type>
+void Mesh<Type>::AppendNodes(Int numNewNodes, Type* xyz_new){
+  Int numNodeOld = nnode;
+
+  // the mesh needs nnode and gnode to be consistent with the size of the nnode array
+  gnode = gnode;
+  nnode = numNodeOld + numNewNodes;
+  
+  // when we add nodes to the mesh we must adjust the following array sizes as well
+  MemResize(&xyz, numNodeOld*3 + gnode*3, nnode*3 + gnode*3);
+  MemResize(&xyz_base, numNodeOld*3 + gnode*3, nnode*3 + gnode*3);
+  MemResize(&xyzold, numNodeOld*3 + gnode*3, nnode*3 + gnode*3);
+  MemResize(&xyzoldm1, numNodeOld*3 + gnode*3, nnode*3 + gnode*3);
+
+  MemResize(&vol, numNodeOld, nnode);
+  MemResize(&volold, numNodeOld, nnode);
+  MemResize(&vololdm1, numNodeOld, nnode);
+
+  MemResize(&cvstat, numNodeOld, nnode);
+
+  MemResize(&ordering, numNodeOld, nnode);
+
+  // we resized and copied across all the old data now we need to add in
+  // the new data where appropriate
+
+  Int j = 0;
+  for(int i = numNodeOld*3; i < nnode*3; ++i){
+    xyz[i] = xyz_new[j];
+    xyz_base[i] = xyz[i];
+    xyzold[i] = xyz[i];
+    xyzoldm1[i] = xyz[i];
+    ++j;
+  }
+
+  for(int i = 0; i < numNewNodes; ++i){
+    vol[numNodeOld + i] = 0.0;
+    volold[numNodeOld + i] = 0.0;
+    vololdm1[numNodeOld + i] = 0.0;
+  }
+
+  // we just serialize the last nodes, they can be reordered later if we wish
+  for(int i = 0; i < numNewNodes; ++i){
+    ordering[numNodeOld + i] = numNodeOld + i;
   }
 }
 

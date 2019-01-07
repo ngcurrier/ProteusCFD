@@ -31,3 +31,10 @@ Make.depend
 
 # edited files
 *.*~
+
+# outputs from proteus
+*.cl
+*.vtu
+*.pvd
+*.timer
+*.residual

@@ -52,6 +52,10 @@ class Mesh
     friend class Mesh;
   
  public:
+
+  //*************************************************************************************
+  //     MEMBER FUNCTIONS
+  //*************************************************************************************
   
   Mesh();
   ~Mesh();
@@ -59,15 +63,13 @@ class Mesh
   template <class Type2>
   Mesh(const Mesh<Type2>& meshToCopy);
 
-  PObj<Type>* p;  //parallel comm object... we need one of thes for each mesh we use
   void SetParallelPointer(PObj<Type>* p_passed); //pass in parallel pointer for the mesh to use
-  Int ReadPartedMesh(std::string casename);
-
   Int MemInitMesh();
   
-  Int ReorderC2nMap();//This uses list ordering to reorder the list in c2n
-                     //By modifying c2n we can control how all other maps are built
-                     //to minimize sparse matrix bandwidth
+  //This uses list ordering to reorder the list in c2n
+  //By modifying c2n we can control how all other maps are built
+  //to minimize sparse matrix bandwidth
+  Int ReorderC2nMap();
 
   Int BuildMaps();   //MASTER CALLING FUNCTION - builds all conn. maps
                      //all other mapping functions order dependent - privatized
@@ -75,53 +77,29 @@ class Mesh
   Int BuildMapsDecomp(); //build maps only up to psp() primitives -- for DECOMP
   void CleanMapsDecomp(); //clean memory for maps up to psp() primitives -- for DECOMP
 
-  void KillMapMemory(); //deletes all memory associated with mapsInit()
-  void KillSolutionMemory(); //deletes all memory associated with solution allocation
-  void KillEdgesMemory();   //deletes all memory associated with edges in mesh
-
-  //adaptation routines
-  void RefineNodeBased(Bool* refineNodeList);
-  void RebuildRefinedMesh(Type* xyzNew, Int xyzNewCount, Element<Type>** newElements, Int newElemCount, Int* deadElemList, Int deadElemCount);
-
-  Bool IsElemParallel(Int gelem);
-
-  //give local node number, returns owning process and the localid of that node 
-  //on the owning process... owning Process and localId return negative if in error
-  void GetParallelTuple(Int node, Int& owningProcess, Int& localId) const;
-
-  //computes the normal vector to a node based on neighbor faces
-  void GetNodeNeighborhoodNormal(Int npt, std::vector<Type>& normal) const; 
-  
-  Int IsInteriorNode(Int n) const;   //interior to mesh
-  Int IsGhostNode(Int n) const;      //parallel update nodes
-  Int IsBoundaryNode(Int n) const;   //boundary condition nodes
+  void AllocateSolutionMemory();
+  void KillMapMemory();       //deletes all memory associated with mapsInit()
+  void KillSolutionMemory();  //deletes all memory associated with solution allocation
+  void KillEdgesMemory();     //deletes all memory associated with edges in mesh
 
   Int CalcMetrics(); //MASTER CALLING FUNCTION - calcs all metrics, and checks
                      //all other metrics functions privatized 
-
   Int ReorderMeshCuthillMcKee(Int reverse); //Reorder mesh using Cuthill-McKee algorithm
+  void ScaleMesh(Type scaleFactor);   
+
+  void AppendNodes(Int numNewNodes, Type* xyz_new);
   
-  Int AllocateSolutionMemory();
-
-  Int NodeOrigToLocal(Int origId);
-
   //allocates array and returns ids of points with desired factag
   Int FindPointsWithFactag(Int** pts, Int factag);
-  Int GetMaximumFactag();
-  void GetCoordsForPoints(Type* rxyz, Int* pts, Int n); 
+  //allocates array and returns ids of elements with desired factag
+  Int FindSurfaceElementsWithFactag(std::vector<Int>& elementIds, Int factag);
 
-  //list of elements in the mesh
-  std::vector<Element<Type>*> elementList;
-
-  //this call will write a decomp file as appropriate for 
-  //this portion of the mesh in its current state
-  Int WriteParallelMesh(std::string casename);
-  //this call writes current coords in a timestep-# directory for mesh movement
-  Int WriteCurrentCoords(std::string casename, Int timestep);
-
-  void ScaleMesh(Type scaleFactor);   //scales mesh by a value
   Bool IsScaled() const {return scaled;};
   Bool IsReordered() const {return reordered;};
+  Bool IsElemParallel(Int gelem);
+  Int IsInteriorNode(Int n) const;   //interior to mesh
+  Int IsGhostNode(Int n) const;      //parallel update nodes
+  Int IsBoundaryNode(Int n) const;   //boundary condition nodes
   Int GetNumElemNodes(Int type) const {return mnode[type];};
   Int GetNumElem() const;
   Int GetNumElem(Int type) const {return nelem[type];};
@@ -134,7 +112,40 @@ class Mesh
   Int GetNumEdges() const {return nedge;};
   Int GetNumParallelEdges() const {return ngedge;};
   Int GetNumBoundaryEdges() const {return nbedge;};
+  Type GetVolumeTotal() const;
+  Type const * GetVolume() const;       //returns vector of cv volumes
+  Type const * GetVolumeOld() const;    //returns vector of nm1 cv volumes
+  Type const * GetVolumeOldM1() const;  //returns vector of nm2 cv volumes
+  Type const * GetNodeCoords() const;
+  Type const * GetNodeCoordsBase() const;
+  Int GetMaximumFactag();
+  void GetCoordsForPoints(Type* rxyz, Int* pts, Int n); 
+  Type GetMinX() const {return extentsMin[0];};
+  Type GetMaxX() const {return extentsMax[1];};
+  Type GetMinY() const {return extentsMin[2];};
+  Type GetMaxY() const {return extentsMax[0];};
+  Type GetMinZ() const {return extentsMin[1];};
+  Type GetMaxZ() const {return extentsMax[2];};
+  //give local node number, returns owning process and the localid of that node 
+  //on the owning process... owning Process and localId return negative if in error
+  void GetParallelTuple(Int node, Int& owningProcess, Int& localId) const;
+  //computes the normal vector to a node based on neighbor faces
+  void GetNodeNeighborhoodNormal(Int ptid, std::vector<Type>& normal) const; 
+  
+  void SetNumNodes(Int nnode){this->nnode = nnode;};
+  void SetMeshScaled(){scaled  = true;};
+  void SetMeshReordered(){reordered = true;};
+  Type* GetNodeCoords();
+  Int* ElspBegin(Int ptid); //returns beginning access to elements surrounding a point
+  Int* ElspEnd(Int ptid);   //returns ending access to elements surrounding a point
+  Int* SelspBegin(Int ptid); //returns beginning access to elements surrounding a surface point
+  Int* SelspEnd(Int ptid);   //returns ending access to elements surrounding a surface point
+  const Int* ElspBegin(Int ptid) const; //returns beginning access to elements surrounding a point
+  const Int* ElspEnd(Int ptid) const;   //returns ending access to elements surrounding a point
+  const Int* SelspBegin(Int ptid) const; //returns beginning access to elements surrounding a surface point
+  const Int* SelspEnd(Int ptid) const;   //returns ending access to elements surrounding a surface point
 
+  Int ReadPartedMesh(std::string casename);
   Int ReadUGRID_Ascii(std::string filename);
   Int ReadCRUNCH_Ascii(std::string filename);
   Int ReadSU2_Ascii(std::string filename);
@@ -153,8 +164,25 @@ class Mesh
   Int WriteVTK_Binary(std::string casename, std::vector<SolutionField<Type>*>& fields);
   Int WriteXMLVTK_Binary(std::string casename, std::vector<SolutionField<Type>*>& fields);
   Int WriteGridXDMF(PObj<Type> &p, std::string filebase, std::string meshname);
+  //this call will write a decomp file as appropriate for 
+  //this portion of the mesh in its current state
+  Int WriteParallelMesh(std::string casename);
+  //this call writes current coords in a timestep-# directory for mesh movement
+  Int WriteCurrentCoords(std::string casename, Int timestep);
+
+
+  //*************************************************************************************
+  //     MEMBER VARIABLES
+  //*************************************************************************************
   
-  void SetNumNodes(Int nnode){this->nnode = nnode;};
+  
+  PObj<Type>* p;  //parallel comm object... we need one of thes for each mesh we use
+
+  std::vector<Element<Type>*> elementList; //list of mesh elements
+  Edges<Type>* edges;                      //list of Edge objects
+  HalfEdges<Type>* bedges;                 //list of HalfEdge objects (ghost edges then boundary edges)
+  
+  CVStat* cvstat; //control volume boolean status flags
 
   //parallel utility maps
   Int* gNodeOwner;   //(gnode long) lists proc id which own ghost nodes
@@ -166,8 +194,6 @@ class Mesh
   //solution vectors
   Type* cg;    //center of gravity
   Type* nv;    //node velocity
-  Type* xyzold;   //position time n 
-  Type* xyzoldm1; //position time n-1
 
   //edge coefficients for LSQ gradients
   Type* s;
@@ -175,50 +201,21 @@ class Mesh
 
   //solution ordering
   Int* ordering;
-
-  //number of surface elements (TRI/QUAD)
-  Int bface;
-
+  
+  Int bface; //number of surface elements (TRI/QUAD)
   Int nfactags;  //number of unique face tags in list factag
 
-  Type GetMinX() const {return extentsMin[0];};
-  Type GetMaxX() const {return extentsMax[1];};
-  Type GetMinY() const {return extentsMin[2];};
-  Type GetMaxY() const {return extentsMax[0];};
-  Type GetMinZ() const {return extentsMin[1];};
-  Type GetMaxZ() const {return extentsMax[2];}; 
-
-  Type const * GetNodeCoords() const;
-  Type* GetNodeCoords();
-  Type const * GetNodeCoordsBase() const;
-
-  Type* xyz;      //coordinates of each vertex
+  Type* xyz;      //coordinates of each vertex time current
   Type* xyz_base; //coordinates of each vertex at t=0, needed for movement routines
-
-  Type GetVolumeTotal() const;
-  Type const * GetVolume() const;       //returns vector of cv volumes
-  Type const * GetVolumeOld() const;    //returns vector of nm1 cv volumes
-  Type const * GetVolumeOldM1() const;  //returns vector of nm2 cv volumes
+  Type* xyzold;   //position time n 
+  Type* xyzoldm1; //position time n-1
 
   Type* vol;      //volumes of node based CVs
   Type* volold;   //volumes at n   (for GCL)
   Type* vololdm1; //volumes at n-1 (for GCL)
-
-  CVStat* cvstat; //control volume boolean status flags
-  
-  Int* ElspBegin(Int ptid); //returns beginning access to elements surrounding a point
-  Int* ElspEnd(Int ptid);   //returns ending access to elements surrounding a point
-  Int* SelspBegin(Int ptid); //returns beginning access to elements surrounding a surface point
-  Int* SelspEnd(Int ptid);   //returns ending access to elements surrounding a surface point
-
-  const Int* ElspBegin(Int ptid) const; //returns beginning access to elements surrounding a point
-  const Int* ElspEnd(Int ptid) const;   //returns ending access to elements surrounding a point
-  const Int* SelspBegin(Int ptid) const; //returns beginning access to elements surrounding a surface point
-  const Int* SelspEnd(Int ptid) const;   //returns ending access to elements surrounding a surface point
   
   Int* psp;      //point surrounding point map
   Int* ipsp;     //index into CRS of psp
-
   Int* besp;     //boundary halfedges surrounding point
   Int* ibesp;    //index into CRS of besp
 
@@ -227,9 +224,6 @@ class Mesh
   Int nsnodes;   //number of nodes lying on a surface
   Int* snodes;   //simple list of nodes directly on a surface
 
-  Edges<Type>* edges;       //list of Edge objects
-  HalfEdges<Type>* bedges;  //list of HalfEdge objects (ghost edges then boundary edges)
-  
   Int gnnode;       //number of global nodes
   Int nnode;        //number of nodes in mesh
   Int gnode;        //number of ghost nodes in mesh (parallel only)
@@ -241,30 +235,12 @@ class Mesh
   Int ngedge;       //number of half edges in mesh (ghost -- for parallel)
   Int nbedge;       //number of half edges in mesh (boundary)
 
-  //flag that is set on mesh read which states a mesh is previously
-  //scaled.. we wont' do it again
-  Bool scaled;
-
-  //flag that is set on mesh read which states a mesh is previously
-  //reordered... we won't do it again
-  Bool reordered;
-
 private:
 
-  //list of booleans which indicates what memory has been alloc'd
-  Bool meshInit;
-  Bool mapsInit;
-  Bool mapsInitPsp;
-  Bool edgeInit;
-  Bool metricsCalc;
-  Bool solMemAlloc;
-  
-  //number of nodes in each element type
-  Int* mnode;
+  //*************************************************************************************
+  //     PRIVATE MEMBER FUNCTIONS
+  //*************************************************************************************
 
-  Type* extentsMax; //maximum xyz coords
-  Type* extentsMin; //minimum xyz coords
-  
   //Called via public BuildMaps() function
   Int BuildElsp();  //element to surrounding point map
   Int BuildPsp();   //point to surrounding point map
@@ -283,14 +259,46 @@ private:
   Int EdgeInElem(Int n1, Int n2, Int jelem);
   Int CheckEdgeOrientation(Int** ieorder, Int* eorder, Int etype, Int numedges, 
 			   Int* tested, Int& edgeid);
-    
-  //metric calculation routines
+    //metric calculation routines
   Int CalcExtents();         //calculates extents of mesh... 
   Int CalcAreasVolumes();    //calculate area vectors for the edges, and volumes of CVs
   Int CheckForClosure();     //check for CV closure
 
+
+  //*************************************************************************************
+  //     PRIVATE MEMBER VARIABLES
+  //*************************************************************************************
+  
+  //number of nodes in each element type
+  Int* mnode;
+  Type* extentsMax; //maximum xyz coords
+  Type* extentsMin; //minimum xyz coords
+  
+  //list of booleans which indicates what memory has been alloc'd
+  Bool meshInit;
+  Bool mapsInit;
+  Bool mapsInitPsp;
+  Bool edgeInit;
+  Bool metricsCalc;
+  Bool solMemAlloc;
+  //flag that is set on mesh read which states a mesh is previously
+  //scaled.. we wont' do it again
+  Bool scaled;
+  //flag that is set on mesh read which states a mesh is previously
+  //reordered... we won't do it again
+  Bool reordered;
+
  protected:
 
+  //*************************************************************************************
+  //     PROTECTED MEMBER FUNCTIONS
+  //*************************************************************************************
+
+
+  //*************************************************************************************
+  //     PROTECTED MEMBER VARIABLES
+  //*************************************************************************************
+  
   Int* esp;      //edge surrounding point
   Int* iesp;     //index into CRS of esp
 
@@ -308,7 +316,6 @@ private:
 
 //include implementations
 #include "mesh.tcc"
-#include "meshAdapt.tcc"
 
 #endif
 
