@@ -1,5 +1,6 @@
 #include "base64.h"
 #include "math.h"
+#include <algorithm>
 
 //used to check if a list is negative or not
 //class must allow random access via []
@@ -2504,7 +2505,7 @@ Int Mesh<Type>::FindSurfaceElementsWithFactag(std::vector<Int>& elementIds, Int 
 }
 
 
-// returns nodes by id that are labeled with the appropriate factag
+// returns sorted list of nodes by id that are labeled with the appropriate factag
 // pts - unallocated pointer of Int which will contain list of nodes on return
 // factag - factag of surface for which we are finding nodes
 template <class Type> 
@@ -2540,6 +2541,9 @@ Int Mesh<Type>::FindPointsWithFactag(Int** pts, Int factag)
   //do final memory resizing
   MemResize(pts, memsize, n);
 
+  //sort list
+  std::sort(pts, pts+memsize);
+  
   return n;
 }
 

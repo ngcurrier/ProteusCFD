@@ -4,6 +4,7 @@
 #include "bc.h"
 #include "mesh.h"
 #include <vector>
+#include <map>
 
 // NOTE: this set of functions are designed for taking a volume mesh that does not have
 //       a boundary layer and systematically inflating it one boundary at a time
@@ -86,6 +87,15 @@ void InflateBoundary(int boundaryFactag, Real inflationDistance, Mesh<Real>* m)
   // interstitial layer of volume elements
   m->AppendNodes(npts, oldxyz);
   
+  std::map<int,int> nodemap;
+  for(Int jpt = 0; jpt < npts; ++jpt){
+    Int nodeid = pts[jpt];
+    //new nodes are appended at the end of the mesh
+    nodemap[nodeid] = jpt+m->GetNumNodes();
+  }
+  // access the map like::
+  nodemap.at(0);
+
   // loop over all the elements on that factag
   for(Int i = 0; i < elementIds.size(); ++i){
     Int ielem = elementIds[i];
@@ -97,6 +107,7 @@ void InflateBoundary(int boundaryFactag, Real inflationDistance, Mesh<Real>* m)
     // --- reset nodes on surface elements to the new nodes at old location
     Int newnodes[8];
 //*********** TODO: compute the nodes in the new list
+    
     elem->Init(newnodes);
 
     Int etype = elem->GetType();
