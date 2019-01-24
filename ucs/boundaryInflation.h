@@ -86,49 +86,64 @@ void InflateBoundary(int boundaryFactag, Real inflationDistance, Mesh<Real>* m)
   // append the old nodes back and use them to reset the boundary elements and create an
   // interstitial layer of volume elements
   m->AppendNodes(npts, oldxyz);
-  
+
+  // map goes from oldNodeId --> adjacent inserted node
   std::map<int,int> nodemap;
   for(Int jpt = 0; jpt < npts; ++jpt){
     Int nodeid = pts[jpt];
     //new nodes are appended at the end of the mesh
     nodemap[nodeid] = jpt+m->GetNumNodes();
   }
-  // access the map like::
-  nodemap.at(0);
 
   // loop over all the elements on that factag
   for(Int i = 0; i < elementIds.size(); ++i){
     Int ielem = elementIds[i];
-    Element<Real>* elem = m->elementList[ielem];
-    Int* oldnodes;
-    Int nnodes = elem->GetNnodes();
-    elem->GetNodes(&oldnodes);
+    Element<Real>* elemsurf = m->elementList[ielem];
+    Int etypesurf = elemsurf->GetType();
+    Int* oldsurfnodes;
+    Int nnodes = elemsurf->GetNnodes();
+    elemsurf->GetNodes(&oldsurfnodes);
 
-    // --- reset nodes on surface elements to the new nodes at old location
-    Int newnodes[8];
-//*********** TODO: compute the nodes in the new list
-    
-    elem->Init(newnodes);
+    // --- get nodes on surface elements from the new nodes list
+    Int newsurfnodes[4];
+    for(Int j = 0; j < nnodes; ++j){
+      // access the map like
+      newsurfnodes[j] = nodemap.at(oldsurfnodes[j]);
+    }
 
-    Int etype = elem->GetType();
+    // we now have, for each surface element, the old node numbers which are
+    // now pushed into the volume field and the new node numbers which define the extrusion
+    // at the surface stitch a new volume element from that information
     Element<Real>* tempe = NULL;
-      
+    // allocate maximum needed space for new node list for volume element
+    Int newvolnodes[8];
     // --- create new volume element to stitch the layer
     // TRI -> PRISM : QUAD -> HEX keywords
-    switch(etype) {
+    switch(etypesurf) {
     case TRI :
       tempe = new Prism<Real>;
+      for(Int k = 0; k < 3; ++k){
+	newvolnodes[k] = oldsurfnodes[k];
+	newvolnodes[k+3] = newsurfnodes[k];
+      }
       break;
     case QUAD :
       tempe = new Hexahedron<Real>;
+      for(Int k = 0; k < 4; ++k){
+	newvolnodes[k] = oldsurfnodes[k];
+	newvolnodes[k+4] = newsurfnodes[k];
+      }
       break;
     default:
       std::cerr << "Type not inflatable in InflateBoundary()" << std::endl;
     }
 //*********** TODO: compute the nodes in the new element list
-    tempe->Init(newnodes);
+    tempe->Init(newvolnodes);
     tempe->SetFactag(boundaryFactag);
     m->elementList.push_back(tempe);
+    
+    // set the old surface element to map to its new nodes on the boundary
+    elemsurf->Init(newsurfnodes);
   }
   
   delete [] pts;
