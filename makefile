@@ -2,6 +2,7 @@ include $(MAKE).opts
 
 EXE_SOLVER = ./bin/ucs.x
 EXE_DECOMP = ./bin/udecomp.x
+EXE_GRIDMOD = ./bin/gridmod.x
 EXE_RECOMP = ./bin/urecomp.x
 EXE_FINDPOINT = ./bin/findpoint.x
 EXE_PORTOPT = ./bin/opt.x
@@ -25,6 +26,8 @@ SRCS_SOLVER = ./ucs/main.cpp ./ucs/eqnset.cpp ./ucs/etypes.cpp ./ucs/threaded.cp
 	./ucs/exceptions.cpp
 SRCS_DECOMP = ./ucs/decomp.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/parallel.cpp \
 	 ./ucs/dataInfo.cpp ./ucs/exceptions.cpp
+SRCS_GRIDMOD = ./ucs/gridmod.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/parallel.cpp \
+	 ./ucs/dataInfo.cpp ./ucs/exceptions.cpp
 SRCS_RECOMP = ./ucs/recomp.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/parallel.cpp \
 	 ./ucs/dataInfo.cpp ./ucs/exceptions.cpp
 SRCS_FINDPOINT = ./ucs/find_point.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/parallel.cpp \
@@ -34,8 +37,10 @@ OBJS_SOLVER = $(SRCS_SOLVER:.cpp=.o)
 DEPS_SOLVER = $(SRCS_SOLVER:.cpp=.d)
 OBJS_DECOMP = $(SRCS_DECOMP:.cpp=.o)
 DEPS_DECOMP = $(SRCS_DECOMP:.cpp=.d)
+OBJS_GRIDMOD = $(SRCS_GRIDMOD:.cpp=.o)
+DEPS_GRIDMOD = $(SRCS_GRIDMOD:.cpp=.d)
 OBJS_RECOMP = $(SRCS_RECOMP:.cpp=.o)
-DEPS_RECOMP = $(SRCS_DECOMP:.cpp=.d)
+DEPS_RECOMP = $(SRCS_RECOMP:.cpp=.d)
 OBJS_FINDPOINT = $(SRCS_FINDPOINT:.cpp=.o)
 DEPS_FINDPOINT = $(SRCS_FINDPOINT:.cpp=.d)
 
@@ -84,6 +89,9 @@ endif
 
 $(EXE_DECOMP): $(METISINSTALLDIR)/libmetis.a  ./ucs/libcommon.a  $(DEPS_DECOMP) $(OBJS_DECOMP) 
 	$(MPICXX) $(LINK_OPTS) -o $(EXE_DECOMP) $(LCXXFLAGS) -L$(METIS_LIB) $(OBJS_DECOMP) $(CXXLIBS) -lmetis -ltinyxml -lcommon
+
+$(EXE_GRIDMOD): ./ucs/libcommon.a  $(DEPS_GRIDMOD) $(OBJS_GRIDMOD) 
+	$(MPICXX) $(LINK_OPTS) -o $(EXE_GRIDMOD) $(LCXXFLAGS) -L$(METIS_LIB) $(OBJS_GRIDMOD) $(CXXLIBS) -ltinyxml -lcommon
 
 $(EXE_RECOMP):  $(DEPS_RECOMP) $(OBJS_RECOMP) ./ucs/libcommon.a
 	$(MPICXX) $(LINK_OPTS) -o $(EXE_RECOMP) $(LCXXFLAGS) $(OBJS_RECOMP) $(CXXLIBS) -ltinyxml -lcommon
@@ -159,6 +167,7 @@ clean:
 	rm $(DEPS_ALL); \
 	rm $(EXE_SOLVER); \
 	rm $(EXE_DECOMP); \
+	rm $(EXE_GRIDMOD); \
 	rm $(EXE_RECOMP); \
 	rm $(DEPS_TEST); \
 	rm $(EXE_FINDPOINT); \
@@ -206,18 +215,19 @@ cleanucs:
 	cd ./chemdata;\
 	./chemDB.py
 
-all: $(EXE_SOLVER) $(EXE_DECOMP) $(EXE_RECOMP) $(EXE_FINDPOINT) $(EXE_TESTS)\
+all: $(EXE_SOLVER) $(EXE_DECOMP) $(EXE_GRIDMOD) $(EXE_RECOMP) $(EXE_FINDPOINT) $(EXE_TESTS)\
 	$(EXE_CHEMPROPS) $(EXE_STRUCT_SOLVER) $(EXE_STRUCT_ERROR) $(EXE_PORTOPT) database
 
-tools: $(EXE_DECOMP) $(EXE_RECOMP) $(EXE_CHEMPROPS) $(EXE_FINDPOINT)
+tools: $(EXE_DECOMP) $(EXE_GRIDMOD) $(EXE_RECOMP) $(EXE_CHEMPROPS) $(EXE_FINDPOINT)
 tests: $(EXE_TESTS)
 chemprops: $(EXE_CHEMPROPS)
 ucs: $(EXE_SOLVER)
 decomp: $(EXE_DECOMP)
 recomp: $(EXE_RECOMP)
+gridmod: $(EXE_GRIDMOD)
 database: ~/.proteusCFD/database/chemdb.hdf5
 
-.PHONY: tests chemprops all tools ucs decomp recomp database
+.PHONY: tests chemprops all tools ucs decomp recomp gridmod database
 
 -include $(DEPS_ALL)
 
