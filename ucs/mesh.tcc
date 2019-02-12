@@ -3302,6 +3302,56 @@ Int Mesh<Type>::ReadSU2_Ascii(std::string filename)
   return(0);
 }
 
+// This function simply opens a gmsh file and then delegates the reading to the appropriate
+// GMSH file version'd reader
+template <class Type>
+Int Mesh<Type>::ReadGMSH_Master(std::string filename)
+{
+  int ierr = 0;
+  std::ifstream fin;
+  std::string line;
+
+  fin.open(filename.c_str());
+  if(!fin.is_open()){
+    std::cerr << "Could not open file " << filename << " in GMSH MASTER ASCII I/O" << std::endl;
+    return(-1);
+  }
+
+  int majorVersion = 0;
+  
+  std::size_t loc;
+  while(std::getline(fin, line)){
+    if(line.size() == 0) continue; //skip blank lines
+    if(line[0] == '%') continue; //skip comment lines
+    //this is the mesh format indicator
+    if(line.find("$MeshFormat") != std::string::npos){
+      // read the next line which has the format in it
+      // the first double value is the format id
+      std::getline(fin, line);
+      float version;
+      std::stringstream ss(line);
+      ss >> version;
+      std::cout << "Found GMSH version: " << version << std::endl;
+      majorVersion = floor(version);
+    }
+  }
+
+  fin.close();
+  if(majorVersion == 2 || majorVersion == 3){
+    std::cout << "Opening file with GMSH format v2/3 style reader" << std::endl;
+    ierr = ReadGMSH2_Ascii(filename);
+  }
+  else if(majorVersion == 4){
+    std::cout << "Opening file with GMSH format v4 style reader" << std::endl;
+    ierr = ReadGMSH4_Ascii(filename);
+  }
+  else{
+    Abort << "Major version reader not available for this GMSH file type";
+    
+  }
+  return ierr;
+}
+
 template <class Type>
 Int Mesh<Type>::ReadGMSH2_Ascii(std::string filename)
 {
@@ -3377,17 +3427,20 @@ Int Mesh<Type>::ReadGMSH2_Ascii(std::string filename)
   //read each line one at a time, use a state machine to process data
   std::size_t loc;
   while(std::getline(fin, line)){
+    line = trim(line);
     if(line.size() == 0) continue; //skip blank lines
     if(line[0] == '%') continue; //skip comment lines
     //this is a state change
     if(line[0] == '$'){
       std::map<std::string, int>::iterator it = stateMap.find(line);
+      std::cout << "'" << line << "'" << std::endl;
       if(it != stateMap.end()){
 	state = stateMap[line];
 	continue;
       }
       else{
 	std::cerr << "GMSH ASCII I/O: found bad state " << state << std::endl;
+	std::cerr << "GMSH ASCII I/O: last line read " << line << std::endl;
 	return(-1);
       }
     }
@@ -3412,7 +3465,7 @@ Int Mesh<Type>::ReadGMSH2_Ascii(std::string filename)
 	  ss >> tmp;
 	  Int datasize;
 	  ss >> datasize;
-	  std::cout << "GMSH ASCII I/O: Reading mesh dataszie " << datasize << std::endl;
+	  std::cout << "GMSH ASCII I/O: Reading mesh datasize " << datasize << std::endl;
 	}
 	break;
       case ReadNpoints:
@@ -3465,7 +3518,7 @@ Int Mesh<Type>::ReadGMSH2_Ascii(std::string filename)
 	    return (-1);
 	  }
 	  if(elemType == GMSH_LINE){
-	    std::cerr << "GMSH ASCII I/O: found lin elements in file, these shouldn't be here. Ignoring.\n";
+	    std::cerr << "GMSH ASCII I/O: found line elements in file, these shouldn't be here. Ignoring.\n";
 	  }
 	  else if(elemType == GMSH_POINT){
 	    std::cerr << "GMSH ASCII I/O: found point elements in file, these shouldn't be here. Ignoring.\n";
@@ -3708,6 +3761,7 @@ Int Mesh<Type>::ReadGMSH4_Ascii(std::string filename)
   //read each line one at a time, use a state machine to process data
   std::size_t loc;
   while(std::getline(fin, line)){
+    line = trim(line);
     lineCount++;
     if(line.size() == 0) continue; //skip blank lines
     if(line[0] == '%') continue; //skip comment lines
@@ -3720,6 +3774,7 @@ Int Mesh<Type>::ReadGMSH4_Ascii(std::string filename)
       }
       else{
 	std::cerr << "GMSH ASCII I/O: found bad state " << state << std::endl;
+	std::cerr << "GMSH ASCII I/O: last line read " << line << std::endl;
 	return(-1);
       }
     }

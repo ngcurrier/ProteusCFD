@@ -99,4 +99,7 @@ Int StripCSV(const std::string str, theType** items)
 //generates hash of a string
 unsigned int stringHash(std::string str); 
 
+// removes leading/trailing whitespace from a string
+std::string& trim(std::string& s, const char* t = " \t\n\r\f\v");
+
 #endif

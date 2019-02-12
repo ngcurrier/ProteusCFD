@@ -228,3 +228,18 @@ unsigned int stringHash(std::string str){
     hash = 65599 * hash + str[i];
   return hash ^ (hash >> 16);
 }
+
+
+
+//Remove surrounding whitespace from a std::string.
+// @param s The string to be modified.
+// @param t The set of characters to delete from each end
+// of the string.
+// @return The same string passed in as a parameter reference.
+//
+std::string& trim(std::string& s, const char* t)
+{
+	s.erase(0, s.find_first_not_of(t));
+	s.erase(s.find_last_not_of(t) + 1);
+	return s;
+}

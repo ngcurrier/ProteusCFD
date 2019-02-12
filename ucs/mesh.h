@@ -138,6 +138,7 @@ class Mesh
   Int ReadUGRID_Ascii(std::string filename);
   Int ReadCRUNCH_Ascii(std::string filename);
   Int ReadSU2_Ascii(std::string filename);
+  Int ReadGMSH_Master(std::string filename);
   Int ReadGMSH2_Ascii(std::string filename);
   Int ReadGMSH4_Ascii(std::string filename);
 #ifdef _HAS_CGNS
