@@ -590,7 +590,7 @@ Type ChemModel<Type>::GetSpecificEnthalpy(Type* massfrac, Type T, Type * hi)
     hi[i] = species[i].GetH(T);
     h += hi[i]*massfrac[i];
   }
-  return h;
+  return h; // (J/kg)
 }
 
 template <class Type>
@@ -923,7 +923,7 @@ Type ChemModel<Type>::GetViscosity(Type* rhoi, Type T)
     visc[i] = species[i].GetViscosity(T);
   }
   Type mu = WilkesMixtureRule(rhoi, visc, T);
-  return mu;
+  return mu; // Pa.s
 }
 
 template <class Type>
@@ -934,7 +934,7 @@ Type ChemModel<Type>::GetThermalConductivity(Type* rhoi, Type T)
     k[i] = species[i].GetThermalConductivity(T);
   }
   Type kt = WilkesMixtureRule(rhoi, k, T);
-  return kt;
+  return kt; //(W/(m.K))
 }
 
 template <class Type>
@@ -981,7 +981,7 @@ void ChemModel<Type>::MassToMole(Type* rho, Type* moleConc)
 {
   //converts from kg/m^3 to mol/m^3
   for(Int i = 0; i < nspecies; ++i){
-    moleConc[i] = rho[i]/species[i].MW/1000.0; //gives units of mol/m^3
+    moleConc[i] = rho[i]/species[i].MW/1000.0; // (mol/m^3)
   }
 }
 
@@ -994,9 +994,10 @@ Type ChemModel<Type>::GetP(const Type* rhoi, const Type T) const
     // assumes that Dalton's law holds - P = sum_i (P_i)
     P += eos[i]->GetP(Rs, rhoi[i], T);
   }
-  return P;
+  return P; // Pa
 }
 
+//returns specific heat at constant pressure
 template <class Type>
 Type ChemModel<Type>::GetCp(const Type* rhoi, const Type T) const
 {
@@ -1013,9 +1014,10 @@ Type ChemModel<Type>::GetCp(const Type* rhoi, const Type T) const
   for(Int i = 0; i < nspecies; i++){
     cp += species[i].GetCp(T)*X[i];
   }
-  return cp;
+  return cp; // (J/(kg.K))
 }
 
+//returns specific heat at constant volume
 template <class Type>
 Type ChemModel<Type>::GetCv(const Type* rhoi, const Type T) const
 {
@@ -1036,7 +1038,7 @@ Type ChemModel<Type>::GetCv(const Type* rhoi, const Type T) const
     Type Ri = species[i].R;
     cv += X[i]*(eos[i]->GetCv(cpi, Ri, rhoi[i], P, T));
   }
-  return cv;
+  return cv; // (J/(kg.K))
 }
 
 

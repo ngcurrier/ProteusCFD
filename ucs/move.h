@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include "general.h"
+#include "crs.h"
 
 template <class Type> class SolutionSpace;
 template <class Type> class Mesh;

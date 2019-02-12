@@ -29,7 +29,7 @@ void MemResize(theType** data, size_t old_size, size_t new_size){
 }
 
 //this has similar functionality to the above but operates on a list
-//of pointers to an object of type theType
+//of pointers to an object of type theType*
 template <class theType>
 void MemResize(theType*** data, size_t old_size, size_t new_size){
   theType** temp = NULL;

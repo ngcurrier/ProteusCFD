@@ -56,8 +56,6 @@ void MoveMesh(SolutionSpace<Type>* space){
   ComputeNodeLSQCoefficients(space);
 
   delete [] dx;
-
-  return;
 }
 
 // This routine sets up all the displacements for a mesh movement/change
@@ -436,8 +434,6 @@ void SmoothMeshLaplacian(Mesh<Type>* m, BoundaryConditions<Real>* bc,
 
   delete [] dx;
   delete [] symNodes;
-
-  return;
 }
 
 //This routine is used to bump an entire mesh-line of nodes in a given direction
@@ -534,6 +530,7 @@ Int BumpNodesOnLine(const Type dist[3], const Int ptId, const Int nnodes,
 //code follows AIAA 2005-0923 (Karman, et. al.)
 //m - mesh to do movement on
 //bc - used to ensure we respect symmetry planes, etc. w/o distorting mesh horribly
+//     if bc == NULL then all nodes are allowed to move
 //dx - vector of all nodes*3 {dx,dy,dz}, will be set to the smooth displacements on exit
 //iter - max number of iterations for linear system solve
 template <class Type>
@@ -739,7 +736,7 @@ void MoveMeshLinearElastic(Mesh<Type>* m, BoundaryConditions<Real>* bc, Type* dx
 //Sets the boundary conditions for the movement solve
 //m - mesh object to move
 //crs - compressed row storage of linear system to solve (BCs modified here)
-//dx 
+//bc - boundary condition object, if NULL, all nodes only volume nodes are allowed to move
 template <class Type>
 void SetBCLinearElastic(Mesh<Type>* m, CRS<Type>* crs, BoundaryConditions<Real>* bc)
 {
@@ -749,40 +746,56 @@ void SetBCLinearElastic(Mesh<Type>* m, CRS<Type>* crs, BoundaryConditions<Real>*
   Int* fixed = new Int[nnode+gnode];
   Type* ptr;
 
-  //we are going to allow symmetry plane nodes to move
-  Int* symNodes;
-  Int nSymNodes = GetNodesOnSymmetryPlanes(m, bc, &symNodes);
-
-  //change nodes on design plane but not directly specified to moving
-  Int* designNodes;
-  Int nDesignNodes = GetNodesOnMovingBC(m, bc, &designNodes);  
-
-  //we are going to fix all nodes on the farfield BC
-  Int* farNodes;
-  Int nFarNodes = GetNodesOnBCType(m, bc, Proteus_FarField, &farNodes);
-
-  //init all nodes as moving
-  for(i = 0; i < nnode+gnode; i++){
-    fixed[i] = 0;
+  if(bc == NULL){
+    // if we have no boundary information then set all the boundaries to fixed by dx vector
+    //init all nodes as fixed
+    for(i = 0; i < nnode+gnode; i++){
+      fixed[i] = 1;
+    }
+    //change volume nodes to moving
+    for(i = 0; i < m->nvnodes; i++){
+      fixed[m->vnodes[i]] = 0;
+    }
   }
-  //change volume nodes to moving
-  for(i = 0; i < m->nvnodes; i++){
-    fixed[m->vnodes[i]] = 0;
+  else{
+  
+    //we are going to allow symmetry plane nodes to move
+    Int* symNodes;
+    Int nSymNodes = GetNodesOnSymmetryPlanes(m, bc, &symNodes);
+    
+    //change nodes on design plane but not directly specified to moving
+    Int* designNodes;
+    Int nDesignNodes = GetNodesOnMovingBC(m, bc, &designNodes);  
+    
+    //we are going to fix all nodes on the farfield BC
+    Int* farNodes;
+    Int nFarNodes = GetNodesOnBCType(m, bc, Proteus_FarField, &farNodes);
+    
+    //init all nodes as moving
+    for(i = 0; i < nnode+gnode; i++){
+      fixed[i] = 0;
+    }
+    //change volume nodes to moving
+    for(i = 0; i < m->nvnodes; i++){
+      fixed[m->vnodes[i]] = 0;
+    }
+    //change symmetry nodes to moving
+    for(i = 0; i < nSymNodes; i++){
+      fixed[symNodes[i]] = 0;
+    }
+    //change nodes on the farfield BC to fixed - i.e. static
+    for(i = 0; i < nFarNodes; i++){
+      fixed[farNodes[i]] = 1;
+    }
+    //change nodes on a design flagged bc to fixed - i.e. prescribed
+    for(i = 0; i < nDesignNodes; i++){
+      fixed[designNodes[i]] = 1;
+    }
+    delete [] symNodes;
+    delete [] designNodes;
   }
-  //change symmetry nodes to moving
-  for(i = 0; i < nSymNodes; i++){
-    fixed[symNodes[i]] = 0;
-  }
-  //change nodes on the farfield BC to fixed - i.e. static
-  for(i = 0; i < nFarNodes; i++){
-    fixed[farNodes[i]] = 1;
-  }
-  //change nodes on a design flagged bc to fixed - i.e. prescribed
-  for(i = 0; i < nDesignNodes; i++){
-    fixed[designNodes[i]] = 1;
-  }
-
-  //change diag jacobian to the identity matrix for fixed nodes
+  
+  //change diag jacobian to the identity matrix for fixed/prescribed nodes
   //and zero the off-diagonal row entries
   for(i = 0; i < nnode; i++){
     if(fixed[i]){
@@ -795,8 +808,6 @@ void SetBCLinearElastic(Mesh<Type>* m, CRS<Type>* crs, BoundaryConditions<Real>*
   }
 
   delete [] fixed;
-  delete [] symNodes;
-  delete [] designNodes;
 }
 
 template <class Type>

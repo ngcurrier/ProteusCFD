@@ -49,8 +49,6 @@ void Compute_dX_Surface(std::string casename, Mesh<Type>* m, BoundaryConditions<
       if(betaid[i] == beta){
 	pt = pts[i];
 		
-	//localNode = m->NodeOrigToLocal(pt);
-
 	//make sure the node is on this process
 	if(localNode >= 0){
 	  if(parType == 0){

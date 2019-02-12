@@ -4,6 +4,7 @@
 #include "strings_util.h"
 #include "h5layer.h"
 #include "solutionField.h"
+#include "boundaryInflation.h"
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -43,17 +44,20 @@ int main(int argc, char* argv[])
     return -1;
   }
   //
-  //  read standard data across all processes
+  //  read standard data from HDF files across all processes
   //  
   
+  Int reordered, rescaled;
   HDF_ReadScalar(h5temp, "/", "Number Of Processors", &np);
   //read flag to tell if mesh has been previously reordered
-  Int reorder;
-  HDF_ReadScalar(h5temp, "/", "Reordered", &reorder);
-  m.reordered = reorder;
-  Int rescaled;
+  HDF_ReadScalar(h5temp, "/", "Reordered", &reordered);
+  if(reordered){
+    m.SetMeshReordered();
+  }
   HDF_ReadScalar(h5temp, "/", "Rescaled", &rescaled);
-  m.scaled = rescaled;
+  if(rescaled){
+    m.SetMeshScaled();
+  }
   //read total number of nodes in mesh
   HDF_ReadScalar(h5temp, "/", "Global Number Of Nodes", &m.gnnode);
   //read total number of elems in mesh
@@ -240,6 +244,11 @@ int main(int argc, char* argv[])
     //return (-1);
   }
 
+  std::vector<int> boundaryFactagList;
+  std::vector<Real> boundaryThicknesses;
+  std::vector<int> numberOfLayers;
+  GenerateBoundaryLayers(boundaryFactagList, boundaryThicknesses, numberOfLayers, &m);
+  
   std::vector<SolutionField<Real>*> fields;
 
   //Read in the datasets from one of the files

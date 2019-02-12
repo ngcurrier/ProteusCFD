@@ -9,25 +9,25 @@
 #include <cmath>
 #include <iostream>
 
-//Variable locations
-//rho_1 (kg/m^3)
-//rho_2
-//...
-//rho_NScompute temperature from energy
-//u
-//v
-//w
-//T_static (not total)
+//Variable locations (all nondimensional in storage)
+//rho_1    (kg/m^3)
+//rho_2    (kg/m^3)
+//...      ...
+//rho_NS   (kg/m^3)
+//u        (m/s)
+//v        (m/s)
+//w        (m/s)
+//T_static (K)
 //-----Aux Variables
-//P
-//rho
-//cv_1
+//P        (Pa)
+//rho_avg  (kg/m^3)
+//cv_1     (J/kg.K)
+//...      ...
+//cv_NS    (J/kg.K)
+//mol_1    (mol/m^3)
+//mol_2    (mol/m^3)
 //...
-//cv_NS
-//mol_1 (mol/m^3)
-//mol_2
-//...
-//mol_NS
+//mol_NS   (mol/m^3)
 
 #define N_SUBIT 10
 
@@ -1243,7 +1243,7 @@ Type CompressibleFREqnSet<Type>::GetTotalEnergy(Type* Q)
   // add on the kinetic part for total energy
   Et = E + 0.5*rho*v2;
 
-  return Et;
+  return Et; // J/m^3
 }
 
 template <class Type>
@@ -1270,7 +1270,7 @@ Type CompressibleFREqnSet<Type>::GetTotalEnthalpy(Type* Q)
 
   Ht = h*rho + 0.5*rho*v2;
 
-  return Ht;
+  return Ht; // J/m^3
 }
 
 template <class Type>
