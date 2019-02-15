@@ -2542,7 +2542,7 @@ Int Mesh<Type>::FindPointsWithFactag(Int** pts, Int factag)
   MemResize(pts, memsize, n);
 
   //sort list
-  std::sort(pts, pts+memsize);
+  std::sort(pts, pts+n);
   
   return n;
 }

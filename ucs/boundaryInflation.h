@@ -32,11 +32,13 @@ void GenerateBoundaryLayers(std::vector<int> boundaryFactagList, std::vector<Rea
   // Procedure:
   for(int i = 0; i < boundaryFactagList.size(); ++i){
     int factag = boundaryFactagList[i];
-    Real dist = 0.01;
-    // 1) Displace a single boundary from the list in the list using linear elastic smoothing
-    // compute the next layer's distance
-    InflateBoundary(factag, dist, m);
-    // continue to next boundary..
+    for(int j = 0; j < numberOfLayers[i]; ++j){
+      Real dist = 0.01;
+      // 1) Displace a single boundary from the list in the list using linear elastic smoothing
+      // compute the next layer's distance
+      InflateBoundary(factag, dist, m);
+      // continue to next boundary..
+    }
   }
   // end when all layers have been inserted
   
@@ -54,9 +56,19 @@ void InflateBoundary(int boundaryFactag, Real inflationDistance, Mesh<Real>* m)
   Int* pts;
   Int npts = m->FindPointsWithFactag(&pts, boundaryFactag);
 
+  if(npts == 0){
+    std::cout << "WARNING: factag " << boundaryFactag << " does not seem to have points associated" << std::endl;
+    return;
+  }
+  
+  for(int i = 0; i < npts; ++i){
+    std::cout << pts[i] << std::endl;
+  }
+
   // save off the current location of these points
   Real* oldxyz = new Real[npts*3];
   m->GetCoordsForPoints(oldxyz, pts, npts);
+
 
   // TODO: check to see if any of these points are connected on multiple factags
   // If a point is connected to multiple factags that are being extruded it's distance

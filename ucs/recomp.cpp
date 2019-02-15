@@ -4,7 +4,6 @@
 #include "strings_util.h"
 #include "h5layer.h"
 #include "solutionField.h"
-#include "boundaryInflation.h"
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -244,10 +243,6 @@ int main(int argc, char* argv[])
     //return (-1);
   }
 
-  std::vector<int> boundaryFactagList;
-  std::vector<Real> boundaryThicknesses;
-  std::vector<int> numberOfLayers;
-  GenerateBoundaryLayers(boundaryFactagList, boundaryThicknesses, numberOfLayers, &m);
   
   std::vector<SolutionField<Real>*> fields;
 
