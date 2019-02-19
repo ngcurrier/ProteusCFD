@@ -91,7 +91,7 @@ int main(int argc, char* argv[]){
 
   std::string tags;
   std::cout << "Please list the boundary ids to generate boundary layers on separated by commas:" << std::endl;
-  std::cin >> tags;
+  std::getline(std::cin, tags);
   
   std::vector<std::string> boundaries = Tokenize(tags, ',');
   std::vector<Real> boundaryThicknesses;
@@ -105,16 +105,16 @@ int main(int argc, char* argv[]){
     boundaryFactagList.push_back(tag);
     std::cout << "For tag " << tag << " please input layer thickness: " << std::endl;
     std::string tmp;
-    std::cin >> tmp;
+    std::getline(std::cin, tmp);
     ss.clear();
-    ss << tmp;
+    ss.str(tmp);
     Real thickness;
     ss >> thickness;
     boundaryThicknesses.push_back(thickness);
     std::cout << "For tag " << tag << " please input number of cell layers: " << std::endl;
-    std:: cin >> tmp;
+    std::getline(std::cin, tmp);
     ss.clear();
-    ss << tmp;
+    ss.str(tmp);
     int nlayers;
     ss >> nlayers;
     numberOfLayers.push_back(nlayers);

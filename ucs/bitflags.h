@@ -5,7 +5,7 @@ class BitField
   
 public:
   BitField() :
-    bits(NULL), size(0), bitsize(0)
+  bits(NULL), size(0), bitsize(0), allocated(false)
   { };
   
   BitField(int length) :
@@ -15,12 +15,15 @@ public:
        size++;
     }
     bits = new unsigned char[size];
+    allocated = true;
     clear();
   };
 
   ~BitField()
   {
-    delete [] bits;
+    if (allocated){
+      delete [] bits;
+    }
     size = 0;
     bitsize = 0;
   };
@@ -60,4 +63,5 @@ private:
   unsigned char * bits;
   int size;
   int bitsize;
+  bool allocated;
 };

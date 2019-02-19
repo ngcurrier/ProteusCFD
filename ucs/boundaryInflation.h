@@ -18,7 +18,7 @@ void InflateBoundary(int boundaryFactag, Real inflationDistance, Mesh<Real>* m);
 
 // Generates new boundary layers on select surfaces given a volume mesh
 // boundaryFactagList - vector of factags to inflate a boundary layer from
-// boundaryThickness - vector of thickness (one per factag) to use for inflation
+// boundaryThicknesses - vector of thickness (one per factag) to use for inflation
 // numberOfLayers - vector of layer # (one per factag) to use for inflation
 // m - mesh pointer to volume mesh to inflate
 void GenerateBoundaryLayers(std::vector<int> boundaryFactagList, std::vector<Real> boundaryThicknesses,
@@ -33,7 +33,7 @@ void GenerateBoundaryLayers(std::vector<int> boundaryFactagList, std::vector<Rea
   for(int i = 0; i < boundaryFactagList.size(); ++i){
     int factag = boundaryFactagList[i];
     for(int j = 0; j < numberOfLayers[i]; ++j){
-      Real dist = 0.01;
+      Real dist = boundaryThicknesses[i]/(Real)numberOfLayers[i];
       // 1) Displace a single boundary from the list in the list using linear elastic smoothing
       // compute the next layer's distance
       InflateBoundary(factag, dist, m);
@@ -56,6 +56,8 @@ void InflateBoundary(int boundaryFactag, Real inflationDistance, Mesh<Real>* m)
   Int* pts;
   Int npts = m->FindPointsWithFactag(&pts, boundaryFactag);
 
+  std::cout << "MESH UTILITY: Inflating " << npts << " boundary nodes by " << inflationDistance << std::endl;
+   
   if(npts == 0){
     std::cout << "WARNING: factag " << boundaryFactag << " does not seem to have points associated" << std::endl;
     return;
@@ -87,6 +89,8 @@ void InflateBoundary(int boundaryFactag, Real inflationDistance, Mesh<Real>* m)
   // find the surface elements which are on the appropriate boundary
   std::vector<Int> elementIds;
   m->FindSurfaceElementsWithFactag(elementIds, boundaryFactag);
+
+  std::cout << "MESH UTILITY: " << elementIds.size() << " surface elements ready for extrusion " << std::endl;
   
   //TODO: read in BC file so we can do the appropriate thing on symmetry planes (slipping nodes, etc.)
   BoundaryConditions<Real>* bc = NULL;
@@ -94,15 +98,17 @@ void InflateBoundary(int boundaryFactag, Real inflationDistance, Mesh<Real>* m)
 
   // append the old nodes back and use them to reset the boundary elements and create an
   // interstitial layer of volume elements
+  Int oldnnode = m->GetNumNodes();
   m->AppendNodes(npts, oldxyz);
-
   // map goes from oldNodeId --> adjacent inserted node
   std::map<int,int> nodemap;
   for(Int jpt = 0; jpt < npts; ++jpt){
     Int nodeid = pts[jpt];
     //new nodes are appended at the end of the mesh
-    nodemap[nodeid] = jpt+m->GetNumNodes();
+    nodemap[nodeid] = jpt+oldnnode;
   }
+
+  std::cout << "MESH UTILITY: pre-extrusion mesh has " << m->elementList.size() << " elements" << std::endl;
 
   // loop over all the elements on that factag
   for(Int i = 0; i < elementIds.size(); ++i){
@@ -110,12 +116,12 @@ void InflateBoundary(int boundaryFactag, Real inflationDistance, Mesh<Real>* m)
     Element<Real>* elemsurf = m->elementList[ielem];
     Int etypesurf = elemsurf->GetType();
     Int* oldsurfnodes;
-    Int nnodes = elemsurf->GetNnodes();
+    Int enodes = elemsurf->GetNnodes();
     elemsurf->GetNodes(&oldsurfnodes);
 
     // --- get nodes on surface elements from the new nodes list
     Int newsurfnodes[4];
-    for(Int j = 0; j < nnodes; ++j){
+    for(Int j = 0; j < enodes; ++j){
       // access the map like
       newsurfnodes[j] = nodemap.at(oldsurfnodes[j]);
     }
@@ -146,21 +152,24 @@ void InflateBoundary(int boundaryFactag, Real inflationDistance, Mesh<Real>* m)
     default:
       std::cerr << "Type not inflatable in InflateBoundary()" << std::endl;
     }
-//*********** TODO: compute the nodes in the new element list
     tempe->Init(newvolnodes);
-    tempe->SetFactag(boundaryFactag);
+    tempe->SetFactag(-1);
     m->elementList.push_back(tempe);
     
     // set the old surface element to map to its new nodes on the boundary
     elemsurf->Init(newsurfnodes);
   }
-  
+
+  std::cout << "MESH UTILITY: extruded mesh has " << m->elementList.size() << " elements" << std::endl;
+    
+  m->UpdateElementCounts();
   delete [] pts;
   delete [] oldxyz;
 
   // generate the maps required to take the next layer insertion
-  m->BuildMapsDecomp();
-
+  m->BuildMaps();
+  m->CalcMetrics();
+  
   std::cout << "LAYER INFLATION SUCCESSFUL ON FACTAG: " << boundaryFactag << std::endl;
 }
 

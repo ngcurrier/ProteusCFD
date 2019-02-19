@@ -176,7 +176,7 @@ Int Mesh<Type>::MemInitMesh()
   volold = new Type[nnode];
   vololdm1 = new Type[nnode];
   
-  //initliaze cv status flag objects
+  //initialize cv status flag objects
   cvstat = new CVStat[nnode];
 
   //this must be set here incase mesh reordering is not use
@@ -279,8 +279,8 @@ Int Mesh<Type>::BuildMaps()
   //which is resolved from the BuildEdges() call
   AllocateSolutionMemory();
   
-  mapsInit = 1;
-  mapsInitPsp = 1;
+  mapsInit = true;
+  mapsInitPsp = true;
 
   return(err);
 }
@@ -306,7 +306,7 @@ Int Mesh<Type>::BuildMapsDecomp()
     return (err);
   }
   
-  mapsInitPsp = 1;
+  mapsInitPsp = true;
   return(err);
 }
 //clears memory for maps built with BuildMapsDecomp()
@@ -396,6 +396,9 @@ Int Mesh<Type>::BuildElsp()
     Int type = element.GetType();
     for(Int j = 0; j < nnodes; ++j){
       node = nodes[j];
+      if (node >= nnode){
+	Abort << "MESH UTILITY: node found that is higher than node number in mesh";
+      }
       ielsp[node+1]++;
       if(type == TRI || type == QUAD){
 	iselsp[node+1]++;
@@ -1263,9 +1266,10 @@ void Mesh<Type>::GetNodeNeighborhoodNormal(Int ptid, std::vector<Type>& normal) 
     Int selemid = *indx;
     std::vector<Type> inormal;
     elementList[selemid]->GetNormal(inormal, xyz);
-    avg[0] += inormal[0]; //x
-    avg[1] += inormal[1]; //y
-    avg[2] += inormal[2]; //z
+    //all face normals are returned outward pointing, we want inward pointing. Flip them.
+    avg[0] -= inormal[0]; //x
+    avg[1] -= inormal[1]; //y
+    avg[2] -= inormal[2]; //z
     avg[3] += inormal[3]; //actually face area
     count++;
   }
@@ -2490,7 +2494,7 @@ Mesh<Type>::~Mesh()
   KillEdgesMemory();
 }
 
-// returns elements by id that are labeled with the appropriate factag
+// returns (sorted) elements by id that are labeled with the appropriate factag
 // elementIds - vector which will contain list of elements on return
 // factag - factag of surface for which we'd like the elements
 template <class Type> 
@@ -2502,6 +2506,7 @@ Int Mesh<Type>::FindSurfaceElementsWithFactag(std::vector<Int>& elementIds, Int 
       elementIds.push_back(ielem);
     }
   }
+  std::sort(elementIds.begin(), elementIds.end());
 }
 
 
@@ -3018,6 +3023,7 @@ void Mesh<Type>::AppendNodes(Int numNewNodes, Type* xyz_new){
   // the mesh needs nnode and gnode to be consistent with the size of the nnode array
   gnode = gnode;
   nnode = numNodeOld + numNewNodes;
+  std::cout << "MESH UTILITY: appending " << numNewNodes << " new nodes to current " << numNodeOld << " nodes" << std::endl;
   
   // when we add nodes to the mesh we must adjust the following array sizes as well
   MemResize(&xyz, numNodeOld*3 + gnode*3, nnode*3 + gnode*3);
@@ -3029,8 +3035,10 @@ void Mesh<Type>::AppendNodes(Int numNewNodes, Type* xyz_new){
   MemResize(&volold, numNodeOld, nnode);
   MemResize(&vololdm1, numNodeOld, nnode);
 
-  MemResize(&cvstat, numNodeOld, nnode);
-
+  // don't use resize since not POD type
+  delete [] cvstat;
+  cvstat = new CVStat[nnode];
+  
   MemResize(&ordering, numNodeOld, nnode);
 
   // we resized and copied across all the old data now we need to add in
@@ -4160,6 +4168,28 @@ Int Mesh<Type>::ReadGMSH4_Ascii(std::string filename)
   return 0;
 }
 
+template <class Type>
+void Mesh<Type>::UpdateElementCounts()
+{
+  nelem[TRI] = 0;
+  nelem[QUAD] = 0;
+  nelem[TET] = 0;
+  nelem[PYRAMID] = 0;
+  nelem[PRISM] = 0;
+  nelem[HEX] = 0;
+  for(typename std::vector<Element<Type>*>::iterator it = elementList.begin(); it != elementList.end(); ++it){
+    Element<Type>& element = **it;
+    Int etype = element.GetType();
+    nelem[etype]++;
+  }
+
+  lnelem = 0;
+  for(Int e = TRI; e <= HEX; e++){
+    lnelem += nelem[e];
+  }
+
+}
+
 #ifdef _HAS_CGNS
 
 template <class Type>
@@ -4553,7 +4583,7 @@ Int Mesh<Type>::WriteCRUNCH_Ascii(std::string casename)
   std::ofstream fout;
   std::stringstream ss (std::stringstream::in | std::stringstream::out);
 
-  std::string filename = casename + ".CRUNCH";
+  std::string filename = casename + ".crunch";
   
   //
   // table converts from crunch --> our format

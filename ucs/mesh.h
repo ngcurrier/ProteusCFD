@@ -152,6 +152,7 @@ class Mesh
   Int ReadGMSH_Master(std::string filename);
   Int ReadGMSH2_Ascii(std::string filename);
   Int ReadGMSH4_Ascii(std::string filename);
+  void UpdateElementCounts(); // updates the element type counters
 #ifdef _HAS_CGNS
   Int ReadCGNS(std::string filename); // master function calling utilities below
   Int GetCGNSSizes(std::string filename, int** isize);
