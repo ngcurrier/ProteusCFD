@@ -2518,6 +2518,12 @@ Int Mesh<Type>::FindPointsWithFactag(Int** pts, Int factag)
   Int memjump = 50;
   *pts = new Int[memsize];
 
+  //make sure we don't add the node to the list twice
+  Bool* used = new Bool[nnode];
+  for(i = 0; i < nnode; ++i){
+    used[i] = false;
+  }
+  
   for(i = 0; i < nsnodes; i++){
     pt = snodes[i];
     indx1 = ibesp[pt];
@@ -2525,25 +2531,28 @@ Int Mesh<Type>::FindPointsWithFactag(Int** pts, Int factag)
     for(indx = indx1; indx < indx2; indx++){
       bedge = besp[indx];
       if(bedges[bedge].factag == factag){
-	if(memsize <= n){
+	if(memsize <= n-1){
 	  MemResize(pts, memsize, memsize+memjump);
 	  memsize += memjump;
 	}
 	//make sure we don't accidentally add a ghost node to the list
-	if(pt < nnode){
+	if(pt < nnode && used[i] == false){
 	  (*pts)[n] = pt;
 	  n++;
+	  used[i] = true;
 	}
       }
     }
   }
 
+  delete [] used;
+  
   //do final memory resizing
   MemResize(pts, memsize, n);
 
   //sort list
-  std::sort(pts, pts+n);
-  
+  std::sort(*pts, *pts+n);
+
   return n;
 }
 

@@ -61,9 +61,6 @@ void InflateBoundary(int boundaryFactag, Real inflationDistance, Mesh<Real>* m)
     return;
   }
   
-  for(int i = 0; i < npts; ++i){
-    std::cout << pts[i] << std::endl;
-  }
 
   // save off the current location of these points
   Real* oldxyz = new Real[npts*3];

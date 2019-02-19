@@ -124,7 +124,8 @@ int main(int argc, char* argv[]){
   for(int i = 0; i < boundaryFactagList.size(); ++i){
     std::cout << boundaryFactagList[i] << ":\t" << boundaryThicknesses[i] << "\t" << numberOfLayers[i] << std::endl;
   }
-  
+
+  std::cout << "Generating boundary layers" << std::endl;
   GenerateBoundaryLayers(boundaryFactagList, boundaryThicknesses, numberOfLayers, &m);
 
   //write out the modified grid
