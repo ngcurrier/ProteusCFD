@@ -126,7 +126,8 @@ int main(int argc, char* argv[]){
   }
 
   std::cout << "Generating boundary layers" << std::endl;
-  GenerateBoundaryLayers(boundaryFactagList, boundaryThicknesses, numberOfLayers, &m);
+  Real growthRate = 1.2;
+  GenerateBoundaryLayers(boundaryFactagList, boundaryThicknesses, numberOfLayers, &m, growthRate);
 
   //write out the modified grid
   std::string newGridFilename = casename + ".new";

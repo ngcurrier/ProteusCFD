@@ -12,7 +12,7 @@
 //       Insertion Using Linear-Elastic Smoothing", by Karman et.al.
 
 void GenerateBoundaryLayers(std::vector<int> boundaryFactagList, std::vector<Real> boundaryThicknesses,
-			    std::vector<int> numberOfLayers, Mesh<Real>* m);
+			    std::vector<int> numberOfLayers, Mesh<Real>* m, Real growthRate);
 void InflateBoundary(int boundaryFactag, Real inflationDistance, Mesh<Real>* m);
 
 
@@ -21,22 +21,29 @@ void InflateBoundary(int boundaryFactag, Real inflationDistance, Mesh<Real>* m);
 // boundaryThicknesses - vector of thickness (one per factag) to use for inflation
 // numberOfLayers - vector of layer # (one per factag) to use for inflation
 // m - mesh pointer to volume mesh to inflate
+// growthRate - geometric growth rate of layers
 void GenerateBoundaryLayers(std::vector<int> boundaryFactagList, std::vector<Real> boundaryThicknesses,
-			    std::vector<int> numberOfLayers, Mesh<Real>* m)
+			    std::vector<int> numberOfLayers, Mesh<Real>* m, Real growthRate)
 {
   //sanity checking
   if((boundaryFactagList.size() != boundaryThicknesses.size()) || (numberOfLayers.size() != boundaryThicknesses.size())){
     Abort << "GenerateBoundaryLayers: arguments not matching in length";
   }
-  
+
   // Procedure:
   for(int i = 0; i < boundaryFactagList.size(); ++i){
     int factag = boundaryFactagList[i];
-    for(int j = 0; j < numberOfLayers[i]; ++j){
-      Real dist = boundaryThicknesses[i]/(Real)numberOfLayers[i];
+    int layers = numberOfLayers[i];
+    int power = layers - 1;
+    Real factor = 0.0;
+    for(int j = 0; j < layers; ++j){
+      factor += pow(growthRate,j);
+    }
+    Real dist = boundaryThicknesses[i]/factor;
+    for(int j = 1; j <= numberOfLayers[i]; ++j){
       // 1) Displace a single boundary from the list in the list using linear elastic smoothing
       // compute the next layer's distance
-      InflateBoundary(factag, dist, m);
+      InflateBoundary(factag, dist*pow(growthRate,layers-j), m);
       // continue to next boundary..
     }
   }
