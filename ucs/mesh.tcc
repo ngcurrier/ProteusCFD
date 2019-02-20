@@ -4177,10 +4177,12 @@ void Mesh<Type>::UpdateElementCounts()
   nelem[PYRAMID] = 0;
   nelem[PRISM] = 0;
   nelem[HEX] = 0;
+  nfactags = 0;
   for(typename std::vector<Element<Type>*>::iterator it = elementList.begin(); it != elementList.end(); ++it){
     Element<Type>& element = **it;
     Int etype = element.GetType();
     nelem[etype]++;
+    nfactags = MAX(nfactags, element.GetFactag());
   }
 
   lnelem = 0;
