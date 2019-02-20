@@ -84,6 +84,7 @@ int main(int argc, char* argv[]){
   
   //build utility maps for METIS
   m.BuildMaps();
+  m.CalcMetrics();
   pobj.BuildCommMaps(&m);
 
   Int nnode = m.GetNumNodes();

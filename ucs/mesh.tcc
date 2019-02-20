@@ -2536,7 +2536,7 @@ Int Mesh<Type>::FindPointsWithFactag(Int** pts, Int factag)
     for(indx = indx1; indx < indx2; indx++){
       bedge = besp[indx];
       if(bedges[bedge].factag == factag){
-	if(memsize <= n-1){
+	if(memsize <= n){
 	  MemResize(pts, memsize, memsize+memjump);
 	  memsize += memjump;
 	}
