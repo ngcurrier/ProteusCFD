@@ -8,6 +8,7 @@
 #include "etypes.h"
 
 template <class theType>
+// subtracts pt2 from pt1 -> r
 void Subtract(const theType pt1[3], const theType pt2[3], theType r[3])
 {
   r[0] = pt1[0] - pt2[0];
@@ -24,7 +25,7 @@ void Add(const theType pt1[3], const theType pt2[3], theType r[3])
 }
 
 //when we are calling distance, we are almost always talking about the
-//distance between the real parts of the geometry
+//distance magnitude between the real parts of the geometry
 template <class theType>
 Real Distance(const theType pt1[3], const theType pt2[3])
 {
@@ -63,6 +64,7 @@ theType DotProduct(const theType v1[3], const theType v2[3])
 }
 
 template <class theType>
+//computes v1 x v2 = rv
 void CrossProduct(const theType v1[3], const theType v2[3], theType rv[3])
 {
   rv[0] = v1[1]*v2[2] - v2[1]*v1[2]; 
@@ -70,7 +72,7 @@ void CrossProduct(const theType v1[3], const theType v2[3], theType rv[3])
   rv[2] = v1[0]*v2[1] - v2[0]*v1[1];
 }
 
-//vect scalar multiplication
+//vector scalar multiplication
 //ni - entries in vector
 template <class theType>
 void Scale(const theType s, theType r[], int ni)
@@ -91,8 +93,6 @@ void RemoveNormalComponent(const theType v1[3], const theType norv[3], theType r
   rv[0] = v1[0] - dot*norv[0];
   rv[1] = v1[1] - dot*norv[1];
   rv[2] = v1[2] - dot*norv[2];
-
-  return;
 }
 
 
@@ -126,8 +126,6 @@ void PerpVectors(const theType n[3], theType v1[3], theType v2[3])
 
   CrossProduct(n,v1,v2);
   Normalize(v2, v2);
-  
-  return;
 }
 
 //centroid for beam
@@ -411,7 +409,6 @@ void TranslatePoints(theType* pts, theType dx[3], Int n)
     pt[1] += dx[1];
     pt[2] += dx[2];
   }
-  return;
 }
 
 //rotate list of points by theta given
@@ -458,8 +455,6 @@ void RotatePoints(theType* pts, const theType apt[3], const theType axis[3], con
   
     }
   }
-  
-  return;
 } 
 
 //Mirror a vector about a plane defined by normalized vector avec
@@ -471,8 +466,6 @@ inline void MirrorVector(const theType* vin, const theType* avec, theType* vout)
   vout[0] = vin[0] - dot*avec[0];
   vout[1] = vin[1] - dot*avec[1];
   vout[2] = vin[2] - dot*avec[2];
-
-  return;
 }
 
 //reverse a vector
@@ -482,8 +475,6 @@ inline void ReverseVector(const theType* vin, theType* vout)
   vout[0] = -vin[0];
   vout[1] = -vin[1];
   vout[2] = -vin[2];
-
-  return;
 }
 
 //distance from a line to a point
@@ -529,6 +520,21 @@ theType DistanceLinePoint(const theType* linePt1, const theType* linePt2, const 
   Subtract(oPt, newPt, posVec);
 
   return dist;
+}
+
+template <class theType>
+// computes the velocity of a point given a rotating field
+// rotationPoint - center of rotation
+// movingPoint - point to compute velocity of
+// omegaRate - rotation rate of the field (i.e. rad/s)
+// v - return value 
+void VelocityFromRotation(const theType rotationPoint[3], const theType movingPoint[3], const theType omegaRate, theType v[3])
+{
+  // compute the position vector, r
+  theType r[3];
+  Subtract(rotationPoint, movingPoint, r);
+  // velocity is w x r = v
+  CrossProduct(omegaRate, r, v);
 }
 
 #endif
