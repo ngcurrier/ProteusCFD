@@ -19,6 +19,7 @@ void Coordpartition(Mesh<Real>* m, Int* part, Int np, Int* nodesPart);
 
 int main(int argc, char* argv[]){
 
+  MPI_Init(&argc, &argv);
   HDF_TurnOffErrorHandling();
 
   //mesh has not been reordered at this point
