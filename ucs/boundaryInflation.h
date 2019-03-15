@@ -116,6 +116,7 @@ void InflateBoundary(int boundaryFactag, Real inflationDistance, Mesh<Real>* m)
   }
 
   std::cout << "MESH UTILITY: pre-extrusion mesh has " << m->elementList.size() << " elements" << std::endl;
+  std::cout << "MESH UTILITY: pre-extrusion mesh has " << oldnnode << " nodes" << std::endl;
 
   // loop over all the elements on that factag
   for(Int i = 0; i < elementIds.size(); ++i){
@@ -168,7 +169,8 @@ void InflateBoundary(int boundaryFactag, Real inflationDistance, Mesh<Real>* m)
   }
 
   std::cout << "MESH UTILITY: extruded mesh has " << m->elementList.size() << " elements" << std::endl;
-    
+  std::cout << "MESH UTILITY: extruded mesh has " << m->GetNumNodes() << " nodes" << std::endl;
+
   m->UpdateElementCounts();
   delete [] pts;
   delete [] oldxyz;
