@@ -4,6 +4,8 @@
 #include "mem_util.h"
 #include "macros.h"
 #include "boundaryInflation.h"
+#include <unistd.h>
+#include <getopt.h>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -26,8 +28,10 @@ int main(int argc, char* argv[]){
   Mesh<Real> m;
   m.SetParallelPointer(&pobj);
   string filename;
+  string outfilename;
   string fileextension;
   string casename;
+  Real scale = 1.0;
   size_t pos;
   Int np = 0;
   
@@ -38,15 +42,95 @@ int main(int argc, char* argv[]){
   Int i, j, k;
   Int ierr = 0;
 
-  if(argc != 2){
-    cerr << "Invalid arguments" << endl;
-    cerr << argv[0] << " <Mesh file>" << endl;
-    return(3);
+  
+  int opt; 
+  int sfnd = false;
+  
+  // put ':' in the starting of the 
+  // string so that program can  
+  //distinguish between '?' and ':'  
+  while(1){
+    int this_option_optind = optind ? optind : 1;
+    int option_index = 0;
+    static struct option long_options[] = {
+      {"input",   required_argument, 0,  'i'},
+      {"help",    no_argument,       0,  'h'},
+      {"scale",   required_argument, 0,  's'},
+      {"output",  required_argument, 0,  'o'},
+      {0,         0,                 0,  0 }
+    };
+
+    // one colon following option means the option takes an arg
+    // two colons following option means the option takes an optional arg
+    opt = getopt_long(argc, argv, "s:i:o:h",
+		    long_options, &option_index);
+    if (opt == -1)
+      break;
+
+    std::string tmp;
+    std::stringstream ss;
+    switch(opt)  
+      {  
+      case 'i':
+	if (!optarg){
+	  cerr << "WARNING: input file option requires a filename" << std::endl;
+	  return 3;
+	}
+	cout << "Input filename: " << optarg << std::endl;
+	filename = optarg;
+	break;
+      case 'o':
+	if (!optarg){
+	  cerr << "WARNING: output file option requires a filename" << std::endl;
+	  return 3;
+	}
+	cout << "Output filename: " << optarg << std::endl;
+	outfilename = optarg;
+	break;
+      case 's':
+	if (!optarg){
+	  cerr << "WARNING: require scale factor" << std::endl;
+	  return 3;
+	}
+	tmp = optarg;
+	ss.clear();
+	ss << tmp;
+	ss >> scale;
+	cout << "Scale factor: " << scale << std::endl;
+	sfnd = true;
+	break;
+      case ':':  
+	printf("option needs a value\n");  
+	break;
+      case 'h':
+	cout << "USAGE: " << argv[0] << " <options>" << std::endl;
+	cout << "Options:" << std::endl;
+	cout << "--------------------------------------------------------" << std::endl;
+	cout << "--input\t\t-i\t<Input file name>" << std::endl;
+	cout << "--output\t-o\t<Output file name>" << std::endl;
+	cout << "--scale\t\t-s\t<Scale factor for mesh, i.e. reference length desired>" << std::endl;
+	return 0;
+	break;
+      default:
+	cout << "WARNING: unknown option: " << static_cast<char>(optopt) << std::endl;
+	return 3;
+	break;  
+      }  
+    }  
+  
+  // optind is for the extra arguments 
+  // which are not parsed 
+  for(; optind < argc; optind++){
+    cout << "WARNING: option not parsed \'" << argv[optind] << "\'" << std::endl;
   }
+  
 
-
+  if (filename.size() == 0){
+    cerr << "WARNING: filename option -i not captured" << endl;
+    return 3;
+  }
+  
   //input file name parsing -- reader selection
-  filename = argv[1];
   pos = filename.rfind(".");
   casename = filename.substr(0,pos);
   fileextension = filename.substr(pos+1, filename.size() - (casename.size() ));
@@ -130,6 +214,12 @@ int main(int argc, char* argv[]){
   Real growthRate = 1.2;
   GenerateBoundaryLayers(boundaryFactagList, boundaryThicknesses, numberOfLayers, &m, growthRate);
 
+  //this does a direct scaling of the mesh by this value (i.e. direct multiplication)
+  if(sfnd){
+    m.ScaleMesh(1.0/scale);
+  }
+
+  
   //write out the modified grid
   std::string newGridFilename = casename + ".new";
   m.WriteCRUNCH_Ascii(newGridFilename);

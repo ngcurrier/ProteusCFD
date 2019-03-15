@@ -133,6 +133,34 @@ Int* Mesh<Type>::SelspEnd(Int ptid)
 }
 
 template <class Type>
+std::string Mesh<Type>::GetStringFromElemType(Int etype)
+{
+  switch (etype) {  
+  case TRI :
+    return "Triangle";
+    break;
+  case QUAD :
+    return "Quadrilateral";
+    break;
+  case TET :
+    return "Tetrahedron";
+    break;
+  case PYRAMID :
+    return "Pyramid";
+    break;
+  case PRISM :
+    return "Prism";
+    break;
+  case HEX :
+    return "Hexahedron";
+    break;
+  default :
+    std::cerr << "Type not defined in GetStringFromElemType()" << std::endl;
+  }
+  
+}
+
+template <class Type>
 const Int* Mesh<Type>::ElspBegin(Int ptid) const
 {
   Int indx1 = ielsp[ptid];
@@ -397,7 +425,12 @@ Int Mesh<Type>::BuildElsp()
     for(Int j = 0; j < nnodes; ++j){
       node = nodes[j];
       if (node >= nnode){
-	Abort << "MESH UTILITY: node found that is higher than node number in mesh";
+	std::stringstream ss;
+	ss << "MESH UTILITY: node found that is higher than node number in mesh\n";
+	ss << "MESH UTILITY: node number is " << node << "\n";
+	ss << "MESH UTILITY: number of nodes in mesh is " << nnode << "\n";
+	ss << "MESH UTILITY: element containing is " << GetStringFromElemType(type);
+	Abort << ss.str();
       }
       ielsp[node+1]++;
       if(type == TRI || type == QUAD){

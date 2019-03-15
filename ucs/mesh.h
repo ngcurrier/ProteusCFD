@@ -140,6 +140,7 @@ class Mesh
   Int* ElspEnd(Int ptid);   //returns ending access to elements surrounding a point
   Int* SelspBegin(Int ptid); //returns beginning access to elements surrounding a surface point
   Int* SelspEnd(Int ptid);   //returns ending access to elements surrounding a surface point
+  std::string GetStringFromElemType(Int etype); //returns a string stating the type of element from numerical type
   const Int* ElspBegin(Int ptid) const; //returns beginning access to elements surrounding a point
   const Int* ElspEnd(Int ptid) const;   //returns ending access to elements surrounding a point
   const Int* SelspBegin(Int ptid) const; //returns beginning access to elements surrounding a surface point
