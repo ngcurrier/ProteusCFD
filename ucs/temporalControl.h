@@ -19,6 +19,8 @@ public:
 
   Int nSteps;
   Int newtonIter;
+
+  Type newtonConvergence; // convergence criterion for inner/newton iterates
   Type dt;
 
 private:

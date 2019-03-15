@@ -12,7 +12,9 @@ public:
     space(space)
   {};
   ~OperationUpdate(){};
-  void Apply(){space.NewtonIterate();};
+  void Apply(){
+    bool isConverged = space.NewtonIterate();
+  };
 private:
   SolutionSpaceBase<Type>& space;
 };

@@ -639,7 +639,7 @@ void SolutionSpace<Type>::PreTimeAdvance()
 
 //performs solution iteration, called multiple times per timestep
 template <class Type>
-void SolutionSpace<Type>::NewtonIterate()
+bool SolutionSpace<Type>::NewtonIterate()
 {
   Int nnode = m->GetNumNodes();
   Int nbnode = m->GetNumBoundaryNodes();
@@ -883,6 +883,14 @@ void SolutionSpace<Type>::NewtonIterate()
     Abort << ss.str();
     nanflag = 1;
   }
+
+  if(real(residGlobal) < real(this->temporalControl.newtonConvergence)){
+    return true;
+  }
+  else{
+    return false;
+  }
+
 }
 
 //performs operations required after Newton iterations, once per timestep
@@ -934,7 +942,6 @@ void SolutionSpace<Type>::PostTimeAdvance()
     //reset the comm timer b/c this is used to track iteration comm count
     p->timers.ResetAccumulate("CommTimer");
   }
-
 }
 
 //returns a plugin pointer given a particular name

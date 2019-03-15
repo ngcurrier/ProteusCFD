@@ -300,7 +300,7 @@ void TypicalSection::BuildRHS()
   return;
 }
 
-void TypicalSection::NewtonIterate()
+bool TypicalSection::NewtonIterate()
 {
   ScalarField<double>& pitch = GetScalarField("Pitch");
   ScalarField<double>& plunge = GetScalarField("Plunge");
@@ -308,7 +308,8 @@ void TypicalSection::NewtonIterate()
   if(iter < 50){
     plunge.SetField(0.0);
     pitch.SetField(0.0);
-    return;
+    //TODO: perform a check for convergence and return true if converged
+    return false;
   }
 
   BuildRHS();
@@ -332,8 +333,9 @@ void TypicalSection::NewtonIterate()
 
   std::cout << "TYPICAL_SECTION: alpha - " << alpha << std::endl;
   std::cout << "TYPICAL_SECITON: plunge - " << h << std::endl;
-		
-  return;
+
+  //TODO: perform a check for convergence and return true if converged
+  return false;
 }
 
 void TypicalSection::PostTimeAdvance()

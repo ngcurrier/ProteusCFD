@@ -3,6 +3,7 @@ TemporalControl<Type>::TemporalControl()
 { 
   //SET THE REAL VALUED LIST PARAMETERS
   paramListReal.push_back(Parameter<Type>("timeStep", &dt, 0.0, 0.0, 10000.0));
+  paramListReal.push_back(Parameter<Type>("newtonConvergence", &newtonConvergence, 1.0e-6, 0.0, 1.0));
   //SET THE INTEGER VALUED LIST PARAMETERS
   paramListInt.push_back(Parameter<Int>("numTimeSteps", &nSteps, 100, 0, 999999));
   paramListInt.push_back(Parameter<Int>("newtonIterations", &newtonIter, 1, 0, 999));

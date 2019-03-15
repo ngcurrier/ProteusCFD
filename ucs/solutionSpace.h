@@ -69,7 +69,7 @@ public:
   //work that must be done once, before each timestep occurs
   void PreTimeAdvance();
   //work that must happen to advance to the next newton subiteration
-  void NewtonIterate();
+  bool NewtonIterate();
   //work to advance in time, copy down solution vars, compute forces, etc.
   void PostTimeAdvance();
 

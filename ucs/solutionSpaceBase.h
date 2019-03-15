@@ -56,7 +56,8 @@ public:
   //work that must be done once, before each timestep occurs
   virtual void PreTimeAdvance() = 0;
   //work that must happen to advance inside the newton loop
-  virtual void NewtonIterate() = 0;
+  //returns true if internal convergenc criterion are met
+  virtual bool NewtonIterate() = 0;
   //work to advance in time, copy down solution levels, post process, etc.
   virtual void PostTimeAdvance() = 0;
 

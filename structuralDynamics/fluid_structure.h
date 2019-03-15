@@ -74,7 +74,7 @@ public:
   void PreIterate();
   void PreTimeAdvance(){};
   //this is the core of the Newton loop
-  void NewtonIterate();
+  bool NewtonIterate();
   //update solution storage for next physical timestep, i.e. next Newton iteration
   void PostTimeAdvance();
   void WriteSolution(){};
@@ -164,7 +164,7 @@ public:
   //These are the required member functions for the solutionspace
   void PreIterate(){};
   void PreTimeAdvance(){};
-  void NewtonIterate(){};
+  bool NewtonIterate(){};
   void PostTimeAdvance(){};
   void WriteSolution(){};
   void WriteRestartFile(){};
