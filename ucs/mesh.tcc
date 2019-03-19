@@ -4686,8 +4686,8 @@ Int Mesh<Type>::ReadGMSH41_Ascii(std::string filename)
 	}
 	break;
       case ReadEntityInfoNodes:
-	  ss >> tagEntity;
 	  ss >> dimEntity;
+	  ss >> tagEntity;
 	  ss >> parametric;
 	  ss >> nEntityNodes;
 	  std::cout << "GMSH 4.1 ASCII I/O: Reading entity " << tagEntity << " with " << nEntityNodes << " nodes" << std::endl;
@@ -4717,8 +4717,8 @@ Int Mesh<Type>::ReadGMSH41_Ascii(std::string filename)
 	}
 	break;
       case ReadEntityInfoElems:
-	  ss >> tagEntity;
 	  ss >> dimEntity;
+	  ss >> tagEntity;
 	  ss >> elemType;
 	  ss >> nEntityElems;
 	  Int physicalId;
