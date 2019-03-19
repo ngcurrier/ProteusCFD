@@ -45,6 +45,7 @@ int main(int argc, char* argv[]){
   
   int opt; 
   int sfnd = false;
+  bool insertBoundaryLayer = false;
   
   // put ':' in the starting of the 
   // string so that program can  
@@ -53,16 +54,17 @@ int main(int argc, char* argv[]){
     int this_option_optind = optind ? optind : 1;
     int option_index = 0;
     static struct option long_options[] = {
-      {"input",   required_argument, 0,  'i'},
-      {"help",    no_argument,       0,  'h'},
-      {"scale",   required_argument, 0,  's'},
-      {"output",  required_argument, 0,  'o'},
+      {"input",          required_argument, 0,  'i'},
+      {"help",           no_argument,       0,  'h'},
+      {"scale",          required_argument, 0,  's'},
+      {"boundarylayer",  no_argument,       0,  'b'},
+      {"output",         required_argument, 0,  'o'},
       {0,         0,                 0,  0 }
     };
 
     // one colon following option means the option takes an arg
     // two colons following option means the option takes an optional arg
-    opt = getopt_long(argc, argv, "s:i:o:h",
+    opt = getopt_long(argc, argv, "s:i:o:hb",
 		    long_options, &option_index);
     if (opt == -1)
       break;
@@ -99,6 +101,9 @@ int main(int argc, char* argv[]){
 	cout << "Scale factor: " << scale << std::endl;
 	sfnd = true;
 	break;
+      case 'b':
+	insertBoundaryLayer = true;
+	break;
       case ':':  
 	printf("option needs a value\n");  
 	break;
@@ -108,6 +113,7 @@ int main(int argc, char* argv[]){
 	cout << "--------------------------------------------------------" << std::endl;
 	cout << "--input\t\t-i\t<Input file name>" << std::endl;
 	cout << "--output\t-o\t<Output file name>" << std::endl;
+	cout << "--boundarylayer\t-b" << std::endl;
 	cout << "--scale\t\t-s\t<Scale factor for mesh, i.e. reference length desired>" << std::endl;
 	return 0;
 	break;
@@ -174,51 +180,52 @@ int main(int argc, char* argv[]){
   Int nnode = m.GetNumNodes();
   Int lnelem = m.GetNumLocalElem();
 
-  std::string tags;
-  std::cout << "Please list the boundary ids to generate boundary layers on separated by commas:" << std::endl;
-  std::getline(std::cin, tags);
+  if(insertBoundaryLayer){
+    std::string tags;
+    std::cout << "Please list the boundary ids to generate boundary layers on separated by commas:" << std::endl;
+    std::getline(std::cin, tags);
+    
+    std::vector<std::string> boundaries = Tokenize(tags, ',');
+    std::vector<Real> boundaryThicknesses;
+    std::vector<int> numberOfLayers;
+    std::vector<int> boundaryFactagList;
+    
+    for(int i = 0; i < boundaries.size(); ++i){
+      std::stringstream ss(boundaries[i]);
+      int tag;
+      ss >> tag;
+      boundaryFactagList.push_back(tag);
+      std::cout << "For tag " << tag << " please input layer thickness: " << std::endl;
+      std::string tmp;
+      std::getline(std::cin, tmp);
+      ss.clear();
+      ss.str(tmp);
+      Real thickness;
+      ss >> thickness;
+      boundaryThicknesses.push_back(thickness);
+      std::cout << "For tag " << tag << " please input number of cell layers: " << std::endl;
+      std::getline(std::cin, tmp);
+      ss.clear();
+      ss.str(tmp);
+      int nlayers;
+      ss >> nlayers;
+      numberOfLayers.push_back(nlayers);
+    }
+    
+    std::cout << "Boundary inflation parameters:" << std::endl;
+    for(int i = 0; i < boundaryFactagList.size(); ++i){
+      std::cout << boundaryFactagList[i] << ":\t" << boundaryThicknesses[i] << "\t" << numberOfLayers[i] << std::endl;
+    }
+    
+    std::cout << "Generating boundary layers" << std::endl;
+    Real growthRate = 1.2;
+    GenerateBoundaryLayers(boundaryFactagList, boundaryThicknesses, numberOfLayers, &m, growthRate);
+  }
   
-  std::vector<std::string> boundaries = Tokenize(tags, ',');
-  std::vector<Real> boundaryThicknesses;
-  std::vector<int> numberOfLayers;
-  std::vector<int> boundaryFactagList;
-
-  for(int i = 0; i < boundaries.size(); ++i){
-    std::stringstream ss(boundaries[i]);
-    int tag;
-    ss >> tag;
-    boundaryFactagList.push_back(tag);
-    std::cout << "For tag " << tag << " please input layer thickness: " << std::endl;
-    std::string tmp;
-    std::getline(std::cin, tmp);
-    ss.clear();
-    ss.str(tmp);
-    Real thickness;
-    ss >> thickness;
-    boundaryThicknesses.push_back(thickness);
-    std::cout << "For tag " << tag << " please input number of cell layers: " << std::endl;
-    std::getline(std::cin, tmp);
-    ss.clear();
-    ss.str(tmp);
-    int nlayers;
-    ss >> nlayers;
-    numberOfLayers.push_back(nlayers);
-  }
-
-  std::cout << "Boundary inflation parameters:" << std::endl;
-  for(int i = 0; i < boundaryFactagList.size(); ++i){
-    std::cout << boundaryFactagList[i] << ":\t" << boundaryThicknesses[i] << "\t" << numberOfLayers[i] << std::endl;
-  }
-
-  std::cout << "Generating boundary layers" << std::endl;
-  Real growthRate = 1.2;
-  GenerateBoundaryLayers(boundaryFactagList, boundaryThicknesses, numberOfLayers, &m, growthRate);
-
   //this does a direct scaling of the mesh by this value (i.e. direct multiplication)
   if(sfnd){
     m.ScaleMesh(1.0/scale);
   }
-
   
   //write out the modified grid
   pos = outfilename.rfind(".");

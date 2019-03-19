@@ -111,7 +111,7 @@ TEST_F(MeshTestGmsh, testGmshRead)
 TEST_F(MeshTestGmsh4, testGmshRead)
 {
   PObj<Real> pobj;
-  EXPECT_EQ(0, m.ReadGMSH4_Ascii("../unitTest/meshResources/Domain.msh"));
+  EXPECT_EQ(0, m.ReadGMSH40_Ascii("../unitTest/meshResources/Domain.msh"));
   m.SetParallelPointer(&pobj);
 
   EXPECT_EQ(56601,m.GetNumNodes());
