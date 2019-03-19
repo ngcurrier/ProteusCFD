@@ -18,17 +18,17 @@ Int NegativeQueue(theType* A, Int n){
 //default constructor
 template <class Type> 
 Mesh<Type>::Mesh() :
-  p(NULL), edges(NULL), bedges(NULL), cvstat(NULL),
-  gNodeOwner(NULL), gNodeLocalId(NULL), cg(NULL), nv(NULL), s(NULL), sw(NULL),
-  ordering(NULL), xyz(NULL), xyz_base(NULL), xyzold(NULL), xyzoldm1(NULL),
-  vol(NULL), volold(NULL), vololdm1(NULL), psp(NULL), ipsp(NULL), besp(NULL),
-  ibesp(NULL), nvnodes(0), vnodes(NULL), nsnodes(NULL), snodes(NULL),
-  gnnode(0), nnode(0), gnode(0), nbnode(0), nelem(NULL), gnelem(0), lnelem(0),
-  nedge(0), ngedge(0), nbedge(0), mnode(NULL), extentsMax(NULL), extentsMin(NULL),
+  p(0), edges(0), bedges(0), cvstat(0),
+  gNodeOwner(0), gNodeLocalId(0), cg(0), nv(0), s(0), sw(0),
+  ordering(0), xyz(0), xyz_base(0), xyzold(0), xyzoldm1(0),
+  vol(0), volold(0), vololdm1(0), psp(0), ipsp(0), besp(0),
+  ibesp(0), nvnodes(0), vnodes(0), nsnodes(0), snodes(0),
+  gnnode(0), nnode(0), gnode(0), nbnode(0), nelem(0), gnelem(0), lnelem(0),
+  nedge(0), ngedge(0), nbedge(0), mnode(0), extentsMax(0), extentsMin(0),
   meshInit(false), mapsInit(false), mapsInitPsp(false), edgeInit(false),
   metricsCalc(false), solMemAlloc(false), scaled(false), reordered(false),
-  esp(NULL), iesp(NULL), el2el(NULL), iel2el(NULL), sel2el(NULL), isel2el(NULL),
-  elsp(NULL), ielsp(NULL), selsp(NULL), iselsp(NULL)
+  esp(0), iesp(0), el2el(0), iel2el(0), sel2el(0), isel2el(0),
+  elsp(0), ielsp(0), selsp(0), iselsp(0)
 {
 
   nelem = new Int[MAX_E_TYPES];
@@ -696,8 +696,10 @@ Int Mesh<Type>::BuildPsp()
       }
     }
     if(count1 != (indx2-indx1)){
-      std::cout << "MESH UTILITY: WARNING!!! Psp[] map failed sanity check on node " 
+      std::cerr << "MESH UTILITY: WARNING!!! Psp[] map failed sanity check on node " 
 		<< i << std::endl;
+      std::cerr << "MESH UTILITY: Node is likely an orphan, check mesh for validity and continuity in node numbering" << std::endl;
+      
     }
     else{
       checked[i] = 1;
@@ -3607,22 +3609,22 @@ Int Mesh<Type>::ReadGMSH2_Ascii(std::string filename)
 	break;
       case ReadMeshFormat:
 	{
-	  std::cout << "GMSH ASCII I/O: Reading mesh format" << std::endl;
+	  std::cout << "GMSH 2 ASCII I/O: Reading mesh format" << std::endl;
 	  Real version;
 	  Int tmp;
 	  ss >> version;	
-	  std::cout << "GMSH ASCII I/O: Reading mesh format version " << version << std::endl;
+	  std::cout << "GMSH 2 ASCII I/O: Reading mesh format version " << version << std::endl;
 	  ss >> tmp;
 	  Int datasize;
 	  ss >> datasize;
-	  std::cout << "GMSH ASCII I/O: Reading mesh datasize " << datasize << std::endl;
+	  std::cout << "GMSH 2 ASCII I/O: Reading mesh datasize " << datasize << std::endl;
 	}
 	break;
       case ReadNpoints:
 	ss >> nnode;
-	std::cout << "GMSH ASCII I/O: Number of points to read is " << nnode << std::endl;
+	std::cout << "GMSH 2 ASCII I/O: Number of points to read is " << nnode << std::endl;
 	MemInitMesh();
-	std::cout << "GMSH ASCII I/O: Memory initialized" << std::endl;
+	std::cout << "GMSH 2 ASCII I/O: Memory initialized" << std::endl;
 	state = ReadPoints; //trip to next state for reading
 	break;
       case ReadPoints:
@@ -3630,7 +3632,7 @@ Int Mesh<Type>::ReadGMSH2_Ascii(std::string filename)
 	  Int ptid;
 	  ss >> ptid;
 	  if(ptid-1 != nodesRead){
-	    std::cerr << "GMSH ASCII I/O: Warning points not ordered. Dying." << std::endl;
+	    std::cerr << "GMSH 2 ASCII I/O: Warning points not ordered. Dying." << std::endl;
 	    return -1;
 	  }
 	  ss >> xyz[nodesRead*3 + 0];
@@ -3641,7 +3643,7 @@ Int Mesh<Type>::ReadGMSH2_Ascii(std::string filename)
 	break;
       case ReadNelem:
 	ss >> totalElems;
-	std::cout << "GMSH ASCII I/O: Number of elements to read is " << totalElems << std::endl;
+	std::cout << "GMSH 2 ASCII I/O: Number of elements to read is " << totalElems << std::endl;
 	state = ReadElem; //trip to next state for reading
 	break;
       case ReadElem:
@@ -3664,14 +3666,14 @@ Int Mesh<Type>::ReadGMSH2_Ascii(std::string filename)
 	    ss >> elementaryId;
 	  }
 	  else{
-	    std::cerr << "GMSH ASCII I/O: number of tags inconsistent. Require two. One physical and one elementary tag id per element." << std::endl;
+	    std::cerr << "GMSH 2 ASCII I/O: number of tags inconsistent. Require two. One physical and one elementary tag id per element." << std::endl;
 	    return (-1);
 	  }
 	  if(elemType == GMSH_LINE){
-	    std::cerr << "GMSH ASCII I/O: found line elements in file, these shouldn't be here. Ignoring.\n";
+	    std::cerr << "GMSH 2 ASCII I/O: found line elements in file, these shouldn't be here. Ignoring.\n";
 	  }
 	  else if(elemType == GMSH_POINT){
-	    std::cerr << "GMSH ASCII I/O: found point elements in file, these shouldn't be here. Ignoring.\n";
+	    std::cerr << "GMSH 2 ASCII I/O: found point elements in file, these shouldn't be here. Ignoring.\n";
 	  }
 	  else if(elemType == GMSH_TRI){
 	    Int nodes[3];
@@ -3790,7 +3792,7 @@ Int Mesh<Type>::ReadGMSH2_Ascii(std::string filename)
 	    nelem[PYRAMID]++;
 	  }
 	  else{
-	    std::cerr << "GMSH ASCII I/O: Element type " << elemType << " not valid" << std::endl;
+	    std::cerr << "GMSH 2 ASCII I/O: Element type " << elemType << " not valid" << std::endl;
 	  }
 	}
 	break;
@@ -3806,23 +3808,23 @@ Int Mesh<Type>::ReadGMSH2_Ascii(std::string filename)
     lnelem += nelem[e];
   }
   if(nelem[TRI] == 0 && nelem[QUAD] == 0){
-    std::cerr << "GMSH ASCII I/O: Warning no surface tri/quad elements found. Did you create physical groups on the surface for BCs?\n";
+    std::cerr << "GMSH 2 ASCII I/O: Warning no surface tri/quad elements found. Did you create physical groups on the surface for BCs?\n";
     return -1;
   }
   
   if(totalElems != lnelem){
-    std::cerr << "GMSH ASCII I/O: Number of elements expected does not match number read in" << std::endl;
-    std::cerr << "GMSH ASCII I/O: This sometimes happen if we ignore lower order elements like linear" << std::endl;
+    std::cerr << "GMSH 2 ASCII I/O: Number of elements expected does not match number read in" << std::endl;
+    std::cerr << "GMSH 2 ASCII I/O: This sometimes happen if we ignore lower order elements like linear" << std::endl;
   }
-  std::cout << "GMSH ASCII I/O: Number of nodes " << nnode << std::endl;
-  std::cout << "GMSH ASCII I/O: Number of elements " << lnelem << std::endl;
-  std::cout << "GMSH ASCII I/O: Number of Tris " << nelem[TRI] << std::endl;
-  std::cout << "GMSH ASCII I/O: Number of Quads " << nelem[QUAD] << std::endl;
-  std::cout << "GMSH ASCII I/O: Number of Tets " << nelem[TET] << std::endl;
-  std::cout << "GMSH ASCII I/O: Number of Pyramids " << nelem[PYRAMID] << std::endl;
-  std::cout << "GMSH ASCII I/O: Number of Prisms " << nelem[PRISM] << std::endl;
-  std::cout << "GMSH ASCII I/O: Number of Hexes " << nelem[HEX] << std::endl;
-  std::cout << "GMSH ASCII I/O: Number of tagged boundaries " << nfactags << std::endl;
+  std::cout << "GMSH 2 ASCII I/O: Number of nodes " << nnode << std::endl;
+  std::cout << "GMSH 2 ASCII I/O: Number of elements " << lnelem << std::endl;
+  std::cout << "GMSH 2 ASCII I/O: Number of Tris " << nelem[TRI] << std::endl;
+  std::cout << "GMSH 2 ASCII I/O: Number of Quads " << nelem[QUAD] << std::endl;
+  std::cout << "GMSH 2 ASCII I/O: Number of Tets " << nelem[TET] << std::endl;
+  std::cout << "GMSH 2 ASCII I/O: Number of Pyramids " << nelem[PYRAMID] << std::endl;
+  std::cout << "GMSH 2 ASCII I/O: Number of Prisms " << nelem[PRISM] << std::endl;
+  std::cout << "GMSH 2 ASCII I/O: Number of Hexes " << nelem[HEX] << std::endl;
+  std::cout << "GMSH 2 ASCII I/O: Number of tagged boundaries " << nfactags << std::endl;
   
   return 0;
 }
@@ -3867,6 +3869,11 @@ Int Mesh<Type>::ReadGMSH4_Ascii(std::string filename)
     ReadPhysicalNames,
     ReadEntityInfoNodes,
     ReadEntityInfoElems,
+    ReadNEntities,
+    ReadPointMapEntities,
+    ReadCurveMapEntities,
+    ReadSurfMapEntities,
+    ReadVolMapEntities,
     Exit,
     NSTATES
   };
@@ -3886,7 +3893,7 @@ Int Mesh<Type>::ReadGMSH4_Ascii(std::string filename)
   stateMap["$EndNodeData"] = None;
   stateMap["$ElementData"] = None; //ignore this
   stateMap["$EndElementData"] = None;
-  stateMap["$Entities"] = None; //ignore this
+  stateMap["$Entities"] = ReadNEntities;
   stateMap["$EndEntities"] = None;
   
   Int state = None;
@@ -3898,9 +3905,10 @@ Int Mesh<Type>::ReadGMSH4_Ascii(std::string filename)
   Int nEntityElems = 0; //local value for elems in entity
   Int entityNodesRead = 0; //counter for number of entity nodes read
   Int entityElemsRead = 0; //counter for number of entity elems read
+  Int maxnodes = 0; //maximum node id that will be expected, used to reorder nodes for continuity
 
   
-  std::cout << "GMSH ASCII I/O: Reading file --> " << filename << std::endl;
+  std::cout << "GMSH 4 ASCII I/O: Reading file --> " << filename << std::endl;
 
   fin.open(filename.c_str());
   if(!fin.is_open()){
@@ -3910,6 +3918,47 @@ Int Mesh<Type>::ReadGMSH4_Ascii(std::string filename)
 
   //read each line one at a time, use a state machine to process data
   std::size_t loc;
+  std::vector<Bool> nodesReadBool;
+  std::vector<Real> xyztmp;
+
+  // GMSH files version > 3.0 do not have consecutive node numbering for reasons that can
+  // only be described as really annoying.  We need to look for the $EndNodes tag and get
+  // the real largest node id upfront to avoid segfaults and then rack and stack back
+  // down the list to fill in the gaps
+  int currPos = fin.tellg();
+  int nowLine = fin.tellg();
+  int prevLine = fin.tellg();
+  std::string search = "$EndNodes";
+  for(unsigned int curLine = 0; getline(fin, line); curLine++) {
+    if (line.find(search) != std::string::npos) {
+      std::string tmpLine;
+      fin.seekg(prevLine);
+      getline(fin, tmpLine);
+      std::stringstream ss;
+      std::vector<std::string> values = Tokenize(tmpLine, ' ');
+      ss << values[0];
+      ss >> maxnodes;
+      break;
+    }
+    if(fin.eof()){
+      Abort << "WARNING: file does not contain $EndNodes tag";
+    }
+    prevLine = nowLine;
+    nowLine = fin.tellg();
+  }
+  // hop back to continue the reading
+  fin.seekg(currPos);
+  nodesReadBool.resize(maxnodes, false);
+  xyztmp.resize(maxnodes*3, 0.0);
+  line.clear();
+
+  // First value in these maps is the gmsh identifier
+  // Seocond value stored will be the physical identifier (i.e. boundary)
+  Int nptentities, ncurveentities, nsurfentities, nvolentities;
+  std::map<Int, Int> nodePhysIdMap;
+  std::map<Int, Int> curvePhysIdMap;
+  std::map<Int, Int> surfPhysIdMap;
+  std::map<Int, Int> volPhysIdMap;
   while(std::getline(fin, line)){
     line = trim(line);
     lineCount++;
@@ -3923,8 +3972,8 @@ Int Mesh<Type>::ReadGMSH4_Ascii(std::string filename)
 	continue;
       }
       else{
-	std::cerr << "GMSH ASCII I/O: found bad state " << state << std::endl;
-	std::cerr << "GMSH ASCII I/O: last line read " << line << std::endl;
+	std::cerr << "GMSH 4 ASCII I/O: found bad state " << state << std::endl;
+	std::cerr << "GMSH 4 ASCII I/O: last line read " << line << std::endl;
 	return(-1);
       }
     }
@@ -3932,14 +3981,17 @@ Int Mesh<Type>::ReadGMSH4_Ascii(std::string filename)
     ss.str(line);
     //use our state machine to do cool stuff with the datas...
     Int numberOfTags = 0;
-    std::vector<double> nodes;
 
     //entity information
     Int tagEntity;
     Int dimEntity;
     Int parametric;
     Int elemType;
+    Int id;
 
+    Real minx, miny, minz, maxx, maxy, maxz;
+    Int nphysicalTags, ptag;
+    
     switch(state)
       {
       case None:
@@ -3947,26 +3999,100 @@ Int Mesh<Type>::ReadGMSH4_Ascii(std::string filename)
 	break;
       case ReadMeshFormat:
 	{
-	  std::cout << "GMSH ASCII I/I: Reading mesh format" << std::endl;
+	  std::cout << "GMSH 4 ASCII I/O: Reading mesh format" << std::endl;
 	  Real version;
 	  Int tmp;
 	  ss >> version;	
-	  std::cout << "GMSH ASCII I/O: Reading mesh format version " << version << std::endl;
+	  std::cout << "GMSH 4 ASCII I/O: Reading mesh format version " << version << std::endl;
 	  if (version != 4){
 	    if( int(version) == 2){
 	      return ReadGMSH2_Ascii(filename);
 	    }
-	    std::cerr << "GMSH ASCII I/O: Expecting version 4.0. Quitting" << std::endl;
-	    std::cerr << "GMSH ASCII I/O: line # " << lineCount << std::endl;
+	    std::cerr << "GMSH 4 ASCII I/O: Expecting version 4.0. Quitting" << std::endl;
+	    std::cerr << "GMSH 4 ASCII I/O: line # " << lineCount << std::endl;
 	    return(-1);
 	  }
 	  ss >> tmp;
 	  Int datasize;
 	  ss >> datasize;
 	  if(datasize != 8){
-	    std::cerr << "GMSH ASCII I/O: Data size expected is 8. Received " << datasize << std::endl;
-	    std::cerr << "GMSH ASCII I/O: line # " << lineCount << std::endl;
+	    std::cerr << "GMSH 4 ASCII I/O: Data size expected is 8. Received " << datasize << std::endl;
+	    std::cerr << "GMSH 4 ASCII I/O: line # " << lineCount << std::endl;
 	  }
+	}
+	break;
+      case ReadNEntities:
+	{
+	  std::cout << "GMSH 4 ASCII I/O: Reading entities header" << std::endl;
+	  ss >> nptentities;
+	  ss >> ncurveentities;
+	  ss >> nsurfentities;
+	  ss >> nvolentities;
+
+	  std::cout << "GMSH 4 ASCII I/O: Number of point entities " << nptentities << std::endl;
+	  std::cout << "GMSH 4 ASCII I/O: Number of curve entities " << ncurveentities << std::endl;
+	  std::cout << "GMSH 4 ASCII I/O: Number of surface entities " << nsurfentities << std::endl;
+	  std::cout << "GMSH 4 ASCII I/O: Number of volume entities " << nvolentities << std::endl;
+	  state = ReadPointMapEntities;
+	  break;
+	}
+      case ReadPointMapEntities:
+	ss >> id;
+	//points don't have a min/max coordinate, store in min only
+	ss >> minx;
+	ss >> miny;
+	ss >> minz;
+	ss >> nphysicalTags;
+	ss >> ptag;
+	nodePhysIdMap[id] = ptag;
+	if(nodePhysIdMap.size() >= nptentities){
+	  state = ReadCurveMapEntities;
+	}
+	break;
+      case ReadCurveMapEntities:
+	ss >> id;
+	ss >> minx;
+	ss >> miny;
+	ss >> minz;
+	ss >> maxx;
+	ss >> maxy;
+	ss >> maxz;
+	ss >> nphysicalTags;
+	ss >> ptag;
+	curvePhysIdMap[id] = ptag;
+	if(curvePhysIdMap.size() >= ncurveentities){
+	  state = ReadSurfMapEntities;
+	}
+	break;
+      case ReadSurfMapEntities:
+	ss >> id;
+	ss >> minx;
+	ss >> miny;
+	ss >> minz;
+	ss >> maxx;
+	ss >> maxy;
+	ss >> maxz;
+	ss >> nphysicalTags;
+	ss >> ptag;
+	surfPhysIdMap[id] = ptag;
+	std::cout << id << "\tPTGA: " << ptag << std::endl;
+	if(surfPhysIdMap.size() >= nsurfentities){
+	  state = ReadVolMapEntities;
+	}
+	break;
+      case ReadVolMapEntities:
+	ss >> id;
+	ss >> minx;
+	ss >> miny;
+	ss >> minz;
+	ss >> maxx;
+	ss >> maxy;
+	ss >> maxz;
+	ss >> nphysicalTags;
+	ss >> ptag;
+	volPhysIdMap[id] = ptag;
+	if(volPhysIdMap.size() >= nvolentities){
+	  state = None;
 	}
 	break;
       case ReadEntityInfoNodes:
@@ -3974,7 +4100,7 @@ Int Mesh<Type>::ReadGMSH4_Ascii(std::string filename)
 	  ss >> dimEntity;
 	  ss >> parametric;
 	  ss >> nEntityNodes;
-	  std::cout << "GMSH ASCII I/O: Reading entity " << tagEntity << " with " << nEntityNodes << " nodes" << std::endl;
+	  std::cout << "GMSH 4 ASCII I/O: Reading entity " << tagEntity << " with " << nEntityNodes << " nodes" << std::endl;
  	  entityNodesRead = 0;
 	  if(nEntityNodes != 0){
 	    state = ReadPoints;
@@ -3982,14 +4108,24 @@ Int Mesh<Type>::ReadGMSH4_Ascii(std::string filename)
 	  else{
 	    state = ReadEntityInfoNodes;
 	  }
-	break; 
+	break;
       case ReadEntityInfoElems:
 	  ss >> tagEntity;
 	  ss >> dimEntity;
 	  ss >> elemType;
 	  ss >> nEntityElems;
-	  std::cout << "GMSH ASCII I/O: Reading entity " << tagEntity << " with " << nEntityElems << " elems - of type " << elemType << std::endl;
+	  Int physicalId;
+	  if(surfPhysIdMap.count(tagEntity)){
+	    physicalId = surfPhysIdMap[tagEntity];
+	    //TODO: add support for volume tags to gmsh 4 reader
+	  }
+	  else{
+	    physicalId = tagEntity;
+	  }
+	  std::cout << "GMSH 4 ASCII I/O: Reading entity " << tagEntity << " with " << nEntityElems << " elems - of type " << elemType << " with physical id "
+		    << physicalId << std::endl;
 	  entityElemsRead = 0;
+
 	  if(nEntityElems != 0){
 	    state = ReadElem;
 	  }
@@ -3998,25 +4134,40 @@ Int Mesh<Type>::ReadGMSH4_Ascii(std::string filename)
 	  }
 	  break;
      case ReadNpoints:
+       {
 	ss >> nEntityBlocks;
-	std::cout << "GMSH ASCII I/O: Number of node entity blocks to read is " << nEntityBlocks << std::endl;
+	std::cout << "GMSH 4 ASCII I/O: Number of node entity blocks to read is " << nEntityBlocks << std::endl;
 	ss >> nnode;
-	std::cout << "GMSH ASCII I/O: Number of points to read is " << nnode << std::endl;
+	std::cout << "GMSH 4 ASCII I/O: Number of points to read is " << nnode << std::endl;
+	std::cout << "GMSH 4 ASCII I/O: Maximum node index is " << maxnodes << std::endl;
+	if(nnode != maxnodes){
+	  std::cout << "GMSH 4 ASCII I/O: Post read reordering will be required" << std::endl;
+	}
 	MemInitMesh();
-	std::cout << "GMSH ASCII I/O: Memory initialized" << std::endl;
+	std::cout << "GMSH 4 ASCII I/O: Memory initialized" << std::endl;
 	state = ReadEntityInfoNodes; //trip to next state for reading
 	break;
+       }
       case ReadPoints:
 	{
 	  Int ptid;
 	  ss >> ptid;
-	  if(nodesRead >= nnode){
-	    std::cerr << "GMSH ASCII I/O: Node read is " << ptid-1 << " which is greater than maximum " << nnode << std::endl;
-	    std::cerr << "GMSH ASCII I/O: line # " << lineCount << std::endl;
+	  if(nodesRead >= maxnodes || (ptid-1) >= maxnodes){
+	    std::cerr << "GMSH 4 ASCII I/O: Total nodes read is " << nodesRead << std::endl;
+	    std::cerr << "GMSH 4 ASCII I/O: Node read is " << ptid-1 << std::endl;
+	    std::cerr << "GMSH 4 ASCII I/O: One of the above is greater than or equal to maximum " << nnode << std::endl;
+	    std::cerr << "GMSH 4 ASCII I/O: line # " << lineCount << std::endl;
+	    for(Int kk = 0; kk < nnode; ++kk){
+	      if(nodesReadBool[kk] == false){
+		std::cerr << "GMSH 4 ASCII I/O: Node missing " << kk << std::endl;
+	      }
+	    }
+	    break;
 	  }
-	  ss >> xyz[(ptid-1)*3 + 0];
-	  ss >> xyz[(ptid-1)*3 + 1];
-	  ss >> xyz[(ptid-1)*3 + 2];
+	  nodesReadBool[ptid-1] = true;
+	  ss >> xyztmp[(ptid-1)*3 + 0];
+	  ss >> xyztmp[(ptid-1)*3 + 1];
+	  ss >> xyztmp[(ptid-1)*3 + 2];
 	  nodesRead++;
 	  entityNodesRead++;
 	  if(entityNodesRead >= nEntityNodes){
@@ -4026,21 +4177,28 @@ Int Mesh<Type>::ReadGMSH4_Ascii(std::string filename)
 	break;
       case ReadNelem:
 	ss >> nEntityBlocks;
-	std::cout << "GMSH ASCII I/O: Number of element entity blocks to read is " << nEntityBlocks << std::endl;
+	std::cout << "GMSH 4 ASCII I/O: Number of element entity blocks to read is " << nEntityBlocks << std::endl;
 	ss >> totalElems;
-	std::cout << "GMSH ASCII I/O: Number of elements to read is " << totalElems << std::endl;
+	std::cout << "GMSH 4 ASCII I/O: Number of elements to read is " << totalElems << std::endl;
 	state = ReadEntityInfoElems; //trip to next state for reading
 	break;
       case ReadElem:
 	{
 	  Int elemId = 0;
 	  ss >> elemId;
-	  Int physicalId = tagEntity;
+	  Int physicalId;
+	  if(surfPhysIdMap.count(tagEntity)){
+	    physicalId = surfPhysIdMap[tagEntity];
+	    //TODO: add support for volume tags to gmsh 4 reader
+	  }
+	  else{
+	    physicalId = tagEntity;
+	  }
 	  if(elemType == GMSH_LINE){
-	    std::cerr << "GMSH ASCII I/O: found line elements in file, these shouldn't be here. Ignoring.\n";
+	    std::cerr << "GMSH 4 ASCII I/O: found line elements in file, these shouldn't be here. Ignoring.\n";
 	  }
 	  else if(elemType == GMSH_POINT){
-	    std::cerr << "GMSH ASCII I/O: found point elements in file, these shouldn't be here. Ignoring.\n";
+	    std::cerr << "GMSH 4 ASCII I/O: found point elements in file, these shouldn't be here. Ignoring.\n";
 	  }
 	  else if(elemType == GMSH_TRI){
 	    Int nodes[3];
@@ -4159,8 +4317,8 @@ Int Mesh<Type>::ReadGMSH4_Ascii(std::string filename)
 	    nelem[PYRAMID]++;
 	  }
 	  else{
-	    std::cerr << "GMSH ASCII I/O: Element type " << elemType << " not valid" << std::endl;
-	    std::cerr << "GMSH ASCII I/O: line # " << lineCount << std::endl;
+	    std::cerr << "GMSH 4 ASCII I/O: Element type " << elemType << " not valid" << std::endl;
+	    std::cerr << "GMSH 4 ASCII I/O: line # " << lineCount << std::endl;
 	  }
 	  entityElemsRead++;
 	  if(entityElemsRead >= nEntityElems){
@@ -4175,29 +4333,80 @@ Int Mesh<Type>::ReadGMSH4_Ascii(std::string filename)
   }
   fin.close();
 
+  // Do the element reordering if necessary
+  std::cout << "GMSH 4 ASCII I/O: Performing node reordering step to ensure contiguous memory" << std::endl;
+  std::vector<Int> missingNodes;
+  Int countn = 0;
+  for(Int kk = 0; kk < maxnodes; ++kk){
+    if(nodesReadBool[kk] == false){
+      missingNodes.push_back(kk);
+    }
+    else{
+      xyz[countn*3 + 0] = xyztmp[kk*3 + 0];
+      xyz[countn*3 + 1] = xyztmp[kk*3 + 1];
+      xyz[countn*3 + 2] = xyztmp[kk*3 + 2];
+      countn++;
+    }
+  }
+  // compute the shift value for each node index
+  std::vector<Int> nodeshift(maxnodes);
+  Int loweridx = 0;
+  Int shift = 0;
+  for(Int i = 0; i < missingNodes.size(); ++i){
+    Int skipidx = missingNodes[i];
+    for(Int j = loweridx; j < skipidx; ++j){
+      nodeshift[j] = shift;
+    }
+    shift++;
+    loweridx = skipidx;
+  }
+  // get the number of nodes to shift by for every valid node that is present
+  for(Int j = loweridx; j < maxnodes; ++j){
+    nodeshift[j] = shift;
+  }
+  std::cout << "GMSH 4 ASCII I/O: Performing element rewinding to ensure correct node ids post reordering" << std::endl;
+  Int maxelemnode = -1;
+  for(typename std::vector<Element<Type>*>::iterator it = elementList.begin(); it != elementList.end(); ++it){
+    Element<Type>& element = **it;
+    Int etype = element.GetType();
+    Int* nodes = NULL;
+    // get node list and modify directly by precomputed shift
+    Int ennodes = element.GetNodes(&nodes);
+    for(Int j = 0; j < ennodes; ++j){
+      Int n = nodes[j];
+      nodes[j] = n - nodeshift[n];
+      maxelemnode = MAX(maxelemnode, nodes[j]);
+    }
+  }  
+  std::cout << "GMSH 4 ASCII I/O: Maximum node found in elements " << maxelemnode << std::endl;
+  
+  if(maxelemnode >= nnode){
+    Abort << "GMSH 4 ASCII I/O: Elements found with node numbers that are not in range";
+  }
+  
   lnelem = 0;
   for(Int e = TRI; e <= HEX; e++){
     lnelem += nelem[e];
   }
   if(nelem[TRI] == 0 && nelem[QUAD] == 0){
-    std::cerr << "GMSH ASCII I/O: Warning no surface tri/quad elements found. Did you create physical groups on the surface for BCs?\n";
+    std::cerr << "GMSH 4 ASCII I/O: Warning no surface tri/quad elements found. Did you create physical groups on the surface for BCs?\n";
     return -1;
   }
   
   if(totalElems != lnelem){
-    std::cerr << "GMSH ASCII I/O: Number of elements expected does not match number read in" << std::endl;
-    std::cerr << "GMSH ASCII I/O: This sometimes happen if we ignore lower order elements like linear" << std::endl;
+    std::cerr << "GMSH 4 ASCII I/O: Number of elements expected does not match number read in" << std::endl;
+    std::cerr << "GMSH 4 ASCII I/O: This sometimes happen if we ignore lower order elements like linear" << std::endl;
   }
-  std::cout << "GMSH ASCII I/O: Number of nodes " << nnode << std::endl;
-  std::cout << "GMSH ASCII I/O: Number of elements " << lnelem << std::endl;
-  std::cout << "GMSH ASCII I/O: Number of Tris " << nelem[TRI] << std::endl;
-  std::cout << "GMSH ASCII I/O: Number of Quads " << nelem[QUAD] << std::endl;
-  std::cout << "GMSH ASCII I/O: Number of Tets " << nelem[TET] << std::endl;
-  std::cout << "GMSH ASCII I/O: Number of Pyramids " << nelem[PYRAMID] << std::endl;
-  std::cout << "GMSH ASCII I/O: Number of Prisms " << nelem[PRISM] << std::endl;
-  std::cout << "GMSH ASCII I/O: Number of Hexes " << nelem[HEX] << std::endl;
-  std::cout << "GMSH ASCII I/O: Number of tagged boundaries " << nfactags << std::endl;
-  
+  std::cout << "GMSH 4 ASCII I/O: Number of nodes " << nnode << std::endl;
+  std::cout << "GMSH 4 ASCII I/O: Number of elements " << lnelem << std::endl;
+  std::cout << "GMSH 4 ASCII I/O: Number of Tris " << nelem[TRI] << std::endl;
+  std::cout << "GMSH 4 ASCII I/O: Number of Quads " << nelem[QUAD] << std::endl;
+  std::cout << "GMSH 4 ASCII I/O: Number of Tets " << nelem[TET] << std::endl;
+  std::cout << "GMSH 4 ASCII I/O: Number of Pyramids " << nelem[PYRAMID] << std::endl;
+  std::cout << "GMSH 4 ASCII I/O: Number of Prisms " << nelem[PRISM] << std::endl;
+  std::cout << "GMSH 4 ASCII I/O: Number of Hexes " << nelem[HEX] << std::endl;
+  std::cout << "GMSH 4 ASCII I/O: Number of tagged boundaries " << nfactags << std::endl;
+
   return 0;
 }
 

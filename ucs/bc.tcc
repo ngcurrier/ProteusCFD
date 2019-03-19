@@ -741,7 +741,7 @@ void BC_Kernel(B_KERNEL_ARGS)
 
   Type* Qref = (Type*)alloca(sizeof(Type)*nvars);
   bcobj->GetQref(Qref);
-  CalculateBoundaryVariables(eqnset, m, space, QL, QR, Qref, avec, bcType, eid, bcobj, vdotn, velw);
+  CalculateBoundaryVariables(eqnset, m, space, QL, QR, Qref, avec, bcType, eid, bcobj, vdotn, velw, factag);
 }
 
 template <class Type>
@@ -1046,7 +1046,7 @@ void Bkernel_BC_Res_Modify(B_KERNEL_ARGS)
 template <class Type, class Type2, class Type3>
 void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSpace<Type3>* space, 
 				Type* QL, Type* QR, Type* Qinf, Type* avec, Int bcType, 
-				Int eid, BCObj<Type2>* bcobj, Type3 vdotn, Type3* velw)
+				Int eid, BCObj<Type2>* bcobj, Type3 vdotn, Type3* velw, Int factag)
 {
   Int i;
   Int neqn = eqnset->neqn;
@@ -1345,7 +1345,13 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
     eqnset->GetPythonBoundaryVariables(QL, QR, wallx, avec);
   }
   else{
-    std::cout << "WARNING: EID for " << eid << " not found! " << std::endl;
+    std::stringstream ss;
+    ss << "WARNING: Boundary condition type for edge ID: " << eid << " not found! " << std::endl;
+    ss << "Face tag value is: " << factag << std::endl;
+    ss << "Boundary condition type: " << BCs[bcType] << std::endl;
+    ss << "Left node edge location " << m->xyz[left_cv*3 + 0] << " " << m->xyz[left_cv*3 +1] << " " << m->xyz[left_cv*3 + 2] << std::endl;
+    std::cerr << ss.str();
+    Abort << ss.str();
     return;
   }
 
@@ -1353,8 +1359,6 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
   eqnset->ComputeAuxiliaryVariables(QR);
   //compute aux vars if we hard set the wall
   eqnset->ComputeAuxiliaryVariables(QL);
-  
-  return;
 }
 
 template <class Type>

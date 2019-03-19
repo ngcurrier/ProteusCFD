@@ -498,7 +498,7 @@ void Bkernel_NumJac(B_KERNEL_ARGS){
 
   Type* Qref = (Type*)alloca(sizeof(Type)*nvars);
   bcobj->GetQref(Qref);
-  CalculateBoundaryVariables(eqnset, m, space, QL, QR, Qref, avec, bcType, eid, bcobj, vdotn, velw);
+  CalculateBoundaryVariables(eqnset, m, space, QL, QR, Qref, avec, bcType, eid, bcobj, vdotn, velw, factag);
   //get reference state
   eqnset->BoundaryFlux(QL, QR, avec, vdotn, fluxS, betaL);
   
@@ -517,7 +517,7 @@ void Bkernel_NumJac(B_KERNEL_ARGS){
     if(!param->boundaryJacEval && !m->IsGhostNode(right_cv)){
       memcpy(QPR, QR, sizeof(Type)*nvars);
       eqnset->ComputeAuxiliaryVariables(QPR);
-      CalculateBoundaryVariables(eqnset, m, space, QPL, QPR, Qref, avec, bcType, eid, bcobj, vdotn, velw);
+      CalculateBoundaryVariables(eqnset, m, space, QPL, QPR, Qref, avec, bcType, eid, bcobj, vdotn, velw, factag);
       eqnset->BoundaryFlux(QPL, QPR, avec, vdotn, fluxL, betaL);
     }
     else{
@@ -578,7 +578,7 @@ void Bkernel_NumJac_Centered(B_KERNEL_ARGS){
   Type* beta = space->GetFieldData("beta", FIELDS::STATE_NONE);
   Type betaL = beta[left_cv];
 
-  CalculateBoundaryVariables(eqnset, m, space, QL, QR, Qref, avec, bcType, eid, bcobj, vdotn, velw);
+  CalculateBoundaryVariables(eqnset, m, space, QL, QR, Qref, avec, bcType, eid, bcobj, vdotn, velw, factag);
 
   for(i = 0; i < neqn; i++){
     memcpy(QPL, QL, sizeof(Type)*nvars);
@@ -597,7 +597,7 @@ void Bkernel_NumJac_Centered(B_KERNEL_ARGS){
       eqnset->ComputeAuxiliaryVariables(QPR);
       //calculate new external variables using
       //applied BCs
-      CalculateBoundaryVariables(eqnset, m, space, QPL, QPR, Qref, avec, bcType, eid, bcobj, vdotn, velw);
+      CalculateBoundaryVariables(eqnset, m, space, QPL, QPR, Qref, avec, bcType, eid, bcobj, vdotn, velw, factag);
       eqnset->BoundaryFlux(QPL, QPR, avec, vdotn, fluxLu, betaL);
     }
     else{
@@ -620,7 +620,7 @@ void Bkernel_NumJac_Centered(B_KERNEL_ARGS){
       eqnset->ComputeAuxiliaryVariables(QPR);
       //calculate new external variables using
       //applied BCs
-      CalculateBoundaryVariables(eqnset, m, space, QPL, QPR, Qref, avec, bcType, eid, bcobj, vdotn, velw);
+      CalculateBoundaryVariables(eqnset, m, space, QPL, QPR, Qref, avec, bcType, eid, bcobj, vdotn, velw, factag);
       eqnset->BoundaryFlux(QPL, QPR, avec, vdotn, fluxLd, betaL);
     }
     else{
@@ -697,7 +697,7 @@ void Bkernel_NumJac_Complex(B_KERNEL_ARGS){
     QR[j] = qR[j];
   }
 
-  CalculateBoundaryVariables(ceqnset, m, space, QL, QR, Qref, avecC, bcType, eid, bcobj, vdotn, velw);
+  CalculateBoundaryVariables(ceqnset, m, space, QL, QR, Qref, avecC, bcType, eid, bcobj, vdotn, velw, factag);
   
   for(i = 0; i < neqn; i++){
     memcpy(QPL, QL, sizeof(RCmplx)*nvars);
@@ -715,7 +715,7 @@ void Bkernel_NumJac_Complex(B_KERNEL_ARGS){
       memcpy(QPR, QR, sizeof(RCmplx)*nvars);
       ceqnset->ComputeAuxiliaryVariables(QPR);
       //calculate new external variables using applied BCs
-      CalculateBoundaryVariables(ceqnset, m, space, QPL, QPR, Qref, avecC, bcType, eid, bcobj, vdotn, velw);
+      CalculateBoundaryVariables(ceqnset, m, space, QPL, QPR, Qref, avecC, bcType, eid, bcobj, vdotn, velw, factag);
       ceqnset->BoundaryFlux(QPL, QPR, avecC, vdotnC, fluxL, cbetaL);
     }
     else{

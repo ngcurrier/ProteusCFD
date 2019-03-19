@@ -72,7 +72,7 @@ void Bkernel_BC_Res_Modify(B_KERNEL_ARGS);
 template <class Type, class Type2, class Type3>
 void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSpace<Type3>* space, 
 				Type* QL, Type* QR, Type* Qinf, Type* avec, Int bcType, 
-				Int eid, BCObj<Type2>* bcobj, Type3 vdotn, Type3* velw);
+				Int eid, BCObj<Type2>* bcobj, Type3 vdotn, Type3* velw, Int factag);
 
 //this is the master call to update the boundary conditions
 template <class Type>

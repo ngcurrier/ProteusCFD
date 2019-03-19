@@ -632,5 +632,5 @@ void METISpartition(Mesh<Real>* m, Int* part, Int np, Int* nodesPart)
   }
   cout << endl;
 
-  
+  MPI_Finalize();
 }

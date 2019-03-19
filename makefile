@@ -67,7 +67,7 @@ OBJS_STRUCT_SOLVER = $(SRCS_STRUCT_SOLVER:.cpp=.o)
 DEPS_STRUCT_SOLVER = $(SRCS_STRUCT_SOLVER:.cpp=.d)
 
 SRCS_ALL = $(SRCS_SOLVER) ./ucs/decomp.cpp ./ucs/recomp.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/find_point.cpp $(CSRCS_PORTOPT)\
-	 $(SRCS_CHEMPROPS) $(SRCS_STRUCT_SOLVER) $(SRCS_COMMON) $(SRCS_TEST)
+	 $(SRCS_CHEMPROPS) $(SRCS_STRUCT_SOLVER) $(SRCS_COMMON) $(SRCS_TEST) ./ucs/gridmod.cpp
 OBJS_ALL = $(SRCS_ALL:.cpp=.o)
 DEPS_ALL = $(SRCS_ALL:.cpp=.d)
 
