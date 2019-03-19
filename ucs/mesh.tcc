@@ -424,7 +424,7 @@ Int Mesh<Type>::BuildElsp()
     Int type = element.GetType();
     for(Int j = 0; j < nnodes; ++j){
       node = nodes[j];
-      if (node >= nnode){
+      if (node >= (nnode + gnode)){
 	std::stringstream ss;
 	ss << "MESH UTILITY: node found that is higher than node number in mesh\n";
 	ss << "MESH UTILITY: node number is " << node << "\n";

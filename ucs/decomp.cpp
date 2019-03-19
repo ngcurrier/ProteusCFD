@@ -363,13 +363,13 @@ int main(int argc, char* argv[]){
   }
   //build hash_map to lookup local id of nodes on owning processes
   //also used to reference local elems by local node number system
-  Int* hash_nodes = new Int[nnode];
+  std::vector<Int> hash_nodes(nnode);
   for(i = 0; i < np; i++){
     for(j = 0; j < localNodesCount[i]; j++){
       Int node = localNodes[localNodesOffset[i] + j];
       //set node index to location in whatever process'
       //local list it is currently in 
-      hash_nodes[node] = j;
+      hash_nodes.at(node) = j;
     }
   }
   //write local id of ghost nodes
@@ -378,7 +378,7 @@ int main(int argc, char* argv[]){
     directoryBase = "/Mesh/";
     for(j = 0; j < ghostNodesCount[i]; j++){
       Int node = ghostNodes[i*goffset + j];
-      vint.push_back(hash_nodes[node]);
+      vint.push_back(hash_nodes.at(node));
     }
     if(vint.size() != (UInt)ghostNodesCount[i]){
       std::cerr << "WARNING vint size does not match ghost nodes count" << std::endl;
@@ -446,7 +446,7 @@ int main(int argc, char* argv[]){
 	Int node = nodes[k];
       	//translate node from global number to number local to current process
 	//node is guaranteed to be local from the way we defined local elems
-	node = hash_nodes[node];
+	node = hash_nodes.at(node);
 	vint.push_back(node);
       }
     }
@@ -466,7 +466,7 @@ int main(int argc, char* argv[]){
 	//of the local list, and ghost list
 	if(part[node] == i){
 	  //if node is local read through hash map
-	  node = hash_nodes[node];
+	  node = hash_nodes.at(node);
 	}
 	else{
 	  //if node is not local it must be in the ghost list
@@ -489,7 +489,6 @@ int main(int argc, char* argv[]){
     HDF_CloseFile(h5out[i]);
   }
 
-  delete [] hash_nodes;
   delete [] localNodes;
   delete [] ghostNodes;
   delete [] ghostDoms;
