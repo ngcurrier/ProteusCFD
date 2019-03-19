@@ -152,7 +152,9 @@ class Mesh
   Int ReadSU2_Ascii(std::string filename);
   Int ReadGMSH_Master(std::string filename);
   Int ReadGMSH2_Ascii(std::string filename);
-  Int ReadGMSH4_Ascii(std::string filename);
+  Int ReadGMSH40_Ascii(std::string filename);
+  Int ReadGMSH41_Ascii(std::string filename);
+  void EliminateOrphanedNodes();
   void UpdateElementCounts(); // updates the element type counters
 #ifdef _HAS_CGNS
   Int ReadCGNS(std::string filename); // master function calling utilities below

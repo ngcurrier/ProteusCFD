@@ -221,8 +221,21 @@ int main(int argc, char* argv[]){
 
   
   //write out the modified grid
-  std::string newGridFilename = casename + ".new";
-  m.WriteCRUNCH_Ascii(newGridFilename);
+  pos = outfilename.rfind(".");
+  casename = outfilename.substr(0,pos);
+  fileextension = outfilename.substr(pos+1, outfilename.size() - (casename.size() ));
+  if(fileextension == "crunch"){
+    m.WriteCRUNCH_Ascii(casename);
+  }
+  else if(fileextension == "vtk"){
+    std::vector<SolutionField<Real>*> fields;
+    m.WriteVTK_Ascii(casename, fields);
+  }
+  else{
+    cerr << "File extension " << fileextension << " not recognized for output mesh" << endl;
+    return 0;
+  }
+
 
   MPI_Finalize();
 }
