@@ -151,8 +151,6 @@ void SolutionSpace<Type>::Init()
 {
   Int ierr = 0;
 
-  //we only want open output files on the original solution space
-  OpenOutFiles();
 
   //finish up the initialization of the PObj
   ierr = p->BuildCommMaps(m);
@@ -376,6 +374,10 @@ void SolutionSpace<Type>::Init()
 
   //add in the plugins
   postPlugins.push_back(new PostForcePlugin<Type>(*this));
+
+  //we only want open output files on the original solution space
+  OpenOutFiles();
+
 }
 
 //add a field by name alone - single scalar
@@ -715,10 +717,11 @@ bool SolutionSpace<Type>::NewtonIterate()
   MPI_Datatype mpit = MPI_GetType(dtmin_global);
   MPI_Allreduce(MPI_IN_PLACE, &dtmin_global, 1, mpit, MPI_MIN, MPI_COMM_WORLD);
 
+  std::cout.precision(5);
   if(p->GetRank() == 0){
-    residOutFile << std::endl << this->iter << "\t" <<  residGlobal << "\t";
+    residOutFile << std::endl << this->iter << "\t" << std::scientific <<  residGlobal << "\t";
     for(Int i = 0; i < neqn; i++){
-      residOutFile << residualComponents[i+1] << "\t";
+      residOutFile << std::scientific << residualComponents[i+1] << "\t";
     }
   }
 
@@ -941,6 +944,9 @@ void SolutionSpace<Type>::PostTimeAdvance()
     p->timers.PrintAccumulate("CommTimer", timerOutFile);
     //reset the comm timer b/c this is used to track iteration comm count
     p->timers.ResetAccumulate("CommTimer");
+    Real totalTime = this->timers.GetSplit("IterationTimer");
+    Real timePerCV = totalTime / static_cast<Real>(m->GetNumGlobalNodes());
+    timerOutFile << "TimePerControlVolume: " << timePerCV << " sec" << std::endl;
   }
 }
 
@@ -1001,10 +1007,15 @@ void SolutionSpace<Type>::OpenOutFiles()
     }
     //todo: print residual headers to file for plotting purposes
     residOutFile << "iter\tresGlobal\t";
-    for(Int i = 0; i < neqn; i++){
-      residOutFile << "resQ_" << i << "\t";
+    std::vector<std::string> names = eqnset->GetResidualNames();
+    for(Int i = 0; i < names.size(); ++i){
+      residOutFile << names[i] << "\t";
     }
-    residOutFile << "||dq||\t" << "CFL\t" << "dtmin";
+    residOutFile << "||dq||\t";
+    if(turb != NULL){
+      residOutFile << "res_turb\t";
+    }
+    residOutFile<<  "CFL\t" << "dtmin";
   }
   std::string timerFile = param->path+param->spacename + ".timer";
   if(isCopy){

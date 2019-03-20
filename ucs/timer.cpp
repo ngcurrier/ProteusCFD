@@ -111,6 +111,35 @@ Int TimerList::PrintBreak(Int number, std::ostream& str)
     return (1);
   }
 }
+
+Real TimerList::GetSplit(std::string timerName){
+  Int tnum = GetNumber(timerName);
+  return GetSplit(tnum);
+}
+
+Real TimerList::GetSplit(Int number){
+  struct timeval breakTime;
+  Real deltaTime = 0.0;
+  if(number < countTimers && number >= 0){
+    if(list[number].started){
+      gettimeofday(&breakTime, NULL);
+      deltaTime = (Real)(breakTime.tv_sec - list[number].splitTime.tv_sec);
+      deltaTime += (Real)(breakTime.tv_usec - list[number].splitTime.tv_usec)/1.0e+6;
+      //now reset for the next split
+      //list[number].splitTime = breakTime;
+      return deltaTime;
+    }
+    else{
+      std::cerr << list[number].name << ": Timer has not been started" << std::endl;
+      return (-999.0);
+    }
+  }
+  else{
+    std::cerr << "Timer number " << number << " not found!!" << std::endl;
+    return (-999.0);
+  }
+}
+
 Int TimerList::PrintSplit(std::string timerName, std::ostream& str)
 {
   Int tnum = GetNumber(timerName);

@@ -269,8 +269,7 @@ class EqnSet
   virtual void SourceTerm(Type* Q, Type vol, Type* source)
   {
     //source term should be coded as if already on the RHS
-    Int i;
-    for(i = 0; i < neqn; i++){
+    for(Int i = 0; i < neqn; i++){
       source[i] = 0.0;
     }
   };
@@ -299,6 +298,17 @@ class EqnSet
     //things like variable mach and compressible finite rate will need this
   };
 
+  //returns the names of the residual terms (i.e. equations) for residual printing
+  virtual std::vector<std::string> GetResidualNames(){
+    std::vector<std::string> names;
+    for(Int i = 0; i < neqn; ++i){
+      std::stringstream ss;
+      ss << "resQ_" << i;
+      names.push_back(ss.str());
+    }
+    return names;
+  }
+  
  private:
 
 };

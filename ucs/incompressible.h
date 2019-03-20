@@ -52,6 +52,15 @@ public:
   void ViscousJacobian(Type* QL, Type* QR, Type* dx, Type s2, Type* avec, 
 		       Type mut, Type* aL, Type* aR);
 
+  //returns the names of the residual terms (i.e. equations) for residual printing
+  virtual std::vector<std::string> GetResidualNames(){
+    std::vector<std::string> names;
+    names.push_back("pressure");
+    names.push_back("velocityX");
+    names.push_back("velocityY");
+    names.push_back("velocityZ");
+    return names;
+  }
  private:
   IncompressibleEqnSet();
 };

@@ -55,6 +55,16 @@ class CompressibleEqnSet : public EqnSet<Type>
   void ModifyViscousWallResidual(Type* res, Type* vel, Int normalNode, Type Twall);
   void ViscousJacobian(Type* QL, Type* QR, Type* dx, Type s2, Type* avec, 
   		       Type mut, Type* aL, Type* aR);
+  //returns the names of the residual terms (i.e. equations) for residual printing
+  virtual std::vector<std::string> GetResidualNames(){
+    std::vector<std::string> names;
+    names.push_back("continuity");
+    names.push_back("momentumX");
+    names.push_back("momentumY");
+    names.push_back("momentumZ");
+    names.push_back("Energy");
+    return names;
+  }
  private:
   CompressibleEqnSet();
 };

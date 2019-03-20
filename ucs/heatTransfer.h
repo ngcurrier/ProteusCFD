@@ -31,6 +31,13 @@ public:
   void GetIsothermalBoundaryVariables(Type* QL, Type* QR, Type Twall);
   void GetHeatFluxBoundaryVariables(Type* QL, Type* QR, Type* normalQ, Type* normaldx, Type flux);
 
+  //returns the names of the residual terms (i.e. equations) for residual printing
+  virtual std::vector<std::string> GetResidualNames(){
+    std::vector<std::string> names;
+    names.push_back("temperature");
+    return names;
+  }
+
  private:
   HeatTransferEqnSet();
   Type thermalDiffusivity; //alpha = k/rho.Cp

@@ -77,6 +77,16 @@ class CompressibleFREqnSet : public EqnSet<Type>
 		   Type* eigenvalues, Type* T, Type* Tinv, Type beta);
   void GetSpeciesSpeedOfSound(Type* c2i, Type* Q);
   Type NewtonFindTGivenP(const Type* rhoi, const Type Pgoal, const Type Tinit) const;
+  //returns the names of the residual terms (i.e. equations) for residual printing
+  virtual std::vector<std::string> GetResidualNames(){
+    std::vector<std::string> names;
+    names.push_back("continuity");
+    names.push_back("momentumX");
+    names.push_back("momentumY");
+    names.push_back("momentumZ");
+    names.push_back("Energy");
+    return names;
+  }
  private:  
   CompressibleFREqnSet();
 };

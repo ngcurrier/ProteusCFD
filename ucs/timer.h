@@ -54,6 +54,8 @@ class TimerList
   //will print time from the last time a split was printed but will not stop timer
   Int PrintSplit(Int number, std::ostream& str = std::cout);
   Int PrintSplit(std::string timerName, std::ostream& str = std::cout);
+  Real GetSplit(std::string timerName);
+  Real GetSplit(Int number);
   //will only print time from start to stop
   //WARNING: if timer has not been stopped time will be garbage
   Int PrintTimer(Int number, std::ostream& str = std::cout);
