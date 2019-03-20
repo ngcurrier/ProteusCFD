@@ -169,8 +169,9 @@ void TurbulenceModel<Type>::ContributeTemporalTerms(Type vol, Type cnp1, Type dt
   }
 }
 
+//update the turbulence model, returns global turbulence residual
 template <class Type>
-void TurbulenceModel<Type>::Compute()
+Type TurbulenceModel<Type>::Compute()
 {
   Int i, j;
   Mesh<Type>* m = space->m;
@@ -261,12 +262,6 @@ void TurbulenceModel<Type>::Compute()
   Type resid = VecL2Norm(crs.b, nnode*neqn);
   Type residGlobal = ParallelL2Norm(space->p, crs.b, nnode*neqn);
 
-  std::cout << resid << "\t";
-
-  if(space->p->GetRank() == 0){
-    space->residOutFile << "||Turb-res||: " << residGlobal << " ";
-  }
-
   if(param->nSgs > 0){
     crs.A->PrepareSGS();
     Int nsgs = MAX(param->nSgs, -param->nSgs);
@@ -314,7 +309,7 @@ void TurbulenceModel<Type>::Compute()
     mut[i] = ComputeEddyViscosity(rho, nu, i);
   }
 
-  return;
+  return residGlobal;
 }
 
 
@@ -744,7 +739,6 @@ void BC_Turb_Kernel(B_KERNEL_ARGS)
   TurbulenceModel<Type>* turb = (TurbulenceModel<Type>*) custom;
   turb->BC_Kernel(space, cvid, left_cv, right_cv, avec, vdotn, velw, ptrL, ptrR, 
 		  tempL, tempR, size, custom, eid, factag);
-  return;
 }
 
 //pass through for type resolution
@@ -754,5 +748,4 @@ void BC_Turb_Jac_Kernel(B_KERNEL_ARGS)
   TurbulenceModel<Type>* turb = (TurbulenceModel<Type>*) custom;
   turb->BC_Jac_Kernel(space, cvid, left_cv, right_cv, avec, vdotn, velw, ptrL, ptrR, 
 		      tempL, tempR, size, custom, eid, factag);
-  return;
 }

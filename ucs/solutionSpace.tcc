@@ -142,8 +142,6 @@ SolutionSpace<Type>::~SolutionSpace()
   delete gaussian;
 
   CloseOutFiles();
-
-  return;
 }
 
 template <class Type>
@@ -855,8 +853,9 @@ bool SolutionSpace<Type>::NewtonIterate()
     this->timers.StartAccumulate("TurbulenceModelTimer");
   }
   //update turbulence model
+  Type turbRes = 0.0;
   if(param->viscous){
-    turb->Compute();
+    turbRes = turb->Compute();
     if(param->gcl){
       std::cout << "COMPUTE GCL FOR TURB MODEL!" << std::endl;
     }
@@ -868,6 +867,7 @@ bool SolutionSpace<Type>::NewtonIterate()
   Type currentCFL = param->GetCFL();
   std::cout << "CFL: " << currentCFL << "\n";
   if(p->GetRank() == 0){
+    residOutFile << std::scientific << turbRes << "\t";
     residOutFile << currentCFL << "\t" ;
     residOutFile << dtmin_global << "\t";
   }
@@ -1011,11 +1011,9 @@ void SolutionSpace<Type>::OpenOutFiles()
     for(Int i = 0; i < names.size(); ++i){
       residOutFile << names[i] << "\t";
     }
-    residOutFile << "||dq||\t";
-    if(turb != NULL){
-      residOutFile << "res_turb\t";
-    }
-    residOutFile<<  "CFL\t" << "dtmin";
+    residOutFile << "\t||dq||\t\t";
+    residOutFile << "res_turb\t";
+    residOutFile<<  "CFL\t\t" << "dtmin";
   }
   std::string timerFile = param->path+param->spacename + ".timer";
   if(isCopy){

@@ -33,7 +33,7 @@ public:
 
   TurbulenceModel(SolutionSpace<Type>* space);      //initialize variables
   virtual ~TurbulenceModel();
-  virtual void Compute();                         //runs the solver for turb vars
+  virtual Type Compute();                         //runs the solver for turb vars
   virtual Bool RequireWallDistance(){return false;};
 
   //sets infinity values for turbulence variables

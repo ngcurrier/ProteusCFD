@@ -12,14 +12,12 @@ template <class Type>
 Spalart<Type>::Spalart()
 {
   //do not call this!!!
-  return;
 }
 
 template <class Type>
 Spalart<Type>::~Spalart()
 {
   //nothing to see here, move along
-  return;
 }
 
 template <class Type>
@@ -78,8 +76,6 @@ void Spalart<Type>::SetTinf()
   this->tvarinf[0] = 1.341946;
 
   std::cout << "SPALART: nu_inf = " << this->tvarinf[0] << std::endl;
-
-  return;
 }
 
 template <class Type>
@@ -136,8 +132,6 @@ void Spalart<Type>::Initialize()
   //allocate a crs object to take care of the solution duties
   this->crs.Init(nnode, gnode, this->neqn, m->ipsp, m->psp, this->space->p);
   this->limiter = new Limiter<Type>(this->space, this->tvar, this->tgrad, this->neqn, this->neqn, this->neqn, "spalart");
-  
-  return;
 }
 
 template <class Type>
@@ -155,25 +149,20 @@ void Spalart<Type>::BC_Kernel(B_KERNEL_ARGS)
 
   if(bcType == Proteus_ParallelBoundary){
     //do nothing this is a parallel updated edge/node
-    return;
   }
   else if(bcType == Proteus_NoSlip){
     //this is a viscous surface, set the bc to zero
     *tR = 0.0;
     *tL = 0.0;
-    return;
   }
   else if(bcType == Proteus_Symmetry || bcType == Proteus_ImpermeableWall){
     *tR = *tL;
-    return;
   }
   else{
     //set the variable to farfield value of the turbulence variables
     //spalart's paper says this can be anywhere from 3-5 nuinf
     *tR = this->tvarinf[0];
   }
-
-  return;
 }
 
 template <class Type>
@@ -190,7 +179,6 @@ void Spalart<Type>::BC_Jac_Kernel(B_KERNEL_ARGS)
 
   if(bcType == Proteus_ParallelBoundary){
     //do nothing this is a parallel updated edge/node
-    return;
   }
   else if(bcType == Proteus_NoSlip){
     //this is a viscous surface, set the bc to zero
@@ -202,14 +190,10 @@ void Spalart<Type>::BC_Jac_Kernel(B_KERNEL_ARGS)
     Type* ptr = crs->A->GetPointer(left_cv, left_cv);
     //set diag to unity.. just to keep SGS/GMRES happy
     *ptr = 1.0;
-    return;
   }
   else{
     //do nothing
-    return;
   }
-  
-  return;
 }
 
 template <class Type>
@@ -280,8 +264,6 @@ void Spalart<Type>::Source(Type nu, Type d, Type* vgrad, Type* tvars, Type vol,
   
   *res = (prod - dest)*vol;
   *jac = (MAX(0.0,-(pi-di)) + MAX(0.0, -(dPdnut - dDdnut)))*vol;
-
-  return;
 }
 
 template <class Type>
@@ -313,8 +295,6 @@ void Spalart<Type>::Diffusive(Type nu, Type* tgrad, Type* tvarsL, Type* tvarsR,
 
   *jacR = c1*dgrad - cb2*nutR*dgrad;
   *jacR *= 1.0/sigma*area*Reinv;
-
-  return;
 }
 
 template <class Type>

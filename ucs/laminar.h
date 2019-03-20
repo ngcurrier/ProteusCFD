@@ -15,7 +15,7 @@ public:
   void Initialize();
   ~Laminar();
   
-  void Compute();
+  Type Compute();
   
 private:
   Laminar();

@@ -44,10 +44,10 @@ void Laminar<Type>::Initialize()
 }
 
 template <class Type>
-void Laminar<Type>::Compute()
+Type Laminar<Type>::Compute()
 {
   //nothing to compute, this just avoids all the gyration
   //in the default implementation
-  return;
+  return 0.0;
 }
 
