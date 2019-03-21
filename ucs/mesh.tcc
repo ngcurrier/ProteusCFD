@@ -3046,6 +3046,9 @@ void Mesh<Type>::ScaleMesh(Type scaleFactor)
     }
     scaled = true;
   }
+  else{
+    std::cout << "MESH UTILITY: Scaling mesh by " << scaleFactor << " requested but mesh has already been scaled - IGNORING" << std::endl;
+  }
 }
 
 // Append nodes to the current mesh, this assumes that the nodes adding are not ghost
