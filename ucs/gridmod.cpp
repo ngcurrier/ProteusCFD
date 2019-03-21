@@ -218,7 +218,8 @@ int main(int argc, char* argv[]){
     }
     
     std::cout << "Generating boundary layers" << std::endl;
-    Real growthRate = 1.2;
+    // this is the recommended value by the DPW gridding guidelines
+    Real growthRate = 1.25;
     GenerateBoundaryLayers(boundaryFactagList, boundaryThicknesses, numberOfLayers, &m, growthRate);
   }
   
