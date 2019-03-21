@@ -195,7 +195,7 @@ int main(int argc, char* argv[]){
       int tag;
       ss >> tag;
       boundaryFactagList.push_back(tag);
-      std::cout << "For tag " << tag << " please input layer thickness: " << std::endl;
+      std::cout << "For tag " << tag << " please input first layer thickness: " << std::endl;
       std::string tmp;
       std::getline(std::cin, tmp);
       ss.clear();

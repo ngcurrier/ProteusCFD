@@ -11,39 +11,46 @@
 //       This follows the general methods outlined in "Unstructured Viscous Layer
 //       Insertion Using Linear-Elastic Smoothing", by Karman et.al.
 
-void GenerateBoundaryLayers(std::vector<int> boundaryFactagList, std::vector<Real> boundaryThicknesses,
+void GenerateBoundaryLayers(std::vector<int> boundaryFactagList, std::vector<Real> firstCellThicknesses,
 			    std::vector<int> numberOfLayers, Mesh<Real>* m, Real growthRate);
 void InflateBoundary(int boundaryFactag, Real inflationDistance, Mesh<Real>* m);
 
 
 // Generates new boundary layers on select surfaces given a volume mesh
 // boundaryFactagList - vector of factags to inflate a boundary layer from
-// boundaryThicknesses - vector of thickness (one per factag) to use for inflation
+// firstCellThicknesses - vector of first cell thickness (one per factag) to use for inflation
 // numberOfLayers - vector of layer # (one per factag) to use for inflation
 // m - mesh pointer to volume mesh to inflate
 // growthRate - geometric growth rate of layers
-void GenerateBoundaryLayers(std::vector<int> boundaryFactagList, std::vector<Real> boundaryThicknesses,
+void GenerateBoundaryLayers(std::vector<int> boundaryFactagList, std::vector<Real> firstCellThicknesses,
 			    std::vector<int> numberOfLayers, Mesh<Real>* m, Real growthRate)
 {
   //sanity checking
-  if((boundaryFactagList.size() != boundaryThicknesses.size()) || (numberOfLayers.size() != boundaryThicknesses.size())){
+  if((boundaryFactagList.size() != firstCellThicknesses.size()) || (numberOfLayers.size() != firstCellThicknesses.size())){
     Abort << "GenerateBoundaryLayers: arguments not matching in length";
   }
 
   // Procedure:
   for(int i = 0; i < boundaryFactagList.size(); ++i){
     int factag = boundaryFactagList[i];
-    int layers = numberOfLayers[i];
-    int power = layers - 1;
-    Real factor = 0.0;
-    for(int j = 0; j < layers; ++j){
-      factor += pow(growthRate,j);
+    int nlayers = numberOfLayers[i];
+
+    //compute thicknesses, we want to insert the big layer first and push on the
+    //smaller ones last (closest to wall)
+    std::vector<Real> distances(nlayers,0.0);
+    Real dist = firstCellThicknesses[i];
+    for(int j = 0; j < nlayers; ++j){
+      distances[j] = dist;
+      // Use geometric growth
+      dist = dist * growthRate;
     }
-    Real dist = boundaryThicknesses[i]/factor;
-    for(int j = 1; j <= numberOfLayers[i]; ++j){
+    
+    for(int j = 1; j <= nlayers; ++j){
+      std::cout << "\nMESH UTILITY: Generating layer " << j << std::endl;
+      std::cout << "------------------------------------------------------------------------" << std::endl;
       // 1) Displace a single boundary from the list in the list using linear elastic smoothing
       // compute the next layer's distance
-      InflateBoundary(factag, dist*pow(growthRate,layers-j), m);
+      InflateBoundary(factag, distances[nlayers-j], m);
       // continue to next boundary..
     }
   }
