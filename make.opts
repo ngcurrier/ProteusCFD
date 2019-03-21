@@ -6,6 +6,8 @@ HAS_CGNS = TRUE
 #DEBUG = TRUE
 #EFENCE = TRUE
 #PENGUIN = TRUE
+#JUMPSHOT = TRUE
+#PROFILE = TRUE
 
 SHELL :=/bin/bash
 
@@ -60,6 +62,15 @@ ifeq ($(TOOLCHAIN),IBM)
 	FXX_LINK_OPTS = 
 endif
 
+ifdef JUMPSHOT
+      MPICXX = mpecc -mpilog -mpicc="mpicxx"
+endif
+
+ifdef PROFILE
+      #no-pie flag is to workaround a glibc bug that generates no output from gprof
+      CXX_OPTS += -pg -no-pie
+      LINK_OPTS += -pg -no-pie
+endif   
 
 TINYXMLDIR = ./TPLs/tinyxml/tinyxml-2.6.2
 TINYXML_INCLUDES = ./TPLs/tinyxml/tinyxml-2.6.2
