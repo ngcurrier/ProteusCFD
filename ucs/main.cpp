@@ -50,8 +50,6 @@ int main(int argc, char* argv[]){
   SolutionOrdering<Real> operations;
   TemporalControl<Real> temporalControl;
 
-  string stdoutname = ".out.";
-  string stderrname = ".err.";
   string tempname;
   stringstream temposs;
 
@@ -119,11 +117,10 @@ int main(int argc, char* argv[]){
   }
 
   //redirect std out
-  temposs.clear();
-  temposs.str("");
-  temposs << rank;
-  stdoutname = pathname + casestring + stdoutname + (temposs.str()); 
-  stderrname = pathname + casestring + stderrname + (temposs.str());
+  string stdoutname = ".out";
+  string stderrname = ".err";
+  stdoutname = pathname + casestring + stdoutname;
+  stderrname = pathname + casestring + stderrname;
   //only write to file if we are the last process
 #ifndef _PENGUIN
 #ifndef _DEBUG
@@ -136,6 +133,11 @@ int main(int argc, char* argv[]){
     freopen("/dev/null", "w", stderr);
   }
 #else
+  temposs.clear();
+  temposs.str("");
+  temposs << "." << rank;
+  stdoutname += (temposs.str());
+  stderrname += (temposs.str());
   //if _DEBUG is defined write all files
   freopen(stdoutname.c_str(), "w", stdout);
   freopen(stderrname.c_str(), "w", stderr);

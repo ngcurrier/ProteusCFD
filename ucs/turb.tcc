@@ -21,21 +21,18 @@ TurbulenceModel<Type>::~TurbulenceModel()
   delete limiter;
   delete idata;
 
-  return;
 }
 
 template <class Type>
 void TurbulenceModel<Type>::SetTinf()
 {
   //do nothing by default
-  return;
 }
 
 template <class Type>
 void TurbulenceModel<Type>::Initialize()
 {
   Abort << "WARNING: In turbulence model Initialize() not implemented!!!";
-  return;
 }
 
 template <class Type>
@@ -46,19 +43,18 @@ void TurbulenceModel<Type>::UpdateBCs()
   //call driver to loop over and set boundary conditions
   BdriverNoScatter(space, BC, this->neqn, this);
 
-  return;
 }
 
 template <class Type>
 void TurbulenceModel<Type>::BC_Kernel(B_KERNEL_ARGS)
 {
-  return;
+  // do nothing by default
 }
 
 template <class Type>
 void TurbulenceModel<Type>::BC_Jac_Kernel(B_KERNEL_ARGS)
 {
-  return;
+  // do nothing by default
 }
 
 template <class Type>
@@ -66,7 +62,6 @@ void TurbulenceModel<Type>::Source(Type nu, Type d, Type* vgrad, Type* tvars, Ty
 				   Type* res, Type* jac)
 {
   Abort << "WARNING: In turbulence model Source() not implemented!!!";
-  return;
 }
 
 template <class Type>
@@ -78,8 +73,6 @@ void TurbulenceModel<Type>::DiffusiveDriver()
   //call drivers to compute the diffusive part of the flux
   DriverNoScatter(space, Diffusive_Flux, neqn, this);
   BdriverNoScatter(space, Bdiffusive_Flux, neqn, this);
-
-  return;
 }
 
 template <class Type>
@@ -88,7 +81,6 @@ void TurbulenceModel<Type>::Diffusive(Type nu, Type* tgrad, Type* tvarsL, Type* 
 				      Type* jacL, Type* jacR)
 {
   Abort << "WARNING: In turbulence model Diffusive() not implemented!!!";
-  return;
 }
 
 template <class Type>
@@ -100,8 +92,6 @@ void TurbulenceModel<Type>::Convective()
   //call drivers to compute the convective part of the flux
   Driver(space, Convective_Flux, neqn, this);
   Bdriver(space, Bconvective_Flux, neqn, this);
-    
-  return;
 }
 
 template <class Type>
@@ -195,7 +185,8 @@ Type TurbulenceModel<Type>::Compute()
   space->p->UpdateGeneralVectors(tvar, neqn);
 
   //compute gradients for the turbulent variables
-  Int weighted = true;
+  //TODO: determine if weighted gradient are appropriate for turbulence modeling
+  Int weighted = false;
   Gradient<Type> gradt(this->neqn, this->neqn, NULL, tvar, space, param->gradType, 
 		       tgrad, weighted);
   gradt.Compute();
@@ -262,6 +253,25 @@ Type TurbulenceModel<Type>::Compute()
   Type resid = VecL2Norm(crs.b, nnode*neqn);
   Type residGlobal = ParallelL2Norm(space->p, crs.b, nnode*neqn);
 
+  //check for non-sensical values in residual
+  if(std::isinf(real(residGlobal)) || std::isnan(real(residGlobal))){
+    Int count = 0;
+    std::cerr << "Turbulence right hand side residual divergent!! Infinite residual." << std::endl;
+    std::cerr << "Turbulence right hand side clipping NaN/INF" << std::endl;
+    for(i = 0; i < nnode; ++i){
+      for(j = 0; j < neqn; ++j){
+	Real r = real(crs.b[i*neqn + j]);
+	if(std::isnan(r) || std::isinf(r)){
+	  crs.b[i*neqn + j] = 0.0;
+	  count++;
+	}
+      }
+    }
+    Int pcount = 0;
+    MPI_Allreduce(&count, &pcount, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    std::cerr << "Clipping " << pcount << " nodes out of " << nnode << " to zero in turbulence right hand side" << std::endl;
+  }
+  
   if(param->nSgs > 0){
     crs.A->PrepareSGS();
     Int nsgs = MAX(param->nSgs, -param->nSgs);
@@ -269,7 +279,21 @@ Type TurbulenceModel<Type>::Compute()
     Type solveres = crs.SGS(nsgs, NULL, NULL, NULL, 0);
     std::cout << "||Turb-Dq||: " << solveres << " ";
     if(std::isnan(real(solveres)) || std::isinf(real(solveres))){
-      Abort << "Turbulence solution residual divergent!! Infinite residual -- I'm OUT!";
+      Int count = 0;
+      std::cerr << "Turbulence solution update dQ divergent!! Infinite residual." << std::endl;
+      std::cerr << "Turbulence solution clipping NaN/INF" << std::endl;
+      for(i = 0; i < nnode; ++i){
+	for(j = 0; j < neqn; ++j){
+	  Real dq = real(crs.x[i*neqn + j]);
+	  if(std::isnan(dq) || std::isinf(dq)){
+	    crs.x[i*neqn + j] = 0.0;
+	    count++;
+	  }
+	}
+      }
+      Int pcount = 0;
+      MPI_Allreduce(&count, &pcount, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+      std::cerr << "Clipping " << pcount << " nodes out of " << nnode << " to zero in turbulence solution updates" << std::endl;
     }
   }
   else{
@@ -386,8 +410,9 @@ void Kernel_Convective(KERNEL_ARGS)
 	  tgradR[j*3 + 1]*dx[1] +
 	  tgradR[j*3 + 2]*dx[2]))*limiterR[j];
     }
-  } 
- //flux from left to right
+  }
+  
+  //flux from left to right
   if(real(theta) > 0.0){
     for(i = 0; i < neqn; i++){
       //compute the derivative
@@ -419,8 +444,6 @@ void Kernel_Convective(KERNEL_ARGS)
   *size = neqn;
   *ptrL = &turb->crs.b[left_cv*neqn];
   *ptrR = &turb->crs.b[right_cv*neqn];
-  
-  return;
 }
 
 template <class Type>
@@ -531,8 +554,6 @@ void Bkernel_Convective(B_KERNEL_ARGS)
   *size = neqn;
   *ptrL = &turb->crs.b[left_cv*neqn];
   *ptrR = NULL;
-
-  return;
 }
 
 template <class Type>
@@ -623,8 +644,6 @@ void Kernel_Diffusive(KERNEL_ARGS)
   *size = 0;
   *ptrL = NULL;
   *ptrR = NULL;
-
-  return;
 }
 
 
@@ -728,8 +747,6 @@ void Bkernel_Diffusive(B_KERNEL_ARGS)
 
   *size = 0;
   *ptrL = NULL;
-
-  return;
 }
 
 //pass through for type resolution
