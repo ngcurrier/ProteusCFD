@@ -728,7 +728,7 @@ Int Mesh<Type>::BuildEl2el()
   Int size = 1*nelem[TRI] + 1*nelem[QUAD] + 4*nelem[TET]
     + 5*nelem[PYRAMID] + 5*nelem[PRISM] + 6*nelem[HEX];
   Int size2;
-  std::cout << "MESH UTILITY: Building volume element to surrounding element map for " << size << " elements" << std::endl;
+  std::cout << "MESH UTILITY: Building volume element to surrounding element map for " << size << " element faces" << std::endl;
 
   
   Int knodes [4];
@@ -2547,6 +2547,26 @@ Int Mesh<Type>::FindSurfaceElementsWithFactag(std::vector<Int>& elementIds, Int 
   std::sort(elementIds.begin(), elementIds.end());
 }
 
+// returns the average sizing of all surface elements on a factag
+// useful for determining when to stop boundary layer insertion
+template <class Type>
+Type Mesh<Type>::ComputeElementSizingAverageOnFactag(Int factag)
+{
+  // find the surface elements which are on the appropriate boundary
+  std::vector<Int> elementIds;
+  FindSurfaceElementsWithFactag(elementIds, factag);
+
+  std::vector<Type> normal;
+  Type avgarea = 0.0;
+  for(Int i = 0; i < elementIds.size(); ++i){
+    Int ielem = elementIds[i];
+    elementList[ielem]->GetNormal(normal, xyz);
+    Type area = normal[3];
+    avgarea += area;
+  }
+  avgarea /= (Type)elementIds.size();
+  return avgarea;
+}
 
 // returns sorted list of nodes by id that are labeled with the appropriate factag
 // pts - unallocated pointer of Int which will contain list of nodes on return

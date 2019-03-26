@@ -203,7 +203,7 @@ int main(int argc, char* argv[]){
       Real thickness;
       ss >> thickness;
       boundaryThicknesses.push_back(thickness);
-      std::cout << "For tag " << tag << " please input number of cell layers: " << std::endl;
+      std::cout << "For tag " << tag << " please input number of cell layers <negative value matches grid spacing>: " << std::endl;
       std::getline(std::cin, tmp);
       ss.clear();
       ss.str(tmp);
@@ -218,7 +218,7 @@ int main(int argc, char* argv[]){
     }
     
     std::cout << "Generating boundary layers" << std::endl;
-    // this is the recommended value by the DPW gridding guidelines
+    // this is the maximum ecommended value by the DPW gridding guidelines
     Real growthRate = 1.25;
     GenerateBoundaryLayers(boundaryFactagList, boundaryThicknesses, numberOfLayers, &m, growthRate);
   }

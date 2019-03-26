@@ -93,6 +93,8 @@ class Mesh
   Int FindPointsWithFactag(Int** pts, Int factag);
   //allocates array and returns ids of elements with desired factag
   Int FindSurfaceElementsWithFactag(std::vector<Int>& elementIds, Int factag);
+  //returns the average sizing of elements on a given factag
+  Type ComputeElementSizingAverageOnFactag(Int factag);
 
   Bool IsScaled() const {return scaled;};
   Bool IsReordered() const {return reordered;};

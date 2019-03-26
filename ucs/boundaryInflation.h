@@ -33,7 +33,28 @@ void GenerateBoundaryLayers(std::vector<int> boundaryFactagList, std::vector<Rea
   // Procedure:
   for(int i = 0; i < boundaryFactagList.size(); ++i){
     int factag = boundaryFactagList[i];
+
+    // check for ideal number of layers (i.e. grid spacing matching)
+    Real avgsizing = m->ComputeElementSizingAverageOnFactag(factag);
+
+    std::cout << "MESH UTILITY: Average face sizing on tag " << factag << " is " << avgsizing << std::endl;
+    std::cout << "MESH UTILITY: Average edge length is " << sqrt(avgsizing) << std::endl;
+    
     int nlayers = numberOfLayers[i];
+    int ideallayers = 0;
+    Real sizing = firstCellThicknesses[i];
+    for(int j = 0; j < 100; ++j){
+      sizing = sizing * growthRate;
+      if(sizing > sqrt(avgsizing)){
+	ideallayers = j - 1;
+	break;
+      }
+    }
+
+    std::cout << "MESH UTILITY: Number of insertion layers required for matching is " << ideallayers << std::endl;
+    if(nlayers < 0){
+      nlayers = ideallayers;
+    }
 
     //compute thicknesses, we want to insert the big layer first and push on the
     //smaller ones last (closest to wall)
@@ -44,9 +65,15 @@ void GenerateBoundaryLayers(std::vector<int> boundaryFactagList, std::vector<Rea
       // Use geometric growth
       dist = dist * growthRate;
     }
+
+    std::cout << "\nMESH UTILITY: Boundary layers to be generated are" << std::endl;
+    std::cout << "------------------------------------------------------------------------" << std::endl;
+    for(int j = 1; j <= nlayers; ++j){
+      std::cout << j << ":\t" << distances[j-1] << std::endl;
+    }
     
     for(int j = 1; j <= nlayers; ++j){
-      std::cout << "\nMESH UTILITY: Generating layer " << j << std::endl;
+      std::cout << "\nMESH UTILITY: Generating layer " << j << " of " << nlayers << std::endl;
       std::cout << "------------------------------------------------------------------------" << std::endl;
       // 1) Displace a single boundary from the list in the list using linear elastic smoothing
       // compute the next layer's distance

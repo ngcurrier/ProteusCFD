@@ -269,7 +269,7 @@ Type TurbulenceModel<Type>::Compute()
     }
     Int pcount = 0;
     MPI_Allreduce(&count, &pcount, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-    std::cerr << "Clipping " << pcount << " nodes out of " << nnode << " to zero in turbulence right hand side" << std::endl;
+    std::cerr << "Clipping " << pcount << " nodes out of " << m->GetNumGlobalNodes() << " to zero in turbulence right hand side" << std::endl;
   }
   
   if(param->nSgs > 0){
@@ -293,7 +293,7 @@ Type TurbulenceModel<Type>::Compute()
       }
       Int pcount = 0;
       MPI_Allreduce(&count, &pcount, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-      std::cerr << "Clipping " << pcount << " nodes out of " << nnode << " to zero in turbulence solution updates" << std::endl;
+      std::cerr << "Clipping " << pcount << " nodes out of " << m->GetNumGlobalNodes() << " to zero in turbulence solution updates" << std::endl;
     }
   }
   else{
