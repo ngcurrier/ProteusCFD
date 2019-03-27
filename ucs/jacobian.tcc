@@ -15,8 +15,6 @@ void ComputeJacobians(SolutionSpace<Type>* space)
   ComputeSpatialJacobian(space);
   //only add temporal terms if solution is unsteady
   ContributeTemporalTerms(space);
-
-  return;
 }
 
 template <class Type>
@@ -116,9 +114,6 @@ void Compute_dRdQ(CRS<Type>& crs, SolutionSpace<Type>* space, Int type)
 
   //set the flag back to what is necessary for solution
   eqnset->param->boundaryJacEval = temp;
-
-
-  return;
 }
 
 template <class Type>
@@ -129,8 +124,6 @@ void Compute_dRdQ_Transpose(CRS<Type>& crs, SolutionSpace<Type>* space, Int type
 
   //and compute the transpose
   crs.A->CRSTranspose();
-
-  return;
 }
 
 template <class Type>
@@ -308,8 +301,6 @@ void Kernel_NumJac(KERNEL_ARGS){
 
   *ptrR = crs.A->GetPointer(left_cv, right_cv);
   *ptrL = crs.A->GetPointer(right_cv, left_cv);
-
-  return;
 }
 
 
@@ -373,8 +364,6 @@ void Kernel_NumJac_Centered(KERNEL_ARGS){
   *size = neqn2;
   *ptrR = crs.A->GetPointer(left_cv, right_cv);
   *ptrL = crs.A->GetPointer(right_cv, left_cv);
-
-  return;
 }
 
 template <class Type>
@@ -441,8 +430,6 @@ void Kernel_NumJac_Complex(KERNEL_ARGS){
   *size = neqn2;
   *ptrR = crs.A->GetPointer(left_cv, right_cv);
   *ptrL = crs.A->GetPointer(right_cv, left_cv);
-
-  return;
 }
 
 
@@ -466,7 +453,6 @@ void Kernel_Diag_NumJac(KERNEL_ARGS){
     tempL[i] = -jacL[i];
     tempR[i] = -jacR[i];
   }
-  return;
 }
 
 template <class Type>
@@ -539,14 +525,13 @@ void Bkernel_NumJac(B_KERNEL_ARGS){
     //this is a contribution to the diagonal to avoid a parallel
     //communication step
     *ptrL = crs.A->GetPointer(left_cv, left_cv);
-    return;
   }
-
-  //set data necessary for driver scatter to diagonal jacobian
-  *size = neqn2;
-  *ptrL = crs.A->GetPointer(cvid, cvid);
-  *ptrR = NULL;
-  return;
+  else{
+    //set data necessary for driver scatter to diagonal jacobian
+    *size = neqn2;
+    *ptrL = crs.A->GetPointer(cvid, cvid);
+    *ptrR = NULL;
+  }
 }
 
 template <class Type>
@@ -642,15 +627,13 @@ void Bkernel_NumJac_Centered(B_KERNEL_ARGS){
     //this is a contribution to the diagonal to avoid a parallel
     //communication step
     *ptrL = crs.A->GetPointer(left_cv, left_cv);
-    return;
   }
-  
-  //set data necessary for driver scatter to diagonal jacobian
-  *size = neqn2;
-  *ptrL = crs.A->GetPointer(cvid, cvid);
-  *ptrR = NULL;
- 
-  return;
+  else{  
+    //set data necessary for driver scatter to diagonal jacobian
+    *size = neqn2;
+    *ptrL = crs.A->GetPointer(cvid, cvid);
+    *ptrR = NULL;
+  }
 }
 
 template <class Type>
@@ -737,14 +720,13 @@ void Bkernel_NumJac_Complex(B_KERNEL_ARGS){
     //this is a contribution to the diagonal to avoid a parallel
     //communication step
     *ptrL = crs.A->GetPointer(left_cv, left_cv);
-    
-    return;
   }
-  
-  //set data necessary for driver scatter to diagonal jacobian
-  *size = neqn2;
-  *ptrL = crs.A->GetPointer(cvid, cvid);
-  *ptrR = NULL;
+  else{
+    //set data necessary for driver scatter to diagonal jacobian
+    *size = neqn2;
+    *ptrL = crs.A->GetPointer(cvid, cvid);
+    *ptrR = NULL;
+  }
 }
 
 
@@ -761,19 +743,17 @@ void Kernel_Viscous_Jac(KERNEL_ARGS)
   Int nvars = neqn + eqnset->nauxvars;
   Type* qL = &space->q[left_cv*nvars];
   Type* qR = &space->q[right_cv*nvars];
-  Type* xL;
-  Type* xR;
-  Type* dx = (Type*)alloca(sizeof(Type)*3);
 
-  xL = m->xyz + 3*left_cv;
-  xR = m->xyz + 3*right_cv;
+  Type* xL = m->xyz + 3*left_cv;
+  Type* xR = m->xyz + 3*right_cv;
 
   //get turbulent viscosity
   Type tmut = (mut[left_cv] + mut[right_cv])/2.0;
   
   Type s2 = 0.0;
+  Type* dx = (Type*)alloca(sizeof(Type)*3);
   for(i = 0; i < 3; i++){
-    dx[i] = xR[i] - xL[i];
+    dx[i] = (xR[i] - xL[i]);
     s2 += dx[i]*dx[i];
   }
 
@@ -800,61 +780,42 @@ void Bkernel_Viscous_Jac(B_KERNEL_ARGS)
   Int nvars = neqn + eqnset->nauxvars;
   Type* qL = &space->q[left_cv*nvars];
   Type* qR = &space->q[right_cv*nvars];
-  Type* xL;
-  Type* xR;
   Type* dx = (Type*)alloca(sizeof(Type)*3);
   Type s2 = 0.0;
 
   BoundaryConditions<Real>* bc = space->bc;
   Int bcType = bc->GetBCType(factag);
 
-  xL = m->xyz + 3*left_cv;
-  xR = m->xyz + 3*right_cv;
-  
   //get turbulent viscosity
   Type tmut;
   if(m->IsGhostNode(right_cv)){
+    Type* xL = m->xyz + 3*left_cv;
+    Type* xR = m->xyz + 3*right_cv;
+  
     tmut = (mut[left_cv] + mut[right_cv])/2.0;
-  }
-  else{
-   tmut = mut[left_cv];
-  }
-
-  //if we have gradient info on a parallel interface
-  for(i = 0; i < 3; i++){
-    dx[i] = xR[i] - xL[i];
+    //if we have gradient info on a parallel interface
+    for(i = 0; i < 3; i++){
+      dx[i] = (xR[i] - xL[i]);
+    }
     s2 += dx[i]*dx[i];
-  }
 
-  //call viscous flux routine
-  eqnset->ViscousJacobian(qL, qR, dx, s2, avec, tmut, tempL, tempR);
-
-  //sum into boundary jacobian spot
-  if(m->IsGhostNode(right_cv)){
-    //this is the standard contribution
-    *size = neqn2;
-    *ptrR = crs.A->GetPointer(cvid, right_cv);
+    //call viscous flux routine
+    eqnset->ViscousJacobian(qL, qR, dx, s2, avec, tmut, tempL, tempR);
 
     //this is a contribution to the diagonal to avoid a parallel
     //communication step
     for(i = 0; i < neqn2; i++){
       tempL[i] = -tempL[i];
     }
+
+    //this is the standard contribution
+    *size = neqn2;
+    *ptrR = crs.A->GetPointer(cvid, right_cv);
     *ptrL = crs.A->GetPointer(left_cv, left_cv);
-    
-    return;
   }
-
-  //set data necessary for driver scatter
-  *size = neqn2;
-  *ptrL = crs.A->GetPointer(left_cv, left_cv);
-
-  //correct signs (tempspace)
-  for(i = 0; i < neqn*neqn; i++){
-    tempL[i] = -tempL[i];
-  }
-
-  return;
+  *size = 0;
+  *ptrR = NULL;
+  *ptrL = NULL;
 }
 
 #if 0
@@ -889,7 +850,5 @@ void Diag_Jacobian_Check(Real* JacCheck, SolutionSpace<Type>* space, Int ptid){
  
 
   delete ceqnset;
-
-  return;
 }
 #endif

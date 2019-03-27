@@ -94,8 +94,6 @@ void CRSMatrix<Type>::Init(Int nnodes_, Int gnodes_, Int neqn_, Int* ipsp, Int* 
   if(pv == NULL){
     Abort << "WARNING in CRSMatrix<>::Init() permutation vector allocation failed";
   }
-
-  return;
 }
 
 //this requires that ipsp contains all ghost nodes out to a second order stencil level
@@ -186,8 +184,6 @@ void CRSMatrix<Type>::Init2(Int nnodes_, Int gnodes_, Int neqn_, Int* ipsp, Int*
   if(pv == NULL){
     Abort << "WARNING in CRSMatrix<>::Init() permutation vector allocation failed";
   }
-
-  return;
 }
 
 template <class Type> 
@@ -233,8 +229,6 @@ void CRSMatrix<Type>::BuildBlockDiagPrecond(CRSMatrix<Type>* A)
     ptr = A->GetPointer(i, i);
     memcpy(&M[neqn2*i], ptr, sizeof(Type)*neqn2);
   }
-
-  return;
 }
 
 template <class Type>
@@ -276,8 +270,6 @@ void CRSMatrix<Type>::CopyMatrixStructure(CRSMatrix<Type>* A)
 
   //copy over all the values in original matrix
   memcpy(M, A->M, sizeof(Type)*nblocks*neqn2);
-
-  return;
 }
 
 template <class Type>
@@ -433,8 +425,6 @@ void CRSMatrix<Type>::BuildILU0Local(CRSMatrix<Type>* A)
   }
 
   delete [] temp;
-  
-  return;
 }
 
 template <class Type>
@@ -509,8 +499,6 @@ void CRSMatrix<Type>::ILU0BackSub(Type* x, Type* b)
 
   delete [] temp;
   delete [] temp2;
-
-  return;
 }
 
 
@@ -519,7 +507,6 @@ void CRSMatrix<Type>::Blank()
 {
   MemBlank(M, nblocks*neqn2);
   ludiag = false;
-  return;
 }
 
 template <class Type>
@@ -532,7 +519,6 @@ void CRSMatrix<Type>::BlankRow(Int row)
     MemBlank(&M[indx*neqn2], neqn2);
   }
   //what to do with ludiag?... assume the user isn't dumb 
-  return;
 }
 
 template <class Type>
@@ -552,7 +538,6 @@ void CRSMatrix<Type>::BlankSubRow(Int blockrow, Int subrow)
   M[diag*neqn2 + subrow*neqn + subrow] = 1.0;
 
   //what to do with ludiag?... assume the user isn't dumb 
-  return;
 }
 
 
@@ -569,7 +554,6 @@ void CRSMatrix<Type>::PrintRow(Int row)
     std::cout << "(" << row << "," << col << ")" << std::endl;
     MatPrint(&M[indx*neqn2], neqn);
   }
-  return;
 }
 
 template <class Type>
@@ -579,7 +563,6 @@ void CRSMatrix<Type>::PrintMatrix()
   for(i = 0; i < nnodes; i++){
     PrintRow(i);
   }
-  return;
 }
 
 template <class Type>
@@ -613,7 +596,6 @@ void CRSMatrix<Type>::CRSTranspose()
   //Do parallel sync for the tranposed matrix blocks
   p->TransposeCommCRS(this);
   
-  return;
 }
 
 
@@ -881,13 +863,16 @@ void CRSMatrix<Type>::PrepareSGS()
 #pragma omp for schedule(static)
 #endif    
 	for(i = 0; i < nnodes; i++){
-	  LU(GetPointer(i,i), &pv[i*neqn], neqn);
+	  Int err = LU(GetPointer(i,i), &pv[i*neqn], neqn);
+	  if(err){
+	    std::cerr << "Bad LU decomposition at local diagonal for node " << i << " out of "
+		      << nnodes << " interior and " << gnodes << " ghost" << std::endl;
+	  }
 	}
       }
     }
     ludiag = true;
   }
-  return;
 }
 
 
@@ -927,15 +912,12 @@ void CRSMatrix<Type>::UndoPrepareSGS()
     ludiag = false;
   }
   delete [] temp;
-
-  return;
 }
 
 template <class Type>
 void CRSMatrix<Type>::BlankVector(Type* v)
 {
   MemBlank(v, neqn*(nnodes+gnodes));
-  return;
 }
 
 template <class Type>

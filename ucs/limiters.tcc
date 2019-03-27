@@ -209,7 +209,6 @@ void Kernel_Barth(KERNEL_ARGS)
   Type* q = limiter->q;
   Type* qL = q + nvars*left_cv;
   Type* qR = q + nvars*right_cv;
-  Type* xR,* xL;
   Type* gradL = limiter->grad + gradneqn*3*left_cv;
   Type* gradR = limiter->grad + gradneqn*3*right_cv;
   Type* limiterL = limiter->l + neqn*left_cv;
@@ -224,8 +223,8 @@ void Kernel_Barth(KERNEL_ARGS)
   Type temp;
 
   //compute extrapolations
-  xL = m->xyz + 3*left_cv;
-  xR = m->xyz + 3*right_cv;
+  Type* xL = m->xyz + 3*left_cv;
+  Type* xR = m->xyz + 3*right_cv;
 
   memcpy(QL, qL, sizeof(Type)*nvars);
   memcpy(QR, qR, sizeof(Type)*nvars);
@@ -314,7 +313,6 @@ void Bkernel_Barth(B_KERNEL_ARGS)
     Type* q = limiter->q;
     Type* qL = q + nvars*left_cv;
     Type* qR = q + nvars*right_cv;
-    Type* xR,* xL;
     Type* gradL = limiter->grad + gradneqn*3*left_cv;
     Type* limiterL = limiter->l + neqn*left_cv;
     Type* QL = (Type*)alloca(sizeof(Type)*nvars);
@@ -327,8 +325,8 @@ void Bkernel_Barth(B_KERNEL_ARGS)
     Type temp;
     
     //compute extrapolations
-    xL = m->xyz + 3*left_cv;
-    xR = m->xyz + 3*right_cv;
+    Type* xL = m->xyz + 3*left_cv;
+    Type* xR = m->xyz + 3*right_cv;
     
     memcpy(QL, qL, sizeof(Type)*nvars);
     memcpy(QR, qR, sizeof(Type)*nvars);
@@ -388,7 +386,6 @@ void Kernel_Venkat(KERNEL_ARGS)
   Type* q = limiter->q;
   Type* qL = q + nvars*left_cv;
   Type* qR = q + nvars*right_cv;
-  Type* xR,* xL;
   Type* gradL = limiter->grad + gradneqn*3*left_cv;
   Type* gradR = limiter->grad + gradneqn*3*right_cv;
   Type* limiterL = limiter->l + neqn*left_cv;
@@ -403,8 +400,8 @@ void Kernel_Venkat(KERNEL_ARGS)
   Type temp;
 
   //compute extrapolations
-  xL = m->xyz + 3*left_cv;
-  xR = m->xyz + 3*right_cv;
+  Type* xL = m->xyz + 3*left_cv;
+  Type* xR = m->xyz + 3*right_cv;
   
   memcpy(QL, qL, sizeof(Type)*nvars);
   memcpy(QR, qR, sizeof(Type)*nvars);
@@ -483,7 +480,6 @@ void Bkernel_Venkat(B_KERNEL_ARGS)
     Type* q = limiter->q;
     Type* qL = q + nvars*left_cv;
     Type* qR = q + nvars*right_cv;
-    Type* xR,* xL;
     Type* gradL = limiter->grad + gradneqn*3*left_cv;
     Type* limiterL = limiter->l + neqn*left_cv;
     Type* QL = (Type*)alloca(sizeof(Type)*nvars);
@@ -496,8 +492,8 @@ void Bkernel_Venkat(B_KERNEL_ARGS)
     Type temp;
     
     //compute extrapolations
-    xL = m->xyz + 3*left_cv;
-    xR = m->xyz + 3*right_cv;
+    Type* xL = m->xyz + 3*left_cv;
+    Type* xR = m->xyz + 3*right_cv;
     
     memcpy(QL, qL, sizeof(Type)*nvars);
     memcpy(QR, qR, sizeof(Type)*nvars);
@@ -553,7 +549,6 @@ void Kernel_VenkatMod(KERNEL_ARGS)
   Type* q = limiter->q;
   Type* qL = q + nvars*left_cv;
   Type* qR = q + nvars*right_cv;
-  Type* xR,* xL;
   Type* gradL = limiter->grad + gradneqn*3*left_cv;
   Type* gradR = limiter->grad + gradneqn*3*right_cv;
   Type* limiterL = limiter->l + neqn*left_cv;
@@ -575,8 +570,8 @@ void Kernel_VenkatMod(KERNEL_ARGS)
   Type K3 = K*K*K;
 
   //compute extrapolations
-  xL = m->xyz + 3*left_cv;
-  xR = m->xyz + 3*right_cv;
+  Type* xL = m->xyz + 3*left_cv;
+  Type* xR = m->xyz + 3*right_cv;
   
   memcpy(QL, qL, sizeof(Type)*nvars);
   memcpy(QR, qR, sizeof(Type)*nvars);
@@ -635,7 +630,7 @@ void Kernel_VenkatMod(KERNEL_ARGS)
     if(real(QR[j]) > real(qR[j])){
       DP = qmaxR[j] - qR[j];
     }
-    if(real(QR[j]) < real(qR[j])){
+    if(real(QR[j]) <= real(qR[j])){
       DP = qminR[j] - qR[j];
     }
 
@@ -671,7 +666,6 @@ void Bkernel_VenkatMod(B_KERNEL_ARGS)
     Type* q = limiter->q;
     Type* qL = q + nvars*left_cv;
     Type* qR = q + nvars*right_cv;
-    Type* xR,* xL;
     Type* gradL = limiter->grad + gradneqn*3*left_cv;
     Type* limiterL = limiter->l + neqn*left_cv;
     Type* QL = (Type*)alloca(sizeof(Type)*nvars);
@@ -699,8 +693,8 @@ void Bkernel_VenkatMod(B_KERNEL_ARGS)
     Type DM, DP, ep2;
     
     //compute extrapolations
-    xL = m->xyz + 3*left_cv;
-    xR = m->xyz + 3*right_cv;
+    Type* xL = m->xyz + 3*left_cv;
+    Type* xR = m->xyz + 3*right_cv;
     
     memcpy(QL, qL, sizeof(Type)*nvars);
     memcpy(QR, qR, sizeof(Type)*nvars);
@@ -723,7 +717,7 @@ void Bkernel_VenkatMod(B_KERNEL_ARGS)
       if(real(QL[j]) > real(qL[j])){
 	DP = qmaxL[j] - QL[j];
       }
-      else if(real(QL[j]) < real(qL[j])){
+      else if(real(QL[j]) <= real(qL[j])){
 	DP = qminL[j] - QL[j];
       }
       
@@ -754,7 +748,6 @@ void Kernel_PressureClip(KERNEL_ARGS)
   Type* q = limiter->q;
   Type* qL = q + nvars*left_cv;
   Type* qR = q + nvars*right_cv;
-  Type* xR,* xL;
   Type* gradL = limiter->grad + gradneqn*3*left_cv;
   Type* gradR = limiter->grad + gradneqn*3*right_cv;
   Type* limiterL = limiter->l + neqn*left_cv;
@@ -770,8 +763,8 @@ void Kernel_PressureClip(KERNEL_ARGS)
 
   Type gamma = param->gamma;
 
-  xL = m->xyz + 3*left_cv;
-  xR = m->xyz + 3*right_cv;
+  Type* xL = m->xyz + 3*left_cv;
+  Type* xR = m->xyz + 3*right_cv;
 
   //TODO: generalize incase we want to use a non-midpoint edge CV
   dx[0] = 0.5*(xR[0] - xL[0]);

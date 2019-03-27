@@ -203,7 +203,6 @@ void Kernel_Inviscid_Flux(KERNEL_ARGS)
   Type* QL = (Type*)alloca(sizeof(Type)*nvars);
   Type* QR = (Type*)alloca(sizeof(Type)*nvars);
   Type* dQ = (Type*)alloca(sizeof(Type)*nvars);
-  Type* xR,* xL;
   Type* dx = (Type*)alloca(sizeof(Type)*3);
   Type* limiterL = &space->limiter->l[left_cv*neqn];
   Type* limiterR = &space->limiter->l[right_cv*neqn];
@@ -214,8 +213,8 @@ void Kernel_Inviscid_Flux(KERNEL_ARGS)
   Type betaR = beta[right_cv];
   Type avbeta = 0.5*(betaL + betaR);
 
-  xL = m->xyz + 3*left_cv;
-  xR = m->xyz + 3*right_cv;
+  Type* xL = m->xyz + 3*left_cv;
+  Type* xR = m->xyz + 3*right_cv;
   
   memcpy(QL, qL, sizeof(Type)*nvars);
   memcpy(QR, qR, sizeof(Type)*nvars);
@@ -314,9 +313,6 @@ void Bkernel_Inviscid_Flux(B_KERNEL_ARGS)
   Type* limiterL = &space->limiter->l[left_cv*neqn];
   Type* limiterR = &space->limiter->l[right_cv*neqn];
  
-  Type* xL;
-  Type* xR;
-  Type* dx = (Type*)alloca(sizeof(Type)*3);
   Type chi = param->chi;
 
   Type* beta = space->GetFieldData("beta", FIELDS::STATE_NONE);
@@ -325,16 +321,16 @@ void Bkernel_Inviscid_Flux(B_KERNEL_ARGS)
   BoundaryConditions<Real>* bc = space->bc;
   Int bcType = bc->GetBCType(factag); 
 
-  xL = m->xyz + 3*left_cv;
-  xR = m->xyz + 3*right_cv;
-  
   memcpy(QL, qL, sizeof(Type)*nvars);
   memcpy(QR, qR, sizeof(Type)*nvars);
 
   if(param->sorder > 1 && (space->iter > param->nFirstOrderSteps)){
-    
     //only do full right extrapolation if boundary node is ghost(parallel)
     if(m->IsGhostNode(right_cv)){
+
+      Type* xL = m->xyz + 3*left_cv;
+      Type* xR = m->xyz + 3*right_cv;
+      
       Type* gradL = space->qgrad + 3*nterms*left_cv;
       
       for(j = 0; j < neqn; j++){
@@ -342,6 +338,7 @@ void Bkernel_Inviscid_Flux(B_KERNEL_ARGS)
       }
 
       //TODO: generalize incase we want to use a non-midpoint edge CV
+      Type* dx = (Type*)alloca(sizeof(Type)*3);
       dx[0] = 0.5*(xR[0] - xL[0]);
       dx[1] = 0.5*(xR[1] - xL[1]);
       dx[2] = 0.5*(xR[2] - xL[2]);
@@ -404,14 +401,13 @@ void Kernel_Viscous_Flux(KERNEL_ARGS)
   Type* Qavg = (Type*)alloca(sizeof(Type)*nvars);
   Type* QL = (Type*)alloca(sizeof(Type)*nvars);
   Type* QR = (Type*)alloca(sizeof(Type)*nvars);
-  Type* xR,* xL;
   Type* dx = (Type*)alloca(sizeof(Type)*3);
   Type* gradL = space->qgrad + 3*nterms*left_cv;
   Type* gradR = space->qgrad + 3*nterms*right_cv;
   Type* grad = (Type*)alloca(sizeof(Type)*nterms*3);
 
-  xL = m->xyz + 3*left_cv;
-  xR = m->xyz + 3*right_cv;
+  Type* xL = m->xyz + 3*left_cv;
+  Type* xR = m->xyz + 3*right_cv;
 
   //do dumb averaging for q vector... this affects the velocity terms internally
   //TODO: use h.o. extrapolations here
@@ -441,7 +437,7 @@ void Kernel_Viscous_Flux(KERNEL_ARGS)
   Type s2 = 0.0;
   Type qdots, dq;
   for(i = 0; i < 3; i++){
-    dx[i] = xR[i] - xL[i];
+    dx[i] = (xR[i] - xL[i]);
     s2 += dx[i]*dx[i];
   }
   for(j = 0; j < nterms; j++){
@@ -455,7 +451,6 @@ void Kernel_Viscous_Flux(KERNEL_ARGS)
 
   //call viscous flux routine
   eqnset->ViscousFlux(Qavg, grad, avec, tmut, tempR);
-
 
   //set data necessary for driver scatter
   *size = neqn;
@@ -482,25 +477,13 @@ void Bkernel_Viscous_Flux(B_KERNEL_ARGS)
   Type* QL = (Type*)alloca(sizeof(Type)*nvars);
   Type* QR = (Type*)alloca(sizeof(Type)*nvars);
   Type* Qavg = (Type*)alloca(sizeof(Type)*nvars);
-  Type* xL;
-  Type* xR;
   Type* dx = (Type*)alloca(sizeof(Type)*3);
   Type* gradL = space->qgrad + 3*nterms*left_cv;
   Type* grad = (Type*)alloca(sizeof(Type)*nterms*3);
 
-  xL = m->xyz + 3*left_cv;
-  xR = m->xyz + 3*right_cv;
 
   BoundaryConditions<Real>* bc = space->bc;
   Int bcType = bc->GetBCType(factag);
-
-  //use directional derivatives to get gradient at face
-  //TODO: generalize in case we want to use a non-midpoint edge CV
-  Type s2 = 0.0;
-  for(i = 0; i < 3; i++){
-    dx[i] = xR[i] - xL[i];
-    s2 += dx[i]*dx[i];
-  }
 
   //do dumb averaging for q vector... this affects the velocity terms internally
   //TODO: use h.o. extrapolations here
@@ -518,6 +501,15 @@ void Bkernel_Viscous_Flux(B_KERNEL_ARGS)
   //get turbulent viscosity
   Type tmut;
   if(m->IsGhostNode(right_cv)){
+    //use directional derivatives to get gradient at face
+    //TODO: generalize in case we want to use a non-midpoint edge CV
+    Type* xL = m->xyz + 3*left_cv;
+    Type* xR = m->xyz + 3*right_cv;
+    Type s2 = 0.0;
+    for(i = 0; i < 3; i++){
+      dx[i] = (xR[i] - xL[i]);
+      s2 += dx[i]*dx[i];
+    }
     memcpy(QL, qL, sizeof(Type)*nvars);
     memcpy(QR, qR, sizeof(Type)*nvars);
 
@@ -607,8 +599,6 @@ void ContributeGCL2(SolutionSpace<Type>* space, Type timestep, Int iter, Int tor
   std::cout << "\t";
 
   delete [] q;
-  
-  return;
 }
 
 template <class Type>
@@ -621,7 +611,6 @@ void ContributeGCL(SolutionSpace<Type>* space, Type timestep, Int iter, Int tord
   Kernel<Type> BGCL(GCL_Bkernel);
   Driver(space, GCL, neqn, NULL);
   Bdriver(space, BGCL, neqn, NULL);
-  return;
 }
 
 template <class Type>
@@ -641,8 +630,6 @@ void GCL_Kernel(KERNEL_ARGS)
   *size = neqn;
   *ptrL = &space->crs->b[left_cv*neqn];
   *ptrR = &space->crs->b[right_cv*neqn];
-
-  return;
 }
 
 template <class Type>
@@ -662,8 +649,6 @@ void GCL_Bkernel(B_KERNEL_ARGS)
   *size = neqn;
   *ptrL = &space->crs->b[left_cv*neqn];
   *ptrR = NULL;
-
-  return;
 }
 
 template <class Type>
@@ -720,7 +705,7 @@ void Kernel_Viscous_Src(KERNEL_ARGS)
   Type s2 = 0.0;
   Type qdots, dq;
   for(i = 0; i < 3; i++){
-    dx[i] = xR[i] - xL[i];
+    dx[i] = (xR[i] - xL[i]);
     s2 += dx[i]*dx[i];
   }
   for(j = 0; j < nterms; j++){
@@ -756,8 +741,6 @@ void Kernel_Viscous_Src(KERNEL_ARGS)
   for(i = 0; i < neqn; i++){
     tempL[i] = -tempR[i];
   }
-
-  return;
 }
 
 template <class Type>
@@ -775,26 +758,14 @@ void Bkernel_Viscous_Src(B_KERNEL_ARGS)
   Type* QL = (Type*)alloca(sizeof(Type)*nvars);
   Type* QR = (Type*)alloca(sizeof(Type)*nvars);
   Type* Qavg = (Type*)alloca(sizeof(Type)*nvars);
-  Type* xL;
-  Type* xR;
   Type* dx = (Type*)alloca(sizeof(Type)*3);
   Type* gradL = space->qgrad + 3*nterms*left_cv;
   Type* grad = (Type*)alloca(sizeof(Type)*nterms*3);
   Type* tempL_LO = (Type*)alloca(sizeof(Type)*neqn);
 
-  xL = m->xyz + 3*left_cv;
-  xR = m->xyz + 3*right_cv;
-
   BoundaryConditions<Real>* bc = space->bc;
   Int bcType = bc->GetBCType(factag); 
 
-  //use directional derivatives to get gradient at face
-  //TODO: generalize in case we want to use a non-midpoint edge CV
-  Type s2 = 0.0;
-  for(i = 0; i < 3; i++){
-    dx[i] = xR[i] - xL[i];
-    s2 += dx[i]*dx[i];
-  }
 
   //do dumb averaging for q vector... this affects the velocity terms internally
   //TODO: use h.o. extrapolations here
@@ -812,6 +783,16 @@ void Bkernel_Viscous_Src(B_KERNEL_ARGS)
   //get turbulent viscosity
   Type tmut;
   if(m->IsGhostNode(right_cv)){
+    //use directional derivatives to get gradient at face
+    //TODO: generalize in case we want to use a non-midpoint edge CV
+    Type* xL = m->xyz + 3*left_cv;
+    Type* xR = m->xyz + 3*right_cv;
+    Type s2 = 0.0;
+    for(i = 0; i < 3; i++){
+      dx[i] = (xR[i] - xL[i]);
+      s2 += dx[i]*dx[i];
+    }
+    
     memcpy(QL, qL, sizeof(Type)*nvars);
     memcpy(QR, qR, sizeof(Type)*nvars);
 
@@ -868,6 +849,4 @@ void Bkernel_Viscous_Src(B_KERNEL_ARGS)
   for(i = 0; i < neqn; i++){
     tempL[i] = -tempL[i];
   }
-
-  return;
 }

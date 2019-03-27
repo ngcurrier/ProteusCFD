@@ -1056,7 +1056,7 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
   Int left_cv = m->bedges[eid].n[0];
   Type3* beta = space->GetFieldData("beta", FIELDS::STATE_NONE);
   Type betaL = beta[left_cv];
-
+  
   if(bcType == Proteus_ParallelBoundary){
     //do nothing this is a parallel updated edge/node
     return;

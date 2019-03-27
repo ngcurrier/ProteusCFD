@@ -772,26 +772,35 @@ bool SolutionSpace<Type>::NewtonIterate()
   }
 
   //check for infinite updates and if found zero the node's update
+  Int zerocount = 0;
   for(Int j = 0; j < nnode; j++){
     bool zero = false;
     for(Int k = 0; k < neqn; k++){
       if(std::isnan(real(crs->x[j*neqn +k])) || std::isinf(real(crs->x[j*neqn+k]))){
 	crs->x[j*neqn + k] = 0.0;
+#ifdef _DEBUG
 	std::stringstream ss;
 	ss << "Update dQ[" << k << "] isnan OR isinf at " <<
 	  m->xyz[j*3 + 0] << "  " << m->xyz[j*3 + 1] << " " << m->xyz[j*3 + 2] <<
 	  " Zeroing dQ update for node\n";
 	std::cerr << ss.str();
+#endif
 	zero = true;
       }
     }
     if(zero){
+      zerocount++;
       for(Int k = 0; k < neqn; k++){
 	crs->x[j*neqn + k] = 0.0;
       }
     }
   }
-
+  Int pcount = 0;
+  MPI_Allreduce(&zerocount, &pcount, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+  if(pcount > 0){
+    std::cerr << "\nClipping " << pcount << " nodes out of " << m->GetNumGlobalNodes() << " to zero in solution update" << std::endl;
+  }
+  
   for(Int j = 0; j < nnode; j++){
     eqnset->ApplyDQ(&crs->x[j*neqn], &q[j*nvars], &m->xyz[j*3]);
   }  

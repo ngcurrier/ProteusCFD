@@ -22,7 +22,7 @@ Int Driver(SolutionSpace<Type>* space, Kernel<Type> &kernel, Int scatterSize,
     Type* avec;
     Type* ptrL = NULL;
     Type* ptrR = NULL;
-    Int n;
+    Int n = 0;
     Type* tempspaceL = new Type[scatterSize];
     Type* tempspaceR = new Type[scatterSize];
     Type* ve = (Type*)alloca(sizeof(Type)*3);
@@ -75,7 +75,8 @@ Int Bdriver(SolutionSpace<Type>* space, Kernel<Type> &bkernel, Int scatterSize,
   Type* avec;
   Type* ptrL = NULL;
   Type* ptrR = NULL;
-  Int n, k;
+  Int n = 0;
+  Int k;
   Int factag;
   Mesh<Type>* m = space->m;
   Int ngedge = m->GetNumParallelEdges();
@@ -147,7 +148,8 @@ Int BdriverNoScatter(SolutionSpace<Type>* space, Kernel<Type> &bkernel, Int scat
   Int eid;
   Int left_cv, right_cv;
   Type* avec;
-  Int n, k;
+  Int n = 0;
+  Int k;
   Int factag;
   Mesh<Type>* m = space->m;
   Int nbedge = m->GetNumBoundaryEdges();
@@ -228,7 +230,7 @@ Int DriverNoScatter(SolutionSpace<Type>* space, Kernel<Type> &kernel,
     Type* avec;
     Type* ptrL = NULL;
     Type* ptrR = NULL;
-    Int n;
+    Int n = 0;
     Type* tempspaceL = new Type[scatterSize];
     Type* tempspaceR = new Type[scatterSize];
     Type* ve = (Type*)alloca(sizeof(Type)*3);

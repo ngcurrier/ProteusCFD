@@ -2820,8 +2820,16 @@ Int Mesh<Type>::ReadPartedMesh(std::string casename)
   }
   bface = nelem[TRI] + nelem[QUAD];
 
+  
+  std::cout << "PARTITION HDF I/O: Number of global nodes " << gnnode << std::endl;
   std::cout << "PARTITION HDF I/O: Number of local nodes " << nnode << std::endl;
   std::cout << "PARTITION HDF I/O: Number of ghost nodes " << gnode << std::endl;
+  std::cout << "PARTITION HDF I/O: Number of global elements " << gnelem << std::endl;
+
+  lnelem =  (nelem[TRI] + nelem[QUAD] + nelem[TET] + 
+	     nelem[PYRAMID] + nelem[PRISM] + nelem[HEX]);
+
+  std::cout << "PARTITION HDF I/O: Number of local elements " << lnelem << std::endl;
   std::cout << "PARTITION HDF I/O: Number of Tris " << nelem[TRI] << std::endl;
   std::cout << "PARTITION HDF I/O: Number of Quads " << nelem[QUAD] << std::endl;
   std::cout << "PARTITION HDF I/O: Number of Tets " << nelem[TET] << std::endl;
@@ -2829,8 +2837,6 @@ Int Mesh<Type>::ReadPartedMesh(std::string casename)
   std::cout << "PARTITION HDF I/O: Number of Prisms " << nelem[PRISM] << std::endl;
   std::cout << "PARTITION HDF I/O: Number of Hexes " << nelem[HEX] << std::endl;
   
-  lnelem =  (nelem[TRI] + nelem[QUAD] + nelem[TET] + 
-	     nelem[PYRAMID] + nelem[PRISM] + nelem[HEX]);
   
   MemInitMesh();
 

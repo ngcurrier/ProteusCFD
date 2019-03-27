@@ -465,10 +465,6 @@ void Bkernel_Convective(B_KERNEL_ARGS)
   Type* qL = &space->q[left_cv*qnvars];
   Type* qR = &space->q[right_cv*qnvars];
   
-  Type* xL = &m->xyz[left_cv*3];
-  Type* xR = &m->xyz[right_cv*3];
-  Type* dx = (Type*)alloca(sizeof(Type)*3);
-
   Type* q = (Type*)alloca(sizeof(Type)*qneqn);
   Type* TL = (Type*)alloca(sizeof(Type)*neqn);
   Type* TR = (Type*)alloca(sizeof(Type)*neqn);
@@ -493,6 +489,10 @@ void Bkernel_Convective(B_KERNEL_ARGS)
   if(param->turbModelSorder > 1 && (space->iter > param->nFirstOrderSteps)){
     //only do full extrapolation if boundary node is ghost(parallel)
     if(m->IsGhostNode(right_cv)){
+      Type* xL = &m->xyz[left_cv*3];
+      Type* xR = &m->xyz[right_cv*3];
+      Type* dx = (Type*)alloca(sizeof(Type)*3);
+
       Type* tgradL = &turb->tgrad[left_cv*neqn*3];
       
       //TODO: generalize incase we want to use a non-midpoint edge CV
@@ -669,24 +669,6 @@ void Bkernel_Diffusive(B_KERNEL_ARGS)
   Type* tjacR = (Type*)alloca(sizeof(Type)*neqn*neqn);
 
   Type dgrad;
-  Type ds2;
-  Type* de = (Type*)alloca(sizeof(Type)*3);
-  Type* xL = &m->xyz[left_cv*3];
-  Type* xR = &m->xyz[right_cv*3];
-
-  ds2 = 0.0;
-  for(i = 0; i < 3; i++){
-    de[i] = xR[i] - xL[i];
-    ds2 += de[i]*de[i];
-  }
-  
-  Type dx, dy, dz, d;
-  dx = de[0]*avec[0];
-  dy = de[1]*avec[1];
-  dz = de[2]*avec[2];
-
-  d = dx + dy + dz;
-  dgrad = d/ds2;
 
   Int qneqn = eqnset->neqn;
   Int qnvars = qneqn + eqnset->nauxvars;
@@ -704,6 +686,23 @@ void Bkernel_Diffusive(B_KERNEL_ARGS)
 
   Type* tgrad = (Type*)alloca(sizeof(Type)*neqn*3);
   if(m->IsGhostNode(right_cv)){
+    Type ds2 = 0.0;
+    Type* de = (Type*)alloca(sizeof(Type)*3);
+    Type* xL = &m->xyz[left_cv*3];
+    Type* xR = &m->xyz[right_cv*3];
+
+    for(i = 0; i < 3; i++){
+      de[i] = (xR[i] - xL[i]);
+      ds2 += de[i]*de[i];
+    }
+    
+    Type dx, dy, dz, d;
+    dx = de[0]*avec[0];
+    dy = de[1]*avec[1];
+    dz = de[2]*avec[2];
+    
+    d = dx + dy + dz;
+    dgrad = d/ds2;
     for(i = 0; i < neqn*3; i++){
       tgrad[i] = 0.5*(turb->tgrad[left_cv*neqn*3 + i] + turb->tgrad[right_cv*neqn*3 + i]);
     }
@@ -724,16 +723,16 @@ void Bkernel_Diffusive(B_KERNEL_ARGS)
       tgrad[i] = turb->tgrad[left_cv*neqn*3 + i];
     }
   }
-
+  
   //call the diffusive member function for our current turbulence model
   turb->Diffusive(nu, tgrad, tvarsL, tvarsR, avec, dgrad, tresL, tresR, tjacL, tjacR);
-
+  
   //now put the returned residuals and jacobians in the correct place
   for(i = 0; i < neqn; i++){
     //positive on the left b/c of outward pointing normal and div. thm.
     turb->crs.b[left_cv*neqn + i] += tresL[i];
   }
-
+  
   if(m->IsGhostNode(right_cv)){
     Type* jacR = turb->crs.A->GetPointer(left_cv, right_cv);
     for(i = 0; i < neqn*neqn; i++){
@@ -746,7 +745,6 @@ void Bkernel_Diffusive(B_KERNEL_ARGS)
       jacL[i] += tjacL[i];
     }
   }
-
   *size = 0;
   *ptrL = NULL;
 }
