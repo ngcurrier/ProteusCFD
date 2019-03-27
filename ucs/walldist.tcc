@@ -17,6 +17,11 @@
 //
 /********************************************************/
 
+
+// p - parallel compute communicator
+// xyzLocal - points on the local processor (xyz array in order)
+// xyzParallel - pointer to unallocated memory which will be filled with all the coordinates on exit
+// nptsParallel - pointer to an int which will hold the value of the # of points received on exit
 template <class Type>
 void SyncParallelPoint(PObj<Type>* p, Type* xyzLocal, Type** xyzParallel, Int nptsLocal, Int* nptsParallel)
 {
@@ -69,25 +74,26 @@ void SyncParallelPoint(PObj<Type>* p, Type* xyzLocal, Type** xyzParallel, Int np
   for(i = 0; i < np; i++){
     sum += countsRecv[i];
   }
+  //set up the offsets so we can store the points contiguously on receipt
   offsetsRecv[0] = 0;
   for(i = 1; i < np; i++){
     offsetsRecv[i] = offsetsRecv[i-1] + countsRecv[i-1];
   }
   
-  //allocate the memory to store the xyz coords
+  //allocate the memory to store the xyz coords for all of the viscous surface nodes in the mesh
   *nptsParallel = sum;
   *xyzParallel = new Type[(*nptsParallel)*3];
   if(*xyzParallel == NULL){
     Abort << "WARNING: Out of memory in SyncParallelPoint()";
   }
 
-    //send the size of the block to every process
+  //send the local node coordinates to every process
   for(i = 0; i < np; i++){
     if(i != rank && nptsLocal != 0){
       MPI_Isend(xyzLocal, nptsLocal*3, mpit, i, 0, MPI_COMM_WORLD, &sRequest[i]);
     }
   }
-  //recv the counts from other processes
+  //recv the node coordinates from other processes
   for(i = 0; i < np; i++){
     if(i != rank && countsRecv[i] != 0){
       MPI_Irecv(&((*xyzParallel)[offsetsRecv[i]*3]), countsRecv[i]*3, mpit, i, 0, MPI_COMM_WORLD, &rRequest[i]);
@@ -104,10 +110,11 @@ void SyncParallelPoint(PObj<Type>* p, Type* xyzLocal, Type** xyzParallel, Int np
 
   delete [] sRequest;
   delete [] rRequest;
-
-  return;
 }
 
+// computes the wall distance to viscous nodes for all nodes in the mesh
+// walldist - array that is nnodes long which contains the value of distance to nearest viscous wall
+// space - solution space container
 template <class Type>
 void ComputeWallDistOct(Type* wallDist, SolutionSpace<Type>* space)
 {
@@ -151,6 +158,7 @@ void ComputeWallDistOct(Type* wallDist, SolutionSpace<Type>* space)
     Abort << "WARNING: Allocation failure in ComputeWallDistOct() - xyzLocal";
   }
 
+  //store the viscous nodes in an array
   Int count = 0;
   for(Int eid = 0; eid < nbedge+ngedge; eid++){
     Int factag = m->bedges[eid].factag;
@@ -179,6 +187,7 @@ void ComputeWallDistOct(Type* wallDist, SolutionSpace<Type>* space)
   memcpy(&xyzTotal[nptsLocal*3], xyzParallel, sizeof(Type)*3*nptsParallel);
   delete [] xyzParallel;
 
+  //build an octree around all of the viscous nodes (global)
   Octree<Type> octree(xyzTotal, nptsTotal, maxDepth, minNodes);
   octree.Print(std::cout);
 
@@ -190,8 +199,6 @@ void ComputeWallDistOct(Type* wallDist, SolutionSpace<Type>* space)
   }
 
   delete [] xyzTotal;
-
-  return;
 }
 
 /*********************************************************/
@@ -390,8 +397,6 @@ void Kernel_WallDist(KERNEL_ARGS)
   *size = 1;
   *ptrL = &flux[left_cv*1];
   *ptrR = &flux[right_cv*1];
-  
-  return;
 }
 
 template <class Type>
@@ -446,8 +451,6 @@ void BKernel_WallDist(B_KERNEL_ARGS)
   
   *size = 1;
   *ptrL = &flux[left_cv*1];
-   
-  return;
 }
 
 
@@ -457,14 +460,11 @@ PointerStruct<Type>::PointerStruct(Type* A_, Type* B_, Type* C_)
   A = A_;
   B = B_;
   C = C_;
-
-  return;
 }
 
 template <class Type>
 PointerStruct<Type>::~PointerStruct()
 {
-  return;
 }
 
 
@@ -531,8 +531,6 @@ void Kernel_WallDist_Jac(KERNEL_ARGS)
 
   tempL[0] = d*area/ds2;
   tempR[0] = -tempL[0];
-
-  return;
 }
 
 template <class Type>
@@ -551,8 +549,6 @@ void Kernel_WallDist_Diag(KERNEL_ARGS)
 
   tempL[0] = -jacL[0];
   tempR[0] = jacR[0];
-
-  return;
 }
 
 template <class Type>
@@ -590,7 +586,4 @@ void BKernel_WallDist_Diag(B_KERNEL_ARGS)
     *size = 0;
     *ptrL = NULL;  
   }
-
-
-  return;
 }

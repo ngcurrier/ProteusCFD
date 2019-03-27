@@ -214,8 +214,8 @@ void Kernel_Inviscid_Flux(KERNEL_ARGS)
   Type betaR = beta[right_cv];
   Type avbeta = 0.5*(betaL + betaR);
 
-  xL = m->cg + 3*left_cv;
-  xR = m->cg + 3*right_cv;
+  xL = m->xyz + 3*left_cv;
+  xR = m->xyz + 3*right_cv;
   
   memcpy(QL, qL, sizeof(Type)*nvars);
   memcpy(QR, qR, sizeof(Type)*nvars);
@@ -325,8 +325,8 @@ void Bkernel_Inviscid_Flux(B_KERNEL_ARGS)
   BoundaryConditions<Real>* bc = space->bc;
   Int bcType = bc->GetBCType(factag); 
 
-  xL = m->cg + 3*left_cv;
-  xR = m->cg + 3*right_cv;
+  xL = m->xyz + 3*left_cv;
+  xR = m->xyz + 3*right_cv;
   
   memcpy(QL, qL, sizeof(Type)*nvars);
   memcpy(QR, qR, sizeof(Type)*nvars);
@@ -410,8 +410,8 @@ void Kernel_Viscous_Flux(KERNEL_ARGS)
   Type* gradR = space->qgrad + 3*nterms*right_cv;
   Type* grad = (Type*)alloca(sizeof(Type)*nterms*3);
 
-  xL = m->cg + 3*left_cv;
-  xR = m->cg + 3*right_cv;
+  xL = m->xyz + 3*left_cv;
+  xR = m->xyz + 3*right_cv;
 
   //do dumb averaging for q vector... this affects the velocity terms internally
   //TODO: use h.o. extrapolations here
@@ -488,8 +488,8 @@ void Bkernel_Viscous_Flux(B_KERNEL_ARGS)
   Type* gradL = space->qgrad + 3*nterms*left_cv;
   Type* grad = (Type*)alloca(sizeof(Type)*nterms*3);
 
-  xL = m->cg + 3*left_cv;
-  xR = m->cg + 3*right_cv;
+  xL = m->xyz + 3*left_cv;
+  xR = m->xyz + 3*right_cv;
 
   BoundaryConditions<Real>* bc = space->bc;
   Int bcType = bc->GetBCType(factag);
@@ -689,8 +689,8 @@ void Kernel_Viscous_Src(KERNEL_ARGS)
 
   Type* tempR_LO = (Type*)alloca(sizeof(Type)*nterms*3);
 
-  xL = m->cg + 3*left_cv;
-  xR = m->cg + 3*right_cv;
+  xL = m->xyz + 3*left_cv;
+  xR = m->xyz + 3*right_cv;
 
   //do dumb averaging for q vector... this affects the velocity terms internally
   //TODO: use h.o. extrapolations here
@@ -782,8 +782,8 @@ void Bkernel_Viscous_Src(B_KERNEL_ARGS)
   Type* grad = (Type*)alloca(sizeof(Type)*nterms*3);
   Type* tempL_LO = (Type*)alloca(sizeof(Type)*neqn);
 
-  xL = m->cg + 3*left_cv;
-  xR = m->cg + 3*right_cv;
+  xL = m->xyz + 3*left_cv;
+  xR = m->xyz + 3*right_cv;
 
   BoundaryConditions<Real>* bc = space->bc;
   Int bcType = bc->GetBCType(factag); 

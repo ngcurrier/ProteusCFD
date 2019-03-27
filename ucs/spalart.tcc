@@ -203,6 +203,7 @@ void Spalart<Type>::Source(Type nu, Type d, Type* vgrad, Type* tvars, Type vol,
   EqnSet<Type>* eqnset = this->space->eqnset;
   Type nut = *tvars;
   Type chi = nut/nu;
+  if(nu == 0.0) chi = 0.0;
   Type chi2 = chi*chi;
   Type chi3 = chi2*chi;
 
@@ -211,6 +212,13 @@ void Spalart<Type>::Source(Type nu, Type d, Type* vgrad, Type* tvars, Type vol,
   Type d2 = d*d;
   Type prod, pi;
   Type dest, di;
+
+  if(real(d) < 1.0e-16){
+    std::stringstream ss;
+    ss << "SPALART: wall distance is " << d << "\n";
+    ss << "SPALART: this will likely cause a divide by zero INF \n";
+    Abort.SetSoftAbort(ss.str());
+  }
   
   Type uy = vgrad[1];
   Type uz = vgrad[2];
@@ -261,6 +269,19 @@ void Spalart<Type>::Source(Type nu, Type d, Type* vgrad, Type* tvars, Type vol,
   Type dPdnut = pi*nut*dsdnut/s;
   //compute dD/dnut, freeze fw and ft2
   Type dDdnut = di;
+
+  if(std::isnan(real(prod)) || std::isinf(real(prod))){
+    std::stringstream ss;
+    ss << "SPALART: production term is NaN/INF\n";
+    ss << "SPALART: omega is - " << omega[0] << " " << omega[1] << " " << omega[2] << "\n";
+    Abort.SetSoftAbort(ss.str());
+  }
+  if(std::isnan(real(dest)) || std::isinf(real(dest))){
+    std::stringstream ss;
+    ss << "SPALART: destruction term is NaN/INF\n";
+    ss << "SPALART: omega is - " << omega[0] << " " << omega[1] << " " << omega[2] << "\n";
+    Abort.SetSoftAbort(ss.str());
+  }
   
   *res = (prod - dest)*vol;
   *jac = (MAX(0.0,-(pi-di)) + MAX(0.0, -(dPdnut - dDdnut)))*vol;
@@ -288,6 +309,18 @@ void Spalart<Type>::Diffusive(Type nu, Type* tgrad, Type* tvarsL, Type* tvarsR,
 
   *resR = c1*gdot - cb2*nutR*gdot;
   *resR *= 1.0/sigma*area*Reinv;
+
+  if(std::isnan(real(*resL)) || std::isinf(real(*resL))){
+    std::stringstream ss;
+    ss << "SPALART: diffusive left term is NaN/INF";
+    Abort.SetSoftAbort(ss.str());
+  }
+  if(std::isnan(real(*resR)) || std::isinf(real(*resR))){
+    std::stringstream ss;
+    ss << "SPALART: diffusive right term is NaN/INF";
+    Abort.SetSoftAbort(ss.str());
+  }
+
   
   //diffusive flux jacobians, computed using directional derivatives
   *jacL = c1*dgrad - cb2*nutL*dgrad;
@@ -305,7 +338,7 @@ Type Spalart<Type>::ComputeEddyViscosity(Type rho, Type nu, Int node)
   Type chi = nut/nu;
 
   //no turbulent viscosity
-  if(nut == 0.0) return 0.0;
+  if(real(nut) <= 0.0) return 0.0;
 
   Type chi3 = chi*chi*chi;
   Type fv1 = chi3 / (chi3 + cv13);

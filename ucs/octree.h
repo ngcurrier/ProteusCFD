@@ -27,7 +27,7 @@ public:
 
   void Print(std::ostream& str);
 
-  std::vector<BBox<Type>*> flatList;
+  std::vector<BBox<Type>*> flatBoxList;
   BBox<Type>* root;
   Type* xyz;
   Int deepestLevel;

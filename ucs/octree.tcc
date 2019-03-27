@@ -8,9 +8,9 @@ Octree<Type>::Octree(Type* xyz, Int npts, Int maxDepth, Int minNodesPerLevel) :
   root->octree = this;
   //the root level contains all of the points
   root->count = npts;
-  flatList.reserve(maxDepth/2 *8);
+  flatBoxList.reserve(maxDepth/2 *8);
   //put the root octree voxel in the list
-  flatList.push_back(root);
+  flatBoxList.push_back(root);
   //set the list of nodes equal to the list of all the nodes passed in
   root->list.reserve(root->count);
   for(Int i = 0; i < npts; i++){
@@ -41,42 +41,41 @@ Octree<Type>::Octree(Type* xyz, Int npts, Int maxDepth, Int minNodesPerLevel) :
 
   //we don't do tail recursion for fear of blowing the stack...
   BBox<Type>* active = root;
-  Int n = 0;
-  do{
+  Int iactive = 0;
+  while(true){
     if(active->list.size() > minNodes && active->level < maxDepth){
       active->Split();
     }
     //this count and list gets updated inside the split() routine
     //since all new voxels are appended we just keep going until
     //we are out of things to check for splitting conditions
-    if(n < flatList.size()){
-      active = flatList[n];
+    if((iactive + 1) < flatBoxList.size()){
+      iactive++;
+      //set new active bounding box to check for splitting
+      active = flatBoxList[iactive];
     }
     else break;
-    n++;
-  }while (n < flatList.size());
+  }
   
   //contract each bounding box to its minimum size, makes searching easier
   Contract();
-
-  return;
 }
 
 template <class Type>
 void Octree<Type>::Print(std::ostream& str)
 {
   Int mbyte = 1048576;  //since we are referring to memory
-  str << "OCTREE: Number of bounding boxes created " << flatList.size() << std::endl;
+  str << "OCTREE: Number of bounding boxes created " << flatBoxList.size() << std::endl;
   str << "OCTREE: Bounding box size: " << sizeof(BBox<Type>) << " bytes" << std::endl;
   str << "OCTREE: Deepest level " << deepestLevel << std::endl;
-  str << "OCTREE: size ~= " << (double)(sizeof(BBox<Type>)*flatList.size() + 
-					sizeof(BBox<Type>*)*flatList.capacity() + 
+  str << "OCTREE: size ~= " << (double)(sizeof(BBox<Type>)*flatBoxList.size() + 
+					sizeof(BBox<Type>*)*flatBoxList.capacity() + 
 					sizeof(Int)*root->count)/(double)mbyte
       << " MB for storage" << std::endl;
 
   Int mostNodes = 0;
-  for(Int i = 0; i < flatList.size(); i++){
-    BBox<Type>* box = flatList[i];
+  for(Int i = 0; i < flatBoxList.size(); i++){
+    BBox<Type>* box = flatBoxList[i];
     //only check the terminating leafs
     if(!box->IsSplit()){
       if(box->list.size() > mostNodes){
@@ -87,8 +86,8 @@ void Octree<Type>::Print(std::ostream& str)
   str << "OCTREE: Most nodes in leaves " << mostNodes << std::endl;
 
   Int empties = 0;
-  for(Int i = 0; i < flatList.size(); i++){
-    BBox<Type>* box = flatList[i];
+  for(Int i = 0; i < flatBoxList.size(); i++){
+    BBox<Type>* box = flatBoxList[i];
     if(!box->IsSplit()){
       if(box->count == 0){
 	empties++;
@@ -101,11 +100,14 @@ void Octree<Type>::Print(std::ostream& str)
 template <class Type>
 Octree<Type>::~Octree()
 {
-  for(Int i = 0; i < flatList.size(); i++){
-    delete flatList[i];
+  for(Int i = 0; i < flatBoxList.size(); i++){
+    delete flatBoxList[i];
   }
 }
 
+// Finds the linear distance from coordinates given to the nearest node stored in octree
+// xyz - given coordinates
+// nodeId - contains octree node id that's closest to xyz on exit
 template <class Type>
 Type Octree<Type>::FindDistance(Type* xyz, Int& nodeId)
 {
@@ -126,13 +128,13 @@ void Octree<Type>::GetExtents(Type* box)
 template <class Type>
 void Octree<Type>::Contract()
 {
-  std::vector<Bool> contracted(flatList.size(), false);
+  std::vector<Bool> contracted(flatBoxList.size(), false);
 
   Int deepestLevel = 0;
 
   //contract the deepest nodes first which contain the nodes
-  for(Int i = 0; i < flatList.size(); i++){
-    BBox<Type>* box = flatList[i];
+  for(Int i = 0; i < flatBoxList.size(); i++){
+    BBox<Type>* box = flatBoxList[i];
     if(!box->IsSplit()){
       box->Contract();
       contracted[i] = true;
@@ -143,8 +145,8 @@ void Octree<Type>::Contract()
 
   //work up starting from the bottom contracting as we go
   while(deepestLevel > 0){
-    for(Int i = 0; i < flatList.size(); i++){
-      BBox<Type>* box = flatList[i];
+    for(Int i = 0; i < flatBoxList.size(); i++){
+      BBox<Type>* box = flatBoxList[i];
       if(box->count != 0 && box->level == deepestLevel && !contracted[i]){
 	box->Contract();
 	contracted[i] = true;
@@ -215,8 +217,6 @@ BBox<Type>::BBox()
   Down = NULL;
   max[0] = max[1] = max[2] = 0.0;
   min[0] = min[1] = min[2] = 0.0;
- 
-  return;
 }
 
 template <class Type>
@@ -224,10 +224,10 @@ BBox<Type>::~BBox(){
 
   //delete the children of this object
   delete [] Down;
-
-  return;
 }
 
+// Takes a bounding box and splits it into 8 children
+// uses the normal octree structure and also adds them to the flatlist
 template <class Type>
 void BBox<Type>::Split()
 {
@@ -348,14 +348,12 @@ void BBox<Type>::Split()
 
   //add the children to our flatlist
   for(i = 0; i < nBelow; i++){
-    octree->flatList.push_back(Down[i]);
+    octree->flatBoxList.push_back(Down[i]);
   }
 
   //free up the memory held by this bbox list, we don't need it after the split
   std::vector<Int> tempVect;
   list.swap(tempVect);
-
-  return;
 }
 
 template <class Type>
@@ -389,8 +387,6 @@ void BBox<Type>::BuildList(BBox<Type>* Up)
       }
     }
   }
-  
-  return;
 }
 
 template <class Type>
@@ -431,6 +427,9 @@ BBox<Type>* BBox<Type>::GetLeaf(Type* xyz, Type* dist)
   return candidate;
 }
 
+// Finds linear distance between xyz coords and nearest node stored in octree structure
+// xyz - location (x,y,z) of node we are searching on input
+// nodeId - contains the leafNode Id on exit for the octree
 template <class Type>
 Type BBox<Type>::GetNodeDistance(Type* xyz, Int& nodeId)
 {
@@ -458,11 +457,11 @@ Type BBox<Type>::GetNodeDistance(Type* xyz, Int& nodeId)
   distMin = 1.0e99;
 
   for(i = 0; i < leaf->list.size(); i++){
-    Int node = leaf->list[i];
-    Type dist = Distance(&octree->xyz[node*3 + 0], xyz);
+    Int leafnode = leaf->list[i];
+    Type dist = Distance(&octree->xyz[leafnode*3 + 0], xyz);
     if(real(dist) < real(distMin)){
       distMin = dist;
-      nodeId = node;
+      nodeId = leafnode;
     }
   }
   leaf->GetNeighbors(neighbors, xyz, distMin);
@@ -512,7 +511,6 @@ Type BBox<Type>::GetVoxelDistanceCentroid(const Type* xyz)
   Type dist = sqrt(dx*dx + dy*dy + dz*dz);
 
   return dist;
-  
 }
 
 template <class Type>
@@ -605,10 +603,10 @@ void BBox<Type>::Contract()
   }
   Type* xyz = octree->xyz;
   for(Int i = 0; i < count; i++){
-    Int node = list[i];
-    Type x = xyz[node*3 + 0];
-    Type y = xyz[node*3 + 1];
-    Type z = xyz[node*3 + 2];
+    Int leafnode = list[i];
+    Type x = xyz[leafnode*3 + 0];
+    Type y = xyz[leafnode*3 + 1];
+    Type z = xyz[leafnode*3 + 2];
     if(real(x) < real(min[0])) min[0] = x;
     if(real(x) > real(max[0])) max[0] = x;
     if(real(y) < real(min[1])) min[1] = y;

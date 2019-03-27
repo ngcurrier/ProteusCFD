@@ -219,6 +219,8 @@ Type TurbulenceModel<Type>::Compute()
     Type* jacd = crs.A->GetPointer(i, i);
     Type* qGrad = &space->qgrad[i*nterms*3];
     Type* vgrad = &qGrad[vloc];
+    // don't compute source terms for nodes on boundaries
+    if(real(d) < 1.0e-16) continue;
     Source(nu, d, vgrad, &tvar[i*neqn], vol, tres, tjac);
     for(j = 0; j < neqn; j++){
       res[j] += tres[j];
@@ -354,8 +356,8 @@ void Kernel_Convective(KERNEL_ARGS)
   Type* qL = &space->q[left_cv*qnvars];
   Type* qR = &space->q[right_cv*qnvars];
   
-  Type* xL = &m->cg[left_cv*3];
-  Type* xR = &m->cg[right_cv*3];
+  Type* xL = &m->xyz[left_cv*3];
+  Type* xR = &m->xyz[right_cv*3];
   Type* dx = (Type*)alloca(sizeof(Type)*3);
 
   Type* q = (Type*)alloca(sizeof(Type)*qneqn);
@@ -463,8 +465,8 @@ void Bkernel_Convective(B_KERNEL_ARGS)
   Type* qL = &space->q[left_cv*qnvars];
   Type* qR = &space->q[right_cv*qnvars];
   
-  Type* xL = &m->cg[left_cv*3];
-  Type* xR = &m->cg[right_cv*3];
+  Type* xL = &m->xyz[left_cv*3];
+  Type* xR = &m->xyz[right_cv*3];
   Type* dx = (Type*)alloca(sizeof(Type)*3);
 
   Type* q = (Type*)alloca(sizeof(Type)*qneqn);
@@ -581,7 +583,7 @@ void Kernel_Diffusive(KERNEL_ARGS)
 
   ds2 = 0.0;
   for(i = 0; i < 3; i++){
-    de[i] = m->cg[right_cv*3 + i] - m->cg[left_cv*3 + i];
+    de[i] = m->xyz[right_cv*3 + i] - m->xyz[left_cv*3 + i];
     ds2 += de[i]*de[i];
   }
   
@@ -669,8 +671,8 @@ void Bkernel_Diffusive(B_KERNEL_ARGS)
   Type dgrad;
   Type ds2;
   Type* de = (Type*)alloca(sizeof(Type)*3);
-  Type* xL = &m->cg[left_cv*3];
-  Type* xR = &m->cg[right_cv*3];
+  Type* xL = &m->xyz[left_cv*3];
+  Type* xR = &m->xyz[right_cv*3];
 
   ds2 = 0.0;
   for(i = 0; i < 3; i++){
