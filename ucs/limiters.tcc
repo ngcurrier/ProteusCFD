@@ -115,7 +115,7 @@ void Limiter<Type>::Compute(SolutionSpace<Type>* space)
       DriverNoScatter(space, PressureClip, this->neqn, (void*)this);
     }
     //check all limiters for negative values and push them back to zero if found
-    for(i = 0; i < this->nnodes; i++){
+    for(i = 0; i < this->nnodes+this->gnode; i++){
       for(j = 0; j < this->neqn; j++){
 	if(real(this->l[i*neqn + j]) < 0.0){
 	  l[i*neqn + j] = 0.0;
@@ -224,8 +224,8 @@ void Kernel_Barth(KERNEL_ARGS)
   Type temp;
 
   //compute extrapolations
-  xL = m->cg + 3*left_cv;
-  xR = m->cg + 3*right_cv;
+  xL = m->xyz + 3*left_cv;
+  xR = m->xyz + 3*right_cv;
 
   memcpy(QL, qL, sizeof(Type)*nvars);
   memcpy(QR, qR, sizeof(Type)*nvars);
@@ -327,8 +327,8 @@ void Bkernel_Barth(B_KERNEL_ARGS)
     Type temp;
     
     //compute extrapolations
-    xL = m->cg + 3*left_cv;
-    xR = m->cg + 3*right_cv;
+    xL = m->xyz + 3*left_cv;
+    xR = m->xyz + 3*right_cv;
     
     memcpy(QL, qL, sizeof(Type)*nvars);
     memcpy(QR, qR, sizeof(Type)*nvars);
@@ -403,8 +403,8 @@ void Kernel_Venkat(KERNEL_ARGS)
   Type temp;
 
   //compute extrapolations
-  xL = m->cg + 3*left_cv;
-  xR = m->cg + 3*right_cv;
+  xL = m->xyz + 3*left_cv;
+  xR = m->xyz + 3*right_cv;
   
   memcpy(QL, qL, sizeof(Type)*nvars);
   memcpy(QR, qR, sizeof(Type)*nvars);
@@ -496,8 +496,8 @@ void Bkernel_Venkat(B_KERNEL_ARGS)
     Type temp;
     
     //compute extrapolations
-    xL = m->cg + 3*left_cv;
-    xR = m->cg + 3*right_cv;
+    xL = m->xyz + 3*left_cv;
+    xR = m->xyz + 3*right_cv;
     
     memcpy(QL, qL, sizeof(Type)*nvars);
     memcpy(QR, qR, sizeof(Type)*nvars);
@@ -575,8 +575,8 @@ void Kernel_VenkatMod(KERNEL_ARGS)
   Type K3 = K*K*K;
 
   //compute extrapolations
-  xL = m->cg + 3*left_cv;
-  xR = m->cg + 3*right_cv;
+  xL = m->xyz + 3*left_cv;
+  xR = m->xyz + 3*right_cv;
   
   memcpy(QL, qL, sizeof(Type)*nvars);
   memcpy(QR, qR, sizeof(Type)*nvars);
@@ -699,8 +699,8 @@ void Bkernel_VenkatMod(B_KERNEL_ARGS)
     Type DM, DP, ep2;
     
     //compute extrapolations
-    xL = m->cg + 3*left_cv;
-    xR = m->cg + 3*right_cv;
+    xL = m->xyz + 3*left_cv;
+    xR = m->xyz + 3*right_cv;
     
     memcpy(QL, qL, sizeof(Type)*nvars);
     memcpy(QR, qR, sizeof(Type)*nvars);
@@ -770,8 +770,8 @@ void Kernel_PressureClip(KERNEL_ARGS)
 
   Type gamma = param->gamma;
 
-  xL = m->cg + 3*left_cv;
-  xR = m->cg + 3*right_cv;
+  xL = m->xyz + 3*left_cv;
+  xR = m->xyz + 3*right_cv;
 
   //TODO: generalize incase we want to use a non-midpoint edge CV
   dx[0] = 0.5*(xR[0] - xL[0]);

@@ -23,6 +23,7 @@ SolutionField<Type>::SolutionField(Mesh<Type>& mesh, DataInfo dataInfo, Int stat
   }
   else if(varLoc == FIELDS::VAR_INTERIOR){
     //this includes interior and ghost nodes only
+    //no boundary (BC) nodes
     nentities = mnnode + mgnode;
   }
 

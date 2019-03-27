@@ -765,8 +765,8 @@ void Kernel_Viscous_Jac(KERNEL_ARGS)
   Type* xR;
   Type* dx = (Type*)alloca(sizeof(Type)*3);
 
-  xL = m->cg + 3*left_cv;
-  xR = m->cg + 3*right_cv;
+  xL = m->xyz + 3*left_cv;
+  xR = m->xyz + 3*right_cv;
 
   //get turbulent viscosity
   Type tmut = (mut[left_cv] + mut[right_cv])/2.0;
@@ -808,8 +808,8 @@ void Bkernel_Viscous_Jac(B_KERNEL_ARGS)
   BoundaryConditions<Real>* bc = space->bc;
   Int bcType = bc->GetBCType(factag);
 
-  xL = m->cg + 3*left_cv;
-  xR = m->cg + 3*right_cv;
+  xL = m->xyz + 3*left_cv;
+  xR = m->xyz + 3*right_cv;
   
   //get turbulent viscosity
   Type tmut;
