@@ -391,6 +391,7 @@ void Kernel_Viscous_Flux(KERNEL_ARGS)
 {
   Int i, j;
   EqnSet<Type>* eqnset = space->eqnset;
+  Param<Type>* param = eqnset->param;
   Mesh<Type>* m = space->m;
   Type* mut = (Type*)custom;
   Int neqn = eqnset->neqn;
@@ -433,20 +434,25 @@ void Kernel_Viscous_Flux(KERNEL_ARGS)
   for(i = 0; i < nterms*3; i++){
     grad[i] = 0.5*(gradL[i] + gradR[i]);
   }
-
-  Type s2 = 0.0;
-  Type qdots, dq;
-  for(i = 0; i < 3; i++){
-    dx[i] = (xR[i] - xL[i]);
-    s2 += dx[i]*dx[i];
-  }
-  for(j = 0; j < nterms; j++){
-    qdots = DotProduct(dx, &grad[j*3]);
-    Int loc = gradientsLoc[j];
-    dq = (QR[loc] - QL[loc] - qdots)/s2;
+  
+  if(param->sorder > 1 && (space->iter > param->nFirstOrderSteps)){
+    Type s2 = 0.0;
+    Type qdots, dq;
     for(i = 0; i < 3; i++){
-      grad[j*3 + i] += dq*dx[i];
+      dx[i] = (xR[i] - xL[i]);
+      s2 += dx[i]*dx[i];
     }
+    for(j = 0; j < nterms; j++){
+      qdots = DotProduct(dx, &grad[j*3]);
+      Int loc = gradientsLoc[j];
+      dq = (QR[loc] - QL[loc] - qdots)/s2;
+      for(i = 0; i < 3; i++){
+	grad[j*3 + i] += dq*dx[i];
+      }
+    }
+  }
+  else{
+    //just use averages from above
   }
 
   //call viscous flux routine
@@ -467,6 +473,7 @@ void Bkernel_Viscous_Flux(B_KERNEL_ARGS)
 {
   Int i, j;
   EqnSet<Type>* eqnset = space->eqnset;
+  Param<Type>* param = eqnset->param;
   Mesh<Type>* m = space->m;
   Type* mut = (Type*)custom;
   Int neqn = eqnset->neqn;
@@ -501,31 +508,37 @@ void Bkernel_Viscous_Flux(B_KERNEL_ARGS)
   //get turbulent viscosity
   Type tmut;
   if(m->IsGhostNode(right_cv)){
-    //use directional derivatives to get gradient at face
-    //TODO: generalize in case we want to use a non-midpoint edge CV
-    Type* xL = m->xyz + 3*left_cv;
-    Type* xR = m->xyz + 3*right_cv;
-    Type s2 = 0.0;
-    for(i = 0; i < 3; i++){
-      dx[i] = (xR[i] - xL[i]);
-      s2 += dx[i]*dx[i];
-    }
-    memcpy(QL, qL, sizeof(Type)*nvars);
-    memcpy(QR, qR, sizeof(Type)*nvars);
-
     Type* gradR = space->qgrad + 3*nterms*right_cv;
     tmut = (mut[left_cv] + mut[right_cv])/2.0;
     for(i = 0; i < nterms*3; i++){
       grad[i] = 0.5*(gradL[i] + gradR[i]);
     }
-    Type qdots, dq;
-    for(j = 0; j < nterms; j++){
-      qdots = DotProduct(dx, &grad[j*3]);
-      Int loc = gradientsLoc[j];
-      dq = (QR[loc] - QL[loc] - qdots)/s2;
+    
+    if(param->sorder > 1 && (space->iter > param->nFirstOrderSteps)){
+      //use directional derivatives to get gradient at face
+      //TODO: generalize in case we want to use a non-midpoint edge CV
+      Type* xL = m->xyz + 3*left_cv;
+      Type* xR = m->xyz + 3*right_cv;
+      Type s2 = 0.0;
       for(i = 0; i < 3; i++){
-	grad[j*3 + i] += dq*dx[i];
+	dx[i] = (xR[i] - xL[i]);
+	s2 += dx[i]*dx[i];
       }
+      memcpy(QL, qL, sizeof(Type)*nvars);
+      memcpy(QR, qR, sizeof(Type)*nvars);
+      
+      Type qdots, dq;
+      for(j = 0; j < nterms; j++){
+	qdots = DotProduct(dx, &grad[j*3]);
+	Int loc = gradientsLoc[j];
+	dq = (QR[loc] - QL[loc] - qdots)/s2;
+	for(i = 0; i < 3; i++){
+	  grad[j*3 + i] += dq*dx[i];
+	}
+      }
+    }
+    else{
+      // do nothing, use averages from above
     }
   }
   else{
@@ -656,6 +669,7 @@ void Kernel_Viscous_Src(KERNEL_ARGS)
 {
   Int i, j;
   EqnSet<Type>* eqnset = space->eqnset;
+  Param<Type>* param = eqnset->param;
   Mesh<Type>* m = space->m;
   Type* mut = (Type*)custom;
   Int neqn = eqnset->neqn;
@@ -702,19 +716,24 @@ void Kernel_Viscous_Src(KERNEL_ARGS)
     grad[i] = 0.5*(gradL[i] + gradR[i]);
   }
 
-  Type s2 = 0.0;
-  Type qdots, dq;
-  for(i = 0; i < 3; i++){
-    dx[i] = (xR[i] - xL[i]);
-    s2 += dx[i]*dx[i];
-  }
-  for(j = 0; j < nterms; j++){
-    qdots = DotProduct(dx, &grad[j*3]);
-    Int loc = gradientsLoc[j];
-    dq = (QR[loc] - QL[loc] - qdots)/s2;
+  if(param->sorder > 1 && (space->iter > param->nFirstOrderSteps)){
+    Type s2 = 0.0;
+    Type qdots, dq;
     for(i = 0; i < 3; i++){
-      grad[j*3 + i] += dq*dx[i];
+      dx[i] = (xR[i] - xL[i]);
+      s2 += dx[i]*dx[i];
     }
+    for(j = 0; j < nterms; j++){
+      qdots = DotProduct(dx, &grad[j*3]);
+      Int loc = gradientsLoc[j];
+      dq = (QR[loc] - QL[loc] - qdots)/s2;
+      for(i = 0; i < 3; i++){
+	grad[j*3 + i] += dq*dx[i];
+      }
+    }
+  }
+  else{
+    //do nothing, use simple averages from above
   }
 
   //call viscous flux routine
@@ -749,6 +768,7 @@ void Bkernel_Viscous_Src(B_KERNEL_ARGS)
   Int i, j;
   EqnSet<Type>* eqnset = space->eqnset;
   Mesh<Type>* m = space->m;
+  Param<Type>* param = eqnset->param;
   Type* mut = (Type*)custom;
   Int neqn = eqnset->neqn;
   Int nvars = neqn + eqnset->nauxvars;
@@ -783,32 +803,38 @@ void Bkernel_Viscous_Src(B_KERNEL_ARGS)
   //get turbulent viscosity
   Type tmut;
   if(m->IsGhostNode(right_cv)){
-    //use directional derivatives to get gradient at face
-    //TODO: generalize in case we want to use a non-midpoint edge CV
-    Type* xL = m->xyz + 3*left_cv;
-    Type* xR = m->xyz + 3*right_cv;
-    Type s2 = 0.0;
-    for(i = 0; i < 3; i++){
-      dx[i] = (xR[i] - xL[i]);
-      s2 += dx[i]*dx[i];
-    }
-    
-    memcpy(QL, qL, sizeof(Type)*nvars);
-    memcpy(QR, qR, sizeof(Type)*nvars);
-
     Type* gradR = space->qgrad + 3*nterms*right_cv;
     tmut = (mut[left_cv] + mut[right_cv])/2.0;
     for(i = 0; i < nterms*3; i++){
       grad[i] = 0.5*(gradL[i] + gradR[i]);
     }
-    Type qdots, dq;
-    for(j = 0; j < nterms; j++){
-      qdots = DotProduct(dx, &grad[j*3]);
-      Int loc = gradientsLoc[j];
-      dq = (QR[loc] - QL[loc] - qdots)/s2;
+
+    if(param->sorder > 1 && (space->iter > param->nFirstOrderSteps)){
+      //use directional derivatives to get gradient at face
+      //TODO: generalize in case we want to use a non-midpoint edge CV
+      Type* xL = m->xyz + 3*left_cv;
+      Type* xR = m->xyz + 3*right_cv;
+      Type s2 = 0.0;
       for(i = 0; i < 3; i++){
-	grad[j*3 + i] += dq*dx[i];
+	dx[i] = (xR[i] - xL[i]);
+	s2 += dx[i]*dx[i];
       }
+      
+      memcpy(QL, qL, sizeof(Type)*nvars);
+      memcpy(QR, qR, sizeof(Type)*nvars);
+      
+      Type qdots, dq;
+      for(j = 0; j < nterms; j++){
+	qdots = DotProduct(dx, &grad[j*3]);
+	Int loc = gradientsLoc[j];
+	dq = (QR[loc] - QL[loc] - qdots)/s2;
+	for(i = 0; i < 3; i++){
+	  grad[j*3 + i] += dq*dx[i];
+	}
+      }
+    }
+    else{
+      // do nothing, use simple averages from above
     }
   }
   else{

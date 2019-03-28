@@ -610,18 +610,24 @@ void Kernel_Diffusive(KERNEL_ARGS)
   Type nu = mu/rho;
 
   Type* tgrad = (Type*)alloca(sizeof(Type)*neqn*3);
+  //approximate the tagential components
   for(i = 0; i < neqn*3; i++){
     tgrad[i] = 0.5*(turb->tgrad[left_cv*neqn*3 + i] + turb->tgrad[right_cv*neqn*3 + i]);
   }
   
   //do the h.o. extrapolation (directional derivative)
-  Type qdots, dq;
-  for(j = 0; j < neqn; j++){
-    qdots = DotProduct(de, &tgrad[j*3]);
-    dq = (tvarsR[j] - tvarsL[j] - qdots)/ds2;
-    for(i = 0; i < 3; i++){
-      tgrad[j*3 + i] += dq*de[i];
+  if((param->turbModelSorder > 1) && (space->iter > param->nFirstOrderSteps)){
+    Type qdots, dq;
+    for(j = 0; j < neqn; j++){
+      qdots = DotProduct(de, &tgrad[j*3]);
+      dq = (tvarsR[j] - tvarsL[j] - qdots)/ds2;
+      for(i = 0; i < 3; i++){
+	tgrad[j*3 + i] += dq*de[i];
+      }
     }
+  }
+  else{
+    // do nothing, use the averages from above
   }
     
   //call the diffusive member function for our current turbulence model

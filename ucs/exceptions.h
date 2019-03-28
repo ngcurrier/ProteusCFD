@@ -57,7 +57,7 @@ public:
   void CheckForSoftAbort(const std::string message)
   {
     if(softAbort){
-      std::string tmp = message + softAbortMessage;
+      std::string tmp = message + softAbortMessage + "\n";
       *this << tmp;
     }
   };

@@ -749,7 +749,8 @@ void Kernel_Viscous_Jac(KERNEL_ARGS)
 
   //get turbulent viscosity
   Type tmut = (mut[left_cv] + mut[right_cv])/2.0;
-  
+
+  //TODO: figure out what to do here for first order viscous effects...s2 terms is only needed at order 2
   Type s2 = 0.0;
   Type* dx = (Type*)alloca(sizeof(Type)*3);
   for(i = 0; i < 3; i++){
@@ -792,6 +793,7 @@ void Bkernel_Viscous_Jac(B_KERNEL_ARGS)
     Type* xL = m->xyz + 3*left_cv;
     Type* xR = m->xyz + 3*right_cv;
   
+    //TODO: figure out what to do here for first order viscous effects...s2 terms is only needed at order 2
     tmut = (mut[left_cv] + mut[right_cv])/2.0;
     //if we have gradient info on a parallel interface
     for(i = 0; i < 3; i++){

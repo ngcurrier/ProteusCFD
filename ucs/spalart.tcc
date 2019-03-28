@@ -312,12 +312,14 @@ void Spalart<Type>::Diffusive(Type nu, Type* tgrad, Type* tvarsL, Type* tvarsR,
 
   if(std::isnan(real(*resL)) || std::isinf(real(*resL))){
     std::stringstream ss;
-    ss << "SPALART: diffusive left term is NaN/INF";
+    ss << "SPALART: diffusive left term is NaN/INF\n";
+    ss << "SPALART: nut gradient (" << tgrad[0] << " " << tgrad[1] << " " << tgrad[2] << ")\n";
     Abort.SetSoftAbort(ss.str());
   }
   if(std::isnan(real(*resR)) || std::isinf(real(*resR))){
     std::stringstream ss;
-    ss << "SPALART: diffusive right term is NaN/INF";
+    ss << "SPALART: diffusive right term is NaN/INF\n";
+    ss << "SPALART: nut gradient (" << tgrad[0] << " " << tgrad[1] << " " << tgrad[2] << ")\n";
     Abort.SetSoftAbort(ss.str());
   }
 
