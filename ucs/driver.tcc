@@ -54,7 +54,7 @@ Int Driver(SolutionSpace<Type>* space, Kernel<Type> &kernel, Int scatterSize,
       Type y = xyz[left_cv*3 + 1];
       Type z = xyz[left_cv*3 + 2];
       std::stringstream ss;
-      ss << "Coordinates for soft abort (kernel): x " << x << " y " << y << " z " << z;
+      ss << "Coordinates for soft abort (kernel): x " << x << " y " << y << " z " << z << "\n";
       Abort.CheckForSoftAbort(ss.str());
       
       DriverScatter(left_cv, right_cv, ptrL, ptrR, tempspaceL, tempspaceR, n, mutexes);
@@ -128,7 +128,7 @@ Int Bdriver(SolutionSpace<Type>* space, Kernel<Type> &bkernel, Int scatterSize,
       Type y = xyz[left_cv*3 + 1];
       Type z = xyz[left_cv*3 + 2];
       std::stringstream ss;
-      ss << "Coordinates for soft abort(bkernel): x " << x << " y " << y << " z " << z;
+      ss << "Coordinates for soft abort(bkernel): x " << x << " y " << y << " z " << z << "\n";
       Abort.CheckForSoftAbort(ss.str());
 
       DriverScatter(left_cv, right_cv, ptrL, ptrR, tempspaceL, tempspaceR, n, mutexes);
@@ -201,7 +201,7 @@ Int BdriverNoScatter(SolutionSpace<Type>* space, Kernel<Type> &bkernel, Int scat
       Type y = xyz[left_cv*3 + 1];
       Type z = xyz[left_cv*3 + 2];
       std::stringstream ss;
-      ss << "Coordinates for soft abort(bkernel - no scatter): x " << x << " y " << y << " z " << z;
+      ss << "Coordinates for soft abort(bkernel - no scatter): x " << x << " y " << y << " z " << z << "\n";
       Abort.CheckForSoftAbort(ss.str());
     }
     delete [] tempspaceL;
@@ -259,7 +259,7 @@ Int DriverNoScatter(SolutionSpace<Type>* space, Kernel<Type> &kernel,
       Type y = xyz[left_cv*3 + 1];
       Type z = xyz[left_cv*3 + 2];
       std::stringstream ss;
-      ss << "Coordinates for soft abort (kernel - no scatter): x " << x << " y " << y << " z " << z;
+      ss << "Coordinates for soft abort (kernel - no scatter): x " << x << " y " << y << " z " << z << "\n";
       Abort.CheckForSoftAbort(ss.str());
     }
     delete [] tempspaceL;
