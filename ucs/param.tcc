@@ -162,10 +162,10 @@ void Param<Type>::SetupParams()
 
   //SET THE INTEGER VALUED PARAMETERS
   paramListInt.push_back(Parameter<Int>("turbulenceModel", &this->turbModel, 0, 0, 999)); //default to laminar
-  paramListInt.push_back(Parameter<Int>("turbulenceModelSpatialOrder", &this->turbModelSorder, 1, 1, 3)); 
+  paramListInt.push_back(Parameter<Int>("turbulenceSpatialOrder", &this->turbModelSorder, 2, 1, 3)); 
   paramListInt.push_back(Parameter<Int>("numberSGS", &this->nSgs, 5, 0, 999));
-  paramListInt.push_back(Parameter<Int>("timeOrder", &this->torder, 0, 0, 2)); 
-  paramListInt.push_back(Parameter<Int>("spatialOrder", &this->sorder, 0, 0, 3));
+  paramListInt.push_back(Parameter<Int>("timeOrder", &this->torder, 1, 1, 2)); 
+  paramListInt.push_back(Parameter<Int>("spatialOrder", &this->sorder, 1, 1, 3));
   paramListInt.push_back(Parameter<Int>("firstOrderSteps", &this->nFirstOrderSteps, 0, 0, 999999));
   paramListInt.push_back(Parameter<Int>("limiterRefresh", &this->limiterRefresh, 1, 1, 999999));
   paramListInt.push_back(Parameter<Int>("limiterFreeze", &this->limiterFreeze, 999999, 0, 999999));

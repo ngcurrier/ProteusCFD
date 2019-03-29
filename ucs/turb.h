@@ -99,7 +99,9 @@ Int CreateTurbModel(TurbulenceModel<Type>** turb, SolutionSpace<Type>* space)
     *turb = new Spalart<Type>(space);
   }
   else{
-    std::cerr << "Turbulence model type " << space->param->turbModel << " not found.. FATAL!" << std::endl;
+    std::stringstream ss;
+    ss << "Turbulence model type " << space->param->turbModel << " not found.. FATAL!" << std::endl;
+    Abort << ss.str();
     return (-1);
   }
   return (0);
