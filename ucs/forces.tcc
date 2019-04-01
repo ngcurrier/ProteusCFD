@@ -81,33 +81,39 @@ void Forces<Type>::ReportCl()
     for(i = 1; i <= num_bodies; i++){
       momdir = bodies[i].momentAxis;
       std::string name = bodies[i].name;
+      //compute the pressure and viscous lift
       lift = DotProduct(liftdir, bodies[i].forces);
+      lift += DotProduct(liftdir, bodies[i].vforces);
+      //compute the pressure and viscous drag
       drag = DotProduct(dragdir, bodies[i].forces);
+      drag += DotProduct(dragdir, bodies[i].vforces);
+      //compute the pressure and viscous moments
       moment = DotProduct(momdir, bodies[i].moments);
-      fout << "Force vector for body [" << i << " - " << name << "]: " 
+      moment += DotProduct(momdir, bodies[i].vmoments);
+      fout << "Pressure force vector for body [" << i << " - " << name << "]: " 
 	   << bodies[i].forces[0] << " " << bodies[i].forces[1] << " " 
 	   << bodies[i].forces[2] << std::endl;
       fout << "Viscous force vector for body [" << i << " - " << name << "]: " 
 	   << bodies[i].vforces[0] << " " << bodies[i].vforces[1] << " " 
 	   << bodies[i].vforces[2] << std::endl;
-      fout << "Moment vector for body[" << i << " - " << name << "]: " 
+      fout << "Presure moment vector for body[" << i << " - " << name << "]: " 
 	   << bodies[i].moments[0] << " " << bodies[i].moments[1] << " " 
 	   << bodies[i].moments[2] << std::endl;
       fout << "Viscous moment vector for body [" << i << " - " << name << "]: " 
 	   << bodies[i].vmoments[0] << " " << bodies[i].vmoments[1] << " " 
 	   << bodies[i].vmoments[2] << std::endl;
-      fout << "Lift force for body[" << i << " - " << name << "]: " 
+      fout << "Total lift force for body[" << i << " - " << name << "]: " 
 	   << lift << std::endl;   
-      fout << "Moment for body[" << i << " - " << name << "]: " 
+      fout << "Total drag force for body[" << i << " - " << name << "]: " 
+	   << drag << std::endl;
+      fout << "Total moment for body[" << i << " - " << name << "]: " 
 	   << moment << std::endl;
       fout << "Lift coefficient for body[" << i << " - " << name << "]: " 
 	   << bodies[i].cl << std::endl;
-      fout << "Moment coefficient for body[" << i << " - " << name << "]: " 
-	   << bodies[i].cm << std::endl;
-      fout << "Drag force for body[" << i << " - " << name << "]: " 
-	   << drag << std::endl;
       fout << "Drag coefficient for body[" << i << " - " << name << "]: " 
 	   << bodies[i].cd << std::endl;
+      fout << "Moment coefficient for body[" << i << " - " << name << "]: " 
+	   << bodies[i].cm << std::endl;
     } 
   }
 }
@@ -329,7 +335,7 @@ void Forces<Type>::ComputeCl()
 
   Type* momdir;
   Type V = param->GetVelocity(space->iter);
-  Type Mach = V;
+  Type v2 = V*V;
   Type rho = eqnset->GetDensity(Qref);
   Type* area;
   Type amag;
@@ -340,21 +346,21 @@ void Forces<Type>::ComputeCl()
   for(i = 1; i <= num_bodies; i++){
     //get the pt of the composite body to sum moments about
     momdir = bodies[i].momentAxis;
-    //compute the pressure lift/drag
+    //compute the pressure lift/drag/moment
     lift = DotProduct(liftdir, bodies[i].forces);
     drag = DotProduct(dragdir, bodies[i].forces);
     moment = DotProduct(momdir, bodies[i].moments);
-    //compute the viscous lift/drag
+    //compute the viscous lift/drag/moment
     lift += DotProduct(liftdir, bodies[i].vforces);
     drag += DotProduct(dragdir, bodies[i].vforces);
     moment += DotProduct(momdir, bodies[i].vmoments);
     area = bodies[i].surfArea;
     amag = Magnitude(area);
-    bodies[i].cl = lift / (0.5 * rho * Mach*Mach * amag);
-    bodies[i].cd = drag / (0.5 * rho * Mach*Mach * amag);
+    bodies[i].cl = lift / (0.5 * rho * v2 * amag);
+    bodies[i].cd = drag / (0.5 * rho * v2 * amag);
     //assume that the ref_length is unity in the grid, otherwise, WRONG!
     //positive cm pitches the airfoil nose up
-    bodies[i].cm = -moment / (0.5 * rho * Mach*Mach * amag * 1.0);
+    bodies[i].cm = -moment / (0.5 * rho * v2 * amag * 1.0);
   } 
 }
 
