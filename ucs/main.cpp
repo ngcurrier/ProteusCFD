@@ -1,3 +1,9 @@
+#ifdef _HAS_PYTHON
+// we have to include this first b/c python doesn't check for _XOPEN_SOURCE
+// and hasn't fixed it yet
+#include <Python.h>
+#endif
+
 #include "general.h"
 #include "exceptions.h"
 #include "bc.h"
