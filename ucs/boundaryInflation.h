@@ -12,18 +12,19 @@
 //       Insertion Using Linear-Elastic Smoothing", by Karman et.al.
 
 void GenerateBoundaryLayers(std::vector<int> boundaryFactagList, std::vector<Real> firstCellThicknesses,
-			    std::vector<int> numberOfLayers, Mesh<Real>* m, Real growthRate);
-void InflateBoundary(int boundaryFactag, Real inflationDistance, Mesh<Real>* m);
+			    std::vector<int> numberOfLayers, std::vector<int> symmBoundaryList, Mesh<Real>* m, Real growthRate);
+void InflateBoundary(int boundaryFactag, Real inflationDistance, std::vector<int> symmBoundaryList, Mesh<Real>* m);
 
 
 // Generates new boundary layers on select surfaces given a volume mesh
 // boundaryFactagList - vector of factags to inflate a boundary layer from
 // firstCellThicknesses - vector of first cell thickness (one per factag) to use for inflation
 // numberOfLayers - vector of layer # (one per factag) to use for inflation
+// symmBoundaryList - list of all symmetry boundary factags to ignore extrusion from
 // m - mesh pointer to volume mesh to inflate
 // growthRate - geometric growth rate of layers
 void GenerateBoundaryLayers(std::vector<int> boundaryFactagList, std::vector<Real> firstCellThicknesses,
-			    std::vector<int> numberOfLayers, Mesh<Real>* m, Real growthRate)
+			    std::vector<int> numberOfLayers, std::vector<int> symmBoundaryList, Mesh<Real>* m, Real growthRate)
 {
   //sanity checking
   if((boundaryFactagList.size() != firstCellThicknesses.size()) || (numberOfLayers.size() != firstCellThicknesses.size())){
@@ -77,7 +78,7 @@ void GenerateBoundaryLayers(std::vector<int> boundaryFactagList, std::vector<Rea
       std::cout << "------------------------------------------------------------------------" << std::endl;
       // 1) Displace a single boundary from the list in the list using linear elastic smoothing
       // compute the next layer's distance
-      InflateBoundary(factag, distances[nlayers-j], m);
+      InflateBoundary(factag, distances[nlayers-j], symmBoundaryList, m);
       // continue to next boundary..
     }
   }
@@ -88,8 +89,9 @@ void GenerateBoundaryLayers(std::vector<int> boundaryFactagList, std::vector<Rea
 // Insert a layer of prism/hexes using the surface mesh as a connecting region
 // boundaryFactag - factag of boundary we'd like to inflate
 // inflationDistance - distance in mesh coordinates (dimensional/non-dimensional) to inflate
+// symmBoundaryList - list of all symmetry boundary factags to ignore extrusion from
 // m - volume mesh to insert a layer into on boundary
-void InflateBoundary(int boundaryFactag, Real inflationDistance, Mesh<Real>* m)
+void InflateBoundary(int boundaryFactag, Real inflationDistance, std::vector<int> symmBoundaryList, Mesh<Real>* m)
 {
   Int iter = 10;
   Real* dx = new Real[m->GetNumNodes()*3];
@@ -110,18 +112,18 @@ void InflateBoundary(int boundaryFactag, Real inflationDistance, Mesh<Real>* m)
   m->GetCoordsForPoints(oldxyz, pts, npts);
 
 
-  // TODO: check to see if any of these points are connected on multiple factags
+  // check to see if any of these points are connected on multiple factags
   // If a point is connected to multiple factags that are being extruded it's distance
   // should be split between those two surfaces, if it is connected to another that is
   // not being extruded then the adjacent boundary should be treated as a symmetry surface
   // (that is) the movement normal is in the plane with the symmetry wall
-  
+
   // compute the normals at each point using surrounding geometry
   // and then compute the total displacement at that node
   for(Int i = 0; i < npts; ++i){
     int ptid = pts[i];
     std::vector<Real> normal;
-    m->GetNodeNeighborhoodNormal(ptid, normal);
+    m->GetNodeNeighborhoodNormal(ptid, symmBoundaryList, normal);
     dx[ptid*3 + 0] = normal[0]*inflationDistance;
     dx[ptid*3 + 1] = normal[1]*inflationDistance;
     dx[ptid*3 + 2] = normal[2]*inflationDistance;

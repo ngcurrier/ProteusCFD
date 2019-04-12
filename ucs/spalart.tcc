@@ -274,12 +274,16 @@ void Spalart<Type>::Source(Type nu, Type d, Type* vgrad, Type* tvars, Type vol,
     std::stringstream ss;
     ss << "SPALART: production term is NaN/INF\n";
     ss << "SPALART: omega is - " << omega[0] << " " << omega[1] << " " << omega[2] << "\n";
+    ss << "SPALART: nut is " << nut << "\n";
+    ss << "SPALART: nu is " << nu << "\n";
     Abort.SetSoftAbort(ss.str());
   }
   if(std::isnan(real(dest)) || std::isinf(real(dest))){
     std::stringstream ss;
     ss << "SPALART: destruction term is NaN/INF\n";
     ss << "SPALART: omega is - " << omega[0] << " " << omega[1] << " " << omega[2] << "\n";
+    ss << "SPALART: nut is " << nut << "\n";
+    ss << "SPALART: nu is " << nu << "\n";
     Abort.SetSoftAbort(ss.str());
   }
   

@@ -1295,8 +1295,9 @@ void Mesh<Type>::GetParallelTuple(Int node, Int& owningProcess, Int& localId) co
 // surface element faces
 // ptid - the node id for which to compute the normal vector
 // normal - returned normal for the node based on neighbor faces
+// excludedFactags - list of factags (i.e. symmetry boundaries) to exclude from normals
 template <class Type>
-void Mesh<Type>::GetNodeNeighborhoodNormal(Int ptid, std::vector<Type>& normal) const
+void Mesh<Type>::GetNodeNeighborhoodNormal(Int ptid, std::vector<Int> excludedFactags, std::vector<Type>& normal) const
 {
   Int count = 0;
   std::vector<Type> avg(4,0.0);
@@ -1304,6 +1305,16 @@ void Mesh<Type>::GetNodeNeighborhoodNormal(Int ptid, std::vector<Type>& normal) 
     Int selemid = *indx;
     std::vector<Type> inormal;
     elementList[selemid]->GetNormal(inormal, xyz);
+    Int factag = elementList[selemid]->GetFactag();
+    // skip faces in the exclusion list
+    Bool include = true;
+    for(Int iface = 0; iface < excludedFactags.size(); ++iface){
+      if(excludedFactags[iface] == factag){
+	include = false;
+	break;
+      }
+    }
+    if(!include) continue;
     //all face normals are returned outward pointing, we want inward pointing. Flip them.
     avg[0] -= inormal[0]; //x
     avg[1] -= inormal[1]; //y

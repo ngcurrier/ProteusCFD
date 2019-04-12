@@ -132,7 +132,7 @@ class Mesh
   //on the owning process... owning Process and localId return negative if in error
   void GetParallelTuple(Int node, Int& owningProcess, Int& localId) const;
   //computes the normal vector to a node based on neighbor faces
-  void GetNodeNeighborhoodNormal(Int ptid, std::vector<Type>& normal) const; 
+  void GetNodeNeighborhoodNormal(Int ptid, std::vector<Int> excludedFactags, std::vector<Type>& normal) const; 
   
   void SetNumNodes(Int nnode){this->nnode = nnode;};
   void SetMeshScaled(){scaled  = true;};

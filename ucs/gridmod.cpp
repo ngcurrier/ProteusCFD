@@ -189,6 +189,23 @@ int main(int argc, char* argv[]){
     std::vector<Real> boundaryThicknesses;
     std::vector<int> numberOfLayers;
     std::vector<int> boundaryFactagList;
+
+    std::cout << "Please list the boundary ids which are symmetry conditions separated by commas:" << std::endl;
+    tags = "";
+    std::getline(std::cin, tags);
+    std::vector<std::string> symmetryBoundaries = Tokenize(tags, ',');
+    std::vector<int> symmBoundaryList;
+    for(int i = 0; i < symmetryBoundaries.size(); ++i){
+      std::stringstream ss(symmetryBoundaries[i]);
+      int tag;
+      ss >> tag;
+      symmBoundaryList.push_back(tag);
+    }
+
+    std::cout << "Will ignore normals on the following tags:" << std::endl;
+    for(int i = 0; i < symmBoundaryList.size(); ++i){
+      std::cout << symmBoundaryList[i] << std::endl;
+    }
     
     for(int i = 0; i < boundaries.size(); ++i){
       std::stringstream ss(boundaries[i]);
@@ -220,7 +237,7 @@ int main(int argc, char* argv[]){
     std::cout << "Generating boundary layers" << std::endl;
     // this is the maximum ecommended value by the DPW gridding guidelines
     Real growthRate = 1.25;
-    GenerateBoundaryLayers(boundaryFactagList, boundaryThicknesses, numberOfLayers, &m, growthRate);
+    GenerateBoundaryLayers(boundaryFactagList, boundaryThicknesses, numberOfLayers, symmBoundaryList, &m, growthRate);
   }
   
   //this does a direct scaling of the mesh by this value (i.e. direct multiplication)
