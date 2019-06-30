@@ -5251,7 +5251,7 @@ void Mesh<Type>::CGNSreadCoordElem(std::string filename, cgsize_t** isize)
   //This code borrows heavily from https://cgns.github.io/CGNS_docs_current/slides/VANDERWEIDE_tutorial.html
   
   cgsize_t              istart, iend, irmin, irmax;
-  int 			index_file,irmin,irmax,nbndry,iparent_flag,iparentdata;
+  int 			index_file,nbndry,iparent_flag,iparentdata;
   int 			*ielem, counter;
   ElementType_t 	itype;
 
