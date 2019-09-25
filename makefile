@@ -1,4 +1,4 @@
-include $(MAKE).opts
+include make.opts
 
 EXE_SOLVER = ./bin/ucs.x
 EXE_DECOMP = ./bin/udecomp.x
