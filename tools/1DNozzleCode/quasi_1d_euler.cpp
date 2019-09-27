@@ -17,6 +17,8 @@
 #include <cstdlib>
 #include "blktrid.h"
 
+#define R_UNIV 8.314459848      // J/mol.K
+
 using namespace std;
 
 int main(int argc, char* argv[]){
@@ -33,15 +35,55 @@ int main(int argc, char* argv[]){
   //Initial conditions for the problem
   double t_step;
   const double l_bound = 0.0;
-  const double extent = 10.0;
+  double length;
   const int points = 51;
-  const double mach = 1.5;
+  const double mach = 1.0;
   const double gamma = 1.4;
   const double tol = 1.0e-15;
   const double max_iter = 300000;
   //size of the blocks (i.e. 3x3 in 1d)
   nj = nk = 3;
   ni = points;
+
+#if 0
+  Type Rs = R_UNIV/(MW/1000.0); //J/kg.K
+  std::cout << "PARAM: specific gas constant - " << Rs << " (J/kg.K)" << std::endl;
+  
+  Type Cv = Cp - Rs; //Cp = Cv + Rs - for ideal gas only
+  std::cout << "PARAM: specific heat Cv - " << Cv << " (J/kg.K)" << std::endl;
+  this->gamma = Cp/Cv;
+
+  //we use the speed of sound to dimensionalize velocity - compressible demands it
+  ref_velocity = sqrt(gamma*Rs*initialTemperature);
+  std::cout << "PARAM: estimated speed of sound - " << ref_velocity << " (m/s)" << std::endl;
+    
+  // warning: only one should ever be specified at a time (pressure or density)
+  // we assume reference pressure takes precedence since it is easier to measure directly
+  ref_density = ref_pressure/(ref_velocity*ref_velocity);
+
+  ref_time = ref_length/ref_velocity;
+  //Type v3 = ref_velocity*ref_velocity*ref_velocity;
+  //ref_k = ref_density*v3*ref_length/ref_temperature;
+  //ref_viscosity = ref_density*ref_velocity*ref_length;
+  ref_enthalpy = ref_velocity*ref_velocity;
+
+  //we compute the reference temperature in this way b/c the compressible (Mach) based
+  //solver requires this to be true
+  Type rho_d = initialPressure/(Rs*initialTemperature);
+  Type P_nd = initialPressure/ref_pressure;
+  Type rho_nd = rho_d/ref_density;
+  Type c2_nd = gamma*P_nd/rho_nd;
+  ref_temperature = initialTemperature/c2_nd; //c2 = T when non-dimensionalized
+
+  //since we don't enforce it directly, check that the param object
+  //contains a reasonable speed of sound c^2 = gamma*P/rho
+  Type T = this->param->initialTemperature/this->param->ref_temperature; //from input file
+  Type p = this->param->initialPressure/this->param->ref_pressure; //from input file
+  Type rho = p*gamma/T;
+  Type c2avg = gamma*(p/rho);
+  Type cavg = sqrt(c2avg);
+  Type cavg_dim = cavg * this->param->ref_velocity;
+#endif
 
   const double pi = 3.14159265;
 
@@ -60,12 +102,13 @@ int main(int argc, char* argv[]){
   double *fluxn = NULL; // flux from upwind (i.e. left)
   double AC, AHC;
   
-  if(argc != 2){
-    cerr << "USAGE: ./a.out 'timestep desired' " << endl;
+  if(argc != 3){
+    cerr << "USAGE: " << argv[0] << "<timestep desired> <nozzle Length> " << endl;
     return(-2);
   }
   else{
     t_step = atof(argv[1]); 
+    length = atof(argv[2]);
   }
   
   //setup some IO functionality
@@ -85,11 +128,17 @@ int main(int argc, char* argv[]){
   //cell volume
   double *v = new double[points+1];
 
-  double step_size = (extent - l_bound) / (points-1);
+  double step_size = (length - l_bound) / double(points-1);
 
   //compute radius for each grid point
   for(i = 0; i < points; i++){
-    radius[i] = 1.398 + 0.347 * tanh(0.8 * (i * step_size) - 4.0);
+    //equation for constantly expanding bell
+    //radius[i] = 1.398 + 0.347 * tanh(0.8 * (i * step_size) - 4.0);
+    //equation for de laval - like nozzle
+    //this is a bell-shaped nozzle
+    //r = 1 − 0.868z2 + 0.432z3
+    double x = i*step_size;
+    radius[i] = 1.0 - 0.868*x*x + 0.432*x*x*x;
     s[i] = pi * radius[i] * radius[i];
   }
 
@@ -152,9 +201,9 @@ int main(int argc, char* argv[]){
   do{
 
     //initialize bc's
-    q[0*nj + 0] = 1.0; 
-    q[0*nj + 1] = mach;
-    q[0*nj + 2] = 1.0/(gamma*(gamma-1.0)) + 0.5*mach*mach;
+    q[0*nj + 0] = 1.0;  //density
+    q[0*nj + 1] = mach; //velocity
+    q[0*nj + 2] = 1.0/(gamma*(gamma-1.0)) + 0.5*mach*mach;  //total energy
     q[points*nj + 0] = q[(points-1)*nj + 0];
     q[points*nj + 1] = q[(points-1)*nj + 1];
     q[points*nj + 2] = q[(points-1)*nj + 2];;
@@ -358,20 +407,37 @@ int main(int argc, char* argv[]){
 #endif
 
   cout << endl;
-  cout << "Position   Density   Velocity   Pressure   MassFlow" << endl;
-  cout << "===================================================" << endl;
+  cout << "Position\t Radius\t\t Density\t Velocity\t  Pressure\t  MassFlow" << endl;
+  cout << "===================================================================================================" << endl;
   for(i = 0; i < points; i++){
     //get values averaged at grid points
     q0 = 0.5*(q[i*nj + 0] + q[(i+1)*nj + 0]);
     q1 = 0.5*(q[i*nj + 1] + q[(i+1)*nj + 1]);
     q2 = 0.5*(q[i*nj + 2] + q[(i+1)*nj + 2]);
     p = (gamma -1.0) * (q2 - 0.5*q1*q1/q0);
-    cout << i*step_size << " " << q0 << " " 
-	 << (q1/q0) << " " << p << " " << q1*s[i] << endl;
-    sol_out << i*step_size << " " << q0 << " " 
-	    << (q1/q0) << " " << p << endl;
+    cout << i*step_size << "\t\t" << radius[i] << "\t" << q0 << "\t" 
+	 << (q1/q0) << "\t" << p << "\t" << q1*s[i] << endl;
+    sol_out << i*step_size << "\t" << q0 << "\t" 
+	    << (q1/q0) << "\t" << p << endl;
   }
   
+  std::string filename = "solution.csv";
+  fstream csv_out(filename.c_str(), ios::out);
+  csv_out << "Position,Radius,Density,Velocity,Pressure,Temperature,MassFlow" << std::endl;
+  for(i = 0; i < points; i++){
+    //get values averaged at grid points
+    q0 = 0.5*(q[i*nj + 0] + q[(i+1)*nj + 0]);
+    q1 = 0.5*(q[i*nj + 1] + q[(i+1)*nj + 1]);
+    q2 = 0.5*(q[i*nj + 2] + q[(i+1)*nj + 2]);
+    p = (gamma -1.0) * (q2 - 0.5*q1*q1/q0);
+    double rho = q0;
+    double T = gamma*P/rho
+    csv_out << i*step_size << "," << radius[i] << "," << rho << "," 
+	    << (q1/q0) << "," << p << "," << T << "," << q1*s[i] << endl;
+  }
+  csv_out.close();
+  
+
   resid_out.close();
   sol_out.close();
 
