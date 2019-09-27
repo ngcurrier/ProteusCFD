@@ -5943,6 +5943,13 @@ Int Mesh<Type>::WriteGridXDMF(PObj<Type> &p, std::string filebase, std::string m
 }
 
 template <class Type>
+Int Mesh<Type>::WriteUGRID_Ascii(std::string casename)
+{
+  return 0;
+}
+
+
+template <class Type>
 Int Mesh<Type>::ReadUGRID_Ascii(std::string filename)
 {
   std::ifstream fin;

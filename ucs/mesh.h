@@ -171,6 +171,7 @@ class Mesh
   Int WriteVTK_Binary(std::string casename, std::vector<SolutionField<Type>*>& fields);
   Int WriteXMLVTK_Binary(std::string casename, std::vector<SolutionField<Type>*>& fields);
   Int WriteGridXDMF(PObj<Type> &p, std::string filebase, std::string meshname);
+  Int WriteUGRID_Ascii(std::string casename);
   //this call will write a decomp file as appropriate for 
   //this portion of the mesh in its current state
   Int WriteParallelMesh(std::string casename);
