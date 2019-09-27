@@ -160,8 +160,8 @@ class Mesh
   void UpdateElementCounts(); // updates the element type counters
 #ifdef _HAS_CGNS
   Int ReadCGNS(std::string filename); // master function calling utilities below
-  Int GetCGNSSizes(std::string filename, int** isize);
-  void CGNSreadCoordElem(std::string filename, int**isize);
+  Int GetCGNSSizes(std::string filename, cgsize_t** isize);
+  void CGNSreadCoordElem(std::string filename, cgsize_t**isize);
   int CGNSgetBCNum(char* name);
   void CGNSreadBCConditions(char *name, int **bc);
   int CGNSgetBCIndNum(char *name, int ib);

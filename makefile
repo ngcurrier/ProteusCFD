@@ -1,4 +1,4 @@
-include $(MAKE).opts
+include make.opts
 
 EXE_SOLVER = ./bin/ucs.x
 EXE_DECOMP = ./bin/udecomp.x
@@ -78,7 +78,7 @@ DEPS_TEST = $(SRCS_TEST:.cpp=.d)
 
 # --------- BEGIN EXECUTABLE TARGETS SECTION
 
-$(EXE_SOLVER):  $(TINYXMLDIR)/libtinyxml.a  $(DEPS_SOLVER) $(OBJS_SOLVER) ./ucs/libcommon.a structuralDynamics/libstructdyn.a $(LAPACK_LIB)/liblapacke.a 
+$(EXE_SOLVER):  $(TINYXMLDIR)/libtinyxml.a  $(DEPS_SOLVER) $(OBJS_SOLVER) ./ucs/libcommon.a structuralDynamics/libstructdyn.a $(LAPACK_LIB)/liblapacke.a $(HDF5_LIB)/libhdf5.a
 	$(MPICXX) $(LINK_OPTS) -o $(EXE_SOLVER) $(LCXXFLAGS) $(OBJS_SOLVER) $(CXXLIBS) -lstructdyn -ltinyxml
 ifdef HAS_PYTHON 	
 	@echo Python includes are $(PYTHONINCLUDES)
@@ -87,13 +87,13 @@ ifdef HAS_PYTHON
 endif
 
 
-$(EXE_DECOMP): $(METISINSTALLDIR)/libmetis.a  ./ucs/libcommon.a  $(DEPS_DECOMP) $(OBJS_DECOMP) 
+$(EXE_DECOMP): $(METISINSTALLDIR)/libmetis.a  ./ucs/libcommon.a  $(HDF5_LIB)/libhdf5.a $(DEPS_DECOMP) $(OBJS_DECOMP) 
 	$(MPICXX) $(LINK_OPTS) -o $(EXE_DECOMP) $(LCXXFLAGS) -L$(METIS_LIB) $(OBJS_DECOMP) $(CXXLIBS) -lmetis -ltinyxml -lcommon
 
-$(EXE_GRIDMOD): ./ucs/libcommon.a  $(DEPS_GRIDMOD) $(OBJS_GRIDMOD) 
+$(EXE_GRIDMOD): ./ucs/libcommon.a  $(HDF5_LIB)/libhdf5.a $(DEPS_GRIDMOD) $(OBJS_GRIDMOD) 
 	$(MPICXX) $(LINK_OPTS) -o $(EXE_GRIDMOD) $(LCXXFLAGS) -L$(METIS_LIB) $(OBJS_GRIDMOD) $(CXXLIBS) -ltinyxml -lcommon
 
-$(EXE_RECOMP):  $(DEPS_RECOMP) $(OBJS_RECOMP) ./ucs/libcommon.a
+$(EXE_RECOMP):  $(DEPS_RECOMP) $(OBJS_RECOMP) $(HDF5_LIB)/libhdf5.a ./ucs/libcommon.a
 	$(MPICXX) $(LINK_OPTS) -o $(EXE_RECOMP) $(LCXXFLAGS) $(OBJS_RECOMP) $(CXXLIBS) -ltinyxml -lcommon
 
 $(EXE_FINDPOINT): $(DEPS_FINDPOINT) $(OBJS_FINDPOINT)

@@ -5194,9 +5194,9 @@ void Mesh<Type>::UpdateElementCounts()
 template <class Type>
 Int Mesh<Type>::ReadCGNS(std::string filename)
 {
-  int** isize = new int*[3];
+  cgsize_t** isize = new cgsize_t*[3];
   for(int i = 0; i < 3; ++i){
-    isize[i] = new int[3];
+    isize[i] = new cgsize_t[3];
   }
   Int error = GetCGNSSizes(filename, isize);
 
@@ -5216,7 +5216,7 @@ Int Mesh<Type>::ReadCGNS(std::string filename)
 }
 
 template <class Type>
-Int Mesh<Type>::GetCGNSSizes(std::string filename, int** isize)
+Int Mesh<Type>::GetCGNSSizes(std::string filename, cgsize_t** isize)
 {
   int index_file;
   char zonename[100];
@@ -5246,11 +5246,12 @@ Int Mesh<Type>::GetCGNSSizes(std::string filename, int** isize)
 }
 
 template <class Type>
-void Mesh<Type>::CGNSreadCoordElem(std::string filename, int** isize)
+void Mesh<Type>::CGNSreadCoordElem(std::string filename, cgsize_t** isize)
 {
   //This code borrows heavily from https://cgns.github.io/CGNS_docs_current/slides/VANDERWEIDE_tutorial.html
   
-  int 			index_file,irmin,irmax,istart,iend,nbndry,iparent_flag,iparentdata;
+  cgsize_t              istart, iend, irmin, irmax;
+  int 			index_file,nbndry,iparent_flag,iparentdata;
   int 			*ielem, counter;
   ElementType_t 	itype;
 

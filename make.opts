@@ -85,11 +85,11 @@ METIS_INCLUDES = .$(METISDIR)/include
 HDF5DIR = /TPLs/hdf5/hdf5-1.8.10-patch1
 #HDF5_LIB = ./$(HDF5DIR)/build/lib
 #HDF5_INCLUDE_PATH = ./$(HDF5DIR)/build/include
+HDF5_LIB = /usr/lib/x86_64-linux-gnu/
 
 # Debian installs this kind of weird you may need to symlink it like:
 # ln -s /usr/lib/x86_64-linux-gnu/libhdf5_serial.a /usr/lib/x86_64-linux-gnu/libhdf5.a
 # ln -s /usr/lib/x86_64-linux-gnu/libhdf5_serial.so /usr/lib/x86_64-linux-gnu/libhdf5.so
-HDF5_LIB = /usr/lib/x86_64-linux-gnu/
 ifeq ($(HDF5_INCLUDE_PATH),)
      HDF5_INCLUDE_PATH := /usr/include/hdf5/serial/
 endif
