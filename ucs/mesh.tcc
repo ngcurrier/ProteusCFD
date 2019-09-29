@@ -5946,6 +5946,161 @@ Int Mesh<Type>::WriteGridXDMF(PObj<Type> &p, std::string filebase, std::string m
 template <class Type>
 Int Mesh<Type>::WriteUGRID_Ascii(std::string casename)
 {
+  std::ofstream fout;
+  Int i, j;
+  Int etype;
+  Int tempnodes[8];
+  std::string filename = casename + ".ugrid";
+  std::cout << "UGRID ASCII I/O: Writing file --> " << filename << std::endl;
+  fout.open(filename.c_str());
+
+  //
+  // table converts from ugrid --> our format
+  //
+  Int translation[][8] = {
+    {2,1,0}, // Triangles
+    {3,2,1,0}, // Quad
+    {0,1,2,3},  // Tet
+    {0,3,4,1,2},  // Pyramid
+    {0,1,2,3,4,5},  // Prism
+    {0,1,2,3,4,5,6,7}  // Hex
+  };
+
+  //write number of nodes
+  fout << nnode << std::endl;
+  
+  //write number of tris, quads, tets, pyramids, prisms, and hexes
+  fout << nelem[TRI] << " " << nelem[QUAD] << " " << nelem[TET] << " " << nelem[PYRAMID] << " " << nelem[PRISM] << " " << nelem[HEX] << std::endl;
+	      
+  //write nodes xyz
+  for(Int i = 0; i < nnode; i++){
+    fout << xyz[i*3 + 0] << " " << xyz[i*3 + 1] << " " << xyz[i*3 + 2] << std::endl;
+  }
+
+  //NOTE: UGRID nodes are 1 based so they need to be shifted
+
+  std::cout << "UGRID ASCII I/O: Writing surface elements" << std::endl;
+
+  //write tris
+  for(typename std::vector<Element<Type>*>::iterator it = elementList.begin(); it != elementList.end(); ++it){
+    Element<Type>& element = **it;
+    etype = element.GetType();
+    if(etype == TRI){
+      Int* nodes = NULL;
+      Int nnodes = element.GetNodes(&nodes);
+      memcpy(tempnodes, nodes, sizeof(Int)*nnodes);
+      TranslateWinding(tempnodes, translation, nnodes, etype, 1);
+      for(j = 0; j < nnodes; ++j){
+	fout << tempnodes[j]+1 << " ";
+      }
+      fout << std::endl;
+    }
+  }
+  
+  std::cout << "UGRID ASCII I/O: Writing surface tags" << std::endl;
+  //write quads
+  for(typename std::vector<Element<Type>*>::iterator it = elementList.begin(); it != elementList.end(); ++it){
+    Element<Type>& element = **it;
+    etype = element.GetType();
+    if(etype == QUAD){
+      Int* nodes = NULL;
+      Int nnodes = element.GetNodes(&nodes);
+      memcpy(tempnodes, nodes, sizeof(Int)*nnodes);
+      TranslateWinding(tempnodes, translation, nnodes, etype, 1);
+      for(j = 0; j < nnodes; ++j){
+	fout << tempnodes[j]+1 << " ";
+      }
+      fout << std::endl;
+    }
+  }
+
+  //write factags for tris
+  for(typename std::vector<Element<Type>*>::iterator it = elementList.begin(); it != elementList.end(); ++it){
+    Element<Type>& element = **it;
+    etype = element.GetType();
+    if(etype == TRI){
+      Int tag = element.GetFactag();
+      fout << tag << std::endl;
+    }
+  }
+
+  //write factags for quads
+  for(typename std::vector<Element<Type>*>::iterator it = elementList.begin(); it != elementList.end(); ++it){
+    Element<Type>& element = **it;
+    etype = element.GetType();
+    if(etype == QUAD){
+      Int tag = element.GetFactag();
+      fout << tag << std::endl;
+    }
+  }
+
+  std::cout << "UGRID ASCII I/O: Writing volume elements" << std::endl;
+ //write tets
+  for(typename std::vector<Element<Type>*>::iterator it = elementList.begin(); it != elementList.end(); ++it){
+    Element<Type>& element = **it;
+    etype = element.GetType();
+    if(etype == TET){
+      Int* nodes = NULL;
+      Int nnodes = element.GetNodes(&nodes);
+      memcpy(tempnodes, nodes, sizeof(Int)*nnodes);
+      TranslateWinding(tempnodes, translation, nnodes, etype, 1);
+      for(j = 0; j < nnodes; ++j){
+	fout << tempnodes[j]+1 << " ";
+      }
+      fout << std::endl;
+    }
+  }
+
+  //write pyramids
+  for(typename std::vector<Element<Type>*>::iterator it = elementList.begin(); it != elementList.end(); ++it){
+    Element<Type>& element = **it;
+    etype = element.GetType();
+    if(etype == PYRAMID){
+      Int* nodes = NULL;
+      Int nnodes = element.GetNodes(&nodes);
+      memcpy(tempnodes, nodes, sizeof(Int)*nnodes);
+      TranslateWinding(tempnodes, translation, nnodes, etype, 1);
+      for(j = 0; j < nnodes; ++j){
+	fout << tempnodes[j]+1 << " ";
+      }
+      fout << std::endl;
+    }
+  }
+
+  //write prisms
+  for(typename std::vector<Element<Type>*>::iterator it = elementList.begin(); it != elementList.end(); ++it){
+    Element<Type>& element = **it;
+    etype = element.GetType();
+    if(etype == PRISM){
+      Int* nodes = NULL;
+      Int nnodes = element.GetNodes(&nodes);
+      memcpy(tempnodes, nodes, sizeof(Int)*nnodes);
+      TranslateWinding(tempnodes, translation, nnodes, etype, 1);
+      for(j = 0; j < nnodes; ++j){
+	fout << tempnodes[j]+1 << " ";
+      }
+      fout << std::endl;
+    }
+  }
+
+  //write hexes
+  for(typename std::vector<Element<Type>*>::iterator it = elementList.begin(); it != elementList.end(); ++it){
+    Element<Type>& element = **it;
+    etype = element.GetType();
+    if(etype == HEX){
+      Int* nodes = NULL;
+      Int nnodes = element.GetNodes(&nodes);
+      memcpy(tempnodes, nodes, sizeof(Int)*nnodes);
+      TranslateWinding(tempnodes, translation, nnodes, etype, 1);
+      for(j = 0; j < nnodes; ++j){
+	fout << tempnodes[j]+1 << " ";
+      }
+      fout << std::endl;
+    }
+  }
+
+  std::cout << "UGRID ASCII I/O: File write successful!!" << std::endl;
+  fout.close();
   return 0;
 }
 
@@ -5963,7 +6118,7 @@ Int Mesh<Type>::ReadUGRID_Ascii(std::string filename)
   // table converts from ugrid --> our format
   //
   Int translation[][8] = {
-    {2,1,0}, // Triangle
+    {2,1,0}, // Triangles
     {3,2,1,0}, // Quad
     {0,1,2,3},  // Tet
     {0,3,4,1,2},  // Pyramid

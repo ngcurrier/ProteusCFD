@@ -258,6 +258,9 @@ int main(int argc, char* argv[]){
   if(fileextension == "crunch"){
     m.WriteCRUNCH_Ascii(casename);
   }
+  else if(fileextension == "ugrid"){
+    m.WriteUGRID_Ascii(casename);
+  }
   else if(fileextension == "vtk"){
     std::vector<SolutionField<Real>*> fields;
     m.WriteVTK_Ascii(casename, fields);
