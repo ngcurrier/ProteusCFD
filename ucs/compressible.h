@@ -47,7 +47,7 @@ class CompressibleEqnSet : public EqnSet<Type>
   void GetInviscidWallBoundaryVariables(Type* QL, Type* QR, Type* Qinf, Type* avec, Type vdotn, Type beta);
   void GetInternalInflowBoundaryVariables(Type* QL, Type* QR, Type* Qinf, Type pressure, 
 					  Type* densities, Type* flowDirection, Type velocity);
-  void GetInternalOutflowBoundaryVariables(Type* QL, Type* QR, Type pressure, Type gamma);
+  void GetInternalOutflowBoundaryVariables(Type* avec, Type* QL, Type* QR, Type pressure, Type gamma);
   void GetViscousWallBoundaryVariables(Type* QL, Type* QR, Type* vel, Int normalNode, 
 				       Type* normalQ, Type Twall);
   void ModifyViscousWallJacobian(Type* QL, Type* QR, Type* vel, Int cvid, CRS<Type>* crs, 

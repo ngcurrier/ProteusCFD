@@ -1136,7 +1136,7 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
     Type pressure = bcobj->backPressure;
     //this only works for eqnsets where gamma is constant
     Type gamma = eqnset->param->gamma;
-    eqnset->GetInternalOutflowBoundaryVariables(QL, QR, pressure, gamma);
+    eqnset->GetInternalOutflowBoundaryVariables(avec, QL, QR, pressure, gamma);
   }
   else if(bcType == Proteus_TotalTempAndPressure){
     Type pressure = bcobj->backPressure;

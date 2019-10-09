@@ -777,14 +777,18 @@ void IncompressibleEqnSet<Type>::GetInternalInflowBoundaryVariables(Type* QL, Ty
 }
 
 template <class Type>
-void IncompressibleEqnSet<Type>::GetInternalOutflowBoundaryVariables(Type* QL, Type* QR, Type pressure, Type gamma)
+void IncompressibleEqnSet<Type>::GetInternalOutflowBoundaryVariables(Type* avec, Type* QL, Type* QR, Type pressure, Type gamma)
 {
   //pressure that is passed in is dynamic pressure
   //we must calculate the static pressure
   Type u = QL[1];
   Type v = QL[2];
   Type w = QL[3];
-  Type Ps = pressure - 0.5*(u*u + v*v + w*w);
+  Type pin = ComputePressure(QL, gamma);
+
+  // set backpressure, use softset. This should eventually converge to target backpressure
+  // but more gently with better stability properties as a hardset.
+  Type Ps = 0.5*(pin + pressure) - 0.5*(u*u + v*v + w*w);
 
   QR[0] = Ps;
   QR[1] = u;

@@ -161,7 +161,7 @@ class EqnSet
   {
     Abort << "ModifyInternalInflowJacobia() not implemented";
   };
-  virtual void GetInternalOutflowBoundaryVariables(Type* QL, Type* QR, Type Pressure, Type Gamma)
+  virtual void GetInternalOutflowBoundaryVariables(Type* avec, Type* QL, Type* QR, Type Pressure, Type Gamma)
   {
     Abort << "GetInternalFlowOutflowlBoundaryVariables() not implemented";
   };

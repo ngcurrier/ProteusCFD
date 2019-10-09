@@ -1505,15 +1505,40 @@ void CompressibleEqnSet<Type>::GetInternalInflowBoundaryVariables(Type* QL, Type
 }
 
 template <class Type>
-void CompressibleEqnSet<Type>::GetInternalOutflowBoundaryVariables(Type* QL, Type* QR, Type pressure, Type gamma)
+void CompressibleEqnSet<Type>::GetInternalOutflowBoundaryVariables(Type* avec, Type* QL, Type* QR, Type pressure, Type gamma)
 {
+  //compute the pressure internal to the domain
+  Type pin = ComputePressure(QL, gamma);
 
-  QR[0] = QL[0];
-  QR[1] = QL[1];
-  QR[2] = QL[2];
-  QR[3] = QL[3];
-  QR[4] = pressure/(gamma - 1.0) + 0.5*(QR[1]*QR[1] + QR[2]*QR[2] + QR[3]*QR[3])/QR[0];
-  return;
+  //compute the velocity internal to the domain
+  Type u, v, w, rho;
+  rho = QL[0];
+  u = QL[1]/rho;
+  v = QL[2]/rho;
+  w = QL[3]/rho;
+
+  //compute the directional mach number normal to the face (outward pointing)
+  Type theta = u*avec[0] + v*avec[1] + w*avec[2];
+  //in the compressible domain theta is mach number
+  //if outward pointing velocity is greater than supersonic
+  Type c2 = gamma*(pin/rho);
+  Type c = sqrt(c2);
+
+  //supersonic outflow (all positive characteristics)
+  if(real(theta) > 0.0 && real(CAbs(theta/c)) >= 1.0){
+    for(Int i = 0; i < this->neqn; i++){
+      QR[i] = QL[i];
+    }
+  }
+  else{
+    QR[0] = QL[0];
+    QR[1] = QL[1];
+    QR[2] = QL[2];
+    QR[3] = QL[3];
+    // use a softset average here instead of imposing backpressure, should converge to desired
+    // backpressure a little slower but more stably
+    QR[4] = 0.5*(pressure + pin)/(gamma - 1.0) + 0.5*(QR[1]*QR[1] + QR[2]*QR[2] + QR[3]*QR[3])/QR[0];
+  }
 }
 
 template <class Type>

@@ -1645,24 +1645,54 @@ Type CompressibleFREqnSet<Type>::GetTheta(Type* Q, Type* avec, Type vdotn)
 
 
 template <class Type>
-void CompressibleFREqnSet<Type>::GetInternalOutflowBoundaryVariables(Type* QL, Type* QR, Type pressure, Type gamma)
+void CompressibleFREqnSet<Type>::GetInternalOutflowBoundaryVariables(Type* avec, Type* QL, Type* QR, Type pressure, Type gamma)
 {
-  for(Int i = 0; i < nspecies; i++){
-    QR[i] = QL[i];
-  }
-  QR[nspecies] = QL[nspecies];
-  QR[nspecies+1] = QL[nspecies+1];
-  QR[nspecies+2] = QL[nspecies+2]; 
-
-  Type Tguess = QL[nspecies+3];
-  // set backpressure
-  Type pgoal = pressure;
+  Type u, v, w;
+  u = QL[nspecies];
+  v = QL[nspecies+1];
+  w = QL[nspecies+2];
+  Type pin = ComputePressure(QL, gamma);
   
-  // convert pressure solution back to temperature for storage, use Newton's method
-  // to solve nonlinear mixture EOS
-  Type* rhoi = &QR[0];
-  Type T = NewtonFindTGivenP(rhoi, pgoal, Tguess);
-  QR[nspecies+3] = T;
+  //TODO: pass in grid velocity to internal outflow BC
+  Type vdotn = 0;
+  Type theta = GetTheta(QL, avec, vdotn);
+
+  Type T = QL[nspecies+3];
+  Type* rhoi = &QL[0];
+  Type* cvi = &QL[nspecies+6];
+
+  Type cv, cp, R, gammaTrash, c2, RhoTrash, PTrash;
+  GetFluidProperties(rhoi, T, cvi, cv, cp, R, gammaTrash, c2, RhoTrash, PTrash);
+  Type c = sqrt(c2);
+
+  //supersonic outflow (all positive characteristics)
+  if(real(theta) > 0.0 && real(CAbs(theta/c)) >= 1.0){
+    for(Int i = 0; i < this->neqn; ++i){
+      QR[i] = QL[i];
+    }
+  }
+  else{
+    // set densities from internal
+    for(Int i = 0; i < nspecies; i++){
+      QR[i] = QL[i];
+    }
+    // set velocities from internal
+    QR[nspecies] = QL[nspecies];
+    QR[nspecies+1] = QL[nspecies+1];
+    QR[nspecies+2] = QL[nspecies+2]; 
+    
+    // set backpressure, use softset. This should eventually converge to target backpressure
+    // but more gently with better stability properties as a hardset.
+    Type pgoal = 0.5*(pressure + pin);
+    
+    // convert pressure solution back to temperature for storage, use Newton's method
+    // to solve nonlinear mixture EOS
+    Type* rhoi = &QR[0];
+    Type Tguess = QL[nspecies+3];
+    Type T = NewtonFindTGivenP(rhoi, pgoal, Tguess);
+    QR[nspecies+3] = T;
+  } 
+
 }
 
 template <class Type>
