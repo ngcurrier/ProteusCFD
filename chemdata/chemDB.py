@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 import os
 import sys
 import h5py
@@ -29,7 +29,7 @@ def main():
    print("Processing other database...")
    process_database(h5,'database.species.db')
 
-   #Most of these coefficients are accurate over a lower range
+   #Most of these coefficients are accurate over a lower 
    print("Processing GRIMECH thermo database...")
    process_grimech_thermo(h5,'GRIMECH.THR')
    
@@ -196,12 +196,12 @@ def process_burcat(h5,fname):
       print("Burcat database ==> %s"%d["compound"])
 
       recorderr = 0
-      for i in xrange(4):
+      for i in range(4):
          record[i] = record[i].expandtabs().rstrip()
 
          if len(record[i]) != 80 or record[i][79] != str(i+1): 
-           print "|" + record[i] + "|"
-           print "length of record: %d" %len(record[i])
+           print("|" + record[i] + "|")
+           print("length of record: %d" %len(record[i]))
            if (len(record) >= 80): print("Character: " + record[i][79])
            print("Error: record ID not %d"%(i+1))
            recorderr = 1
@@ -214,13 +214,13 @@ def process_burcat(h5,fname):
          d["MW"] = float(record[0][69:78])
       except:    
          print("="*66)
-         print record[0]
-         print record[1]
-         print record[2]
-         print record[3]
+         print(record[0])
+         print(record[1])
+         print(record[2])
+         print(record[3])
          print("="*66)
-         print record[0][70:78]
-         print record[0][60:80]
+         print(record[0][70:78])
+         print(record[0][60:80])
          raise
 
       # read the low and high temperatures of applicability for the curve fit.
@@ -288,12 +288,12 @@ def process_grimech_thermo(h5,fname):
       print("GRIMECH 3.0 database ==> %s"%d["compound"])
 
       recorderr = 0
-      for i in xrange(4):
+      for i in range(4):
          record[i] = record[i].expandtabs().rstrip()
 
          if len(record[i]) != 80 or record[i][79] != str(i+1): 
-           print "|" + record[i] + "|"
-           print "length of record: %d" %len(record[i])
+           print("|" + record[i] + "|")
+           print("length of record: %d" %len(record[i]))
            if (len(record) >= 80): print("Character: " + record[i][79])
            print("Error: record ID not %d"%(i+1))
            recorderr = 1
@@ -362,22 +362,22 @@ def read_coeff(line,pos,nchar=15):
    
 
 def write_species(h5,d,overwrite=False):
-
+   
    compound = d["compound"]
-
+   
    grp = h5.require_group('/species')
    grp = grp.require_group(compound)
-
+   
    for k in d: 
       if k != "compound":
-        if k not in grp: 
-           grp.create_dataset(k,data=d[k])
-        else:
-	   if not overwrite:
-              print("Warning: skipping dataset "+compound+"/"+k)
-           else:
-	      del grp[k]
-	      grp.create_dataset(k,data=d[k])
+         if k not in grp: 
+            grp.create_dataset(k,data=d[k])
+         else:
+            if not overwrite:
+               print("Warning: skipping dataset "+compound+"/"+k)
+            else:
+               del grp[k]
+               grp.create_dataset(k,data=d[k])
    return
 
 
