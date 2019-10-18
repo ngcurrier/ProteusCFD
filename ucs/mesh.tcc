@@ -2777,7 +2777,9 @@ Int Mesh<Type>::ReadPartedMesh(std::string casename)
   std::string h5filename = casename + "." + temposs.str() + ".h5";
   hid_t h5in = HDF_OpenFile(h5filename, 0);
   if(h5in < 0){
-    std::cerr << "Mesh::ReadPartedMesh() could not open file -- " << h5filename << std::endl;
+    std::stringstream ss;
+    ss << "Mesh::ReadPartedMesh() could not open file -- " << h5filename << std::endl;
+    Abort << ss.str();
     return (-1);
   }
 

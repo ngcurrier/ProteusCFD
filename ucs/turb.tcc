@@ -11,7 +11,7 @@ TurbulenceModel<Type>::TurbulenceModel(SolutionSpace<Type>* space):
   neqn(0), space(space), tvar(NULL), tvarinf(NULL), tgrad(NULL), idata(NULL), limiter(NULL)
 {
   //add turbulent viscosity field
-  space->AddField("mut");
+  space->AddField("mut", space->param->ref_viscosity);
 }
 
 template <class Type>

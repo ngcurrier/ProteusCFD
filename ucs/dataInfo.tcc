@@ -6,12 +6,14 @@
 #include <vector>
 #include <sstream>
 
-DataInfo::DataInfo():
+template <class Type>
+DataInfo<Type>::DataInfo():
   name("NULL"), ndof(0), nvector(0), nscalar(0)
 {
 }
 
-DataInfo::DataInfo(Int ndof, std::string bulkName):
+template <class Type>
+DataInfo<Type>::DataInfo(Int ndof, std::string bulkName):
   ndof(ndof), name(bulkName), nvector(0), nscalar(0)
 {
   descriptorS.resize(ndof);
@@ -23,7 +25,8 @@ DataInfo::DataInfo(Int ndof, std::string bulkName):
   }
 }
 
-void DataInfo::SetFromHDF(hid_t fileId, std::string directory, std::string dataName)
+template <class Type>
+void DataInfo<Type>::SetFromHDF(hid_t fileId, std::string directory, std::string dataName)
 {
   HDF_ReadArrayAttribute(fileId, directory, dataName, "scalars", descriptorS);
   HDF_ReadArrayAttribute(fileId, directory, dataName, "vectors", descriptorV);
@@ -32,13 +35,16 @@ void DataInfo::SetFromHDF(hid_t fileId, std::string directory, std::string dataN
   HDF_ReadStringAttribute(fileId, directory, dataName, "variable_names", names);
 }
 
-DataInfo::~DataInfo()
+template <class Type>
+DataInfo<Type>::~DataInfo()
 {
 }
 
-void DataInfo::AddVector(Int dof, std::string name)
+template <class Type>
+void DataInfo<Type>::AddVector(Int dof, std::string name, Type refValue)
 {
   Int i;
+  this->refValue = refValue;
   if(dof > ndof){
     std::stringstream ss;
     ss << "WARNING: degree of freedom " << dof << " greater than allocated space of "
@@ -62,8 +68,10 @@ void DataInfo::AddVector(Int dof, std::string name)
   nvector++;
 }
 
-void DataInfo::AddScalar(Int dof, std::string name)
+template <class Type>
+void DataInfo<Type>::AddScalar(Int dof, std::string name, Type refValue)
 {
+  this->refValue = refValue;
   if(dof > ndof){
     std::stringstream ss;
     ss << "WARNING: degree of freedom " << dof << " greater than allocated space of "
@@ -85,7 +93,8 @@ void DataInfo::AddScalar(Int dof, std::string name)
   nscalar++;
 }
 
-void DataInfo::Verify()
+template <class Type>
+void DataInfo<Type>::Verify()
 {
   Int i;
   for(i = 0; i < ndof; i++){
@@ -98,7 +107,8 @@ void DataInfo::Verify()
   }
 }
 
-void DataInfo::Print() const
+template <class Type>
+void DataInfo<Type>::Print() const
 {
   Int i;
   std::cout << "BULK DATA DESCRIPTOR " << name << std::endl;
@@ -114,7 +124,8 @@ void DataInfo::Print() const
   }
 }
 
-void DataInfo::WriteBinary(std::ofstream & fout, Int mode)
+template <class Type>
+void DataInfo<Type>::WriteBinary(std::ofstream & fout, Int mode)
 {
   //okay doing this sucks but we are having some huge problems
   //with the binary data which follows this... oi!
@@ -141,7 +152,8 @@ void DataInfo::WriteBinary(std::ofstream & fout, Int mode)
   }
 }
 
-void DataInfo::ReadBinary(std::ifstream & fin)
+template <class Type>
+void DataInfo<Type>::ReadBinary(std::ifstream & fin)
 {
   //okay doing this sucks but we are having some huge problems
   //with the binary data which follows this... oi!
@@ -170,22 +182,26 @@ void DataInfo::ReadBinary(std::ifstream & fin)
   Verify();
 }
 
-Int DataInfo::GetNdof() const
+template <class Type>
+Int DataInfo<Type>::GetNdof() const
 {
   return ndof;
 }
 
-std::string DataInfo::GetName() const
+template <class Type>
+std::string DataInfo<Type>::GetName() const
 {
   return name;
 }
 
-std::string DataInfo::GetDofName(Int dof) const
+template <class Type>
+std::string DataInfo<Type>::GetDofName(Int dof) const
 {
   return names[dof];
 }
 
-Bool DataInfo::DofIsVector(Int dof) const
+template <class Type>
+Bool DataInfo<Type>::DofIsVector(Int dof) const
 {
   if(descriptorV[dof] != -1){
     return true;
@@ -193,7 +209,8 @@ Bool DataInfo::DofIsVector(Int dof) const
   return false;
 }
 
-Bool DataInfo::DofIsScalar(Int dof) const
+template <class Type>
+Bool DataInfo<Type>::DofIsScalar(Int dof) const
 {
   if(descriptorS[dof] != -1){
     return true;
@@ -201,19 +218,22 @@ Bool DataInfo::DofIsScalar(Int dof) const
   return false;
 }
 
-const std::vector<std::string>& DataInfo::GetNames() const
+template <class Type>
+const std::vector<std::string>& DataInfo<Type>::GetNames() const
 {
   return names;
 }
 
-void DataInfo::WriteHDFAttribute(hid_t file_id, std::string directory)
+template <class Type>
+void DataInfo<Type>::WriteHDFAttribute(hid_t file_id, std::string directory)
 {
   HDF_WriteStringAttribute(file_id, directory, name, "variable_names", names);
   HDF_WriteArrayAttribute(file_id, directory, name, "scalars", descriptorS);
   HDF_WriteArrayAttribute(file_id, directory, name, "vectors", descriptorV);
 }
 
-std::ostream& operator<<(std::ostream& os, const DataInfo& obj){
+template <class Type>
+std::ostream& operator<<(std::ostream& os, const DataInfo<Type>& obj){
   os << "\t" << obj.name << "\n";
   os << "\t-----------------------------------------------\n";
   for(int i = 0; i < obj.names.size(); ++i){

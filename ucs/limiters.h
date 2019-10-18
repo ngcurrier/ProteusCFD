@@ -5,7 +5,7 @@
 #include "kernel.h"
 
 template <class Type> class SolutionSpace;
-class DataInfo;
+template <class Type> class DataInfo;
 
 template <class Type>
 class Limiter
@@ -42,7 +42,7 @@ public:
   Int gnode;
 
   //data info pointer
-  DataInfo* idata;
+  DataInfo<Type>* idata;
   
 private:
   Limiter();

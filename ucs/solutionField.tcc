@@ -6,7 +6,7 @@
 //we only need the most recent NP1 storage to have all the boundary data included, fix this -- expensive
 
 template <class Type>
-SolutionField<Type>::SolutionField(Mesh<Type>& mesh, DataInfo dataInfo, Int stateType, Int varLocation):
+SolutionField<Type>::SolutionField(Mesh<Type>& mesh, DataInfo<Type> dataInfo, Int stateType, Int varLocation):
   mesh(mesh), dataInfo(dataInfo), mystate(stateType), varLoc(varLocation)
 {
   Int mnnode = mesh.GetNumNodes();
@@ -284,6 +284,10 @@ void SolutionField<Type>::WriteH5(std::string filename, std::string directory, I
   if(file_id < 0){
     Abort << "SolutionField::WriteH5() could not open file -- " + filename;
     return;
+  }
+  //dimensionalize the data
+  for(Int i = 0; i < nvalues; ++i){
+    
   }
   HDF_WriteArray(file_id, directory, dataInfo.GetName(), data, nvalues);
   dataInfo.WriteHDFAttribute(file_id, directory);

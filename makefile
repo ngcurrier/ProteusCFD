@@ -22,16 +22,16 @@ DEPS_COMMON = $(SRCS_COMMON:.cpp=.d)
 
 SRCS_SOLVER = ./ucs/main.cpp ./ucs/eqnset.cpp ./ucs/etypes.cpp ./ucs/threaded.cpp ./ucs/parallel.cpp \
 	./ucs/customics.cpp ./ucs/portFileio.cpp \
-	./ucs/elements.cpp ./ucs/dataInfo.cpp ./ucs/derivatives.cpp ./ucs/pythonInterface.cpp ./ucs/xmlreader.cpp \
+	./ucs/elements.cpp  ./ucs/derivatives.cpp ./ucs/pythonInterface.cpp ./ucs/xmlreader.cpp \
 	./ucs/exceptions.cpp
 SRCS_DECOMP = ./ucs/decomp.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/parallel.cpp \
-	 ./ucs/dataInfo.cpp ./ucs/exceptions.cpp
+	  ./ucs/exceptions.cpp
 SRCS_GRIDMOD = ./ucs/gridmod.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/parallel.cpp \
-	 ./ucs/dataInfo.cpp ./ucs/exceptions.cpp
+	  ./ucs/exceptions.cpp
 SRCS_RECOMP = ./ucs/recomp.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/parallel.cpp \
-	 ./ucs/dataInfo.cpp ./ucs/exceptions.cpp
+	  ./ucs/exceptions.cpp
 SRCS_FINDPOINT = ./ucs/find_point.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/parallel.cpp \
-	 ./ucs/dataInfo.cpp ./ucs/exceptions.cpp
+	  ./ucs/exceptions.cpp
 
 OBJS_SOLVER = $(SRCS_SOLVER:.cpp=.o)
 DEPS_SOLVER = $(SRCS_SOLVER:.cpp=.d)
@@ -72,7 +72,7 @@ OBJS_ALL = $(SRCS_ALL:.cpp=.o)
 DEPS_ALL = $(SRCS_ALL:.cpp=.d)
 
 # --------- BEGIN TEST SECTION
-SRCS_TEST = ./unitTest/main.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/parallel.cpp ./ucs/dataInfo.cpp ./ucs/pythonInterface.cpp ./ucs/exceptions.cpp
+SRCS_TEST = ./unitTest/main.cpp ./ucs/mesh.cpp ./ucs/etypes.cpp ./ucs/parallel.cpp  ./ucs/pythonInterface.cpp ./ucs/exceptions.cpp
 OBJS_TEST = $(SRCS_TEST:.cpp=.o) 
 DEPS_TEST = $(SRCS_TEST:.cpp=.d)
 

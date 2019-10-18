@@ -8,6 +8,7 @@
 #include "general.h"
 #include "h5layer.h"
 
+template <class Type>
 class DataInfo
 {
 public:
@@ -15,8 +16,8 @@ public:
   //dumb constructor w/o vector, scalar, or naming information
   DataInfo(Int ndof, std::string bulkName);
   ~DataInfo();
-  void AddVector(Int dof, std::string name);
-  void AddScalar(Int dof, std::string name);
+  void AddVector(Int dof, std::string name, Type refValue);
+  void AddScalar(Int dof, std::string name, Type refValue);
   void Verify();
   void Print() const;
   void WriteBinary(std::ofstream & fout, Int mode = 0);
@@ -30,7 +31,8 @@ public:
   Bool DofIsVector(Int dof) const;
   //use HDF file and a path to a dataset to set interior
   void SetFromHDF(hid_t fileId, std::string directory, std::string dataName);
-  friend std::ostream& operator<<(std::ostream& os, const DataInfo& obj);
+  template <class Type2>
+  friend std::ostream& operator<<(std::ostream& os, const DataInfo<Type2>& obj);
   
 private:
   Int ndof;
@@ -40,11 +42,15 @@ private:
   std::vector<Int> descriptorS;
   //store vector locations
   std::vector<Int> descriptorV;
+  // reference value to dimensionalize  the variable
+  Type refValue;
 
   Int nvector;
   Int nscalar;
 };
 
+// include implementation
+#include "dataInfo.tcc"
 
 
 #endif

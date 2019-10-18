@@ -28,7 +28,7 @@ public:
   Type* tgrad;             //gradient of turbulent variables
   
   CRS<Type> crs;           //compressed row storage object.. stores matrix system
-  DataInfo* idata;         //datainfo object for turbulent system
+  DataInfo<Type>* idata;         //datainfo object for turbulent system
   Limiter<Type>* limiter;  //limiter for higher order turbulence model
 
   TurbulenceModel(SolutionSpace<Type>* space);      //initialize variables

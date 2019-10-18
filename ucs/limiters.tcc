@@ -23,11 +23,11 @@ Limiter<Type>::Limiter(SolutionSpace<Type>* space, Type* q, Type* grad, Int neqn
   this->grad = grad;
 
   //setup data descriptor
-  this->idata = new DataInfo(this->neqn, std::string("limiter_"+name));
+  this->idata = new DataInfo<Type>(this->neqn, std::string("limiter_"+name));
   for(i = 0; i < neqn; i++){
     temposs.str("");
     temposs << i;
-    this->idata->AddScalar(i, "limiter_"+name+"-"+temposs.str());
+    this->idata->AddScalar(i, "limiter_"+name+"-"+temposs.str(), 1.0);
   }
   this->idata->Verify();
 

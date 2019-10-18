@@ -168,15 +168,15 @@ void SolutionSpace<Type>::Init()
 
   //this logic is specific to error transport equations for error indicator
   if(param->viscous && param->errorTransport){
-    DataInfo ETEViscData(eqnset->neqn, std::string("ETEVisc"));
+    DataInfo<Type> ETEViscData(eqnset->neqn, std::string("ETEVisc"));
     const std::vector<std::string>& names = eqnset->idata->GetNames();
     for(Int i = 0; i < names.size(); i++){
       std::string dofName = names[i];
       if(eqnset->idata->DofIsScalar(i)){
-	ETEViscData.AddScalar(i, dofName+"_ViscErrorSrc");
+	ETEViscData.AddScalar(i, dofName+"_ViscErrorSrc", 1.0);
       }
       else{
-	ETEViscData.AddVector(i, dofName+"_ViscErrorSrc");
+	ETEViscData.AddVector(i, dofName+"_ViscErrorSrc", 1.0);
 	i += 2;
       }
     }
@@ -186,7 +186,7 @@ void SolutionSpace<Type>::Init()
 
   //add field for gaussian source
   if(param->gaussianSource){
-    AddField("gaussian");
+    AddField("gaussian", 1.0);
   }
 
   std::cout << "INIT: gaussian" << std::endl;
@@ -234,9 +234,9 @@ void SolutionSpace<Type>::Init()
   BodiesReadFile(forces->bodies, param->path+param->spacename);
 
   //add field for dt local
-  AddField("timestep");
+  AddField("timestep", 1.0);
   //add field for preconditioning term beta
-  AddField("beta");
+  AddField("beta", 1.0);
   SolutionField<Type>& betaF = GetField("beta");
   //set preconditioner beta equal to Ma^2 if below sonic
   Type V = param->GetVelocity(0);
@@ -250,7 +250,7 @@ void SolutionSpace<Type>::Init()
     betaF.Fill(1.0);
   }
   //add field for partition id
-  AddField("partition");
+  AddField("partition", 1.0);
   Type* part = GetFieldData("partition", FIELDS::STATE_NONE);
   Int rank = p->GetRank();
   for(Int i = 0; i < nnode; i++){
@@ -260,7 +260,7 @@ void SolutionSpace<Type>::Init()
 
   //add field for wall distance
   if(param->viscous){
-    AddField("wallDistance");
+    AddField("wallDistance", param->ref_length);
     //allocate turbulence model if appropriate, has to be registered first
     //or read restart won't work
     CreateTurbModel(&turb, this);
@@ -341,15 +341,15 @@ void SolutionSpace<Type>::Init()
 
   //allocate field for adjoint variables if running in that mode
   if(param->mode == Adjoint){
-    DataInfo AdjointData(eqnset->neqn, std::string("Adjoint"));
+    DataInfo<Type> AdjointData(eqnset->neqn, std::string("Adjoint"));
     const std::vector<std::string>& names = eqnset->idata->GetNames();
     for(Int i = 0; i < eqnset->neqn; i++){
       std::string dofName = names[i];
       if(eqnset->idata->DofIsScalar(i)){
-	AdjointData.AddScalar(i, dofName+"_Adjoint");
+	AdjointData.AddScalar(i, dofName+"_Adjoint", 1.0);
       }
       else{
-	AdjointData.AddVector(i, dofName+"_Adjoint");
+	AdjointData.AddVector(i, dofName+"_Adjoint", 1.0);
 	i += 2;
       }
     }
@@ -379,11 +379,12 @@ void SolutionSpace<Type>::Init()
 }
 
 //add a field by name alone - single scalar
+//refValue - value to use for dimensionalization
 template <class Type>
-void SolutionSpace<Type>::AddField(std::string name)
+void SolutionSpace<Type>::AddField(std::string name, Type refValue)
 {
-  DataInfo idata(1, name);
-  idata.AddScalar(0, name);
+  DataInfo<Type> idata(1, name);
+  idata.AddScalar(0, name, refValue);
   idata.Verify();
 
   AddField(idata, FIELDS::STATE_NONE, FIELDS::VAR_INTERIOR);
@@ -391,7 +392,7 @@ void SolutionSpace<Type>::AddField(std::string name)
 
 //add a field with state information, a data descriptor, and location info
 template <class Type>
-void SolutionSpace<Type>::AddField(DataInfo dataInfo, Int stateType, Int varLocation)
+void SolutionSpace<Type>::AddField(DataInfo<Type> dataInfo, Int stateType, Int varLocation)
 {
   std::cout << "SolutionSpace: adding field " << dataInfo.GetName() << std::endl;
   for(typename std::vector<SolutionField<Type>*>::iterator it = fields.begin(); it != fields.end(); ++it){
@@ -1167,9 +1168,11 @@ void SolutionSpace<Type>::WriteRestartFile()
   }
 
   hid_t h5out = HDF_OpenFile(filename, 1);
+  Int np = p->GetNp();
   HDF_WriteScalar(h5out, "/Solver State/", "Iteration Count", &this->iter);
   HDF_WriteScalar(h5out, "/Solver State/", "GCL State", &param->gcl);
   HDF_WriteScalar(h5out, "/Solver State/", "time", &this->time);
+  HDF_WriteScalar(h5out, "/Solver State/", "Number of processors", &np);
   HDF_WriteArray(h5out, "/Mesh State/", "Volume N+1", m->vol, nnode);
   HDF_WriteArray(h5out, "/Mesh State/", "Volume N", m->volold, nnode);
   HDF_WriteArray(h5out, "/Mesh State/", "Volume N-1", m->vololdm1, nnode);
@@ -1189,6 +1192,7 @@ void SolutionSpace<Type>::ReadRestartFile()
   std::string filename = param->path+param->spacename + "." + temposs.str() + ".rs";
   Int nnode = m->GetNumNodes();
   Int gnode = m->GetNumParallelNodes();
+  Int np = -999;
 
   std::cout << "RESTART READFILE: reading restart file --> " << filename << std::endl;
 
@@ -1201,6 +1205,12 @@ void SolutionSpace<Type>::ReadRestartFile()
   }
 
   hid_t h5in = HDF_OpenFile(filename, 0);
+  HDF_ReadScalar(h5in, "/Solver State/", "Number of processors", &np);
+  if(np != p->GetNp()){
+    std::stringstream ss;
+    ss << "WARNING: number of processors in restart files is " << np << " and does not match current processor count";
+    Abort << ss.str();
+  }
   HDF_ReadScalar(h5in, "/Solver State/", "Iteration Count", &this->iter);
   HDF_ReadScalar(h5in, "/Solver State/", "time", &this->time);
   Int gclcheck = 0;

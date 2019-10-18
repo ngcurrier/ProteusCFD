@@ -32,17 +32,17 @@ IncompressibleEqnSet<Type>::IncompressibleEqnSet(SolutionSpace<Type>* space, Par
   this->Qinf = new Type[this->neqn + this->nauxvars];
 
   //set types of variables for output i.e. scalar, vector, etc.
-  this->idata = new DataInfo(this->neqn+this->nauxvars, std::string("variableQ"));
-  this->idata->AddScalar(0, std::string("Pressure"));
-  this->idata->AddVector(1, std::string("Velocity"));
+  this->idata = new DataInfo<Type>(this->neqn+this->nauxvars, std::string("variableQ"));
+  this->idata->AddScalar(0, std::string("Pressure"), this->param->ref_pressure);
+  this->idata->AddVector(1, std::string("Velocity"), this->param->ref_velocity);
   this->idata->Verify();
   
   //set gradients required
-  this->gdata = new DataInfo((this->neqn)*3, "gradVariableQ");
-  this->gdata->AddVector(0*3, "Grad-Pressure");
-  this->gdata->AddVector(1*3, "Grad-u");
-  this->gdata->AddVector(2*3, "Grad-v");
-  this->gdata->AddVector(3*3, "Grad-w");
+  this->gdata = new DataInfo<Type>((this->neqn)*3, "gradVariableQ");
+  this->gdata->AddVector(0*3, "Grad-Pressure", this->param->ref_pressure/this->param->L);
+  this->gdata->AddVector(1*3, "Grad-u", this->param->ref_velocity/this->param->L);
+  this->gdata->AddVector(2*3, "Grad-v", this->param->ref_velocity/this->param->L);
+  this->gdata->AddVector(3*3, "Grad-w", this->param->ref_velocity/this->param->L);
   this->gdata->Verify();
 
 }

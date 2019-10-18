@@ -32,26 +32,26 @@ CompressibleEqnSet<Type>::CompressibleEqnSet(SolutionSpace<Type>* space, Param<T
   this->varsConservative = 1;
 
   //set types of variables for output i.e. scalar, vector, etc.
-  this->idata = new DataInfo(this->neqn+this->nauxvars, std::string("variableQ"));
-  this->idata->AddScalar(0, std::string("Density"));
-  this->idata->AddVector(1, std::string("Momentum"));
-  this->idata->AddScalar(4, std::string("TotalEnergy"));
-  this->idata->AddScalar(5, std::string("Temperature"));
-  this->idata->AddScalar(6, std::string("Pressure"));
-  this->idata->AddVector(7, std::string("Velocity"));
+  this->idata = new DataInfo<Type>(this->neqn+this->nauxvars, std::string("variableQ"));
+  this->idata->AddScalar(0, std::string("Density"), this->param->ref_density);
+  this->idata->AddVector(1, std::string("Momentum"), this->param->ref_density*this->param->ref_velocity);
+  this->idata->AddScalar(4, std::string("TotalEnergy"), this->param->ref_density*this->param->ref_specific_enthalpy);
+  this->idata->AddScalar(5, std::string("Temperature"), this->param->ref_temperature);
+  this->idata->AddScalar(6, std::string("Pressure"), this->param->ref_pressure);
+  this->idata->AddVector(7, std::string("Velocity"), this->param->ref_velocity);
   this->idata->Verify();
   
   //set gradients required
-  this->gdata = new DataInfo((this->neqn+1+3)*3, "gradVariableQ");
-  this->gdata->AddVector(0*3, "Grad-Density");
-  this->gdata->AddVector(1*3, "Grad-rhou");
-  this->gdata->AddVector(2*3, "Grad-rhov");
-  this->gdata->AddVector(3*3, "Grad-rhow");
-  this->gdata->AddVector(4*3, "Grad-TotalEnergy");
-  this->gdata->AddVector(5*3, "Grad-Temperature");
-  this->gdata->AddVector(6*3, "Grad-u");
-  this->gdata->AddVector(7*3, "Grad-v");
-  this->gdata->AddVector(8*3, "Grad-w");
+  this->gdata = new DataInfo<Type>((this->neqn+1+3)*3, "gradVariableQ");
+  this->gdata->AddVector(0*3, "Grad-Density", this->param->ref_density/this->param->L);
+  this->gdata->AddVector(1*3, "Grad-rhou", this->param->ref_density*this->param->ref_velocity/this->param->L);
+  this->gdata->AddVector(2*3, "Grad-rhov", this->param->ref_density*this->param->ref_velocity/this->param->L);
+  this->gdata->AddVector(3*3, "Grad-rhow", this->param->ref_density*this->param->ref_velocity/this->param->L);
+  this->gdata->AddVector(4*3, "Grad-TotalEnergy", this->param->ref_density*this->param->ref_specific_enthalpy/this->param->L);
+  this->gdata->AddVector(5*3, "Grad-Temperature", this->param->ref_temperature/this->param->L);
+  this->gdata->AddVector(6*3, "Grad-u", this->param->ref_velocity/this->param->L);
+  this->gdata->AddVector(7*3, "Grad-v", this->param->ref_velocity/this->param->L);
+  this->gdata->AddVector(8*3, "Grad-w", this->param->ref_velocity/this->param->L);
   this->gdata->Verify();
   
   this->Qinf = new Type[this->neqn + this->nauxvars];

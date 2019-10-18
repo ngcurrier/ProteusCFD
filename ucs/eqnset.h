@@ -14,7 +14,7 @@
 //forward declaration
 template <class Type> class CRS;
 template <class Type> class SolutionSpace;
-class DataInfo;
+template <class Type> class DataInfo;
 
 template <class Type>
 class EqnSet
@@ -30,8 +30,8 @@ class EqnSet
   SolutionSpace<Type>* space;
   Param<Type>* param;
   Type* Qinf;
-  DataInfo* idata;
-  DataInfo* gdata;
+  DataInfo<Type>* idata;
+  DataInfo<Type>* gdata;
 
   //allocates memory and links eqnset to mesh object
   virtual void InitEqnSet()

@@ -25,6 +25,8 @@ Spalart<Type>::Spalart(SolutionSpace<Type>* space) :
   TurbulenceModel<Type>(space)
 {
   Mesh<Type>* m = space->m;
+  Param<Type>* param = space->param;
+
   this->neqn = 1;
   //initialize model constants
   sigma = 2.0/3.0;
@@ -40,21 +42,22 @@ Spalart<Type>::Spalart(SolutionSpace<Type>* space) :
   cw36 = cw3*cw3*cw3*cw3*cw3*cw3;
   cv13 = cv1*cv1*cv1;
 
-  this->idata = new DataInfo(this->neqn, std::string("TurbulentVariables"));
-  this->idata->AddScalar(0, "Turb-nu");
+  this->idata = new DataInfo<Type>(this->neqn, std::string("TurbulentVariables"));
+
+  this->idata->AddScalar(0, "Turb-nu", param->ref_viscosity/param->ref_density);
   this->idata->Verify();
   this->space->AddField(*this->idata, FIELDS::STATE_TIME, FIELDS::VAR_EVERYWHERE);
   this->tvar = this->space->GetFieldData("TurbulentVariables", FIELDS::STATE_NP1);
   this->tvarold = this->space->GetFieldData("TurbulentVariables", FIELDS::STATE_N);
   this->tvaroldm1 = this->space->GetFieldData("TurbulentVariables", FIELDS::STATE_NM1);
 
-  DataInfo tdata(3, std::string("Grad-TurbNu"));
-  tdata.AddVector(0, "Grad-TurbNu");
+  DataInfo<Type> tdata(3, std::string("Grad-TurbNu"));
+  tdata.AddVector(0, "Grad-TurbNu", param->ref_viscosity/param->ref_density/param->L);
   tdata.Verify();
   this->space->AddField(tdata, FIELDS::STATE_NONE, FIELDS::VAR_INTERIOR);
   this->tgrad = this->space->GetFieldData("Grad-TurbNu", FIELDS::STATE_NONE);
 
-  //allocate array for storing infinity values
+  //allocate array for storing infinity value
   this->tvarinf = new Type[this->neqn];
   //set infinity values for turbulence variables
   SetTinf();

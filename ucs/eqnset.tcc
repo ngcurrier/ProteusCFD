@@ -15,8 +15,6 @@ EqnSet<Type>::~EqnSet()
 {
   delete idata;
   delete gdata;
-
-  return;
 }
 
 template <class Type>

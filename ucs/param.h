@@ -62,18 +62,29 @@ public:
   //reference values for non-dimensionalization
   //BASIC: 
   //-------------------------------
-  Type ref_length;       //m
-  Type ref_velocity;     //m/s
-  Type ref_temperature;  //Kelvin
-  Type ref_density;      //kg/m^3
+  Type ref_length;       // m
+  Type ref_velocity;     // m/s
+  Type ref_temperature;  // Kelvin
+  Type ref_density;      // kg/m^3
   Type ref_viscosity;    // mu  (Pa. s) = (kg /(m. s)
   Type ref_k;            // W/(m.K)
   //DERIVED:
   //--------------------------------
-  Type ref_time;         //s
-  Type ref_enthalpy;     //(m^2/s^2)/Ec
-  Type ref_pressure;     //(kg /( m. s^2))
+  Type ref_time;                  // s
+  Type ref_specific_enthalpy;     // (J/kg)
+  Type ref_total_enthalpy;        // J
+  Type ref_pressure;              // (kg /( m. s^2))
+  Type ref_area;                  // m^2
+  Type ref_volume;                // m^3
+  Type ref_mass;                  // kg
+  //SHORTHAND DIMENSIONAL ANALYSIS:
+  //-------------------------------
+  Type TIME;  //time
+  Type T;     //Temperature
+  Type L;     //Length
+  Type M;     //Mass
 
+  
   Type Re;            // Reynolds number - rho*U*L/Mu
   Type Pr;            // Prandtl number - Cp*Mu/k
   Type PrT;           // Turbulent prandtl number ~0.7-0.9

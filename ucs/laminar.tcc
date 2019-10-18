@@ -6,14 +6,12 @@ template <class Type>
 Laminar<Type>::Laminar()
 {
   //do not call this!!!
-  return;
 }
 
 template <class Type>
 Laminar<Type>::~Laminar()
 {
   //nothing to do here, move along
-  return;
 }
 
 template <class Type>
@@ -21,8 +19,6 @@ Laminar<Type>::Laminar(SolutionSpace<Type>* space) :
   TurbulenceModel<Type>(space)
 {
   this->neqn = 0;
-
-  return;
 }
 
 template <class Type>
@@ -39,8 +35,6 @@ void Laminar<Type>::Initialize()
   for(i = 0; i < nnode+gnode; i++){
     mut[i] = 0.0;
   }
-
-  return;
 }
 
 template <class Type>

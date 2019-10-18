@@ -436,7 +436,7 @@ Int BoundaryConditions<Type>::SetVarsFromLine(BCObj<Type>& bcobj, std::string& l
 	    ss << subline;
 	    ss >> bcobj.velocity;
 	    std::cout << "BC: BC #" << ObjId << " flow velocity magnitude found ( "
-		      << bcobj.velocity << " )" << std::endl;
+		      << bcobj.velocity << " m/s)" << std::endl;
 	    ss.clear();
 	    ss.str("");
 	  }
@@ -453,7 +453,7 @@ Int BoundaryConditions<Type>::SetVarsFromLine(BCObj<Type>& bcobj, std::string& l
 	    ss << subline;
 	    ss >> bcobj.backPressure;
 	    std::cout << "BC: BC #" << ObjId << " back pressure found ( "
-		      << bcobj.backPressure << " )" << std::endl;
+		      << bcobj.backPressure << " Pa)" << std::endl;
 	    ss.clear();
 	    ss.str("");
 	  }
@@ -470,7 +470,7 @@ Int BoundaryConditions<Type>::SetVarsFromLine(BCObj<Type>& bcobj, std::string& l
 	    ss << subline;
 	    ss >> bcobj.density;
 	    std::cout << "BC: BC #" << ObjId << " density found ( "
-		      << bcobj.density << " )" << std::endl;
+		      << bcobj.density << " kg/m^3)" << std::endl;
 	    ss.clear();
 	    ss.str("");
 	  }
@@ -551,7 +551,7 @@ Int BoundaryConditions<Type>::SetVarsFromLine(BCObj<Type>& bcobj, std::string& l
 	    ss << subline;
 	    ss >> bcobj.slipSpeed;
 	    std::cout << "BC: BC #" << ObjId << " wall velocity found ( "
-		      << bcobj.slipSpeed << " )" << std::endl;
+		      << bcobj.slipSpeed << " m/s)" << std::endl;
 	    ss.clear();
 	    ss.str("");
 	    bcobj.movement = 1;
@@ -655,7 +655,7 @@ Int BoundaryConditions<Type>::SetVarsFromLine(BCObj<Type>& bcobj, std::string& l
 	    ss << subline;
 	    ss >> bcobj.twall;
 	    std::cout << "BC: BC #" << ObjId << " twall flag found ( "
-		      << bcobj.twall << " )" << std::endl;
+		      << bcobj.twall << " K)" << std::endl;
 	    ss.clear();
 	    ss.str("");
 	  }
@@ -672,7 +672,7 @@ Int BoundaryConditions<Type>::SetVarsFromLine(BCObj<Type>& bcobj, std::string& l
 	    ss << subline;
 	    ss >> bcobj.flux;
 	    std::cout << "BC: BC #" << ObjId << " heatFlux flag found ( "
-		      << bcobj.flux << " )" << std::endl;
+		      << bcobj.flux << " W/m^2)" << std::endl;
 	    ss.clear();
 	    ss.str("");
 	  }
@@ -802,11 +802,14 @@ void Bkernel_BC_Jac_Modify(B_KERNEL_ARGS)
     }
     //grid velocity at the wall
     Type vel[3];
+    //non-dimensionalize m/s speed from bobj
+    Type slipSpeed = bcobj->slipSpeed;
+    slipSpeed = slipSpeed / param->ref_velocity;
     if(bcobj->movement == 1){
       //sliding movement
-      vel[0] = bcobj->slipDirection[0]*bcobj->slipSpeed;
-      vel[1] = bcobj->slipDirection[1]*bcobj->slipSpeed;
-      vel[2] = bcobj->slipDirection[2]*bcobj->slipSpeed;
+      vel[0] = bcobj->slipDirection[0]*slipSpeed;
+      vel[1] = bcobj->slipDirection[1]*slipSpeed;
+      vel[2] = bcobj->slipDirection[2]*slipSpeed;
     }
     else if(bcobj->movement == 2){
       Type* pp = (Type*)alloca(sizeof(Type)*3);
@@ -820,6 +823,7 @@ void Bkernel_BC_Jac_Modify(B_KERNEL_ARGS)
       }
       Type* rotationPoint = (Type*)alloca(sizeof(Type)*3);
       Type* rotationAxis = (Type*)alloca(sizeof(Type)*3);
+      // this is given in rad/s
       Type omega = bcobj->omega;
       //we need to copy these over explicitly to take care of the complex templating issue
       for(i = 0; i < 3; i++){
@@ -844,8 +848,7 @@ void Bkernel_BC_Jac_Modify(B_KERNEL_ARGS)
     if(space->iter < bcobj->bleedSteps){
       for(i = 0; i < 3; i++){
 	Type V = param->GetVelocity(space->iter);
-	Type Mach = V;
-	Type fs = Mach*param->flowdir[i];
+	Type fs = V*param->flowdir[i];
 	Type dv = fs - vel[i]; 
 	vel[i] = vel[i] + (fs - dv/(Type)bcobj->bleedSteps*(Type)space->iter);
       }
@@ -867,7 +870,10 @@ void Bkernel_BC_Jac_Modify(B_KERNEL_ARGS)
       }
     }
     if(!holeCut){
-      eqnset->ModifyViscousWallJacobian(QL, QR, vel, cvid, space->crs, normalNode, bcobj->twall);
+      // non-dimensionalize temperature from bcobj
+      Type temperatureWall = bcobj->twall;
+      temperatureWall = temperatureWall / param->ref_temperature;
+      eqnset->ModifyViscousWallJacobian(QL, QR, vel, cvid, space->crs, normalNode, temperatureWall);
     }
     else{
       Type injected = tmp_src*param->gaussianAmpl;
@@ -891,8 +897,6 @@ void Bkernel_BC_Jac_Modify(B_KERNEL_ARGS)
     }
     delete [] densities;
   }
-
-  return;
 }
 
 template <class Type>
@@ -952,9 +956,12 @@ void Bkernel_BC_Res_Modify(B_KERNEL_ARGS)
     Type vel[3];
     if(bcobj->movement == 1){
       //sliding movement
-      vel[0] = bcobj->slipDirection[0]*bcobj->slipSpeed;
-      vel[1] = bcobj->slipDirection[1]*bcobj->slipSpeed;
-      vel[2] = bcobj->slipDirection[2]*bcobj->slipSpeed;
+      Type velocitySlip = bcobj->slipSpeed;
+      velocitySlip = velocitySlip / param->ref_velocity;
+      // non-dimensionalize slip velocity from bcobj
+      vel[0] = bcobj->slipDirection[0]*velocitySlip;
+      vel[1] = bcobj->slipDirection[1]*velocitySlip;
+      vel[2] = bcobj->slipDirection[2]*velocitySlip;
     }
     else if(bcobj->movement == 2){
       Type* pp = (Type*)alloca(sizeof(Type)*3);
@@ -992,8 +999,7 @@ void Bkernel_BC_Res_Modify(B_KERNEL_ARGS)
     if(space->iter < bcobj->bleedSteps){
       for(i = 0; i < 3; i++){
 	Type V = param->GetVelocity(space->iter);
-	Type Mach = V;
-	Type fs = Mach*param->flowdir[i];
+	Type fs = V*param->flowdir[i];
 	Type dv = fs - vel[i]; 
 	vel[i] = vel[i] + (fs - dv/(Type)bcobj->bleedSteps*(Type)space->iter);
       }
@@ -1015,7 +1021,10 @@ void Bkernel_BC_Res_Modify(B_KERNEL_ARGS)
       }
     }
     if(!holeCut){
-      eqnset->ModifyViscousWallResidual(&space->crs->b[cvid*neqn], vel, normalNode, bcobj->twall);
+      Type wallTemperature = bcobj->twall;
+      //non-dimensionalize wall temperature from bcobj
+      wallTemperature = wallTemperature / param->ref_temperature;
+      eqnset->ModifyViscousWallResidual(&space->crs->b[cvid*neqn], vel, normalNode, wallTemperature);
     }
     else{
       Type injected = tmp_src*param->gaussianAmpl;
@@ -1043,6 +1052,9 @@ void Bkernel_BC_Res_Modify(B_KERNEL_ARGS)
 
 }
 
+// This routine sets up boundary conditions (BC) for computation by the requisite eqnset class
+// extracts things like wall normals, etc. to simplify calculation by the specific equation
+// set which has been functionalized elsewhere
 template <class Type, class Type2, class Type3>
 void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSpace<Type3>* space, 
 				Type* QL, Type* QR, Type* Qinf, Type* avec, Int bcType, 
@@ -1098,11 +1110,18 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
   }
   else if(bcType == Proteus_InternalInflow || bcType == Proteus_InternalInflowDuctBL){
     Type pressure = bcobj->backPressure;
+    Type vel = bcobj->velocity;
+    Type density = bcobj->density;
+    // non-dimensionalize velocity (m/s) and back pressure (pa) and density (kg/m^3)
+    pressure = pressure / param->ref_pressure;
+    vel = pressure / param->ref_velocity;
+    density = density / param->ref_density;
     Type* densities = NULL;
     if(bcobj->massFractions != NULL){
+      
       densities = new Type[bcobj->nspecies];
       for(i = 0; i < bcobj->nspecies; i++){
-	densities[i] = bcobj->density*bcobj->massFractions[i];
+	densities[i] = density*bcobj->massFractions[i];
       }
     }
     Type flowDirection[3];
@@ -1118,7 +1137,6 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
       flowDirection[1] = bcobj->flowDirection[1];
       flowDirection[2] = bcobj->flowDirection[2];
     }
-    Type vel = bcobj->velocity;
     Type ubar = 1.0;
     if(bcType == Proteus_InternalInflowDuctBL){
       //modify qinf to follow the powerlaw assumption b/c it intersects
@@ -1134,6 +1152,8 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
   }
   else if(bcType == Proteus_InternalOutflow){
     Type pressure = bcobj->backPressure;
+    // non-dimensionalize backpressure from Pa
+    pressure = pressure / param->ref_pressure;
     //this only works for eqnsets where gamma is constant
     Type gamma = eqnset->param->gamma;
     eqnset->GetInternalOutflowBoundaryVariables(avec, QL, QR, pressure, gamma);
@@ -1141,6 +1161,9 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
   else if(bcType == Proteus_TotalTempAndPressure){
     Type pressure = bcobj->backPressure;
     Type T = bcobj->twall;
+    // nondimensionalize temperature (K) and pressure (Pa)
+    T = T / param->ref_temperature;
+    pressure = pressure / param->ref_pressure;
     Type flowDirection[3];
     //if the default settings haven't been changed use the normal to inlet condition
     if(bcobj->flowDirection[0] == -1.0 && bcobj->flowDirection[1] == -1.0){
@@ -1190,9 +1213,12 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
     Type vel[3];
     if(bcobj->movement == 1){
       //sliding movement
-      vel[0] = bcobj->slipDirection[0]*bcobj->slipSpeed;
-      vel[1] = bcobj->slipDirection[1]*bcobj->slipSpeed;
-      vel[2] = bcobj->slipDirection[2]*bcobj->slipSpeed;
+      Type slipVelocity = bcobj->slipSpeed;
+      // non-dimensionalize wall slip velocity from bcobj (m/s)
+      slipVelocity = slipVelocity / param->ref_velocity;
+      vel[0] = bcobj->slipDirection[0]*slipVelocity;
+      vel[1] = bcobj->slipDirection[1]*slipVelocity;
+      vel[2] = bcobj->slipDirection[2]*slipVelocity;
     }
     else if(bcobj->movement == 2){
       Type* pp = (Type*)alloca(sizeof(Type)*3);
@@ -1258,7 +1284,10 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
       }
     }
     if(!holeCut){
-      eqnset->GetViscousWallBoundaryVariables(QL, QR, vel, normalNode, nQ, bcobj->twall);
+      Type wallTemperature = bcobj->twall;
+      //non-dimensionalize wall temperature (K) from bcobj
+      wallTemperature = wallTemperature / param->ref_temperature;
+      eqnset->GetViscousWallBoundaryVariables(QL, QR, vel, normalNode, nQ, wallTemperature);
     }
     else{
       Type injected = tmp_src*param->gaussianAmpl;
@@ -1331,10 +1360,16 @@ void CalculateBoundaryVariables(EqnSet<Type>* eqnset, Mesh<Type3>* m, SolutionSp
       nQ[kk] = space->q[normalNode*nvars + kk];
     }
     Type flux = bcobj->flux;
+    // nondimensionalize flux from W/m^2 (W = J/s = kg.m2/s3)/(m2) in bcobj
+    // Mass / Time^3 units
+    Type ref_time = param->ref_time;
+    flux = flux / (param->ref_mass/(ref_time*ref_time*ref_time));
     eqnset->GetHeatFluxBoundaryVariables(QL, QR, nQ, ndx, flux);
   }
   else if(bcType == Proteus_Isothermal){
     Type Twall = bcobj->twall;
+    //nondimensionalize temperature from K in bcobj
+    Twall = Twall / param->ref_temperature;
     eqnset->GetIsothermalBoundaryVariables(QL, QR, Twall);
   }
   else if(bcType == Proteus_PythonBC){
@@ -1418,7 +1453,7 @@ void UpdateBCs(SolutionSpace<Type>* space)
   
   //call driver to loop over and set boundary conditions
   BdriverNoScatter(space, BC, eqnset->neqn+eqnset->nauxvars, NULL);
-  return;
+
 }
 
 

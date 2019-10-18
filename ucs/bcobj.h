@@ -39,12 +39,8 @@ class BCObj
                      //1 - if set from file
                      //avoids a double free memory issue
 
-  Int periodic; //flag to set periodic bc 0 - off, 1 - on
-
   Type* Qmin;   //minimum state if using periodic bc
   Type* Qmax;   //maximum state if using periodic bc
-  
-  Type period;  //non-dimensional time over which a full wave cycles
 
   /***************************************************************/
   //Variables stored in native (w.r.t. file) state for use in 
@@ -55,14 +51,14 @@ class BCObj
 
   Int movement;  //0 - static wall, 1 - noSlip wall is sliding, 2 - noSlip wall is rotating
   Type slipDirection[3];
-  Type slipSpeed;        //non-dimensional speed of wall slipping
+  Type slipSpeed;        // m/s speed of wall slipping
   Type rotationAxis[3];  //direction vector pointing in axial direction
   Type rotationPoint[3]; //point on the axis
-  Type omega;    //non-dimensional rotational speed (i.e. rad/s)
+  Type omega;    // rotational speed (i.e. rad/s)
 
-  Type velocity;
-  Type backPressure;
-  Type density;
+  Type velocity;        // m/s
+  Type backPressure;    // pa
+  Type density;         // kg/m^3
   Type* massFractions;
   Int nspecies;
   Int movingBC;      //flag to identify computational design active or movement bcs
@@ -70,9 +66,9 @@ class BCObj
   Int bleedSteps;    //number of steps to close off boundary condition
                      //used to slowly stop flow on viscous BCs
 
-  Type twall;        //used to specify the kind of viscous wall condition we are using
-                     //twall > 0.0 is specified temp. ratio, twall < 0.0 is adiabatic
-  Type flux;         //used for heat conduction object - heat flux
+  Type twall;        // (K) used to specify the kind of viscous wall condition we are using
+                     // twall > 0.0 is specified temp. ratio, twall < 0.0 is adiabatic
+  Type flux;         // (W/m^2) used for heat conduction object - heat flux
 
   
  private:

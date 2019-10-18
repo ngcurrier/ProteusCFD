@@ -13,19 +13,19 @@ HeatTransferEqnSet<Type>::HeatTransferEqnSet(SolutionSpace<Type>* space, Param<T
   this->space = space;
   //variable set is conservative
   this->varsConservative = 1;
+  this->param = p;
 
   //set data required
-  this->idata = new DataInfo(this->neqn+this->nauxvars, "variableQ");
-  this->idata->AddScalar(0, "Temperature");
+  this->idata = new DataInfo<Type>(this->neqn+this->nauxvars, "variableQ");
+  this->idata->AddScalar(0, "Temperature", this->param->ref_temperature);
   this->idata->Verify();
 
   //set gradients required
-  this->gdata = new DataInfo((this->neqn)*3, "gradVariableQ");
-  this->gdata->AddVector(0*3, "Grad-Temperature");
+  this->gdata = new DataInfo<Type>((this->neqn)*3, "gradVariableQ");
+  this->gdata->AddVector(0*3, "Grad-Temperature", this->param->ref_temperature/this->param->L);
   this->gdata->Verify();
   
   this->Qinf = new Type[this->neqn + this->nauxvars];
-  this->param = p;
   this->thermalDiffusivity = this->param->kThermalConductivity/(this->param->cpSpecificHeat*this->param->rhoDensity);
   std::cout << "Heat transfer EqnSet running - alpha is: " << this->thermalDiffusivity << " m^2/s" << std::endl;
 }
@@ -34,7 +34,6 @@ template <class Type>
 HeatTransferEqnSet<Type>::~HeatTransferEqnSet()
 {
   delete [] this->Qinf;
-  return;
 }
 
 template <class Type>

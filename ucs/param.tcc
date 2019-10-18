@@ -88,7 +88,7 @@ void Param<Type>::SetupParams()
   this->requireComplex = false;
   this->PrT = 0.85;  //average value??? no idea if this is okay varies from 0.7-0.9
   this->ref_time = 1.0;
-  this->ref_enthalpy = 1.0;
+  this->ref_specific_enthalpy = 1.0;
   this->ref_density = 1.0;
   this->ref_pressure = 1.0;
   this->chemModelId = 0;   //model 0 is defined from file
@@ -375,12 +375,18 @@ void Param<Type>::PostCompute()
   // warning: only one should ever be specified at a time (pressure or density)
   // we assume reference pressure takes precedence since it is easier to measure directly
   ref_density = ref_pressure/(ref_velocity*ref_velocity);
-
   ref_time = ref_length/ref_velocity;
+  TIME = ref_time;
+  ref_area = ref_length*ref_length;
+  L = ref_length;
+  ref_volume = ref_area*ref_length;
+  ref_mass = ref_density * ref_volume;
+  M = ref_mass;
   //Type v3 = ref_velocity*ref_velocity*ref_velocity;
   //ref_k = ref_density*v3*ref_length/ref_temperature;
   //ref_viscosity = ref_density*ref_velocity*ref_length;
-  ref_enthalpy = ref_velocity*ref_velocity;
+  ref_specific_enthalpy = ref_velocity*ref_velocity;
+  ref_total_enthalpy = ref_specific_enthalpy*ref_mass;
 
   //we compute the reference temperature in this way b/c the compressible (Mach) based
   //solver requires this to be true
@@ -389,6 +395,7 @@ void Param<Type>::PostCompute()
   Type rho_nd = rho_d/ref_density;
   Type c2_nd = gamma*P_nd/rho_nd;
   ref_temperature = initialTemperature/c2_nd; //c2 = T when non-dimensionalized
+  T = ref_temperature;
   
   //Reynolds number is now set in eqnset object initialization
   if(eqnset_id == IncompressibleNS || eqnset_id == CompressibleNS || 
@@ -593,12 +600,17 @@ void Param<Type>::PrintSolverParams()
   std::cout << "==========================================" << std::endl;
   std::cout << "\tvelocity : " << ref_velocity << " (m/s)" << std::endl;
   std::cout << "\tlength : " << ref_length << " (m)" << std::endl;
+  std::cout << "\tarea : " << ref_area << " (m^2)" << std::endl;
+  std::cout << "\tvolume : " << ref_volume << " (m^3)" << std::endl;
+  std::cout << "\tmass : " << ref_mass << " (kg)" << std::endl;
   std::cout << "\ttemperature : " << ref_temperature << " (K)" << std::endl;
   std::cout << "\tpressure : " << ref_pressure << " (Pa)" << std::endl;
-  std::cout << "\tdynamic viscosity: " << ref_viscosity << " (Pa.s)" << std::endl;
+  std::cout << "\tdynamic viscosity (mu): " << ref_viscosity << " (Pa.s = 1,000 centiPoise)" << std::endl;
+  std::cout << "\tkinematic viscosity (nu): " << ref_viscosity/ref_density << " (m2/s)" << std::endl;
   std::cout << "\tconductivity: " << ref_k << " (W/m.K)" << std::endl;
   std::cout << "\ttime : " << ref_time << " (seconds)" << std::endl;
-  std::cout << "\tenthalpy: " << ref_enthalpy << " (J/kg)" << std::endl;
+  std::cout << "\tspecific enthalpy: " << ref_specific_enthalpy << " (J/kg)" << std::endl;
+  std::cout << "\ttotal enthalpy: " << ref_total_enthalpy << " (J)" << std::endl;
   std::cout << "\tdensity: " << ref_density << " (kg/m^3)" << std::endl;
   std::cout << "\tGamma (Cp/Cv): " << gamma << std::endl;
   std::cout << std::endl;

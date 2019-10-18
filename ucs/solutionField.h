@@ -35,7 +35,7 @@ public:
   SolutionField<Type> & operator= (const SolutionField<Type2>& fieldToCopy);
 
   //standard construtor using a mesh and datainfo, etc.
-  SolutionField(Mesh<Type>& mesh, DataInfo dataInfo, Int stateType, Int varLocation);
+  SolutionField(Mesh<Type>& mesh, DataInfo<Type> dataInfo, Int stateType, Int varLocation);
   //constructor using and HDF5 dataset and a mesh, useful for recomp
   SolutionField(Mesh<Type>& mesh, hid_t fileId, std::string HDFPath); 
 
@@ -80,7 +80,7 @@ private:
   Mesh<Type> & mesh;  //reference to spatial field (mesh) to which data is tied
   std::string name;   //name of field
   Int ndof;           //number of values (data) stored at each spatial location
-  DataInfo dataInfo;  //data info descriptor
+  DataInfo<Type> dataInfo;  //data info descriptor
   Int mystate;        //FIELDS:: enum which determines whether or not the field is time aware, etc.
   Type * data;        //raw flat array of data
   Int varLoc;         //Enum value which indicates internal, boundaries, or all locations are stored

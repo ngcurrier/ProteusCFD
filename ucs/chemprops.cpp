@@ -194,7 +194,7 @@ int main(int argc, char* argv[])
   std::cout << "Total energy: " << Et/1000.0 <<  " (kJ)" << std::endl;
   std::cout << "Total internal energy: " << (Et - 0.5*rho*v2)/1000.0 <<  " (kJ)" << std::endl;
   
-  std::cout << "Total pressure (gamma-1.0 formula): " << ((gamma - 1.0)*(Et - 0.5*rho*v2)/param.ref_enthalpy)*
+  std::cout << "Total pressure (gamma-1.0 formula): " << ((gamma - 1.0)*(Et - 0.5*rho*v2)/param.ref_specific_enthalpy)*
     param.ref_pressure << " Pa" << std::endl;
   std::cout << "Total temperature (gamma-1.0 formula): " << TGiven*(1.0  + (gamma-1.0)/2.0*(v2/(c*c))) << " (K) " << std::endl;
     

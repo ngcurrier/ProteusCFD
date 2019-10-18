@@ -49,7 +49,7 @@ Type Species<Type>::GetCp(Type T)
   //multiply by R to get Cp
   Type cp = cp_R*R;
   
-  return cp;
+  return cp; // (J/kg.K)
 }
 
 template <class Type>

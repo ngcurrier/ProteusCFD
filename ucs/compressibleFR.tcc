@@ -78,49 +78,48 @@ CompressibleFREqnSet<Type>::CompressibleFREqnSet(SolutionSpace<Type>* space, Par
 
 
   this->Qinf = new Type[this->neqn + this->nauxvars];
-  this->idata = new DataInfo(this->neqn+this->nauxvars, std::string("variableQ"));
+  this->idata = new DataInfo<Type>(this->neqn+this->nauxvars, std::string("variableQ"));
   for(Int i = 0; i < nspecies; i++){
     //set names from chemistry model
-    this->idata->AddScalar(i, this->chem->species[i].symbol + "_Density");
+    this->idata->AddScalar(i, this->chem->species[i].symbol + "_Density", this->param->ref_density);
   }
 
-  this->idata->AddVector(nspecies, "Velocity");
-  this->idata->AddScalar(nspecies+3, "Temperature");
-  this->idata->AddScalar(nspecies+4, "Pressure");
-  this->idata->AddScalar(nspecies+5, "TotalDensity");
+  this->idata->AddVector(nspecies, "Velocity", this->param->ref_velocity);
+  this->idata->AddScalar(nspecies+3, "Temperature", this->param->ref_temperature);
+  this->idata->AddScalar(nspecies+4, "Pressure", this->param->ref_pressure);
+  this->idata->AddScalar(nspecies+5, "TotalDensity", this->param->ref_density);
   for(Int i = 0; i < nspecies; i++){
-    this->idata->AddScalar(nspecies+6+i, this->chem->species[i].symbol + "_cv");
+    // units are J/kg.K
+    this->idata->AddScalar(nspecies+6+i, this->chem->species[i].symbol + "_cv", this->param->ref_specific_enthalpy/this->param->ref_temperature);
   }
   for(Int i = 0; i < nspecies; i++){
-    this->idata->AddScalar(nspecies+6+nspecies+i, this->chem->species[i].symbol + "_Concentration");
+    // units are mol/m3
+    this->idata->AddScalar(nspecies+6+nspecies+i, this->chem->species[i].symbol + "_Concentration", 1.0/this->param->ref_volume);
   }
   this->idata->Verify();
   
   //set gradients required
-  this->gdata = new DataInfo((this->nspecies+4+this->nspecies)*3, "gradVariableQ");
+  this->gdata = new DataInfo<Type>((this->nspecies+4+this->nspecies)*3, "gradVariableQ");
   for(Int i = 0; i < nspecies; i++){
-    this->gdata->AddVector(i*3, "Grad-" + this->chem->species[i].symbol + "_Density");
+    this->gdata->AddVector(i*3, "Grad-" + this->chem->species[i].symbol + "_Density", this->param->ref_density/this->param->L);
   }
-  this->gdata->AddVector((nspecies+0)*3, "Grad-u");
-  this->gdata->AddVector((nspecies+1)*3, "Grad-v");
-  this->gdata->AddVector((nspecies+2)*3, "Grad-w");
-  this->gdata->AddVector((nspecies+3)*3, "Grad-Temperature");
+  this->gdata->AddVector((nspecies+0)*3, "Grad-u", this->param->ref_density*this->param->ref_velocity/this->param->L);
+  this->gdata->AddVector((nspecies+1)*3, "Grad-v", this->param->ref_density*this->param->ref_velocity/this->param->L);
+  this->gdata->AddVector((nspecies+2)*3, "Grad-w", this->param->ref_density*this->param->ref_velocity/this->param->L);
+  this->gdata->AddVector((nspecies+3)*3, "Grad-Temperature", this->param->ref_temperature/this->param->L);
   for(Int i = 0; i < nspecies; i++){
-    this->gdata->AddVector((nspecies+4+i)*3, "Grad-" + this->chem->species[i].symbol + "_Concentration");
+    this->gdata->AddVector((nspecies+4+i)*3, "Grad-" + this->chem->species[i].symbol + "_Concentration", 1.0/(this->param->ref_volume*this->param->L));
   }
   this->gdata->Verify();
-
-  return;
 }
 
 template <class Type>
 CompressibleFREqnSet<Type>::~CompressibleFREqnSet()
 {
   delete [] this->Qinf;
-  if(ownChem){
+  if(ownChem){ 
     delete chem;
   }
-  return;
 }
 
 template <class Type>
@@ -1237,7 +1236,7 @@ Type CompressibleFREqnSet<Type>::GetTotalEnergy(Type* Q)
   }
 
   h = this->chem->GetSpecificEnthalpy(X, T*this->param->ref_temperature, hi)/
-    this->param->ref_enthalpy;
+    this->param->ref_specific_enthalpy;
 
   E = h*rho - P;
   // add on the kinetic part for total energy
@@ -1266,7 +1265,7 @@ Type CompressibleFREqnSet<Type>::GetTotalEnthalpy(Type* Q)
   }
 
   h = this->chem->GetSpecificEnthalpy(X, T*this->param->ref_temperature, hi)/
-    this->param->ref_enthalpy;
+    this->param->ref_specific_enthalpy;
 
   Ht = h*rho + 0.5*rho*v2;
 
@@ -1373,13 +1372,13 @@ void CompressibleFREqnSet<Type>::ContributeTemporalTerms(Type* Q, Type vol, Type
   Type dEtdP = chem->dEtdP_dEtdRhoi(rhoiDim, TDim, PDim, v2, dEtdRhoi);
 
   //non-dimensionalize
-  Type ref_detdrho = this->param->ref_enthalpy*this->param->ref_density/this->param->ref_density;
+  Type ref_detdrho = this->param->ref_specific_enthalpy*this->param->ref_density/this->param->ref_density;
   #pragma ivdep
   for(i = 0; i < nspecies; i++){
     dEtdRhoi[i] /= ref_detdrho;
   }
 
-  Type ref_detdP = this->param->ref_enthalpy*this->param->ref_density/this->param->ref_pressure;
+  Type ref_detdP = this->param->ref_specific_enthalpy*this->param->ref_density/this->param->ref_pressure;
   dEtdP /= ref_detdP;
   //TODO: EOSUpdate
   Type dPdT = chem->eos[0]->GetdP_dT(R*s_ref, rhoDim, PDim, TDim);
@@ -2170,9 +2169,9 @@ void CompressibleFREqnSet<Type>::ConservativeToNative(Type* Q)
   for(j = 0; j < maxit; j++){
     Type Tp = T + 1.0e-8;
     Type H = rho*(chem->GetSpecificEnthalpy(Y, T*this->param->ref_temperature, hi)/
-		  this->param->ref_enthalpy);
+		  this->param->ref_specific_enthalpy);
     Type Hp = rho*(chem->GetSpecificEnthalpy(Y, Tp*this->param->ref_temperature, hi)/
-		   this->param->ref_enthalpy);
+		   this->param->ref_specific_enthalpy);
     Type P = chem->GetP(rhoiDim, T*(this->param->ref_temperature))/this->param->ref_pressure;
     Type Pp = chem->GetP(rhoiDim, Tp*(this->param->ref_temperature))/this->param->ref_pressure;
     Type E = H - P;

@@ -49,8 +49,8 @@ public:
   //and back again
   void Init();
 
-  void AddField(DataInfo dataInfo, Int stateType, Int varLocation);
-  void AddField(std::string name);
+  void AddField(DataInfo<Type> dataInfo, Int stateType, Int varLocation);
+  void AddField(std::string name, Type refValue);
   void RemoveField(std::string name);
   SolutionField<Type> & GetField(std::string name);
   const SolutionField<Type> & GetField(std::string name) const;
