@@ -68,7 +68,7 @@ public:
   void Reorder(Int* newOrder);
   void Fill(Type value);
 
-  void WriteH5(std::string filename, std::string directory, Int states = FIELDS::STATE_NONE);
+  void WriteH5(std::string filename, std::string directory, Int states = FIELDS::STATE_NONE, Bool dimensionalize = false);
   void ReadH5(std::string filename, std::string directory, Int states = FIELDS::STATE_NONE);
   
   //get parallel object pointer for the field

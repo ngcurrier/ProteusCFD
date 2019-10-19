@@ -1117,7 +1117,7 @@ void SolutionSpace<Type>::WriteSolution()
       it != param->fieldsRequested.end(); ++it){
     std::string & fieldname = *it;
     SolutionField<Type>& field = GetField(fieldname);
-    field.WriteH5(filename, directoryBase);
+    field.WriteH5(filename, directoryBase, true);
   }
 }
 
@@ -1163,7 +1163,7 @@ void SolutionSpace<Type>::WriteRestartFile()
   for(typename std::vector<SolutionField<Type>*>::iterator it = fields.begin(); it != fields.end(); ++it){
     SolutionField<Type>& field = **it;
     if(field.IsTemporal()){
-      field.WriteH5(filename, "/Fields/", FIELDS::STATE_TIME);
+      field.WriteH5(filename, "/Fields/", FIELDS::STATE_TIME, false);
     }
   }
 

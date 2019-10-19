@@ -272,7 +272,7 @@ void SolutionField<Type>::Fill(Type value)
 
 
 template <class Type>
-void SolutionField<Type>::WriteH5(std::string filename, std::string directory, Int states)
+void SolutionField<Type>::WriteH5(std::string filename, std::string directory, Int states, Bool dimensionalize)
 {
   hid_t file_id = -1;
   Int narrays = 1;
@@ -285,9 +285,16 @@ void SolutionField<Type>::WriteH5(std::string filename, std::string directory, I
     Abort << "SolutionField::WriteH5() could not open file -- " + filename;
     return;
   }
-  //dimensionalize the data
-  for(Int i = 0; i < nvalues; ++i){
-    
+  //dimensionalize the data before writing
+  if(dimensionalize){
+    for(Int i = 0; i < narrays; ++i){       // loop over time series / state
+      for(Int j = 0; j < nentities; ++j){   // loop over nodes
+	for(Int k = 0; k < ndof; ++k){      // loop over equations
+	  Type refValue = dataInfo.GetDofReferenceValue(k);
+	  data[i*ndof*nentities + j*ndof + k] *= refValue;
+	}
+      }
+    }
   }
   HDF_WriteArray(file_id, directory, dataInfo.GetName(), data, nvalues);
   dataInfo.WriteHDFAttribute(file_id, directory);
@@ -304,6 +311,19 @@ void SolutionField<Type>::WriteH5(std::string filename, std::string directory, I
   }
   HDF_WriteStringAttribute(file_id, directory, dataInfo.GetName(), "variable_location", location);
   HDF_CloseFile(file_id);
+
+  //non-dimensionalize the data after writing
+  if(dimensionalize){
+    for(Int i = 0; i < narrays; ++i){       // loop over time series / state
+      for(Int j = 0; j < nentities; ++j){   // loop over nodes
+	for(Int k = 0; k < ndof; ++k){      // loop over equations
+	  Type refValue = dataInfo.GetDofReferenceValue(k);
+	  data[i*ndof*nentities + j*ndof + k] /= refValue;
+	}
+      }
+    }
+  }
+
 }
 
 template <class Type>

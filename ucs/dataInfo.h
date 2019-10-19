@@ -25,6 +25,7 @@ public:
   Int GetNdof() const;
   std::string GetName() const;
   std::string GetDofName(Int dof) const;
+  Type GetDofReferenceValue(Int dof) const;
   const std::vector<std::string>& GetNames() const;
   void WriteHDFAttribute(hid_t fileId, std::string directory);
   Bool DofIsScalar(Int dof) const;
@@ -43,7 +44,7 @@ private:
   //store vector locations
   std::vector<Int> descriptorV;
   // reference value to dimensionalize  the variable
-  Type refValue;
+  std::vector<Type> refValues;
 
   Int nvector;
   Int nscalar;

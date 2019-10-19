@@ -18,6 +18,7 @@ DataInfo<Type>::DataInfo(Int ndof, std::string bulkName):
 {
   descriptorS.resize(ndof);
   descriptorV.resize(ndof);
+  refValues.resize(ndof);
   names.resize(ndof);
   for(Int i = 0; i < ndof; i++){
     descriptorS[i] = -1;
@@ -28,6 +29,7 @@ DataInfo<Type>::DataInfo(Int ndof, std::string bulkName):
 template <class Type>
 void DataInfo<Type>::SetFromHDF(hid_t fileId, std::string directory, std::string dataName)
 {
+  //TODO: update this to include reference values?
   HDF_ReadArrayAttribute(fileId, directory, dataName, "scalars", descriptorS);
   HDF_ReadArrayAttribute(fileId, directory, dataName, "vectors", descriptorV);
   ndof = descriptorS.size();
@@ -44,7 +46,6 @@ template <class Type>
 void DataInfo<Type>::AddVector(Int dof, std::string name, Type refValue)
 {
   Int i;
-  this->refValue = refValue;
   if(dof > ndof){
     std::stringstream ss;
     ss << "WARNING: degree of freedom " << dof << " greater than allocated space of "
@@ -64,6 +65,7 @@ void DataInfo<Type>::AddVector(Int dof, std::string name, Type refValue)
     }
     descriptorV[i] = nvector;
     names[i] = name;
+    refValues[i] = refValue;
   }
   nvector++;
 }
@@ -71,7 +73,6 @@ void DataInfo<Type>::AddVector(Int dof, std::string name, Type refValue)
 template <class Type>
 void DataInfo<Type>::AddScalar(Int dof, std::string name, Type refValue)
 {
-  this->refValue = refValue;
   if(dof > ndof){
     std::stringstream ss;
     ss << "WARNING: degree of freedom " << dof << " greater than allocated space of "
@@ -90,6 +91,7 @@ void DataInfo<Type>::AddScalar(Int dof, std::string name, Type refValue)
   }
   descriptorS[dof] = nscalar;
   names[dof] = name;
+  refValues[dof] = refValue;
   nscalar++;
 }
 
@@ -198,6 +200,12 @@ template <class Type>
 std::string DataInfo<Type>::GetDofName(Int dof) const
 {
   return names[dof];
+}
+
+template <class Type>
+Type DataInfo<Type>::GetDofReferenceValue(Int dof) const
+{
+  return refValues[dof];
 }
 
 template <class Type>
