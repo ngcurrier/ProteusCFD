@@ -109,10 +109,6 @@ template <class Type>
 void GetSElemsFromNodes(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int bcid, 
 			std::vector<Element<Type>*>& elementList);
 
-//sets status flags for each cv based on boundary conditions
-template <class Type>
-void SetBCStatFlags(Mesh<Type>* m, BoundaryConditions<Real>* bc);
-
 //include implementations
 #include "bc.tcc"
 

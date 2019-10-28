@@ -1668,21 +1668,3 @@ void GetSElemsOnBCType(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int bc
   }
 
 }
-
-template <class Type>
-void SetBCStatFlags(Mesh<Type>* m, BoundaryConditions<Real>* bc)
-{
-  Int nbedge = m->GetNumBoundaryEdges();
-  Int ngedge = m->GetNumParallelEdges();
-  for(Int eid = 0; eid < nbedge+ngedge; eid++){
-    Int factag = m->bedges[eid].factag;
-    Int bcType = bc->GetBCType(factag);
-    Int node = m->bedges[eid].n[0];
-    if(bcType == Proteus_NoSlip){
-      m->cvstat[node].SetViscous();
-    }
-    else if(bcType == Proteus_Dirichlet){
-      m->cvstat[node].SetDirichlet();
-    }
-  }
-}

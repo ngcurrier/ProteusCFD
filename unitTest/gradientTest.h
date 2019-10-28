@@ -40,9 +40,8 @@ TEST_F(MeshTestGradient, testLowFiMesh)
   SolutionSpace<Real>* lowFiSpace = static_cast<SolutionSpace<Real>*>(solSpaces[0]);
   SolutionSpace<Real>* medFiSpace = static_cast<SolutionSpace<Real>*>(solSpaces[1]);
   SolutionSpace<Real>* hiFiSpace = static_cast<SolutionSpace<Real>*>(solSpaces[2]);
-    
   
-  //sanity check before proceeding
+  //sanity check volumes before proceeding
   EXPECT_NEAR(1.0, lowFiSpace->m->GetVolumeTotal(), 1.0e-14);
   EXPECT_NEAR(1.0, medFiSpace->m->GetVolumeTotal(), 1.0e-14);
   EXPECT_NEAR(1.0, hiFiSpace->m->GetVolumeTotal(), 1.0e-14);
@@ -70,7 +69,6 @@ TEST_F(MeshTestGradient, testLowFiMesh)
   Int testeqn = 0; // select equation id to test (0 - density)
   for(int idirection = 0; idirection < 3; ++idirection){
     if(idirection != 0) continue;
-
     std::cout << "--------------------------------------------------------------" << std::endl;
     std::cout << "Computing gradients for direction " << idirection << std::endl;
     std::cout << "--------------------------------------------------------------" << std::endl;
@@ -164,7 +162,7 @@ TEST_F(MeshTestGradient, testLowFiMesh)
     for(int i = 0; i < lowm->GetNumNodes(); ++i){
       // The derivative of the enforced solution is 4*pi*cos(4*pi*x) and we can check that analytically
       // on a series of refined grids to determine order of grid convergence
-      Real coord = medm->xyz[i*3 + idirection];
+      Real coord = lowm->xyz[i*3 + idirection];
       Real gradsol = 4.0*PI*cos(4.0*PI*coord);
       Real err = Abs(gradsol*percentError);
       EXPECT_NEAR(gradsol, lowqgrad[i*nterms*3 + testeqn*3 + idirection], err);
@@ -196,7 +194,7 @@ TEST_F(MeshTestGradient, testLowFiMesh)
     for(int i = 0; i < him->GetNumNodes(); ++i){
       // The derivative of the enforced solution is 4*pi*cos(4*pi*x) and we can check that analytically
       // on a series of refined grids to determine order of grid convergence
-      Real coord = medm->xyz[i*3 + idirection];
+      Real coord = him->xyz[i*3 + idirection];
       Real gradsol = 4.0*PI*cos(4.0*PI*coord);
       Real err = Abs(gradsol*percentError);
       EXPECT_NEAR(gradsol, hiqgrad[i*nterms*3 + testeqn*3 + idirection], err);
@@ -215,8 +213,8 @@ TEST_F(MeshTestGradient, testLowFiMesh)
     std::cout << "\nEach grid is twice as dense as the previous. (1/2)^2 = 4.0." << std::endl;
     std::cout << "Second order error should be 4X lower with each refinement" << std::endl;
     
-    std::cout << "Low/Med Ratio: " << mederrnorm/lowerrnorm << std::endl;
-    std::cout << "Med/Hi Ratio: " << lowerrnorm/mederrnorm << std::endl;
+    std::cout << "Low/Med Ratio: " << lowerrnorm/mederrnorm << std::endl;
+    std::cout << "Med/Hi Ratio: " << mederrnorm/hierrnorm << std::endl;
   
     //TODO: there is still a problem in the y-direction (out of plane) error
     //TODO: also, the convergence in X-dir isn't quite second order which is a concern

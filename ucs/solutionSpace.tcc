@@ -163,9 +163,6 @@ void SolutionSpace<Type>::Init()
   //init eqnset for solve - init solution vector storage (q, qold, qoldm1, qgrad, etc)
   eqnset->InitEqnSet();
 
-  //set status flags for boundary conditions
-  SetBCStatFlags(m, bc);
-
   //this logic is specific to error transport equations for error indicator
   if(param->viscous && param->errorTransport){
     DataInfo<Type> ETEViscData(eqnset->neqn, std::string("ETEVisc"));

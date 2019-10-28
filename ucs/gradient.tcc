@@ -409,12 +409,17 @@ void Kernel_LSQ_Coefficients(KERNEL_ARGS)
   tempL[4] = (dx[1]*dx[2]);   //s23
   tempL[5] = dz2;             //s33
 
-  tempR[0] = tempL[0];
-  tempR[1] = tempL[1];
-  tempR[2] = tempL[2];
-  tempR[3] = tempL[3];
-  tempR[4] = tempL[4];
-  tempR[5] = tempL[5];
+  dx[0] = -dx[0];
+  dx[1] = -dx[1];
+  dx[2] = -dx[2];
+
+  //squared values are always positive, no need to be cautious of signs
+  tempR[0] = dx2;             //s11
+  tempR[1] = (dx[0]*dx[1]);   //s12
+  tempR[2] = (dx[0]*dx[2]);   //s13
+  tempR[3] = dy2;             //s22
+  tempR[4] = (dx[1]*dx[2]);   //s23
+  tempR[5] = dz2;             //s33
 
   *size = 6;  
   *ptrL = s1;
@@ -486,12 +491,17 @@ void Kernel_LSQ_CoefficientsWeighted(KERNEL_ARGS)
   tempL[4] = dx[1]*dx[2]*ds2;   //s23
   tempL[5] = dz2;               //s33
 
-  tempR[0] = tempL[0];
-  tempR[1] = tempL[1];
-  tempR[2] = tempL[2];
-  tempR[3] = tempL[3];
-  tempR[4] = tempL[4];
-  tempR[5] = tempL[5];
+  dx[0] = -dx[0];
+  dx[1] = -dx[1];
+  dx[2] = -dx[2];
+
+  //squared values are always positive, no need to be cautious of signs
+  tempR[0] = dx2;                 //s11
+  tempR[1] = (dx[0]*dx[1])*ds2;   //s12
+  tempR[2] = (dx[0]*dx[2])*ds2;   //s13
+  tempR[3] = dy2;                 //s22
+  tempR[4] = (dx[1]*dx[2])*ds2;   //s23
+  tempR[5] = dz2;                 //s33
 
   *size = 6;  
   *ptrL = s1;

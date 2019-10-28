@@ -19,7 +19,7 @@ Int NegativeQueue(theType* A, Int n){
 //default constructor
 template <class Type> 
 Mesh<Type>::Mesh() :
-  p(0), edges(0), bedges(0), cvstat(0),
+  p(0), edges(0), bedges(0), 
   gNodeOwner(0), gNodeLocalId(0), cg(0), nv(0), s(0), sw(0),
   ordering(0), xyz(0), xyz_base(0), xyzold(0), xyzoldm1(0),
   vol(0), volold(0), vololdm1(0), psp(0), ipsp(0), besp(0),
@@ -205,9 +205,6 @@ Int Mesh<Type>::MemInitMesh()
   volold = new Type[nnode];
   vololdm1 = new Type[nnode];
   
-  //initialize cv status flag objects
-  cvstat = new CVStat[nnode];
-
   //this must be set here incase mesh reordering is not use
   //i.e. this must be a valid list as it is used in the buildMaps() function
   ordering = new Int[nnode];
@@ -2533,7 +2530,6 @@ Mesh<Type>::~Mesh()
     delete [] vol;
     delete [] volold;
     delete [] vololdm1;
-    delete [] cvstat;
     delete [] ordering;
     delete [] gNodeOwner;
     delete [] gNodeLocalId;
@@ -2874,15 +2870,18 @@ Int Mesh<Type>::ReadPartedMesh(std::string casename)
   Int* elementDataTemp = NULL;
   HDF_ReadArray(h5in, directoryBase, "Element Data", &elementDataTemp, &elistSize);
   elementDataTemp = new Int[elistSize];
+  std::cout << "PARTITION HDF I/O: Reading linear element array of size " << elistSize << std::endl;
   HDF_ReadArray(h5in, directoryBase, "Element Data", &elementDataTemp, &elistSize);
 
   //read in element data and put factags where they belong
   //they are stored as [type-e1, node1-e1, node2-e1, .... type-e2] in a linear array
   Int loc = 0;
   for(i = 0; i < localElemCount; i++){
-    Int nodes[8]; 
+    Int nodes[8];
+    //get the element type from linear array
     Int e = elementDataTemp[loc];
     loc++;
+    //get appropriate number of nodes from linear array
     for(Int j = 0; j < mnode[e]; j++){
       nodes[j] = elementDataTemp[loc];
       loc++;
@@ -3021,10 +3020,6 @@ Mesh<Type>::Mesh(const Mesh<Type2>& meshToCopy)
     }
   }
  
-  //allocate new control volume status flags
-  //WARNING: these are not copied here but might should be
-  cvstat = new CVStat[nnode];
-
   //copy element list
   for(typename std::vector<Element<Type2>*>::const_iterator it = meshToCopy.elementList.begin(); 
       it != meshToCopy.elementList.end(); ++it){
@@ -3115,11 +3110,6 @@ void Mesh<Type>::AppendNodes(Int numNewNodes, Type* xyz_new){
   MemResize(&volold, numNodeOld, nnode);
   MemResize(&vololdm1, numNodeOld, nnode);
   MemResize(&ordering, numNodeOld, nnode);
-
-  // don't use resize since not POD type
-  delete [] cvstat;
-  cvstat = new CVStat[nnode];
-  
 
   // we resized and copied across all the old data now we need to add in
   // the new data where appropriate
@@ -5160,10 +5150,6 @@ void Mesh<Type>::EliminateOrphanedNodes()
   MemResize(&volold, numNodeOld, nnode);
   MemResize(&vololdm1, numNodeOld, nnode);
   MemResize(&ordering, numNodeOld, nnode);
-
-  // don't use resize since not POD type
-  delete [] cvstat;
-  cvstat = new CVStat[nnode];
 
 }
 

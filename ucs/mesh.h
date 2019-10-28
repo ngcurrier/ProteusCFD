@@ -190,8 +190,6 @@ class Mesh
   Edges<Type>* edges;                      //list of Edge objects
   HalfEdges<Type>* bedges;                 //list of HalfEdge objects (ghost edges then boundary edges)
   
-  CVStat* cvstat; //control volume boolean status flags
-
   //parallel utility maps
   Int* gNodeOwner;   //(gnode long) lists proc id which own ghost nodes
   Int* gNodeLocalId; //(gnode long) lists location of node in local owner list
