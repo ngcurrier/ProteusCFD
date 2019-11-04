@@ -455,6 +455,9 @@ Type Species<Type>::GetThermalConductivity(Type T)
 
   //result is returned in microWatt/cm.K, we need W/m.K
   Type convFact = 0.0001;
-
+  
+  //NOTE: kinetic theory also suggests the following:
+  // k = (15.0/4.0)*R_sp*mu*((4.0/15.0)*(Cp(T)/R_sp) + (1.0/3.0))
+	
   return exp(logk)*convFact; // W/(m.K)
 }
