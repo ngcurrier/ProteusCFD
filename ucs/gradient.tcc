@@ -81,8 +81,10 @@ void Gradient<Type>::Compute()
     Driver(space, Gradient, nterms*3, this);
     Bdriver(space, BGradient, nterms*3, this);
     //divide gradients by the volume of the cell
-    for(i = 0; i < (nnode*nterms*3); i++){
-      grad[i] /= m->vol[i];
+    for(Int i = 0; i < nnode; ++i){
+      for(Int j = 0; j < nterms*3; j++){
+	grad[i*nterms*3 + j] /= m->vol[i];
+      }
     }
   }
   //this ensures that the gradients are zero in all symmetry directions
@@ -181,7 +183,6 @@ void Kernel_Green_Gauss_Gradient(KERNEL_ARGS)
   Type* QR = &g->data[right_cv*nvars];
   Type edgept[3];
   Type* faceavg = (Type*)alloca(sizeof(Type)*nterms);
-  Type wt1, wt2;
   Type area = avec[3];
 
   //compute centroid of edge.. i.e. face centroid
@@ -193,12 +194,9 @@ void Kernel_Green_Gauss_Gradient(KERNEL_ARGS)
   *ptrR = &g->grad[right_cv*nterms*3];
 
   //compute face averaged q variables
-  //TODO: something more sophisticated here for the face average
-  wt1 = m->vol[left_cv];
-  wt2 = m->vol[right_cv];
   for(i = 0; i < nterms; i++){
     k = list[i];
-    faceavg[i] = (wt1*QL[k] + wt2*QR[k]) / (wt1 + wt2);
+    faceavg[i] = 0.5*(QL[k] +QR[k]);
   }
   
   for(i = 0; i < 3; i++){
@@ -223,7 +221,6 @@ void Bkernel_Green_Gauss_Gradient(B_KERNEL_ARGS)
   Type* QR = &g->data[right_cv*nvars];
   Type edgept[3];
   Type* faceavg = (Type*)alloca(sizeof(Type)*nterms);
-  Type wt1, wt2;
   Type area = avec[3];
 
   //compute centroid of edge.. i.e. face centroid
@@ -238,12 +235,9 @@ void Bkernel_Green_Gauss_Gradient(B_KERNEL_ARGS)
   *ptrL = &g->grad[left_cv*nterms*3];
 
   //compute face averaged q variables
-  //TODO: something more sophisticated here for the face average
-  wt1 = 0.5;
-  wt2 = 0.5;
   for(i = 0; i < nterms; i++){
     k = list[i];
-    faceavg[i] = (wt1*QL[k] + wt2*QR[k]) / (wt1 + wt2);
+    faceavg[i] = 0.5*(QL[k] + QR[k]);
   }
   
   for(i = 0; i < 3; i++){
