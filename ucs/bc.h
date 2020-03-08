@@ -109,6 +109,10 @@ template <class Type>
 void GetSElemsFromNodes(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int bcid, 
 			std::vector<Element<Type>*>& elementList);
 
+// returns factags that are tagged to a certain boundary condition type
+template <class Type>
+std::vector<Int> GetBoundariesOnBCType(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int bcType);
+
 //include implementations
 #include "bc.tcc"
 

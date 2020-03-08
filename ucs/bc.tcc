@@ -1456,7 +1456,6 @@ void UpdateBCs(SolutionSpace<Type>* space)
 
 }
 
-
 template <class Type>
 Int GetNodesOnSymmetryPlanes(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int** nodes)
 {
@@ -1667,4 +1666,17 @@ void GetSElemsOnBCType(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int bc
     elementList.push_back(*it);
   }
 
+}
+
+template <class Type>
+std::vector<Int> GetBoundariesOnBCType(const Mesh<Type>* m, BoundaryConditions<Real>* bc, Int bcType)
+{
+  std::vector<Int> boundaryList;
+  //NOTE: zeroth face not used.... defaulted to volume factag
+  for(Int i = 1; i <= bc->largest_bc_id; ++i){
+    if(bc->GetBCObj(i)->GetBCType() == bcType){
+      boundaryList.push_back(i);
+    }
+  }
+  return boundaryList;
 }

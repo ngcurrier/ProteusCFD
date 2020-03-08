@@ -116,15 +116,8 @@ void InflateBoundary(int boundaryFactag, Real inflationDistance, BoundaryConditi
   // should be split between those two surfaces, if it is connected to another that is
   // not being extruded then the adjacent boundary should be treated as a symmetry surface
   // (that is) the movement normal is in the plane with the symmetry wall
-  //we are going to allow symmetry plane nodes to move
-  Int* symNodes;
-  Int nSymNodes = GetNodesOnSymmetryPlanes(m, bc, &symNodes);
-
-  std::vector<Int> symmBoundaryList;
-  for(Int i = 0; i < nSymNodes; ++i){
-    symmBoundaryList.push_back(symNodes[i]);
-  }
-  delete [] symNodes;
+  // we are going to allow symmetry plane nodes to move
+  std::vector<Int> symmBoundaryList = GetBoundariesOnBCType(m, bc, Proteus_Symmetry);
 
   // compute the normals at each point using surrounding geometry
   // and then compute the total displacement at that node
