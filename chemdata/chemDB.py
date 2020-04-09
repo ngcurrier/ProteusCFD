@@ -23,6 +23,9 @@ def main():
    print("Processing Burcat database...")
    process_burcat(h5,'BURCAT_FIXED.THR')
 
+   print("Processing CEA database...")
+   process_CEA(h5, 'CEAthermo.inp')
+   
    print("Processing Gordon-McBride database...")
    process_mcbride(h5,'trans.inp')
 
@@ -162,10 +165,331 @@ def process_mcbride(h5,fname):
       
    return
 
+def process_CEA(h5,fname):
+   f = open(fname,"r")
+   
+   # start reading after massive header
+   lines = f.readlines()[42:] 
+   nlines = len(lines)
+   iline = 0
+   
+   # Records look like:
+   #   Ar                Ref-Elm. Moore,1971. Gordon,1999.                             
+   # 3 g 3/98 AR  1.00    0.00    0.00    0.00    0.00 0   39.9480000          0.000
+   #    200.000   1000.0007 -2.0 -1.0  0.0  1.0  2.0  3.0  4.0  0.0         6197.428
+   # 0.000000000D+00 0.000000000D+00 2.500000000D+00 0.000000000D+00 0.000000000D+00
+   # 0.000000000D+00 0.000000000D+00                -7.453750000D+02 4.379674910D+00
+   #   1000.000   6000.0007 -2.0 -1.0  0.0  1.0  2.0  3.0  4.0  0.0         6197.428
+   # 2.010538475D+01-5.992661070D-02 2.500069401D+00-3.992141160D-08 1.205272140D-11
+   #-1.819015576D-15 1.078576636D-19                -7.449939610D+02 4.379180110D+00
+   #   6000.000  20000.0007 -2.0 -1.0  0.0  1.0  2.0  3.0  4.0  0.0         6197.428
+   #-9.951265080D+08 6.458887260D+05-1.675894697D+02 2.319933363D-02-1.721080911D-06
+   # 6.531938460D-11-9.740147729D-16                -5.078300340D+06 1.465298484D+03
+
+
+   while iline < nlines:
+      d = {}
+      # read species name 
+      line = lines[iline]
+      iline = iline + 1
+      if line.find('END ') != -1:
+         if iline >= nlines:
+            break
+         line = lines[iline]
+         iline = iline + 1
+      d["compound"] = line[0:17].strip()
+      print("CEA database ==> %s" % d["compound"])
+      # read #T intervals, MW, and heat of formation (298.15K)
+      line = lines[iline]
+      line=line.replace('D', 'E')
+      iline = iline + 1
+      Tintervals = int(line[0:2])
+      d["CEA_Tintervals"] = Tintervals
+      d["MW"] = float(line[52:64])
+      d["hf"] = float(line[65:80])
+      # read temperature ranges
+      line = lines[iline]
+      iline = iline + 1
+      line=line.replace('D', 'E')
+      items = line.split()
+      d["CEA_T1"] = float(items[0])
+      d["CEA_T2"] = float(items[1])
+      d["CEA_T1_exp"] = []
+      d["CEA_T1_exp"].append(float(items[2]))
+      d["CEA_T1_exp"].append(float(items[3]))
+      d["CEA_T1_exp"].append(float(items[4]))
+      d["CEA_T1_exp"].append(float(items[5]))
+      d["CEA_T1_exp"].append(float(items[6]))
+      d["CEA_T1_exp"].append(float(items[7]))
+      d["CEA_T1_exp"].append(float(items[8]))
+      d["hf298_T1_offset"] = float(items[-1])
+
+      if Tintervals > 0:
+         # read coefficients
+         line = lines[iline]
+         iline = iline + 1
+         line=line.replace('D', 'E')
+         poly1 = []
+         poly1.append(float(line[0:16]))
+         poly1.append(float(line[16:32]))
+         poly1.append(float(line[32:48]))
+         poly1.append(float(line[48:64]))
+         poly1.append(float(line[64:]))
+         line = lines[iline]
+         iline = iline + 1
+         line=line.replace('D', 'E')
+         poly1.append(float(line[0:16]))
+         poly1.append(float(line[16:32]))
+         if(line[32:48].strip() == ''):
+            poly1.append(0.0)
+         else:
+            poly1.append(float(line[32:48]))
+         # read integration constant b1
+         poly1.append(float(line[48:64]))
+         # read integration constant b2
+         poly1.append(float(line[64:]))
+         # Note: CEA uses a flexible form Cp curve fit where the coefficients are defined on the fly in the record
+         # This is why we don't use the NASA7 key to identify them
+         d["CEA7_T1"] = poly1
+      # if the next (2nd) interval exists, read it
+      if Tintervals > 1:
+         # read temperature ranges
+         line = lines[iline]
+         iline = iline + 1
+         line=line.replace('D', 'E')
+         items = line.split()
+         # todo: check T2 for sanity since it is listed twice
+         d["CEA_T2"] = float(items[0])
+         d["CEA_T3"] = float(items[1])
+         d["CEA_T2_exp"] = []
+         d["CEA_T2_exp"].append(float(items[2]))
+         d["CEA_T2_exp"].append(float(items[3]))
+         d["CEA_T2_exp"].append(float(items[4]))
+         d["CEA_T2_exp"].append(float(items[5]))
+         d["CEA_T2_exp"].append(float(items[6]))
+         d["CEA_T2_exp"].append(float(items[7]))
+         d["CEA_T2_exp"].append(float(items[8]))
+         d["hf298_T2_offset"] = float(items[-1])
+         # read coefficients
+         line = lines[iline]
+         iline = iline + 1
+         line=line.replace('D', 'E')
+         poly1 = []
+         poly1.append(float(line[0:16]))
+         poly1.append(float(line[16:32]))
+         poly1.append(float(line[32:48]))
+         poly1.append(float(line[48:64]))
+         poly1.append(float(line[64:]))
+         line = lines[iline]
+         iline = iline + 1
+         line=line.replace('D', 'E')
+         poly1.append(float(line[0:16]))
+         poly1.append(float(line[16:32]))
+         if(line[32:48].strip() == ''):
+            poly1.append(0.0)
+         else:
+            poly1.append(float(line[32:48]))
+         # read integration constant b1
+         poly1.append(float(line[48:64]))
+         # read integration constant b2
+         poly1.append(float(line[64:]))
+         # Note: CEA uses a flexible form Cp curve fit where the coefficients are defined on the fly in the record
+         # This is why we don't use the NASA7 key to identify them
+         d["CEA7_T2"] = poly1
+      
+      # if the next (3rd) interval exists, read it
+      if Tintervals > 2:
+         # read temperature ranges
+         line = lines[iline]
+         iline = iline + 1
+         line=line.replace('D', 'E')
+         items = line.split()
+         # todo: check T3 for sanity since it is listed twice
+         d["CEA_T3"] = float(items[0])
+         d["CEA_T4"] = float(items[1])
+         d["CEA_T3_exp"] = []
+         d["CEA_T3_exp"].append(float(items[2]))
+         d["CEA_T3_exp"].append(float(items[3]))
+         d["CEA_T3_exp"].append(float(items[4]))
+         d["CEA_T3_exp"].append(float(items[5]))
+         d["CEA_T3_exp"].append(float(items[6]))
+         d["CEA_T3_exp"].append(float(items[7]))
+         d["CEA_T3_exp"].append(float(items[8]))
+         d["hf298_T3_offset"] = float(items[-1])
+         # read coefficients
+         line = lines[iline]
+         iline = iline + 1
+         line=line.replace('D', 'E')
+         poly1 = []
+         poly1.append(float(line[0:16]))
+         poly1.append(float(line[16:32]))
+         poly1.append(float(line[32:48]))
+         poly1.append(float(line[48:64]))
+         poly1.append(float(line[64:]))
+         line = lines[iline]
+         iline = iline + 1
+         line=line.replace('D', 'E')
+         poly1.append(float(line[0:16]))
+         poly1.append(float(line[16:32]))
+         if(line[32:48].strip() == ''):
+            poly1.append(0.0)
+         else:
+            poly1.append(float(line[32:48]))
+         # read integration constant b1
+         poly1.append(float(line[48:64]))
+         # read integration constant b2
+         poly1.append(float(line[64:]))
+         # Note: CEA uses a flexible form Cp curve fit where the coefficients are defined on the fly in the record
+         # This is why we don't use the NASA7 key to identify them
+         d["CEA7_T3"] = poly1
+
+      # if the next (4th) interval exists, read it
+      if Tintervals > 3:
+         # read temperature ranges
+         line = lines[iline]
+         iline = iline + 1
+         line=line.replace('D', 'E')
+         items = line.split()
+         # todo: check T3 for sanity since it is listed twice
+         d["CEA_T4"] = float(items[0])
+         d["CEA_T5"] = float(items[1])
+         d["CEA_T4_exp"] = []
+         d["CEA_T4_exp"].append(float(items[2]))
+         d["CEA_T4_exp"].append(float(items[3]))
+         d["CEA_T4_exp"].append(float(items[4]))
+         d["CEA_T4_exp"].append(float(items[5]))
+         d["CEA_T4_exp"].append(float(items[6]))
+         d["CEA_T4_exp"].append(float(items[7]))
+         d["CEA_T4_exp"].append(float(items[8]))
+         d["hf298_T4_offset"] = float(items[-1])
+         # read coefficients
+         line = lines[iline]
+         iline = iline + 1
+         line=line.replace('D', 'E')
+         poly1 = []
+         poly1.append(float(line[0:16]))
+         poly1.append(float(line[16:32]))
+         poly1.append(float(line[32:48]))
+         poly1.append(float(line[48:64]))
+         poly1.append(float(line[64:]))
+         line = lines[iline]
+         iline = iline + 1
+         line=line.replace('D', 'E')
+         poly1.append(float(line[0:16]))
+         poly1.append(float(line[16:32]))
+         if(line[32:48].strip() == ''):
+            poly1.append(0.0)
+         else:
+            poly1.append(float(line[32:48]))
+         # read integration constant b1
+         poly1.append(float(line[48:64]))
+         # read integration constant b2
+         poly1.append(float(line[64:]))
+         # Note: CEA uses a flexible form Cp curve fit where the coefficients are defined on the fly in the record
+         # This is why we don't use the NASA7 key to identify them
+         d["CEA7_T4"] = poly1
+
+      # if the next (5th) interval exists, read it
+      if Tintervals > 4:
+         # read temperature ranges
+         line = lines[iline]
+         iline = iline + 1
+         line=line.replace('D', 'E')
+         items = line.split()
+         # todo: check T3 for sanity since it is listed twice
+         d["CEA_T5"] = float(items[0])
+         d["CEA_T6"] = float(items[1])
+         d["CEA_T5_exp"] = []
+         d["CEA_T5_exp"].append(float(items[2]))
+         d["CEA_T5_exp"].append(float(items[3]))
+         d["CEA_T5_exp"].append(float(items[4]))
+         d["CEA_T5_exp"].append(float(items[5]))
+         d["CEA_T5_exp"].append(float(items[6]))
+         d["CEA_T5_exp"].append(float(items[7]))
+         d["CEA_T5_exp"].append(float(items[8]))
+         d["hf298_T5_offset"] = float(items[-1])
+         # read coefficients
+         line = lines[iline]
+         iline = iline + 1
+         line=line.replace('D', 'E')
+         poly1 = []
+         poly1.append(float(line[0:16]))
+         poly1.append(float(line[16:32]))
+         poly1.append(float(line[32:48]))
+         poly1.append(float(line[48:64]))
+         poly1.append(float(line[64:]))
+         line = lines[iline]
+         iline = iline + 1
+         line=line.replace('D', 'E')
+         poly1.append(float(line[0:16]))
+         poly1.append(float(line[16:32]))
+         if(line[32:48].strip() == ''):
+            poly1.append(0.0)
+         else:
+            poly1.append(float(line[32:48]))
+         # read integration constant b1
+         poly1.append(float(line[48:64]))
+         # read integration constant b2
+         poly1.append(float(line[64:]))
+         # Note: CEA uses a flexible form Cp curve fit where the coefficients are defined on the fly in the record
+         # This is why we don't use the NASA7 key to identify them
+         d["CEA7_T5"] = poly1
+
+      # if the next (6th) interval exists, read it
+      if Tintervals > 5:
+         # read temperature ranges
+         line = lines[iline]
+         iline = iline + 1
+         line=line.replace('D', 'E')
+         items = line.split()
+         # todo: check T3 for sanity since it is listed twice
+         d["CEA_T6"] = float(items[0])
+         d["CEA_T7"] = float(items[1])
+         d["CEA_T6_exp"] = []
+         d["CEA_T6_exp"].append(float(items[2]))
+         d["CEA_T6_exp"].append(float(items[3]))
+         d["CEA_T6_exp"].append(float(items[4]))
+         d["CEA_T6_exp"].append(float(items[5]))
+         d["CEA_T6_exp"].append(float(items[6]))
+         d["CEA_T6_exp"].append(float(items[7]))
+         d["CEA_T6_exp"].append(float(items[8]))
+         d["hf298_T6_offset"] = float(items[-1])
+         # read coefficients
+         line = lines[iline]
+         iline = iline + 1
+         line=line.replace('D', 'E')
+         poly1 = []
+         poly1.append(float(line[0:16]))
+         poly1.append(float(line[16:32]))
+         poly1.append(float(line[32:48]))
+         poly1.append(float(line[48:64]))
+         poly1.append(float(line[64:]))
+         line = lines[iline]
+         iline = iline + 1
+         line=line.replace('D', 'E')
+         poly1.append(float(line[0:16]))
+         poly1.append(float(line[16:32]))
+         if(line[32:48].strip() == ''):
+            poly1.append(0.0)
+         else:
+            poly1.append(float(line[32:48]))
+         # read integration constant b1
+         poly1.append(float(line[48:64]))
+         # read integration constant b2
+         poly1.append(float(line[64:]))
+         # Note: CEA uses a flexible form Cp curve fit where the coefficients are defined on the fly in the record
+         # This is why we don't use the NASA7 key to identify them
+         d["CEA7_T6"] = poly1
+
+      write_species(h5,d)
+
+   return
 
 
 def process_burcat(h5,fname):
    f = open(fname,"r")
+   
+   # start reading after massive header
    lines = f.readlines()[88:] 
 
    lines = ''.join(lines)
@@ -176,6 +500,11 @@ def process_burcat(h5,fname):
 
    matches = pat.findall(lines)
 
+   fout = open('out.txt','w')
+   for i in matches:
+      fout.write(i+'\n')
+   fout.close()
+      
  
    for r in matches:
       r = r.strip().split('\n')
