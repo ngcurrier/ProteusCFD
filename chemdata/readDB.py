@@ -157,7 +157,6 @@ if __name__ == "__main__":
             T_K = 250 + i*50.0
             cp = evaluateCEACp(spdb, T_K)
             print('%f\t %f' % (T_K, cp))
-            fout.write('%f,%f\n' %(T_K, cp))
     
     
     fout.write('T(K),Cp(J/kg.K)\n')
