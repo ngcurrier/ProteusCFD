@@ -214,15 +214,19 @@ def process_CEA(h5,fname):
       items = line.split()
       d["CEA_T1"] = float(items[0])
       d["CEA_T2"] = float(items[1])
+      d["hf298_T1_offset"] = float(items[-1])
       d["CEA_T1_exp"] = []
+      # we have to slice out the correct region due to the way
+      # the DB often writes numbers with no space between them
+      expslice = line[24:58]
+      items = expslice.split()
+      d["CEA_T1_exp"].append(float(items[0]))
+      d["CEA_T1_exp"].append(float(items[1]))
       d["CEA_T1_exp"].append(float(items[2]))
       d["CEA_T1_exp"].append(float(items[3]))
       d["CEA_T1_exp"].append(float(items[4]))
       d["CEA_T1_exp"].append(float(items[5]))
       d["CEA_T1_exp"].append(float(items[6]))
-      d["CEA_T1_exp"].append(float(items[7]))
-      d["CEA_T1_exp"].append(float(items[8]))
-      d["hf298_T1_offset"] = float(items[-1])
 
       if Tintervals > 0:
          # read coefficients
@@ -261,15 +265,20 @@ def process_CEA(h5,fname):
          # todo: check T2 for sanity since it is listed twice
          d["CEA_T2"] = float(items[0])
          d["CEA_T3"] = float(items[1])
+         d["hf298_T2_offset"] = float(items[-1])
          d["CEA_T2_exp"] = []
+         # we have to slice out the correct region due to the way
+         # the DB often writes numbers with no space between them
+         expslice = line[24:58]
+         items = expslice.split()
+         d["CEA_T2_exp"] = []
+         d["CEA_T2_exp"].append(float(items[0]))
+         d["CEA_T2_exp"].append(float(items[1]))
          d["CEA_T2_exp"].append(float(items[2]))
          d["CEA_T2_exp"].append(float(items[3]))
          d["CEA_T2_exp"].append(float(items[4]))
          d["CEA_T2_exp"].append(float(items[5]))
          d["CEA_T2_exp"].append(float(items[6]))
-         d["CEA_T2_exp"].append(float(items[7]))
-         d["CEA_T2_exp"].append(float(items[8]))
-         d["hf298_T2_offset"] = float(items[-1])
          # read coefficients
          line = lines[iline]
          iline = iline + 1
@@ -307,15 +316,19 @@ def process_CEA(h5,fname):
          # todo: check T3 for sanity since it is listed twice
          d["CEA_T3"] = float(items[0])
          d["CEA_T4"] = float(items[1])
+         d["hf298_T3_offset"] = float(items[-1])
          d["CEA_T3_exp"] = []
+         # we have to slice out the correct region due to the way
+         # the DB often writes numbers with no space between them
+         expslice = line[24:58]
+         items = expslice.split()
+         d["CEA_T3_exp"].append(float(items[0]))
+         d["CEA_T3_exp"].append(float(items[1]))
          d["CEA_T3_exp"].append(float(items[2]))
          d["CEA_T3_exp"].append(float(items[3]))
          d["CEA_T3_exp"].append(float(items[4]))
          d["CEA_T3_exp"].append(float(items[5]))
          d["CEA_T3_exp"].append(float(items[6]))
-         d["CEA_T3_exp"].append(float(items[7]))
-         d["CEA_T3_exp"].append(float(items[8]))
-         d["hf298_T3_offset"] = float(items[-1])
          # read coefficients
          line = lines[iline]
          iline = iline + 1
@@ -353,15 +366,19 @@ def process_CEA(h5,fname):
          # todo: check T3 for sanity since it is listed twice
          d["CEA_T4"] = float(items[0])
          d["CEA_T5"] = float(items[1])
+         d["hf298_T4_offset"] = float(items[-1])
          d["CEA_T4_exp"] = []
+         # we have to slice out the correct region due to the way
+         # the DB often writes numbers with no space between them
+         expslice = line[24:58]
+         items = expslice.split()
+         d["CEA_T4_exp"].append(float(items[0]))
+         d["CEA_T4_exp"].append(float(items[1]))
          d["CEA_T4_exp"].append(float(items[2]))
          d["CEA_T4_exp"].append(float(items[3]))
          d["CEA_T4_exp"].append(float(items[4]))
          d["CEA_T4_exp"].append(float(items[5]))
          d["CEA_T4_exp"].append(float(items[6]))
-         d["CEA_T4_exp"].append(float(items[7]))
-         d["CEA_T4_exp"].append(float(items[8]))
-         d["hf298_T4_offset"] = float(items[-1])
          # read coefficients
          line = lines[iline]
          iline = iline + 1
@@ -399,15 +416,19 @@ def process_CEA(h5,fname):
          # todo: check T3 for sanity since it is listed twice
          d["CEA_T5"] = float(items[0])
          d["CEA_T6"] = float(items[1])
+         d["hf298_T5_offset"] = float(items[-1])
          d["CEA_T5_exp"] = []
+         # we have to slice out the correct region due to the way
+         # the DB often writes numbers with no space between them
+         expslice = line[24:58]
+         items = expslice.split()
+         d["CEA_T5_exp"].append(float(items[0]))
+         d["CEA_T5_exp"].append(float(items[1]))
          d["CEA_T5_exp"].append(float(items[2]))
          d["CEA_T5_exp"].append(float(items[3]))
          d["CEA_T5_exp"].append(float(items[4]))
          d["CEA_T5_exp"].append(float(items[5]))
          d["CEA_T5_exp"].append(float(items[6]))
-         d["CEA_T5_exp"].append(float(items[7]))
-         d["CEA_T5_exp"].append(float(items[8]))
-         d["hf298_T5_offset"] = float(items[-1])
          # read coefficients
          line = lines[iline]
          iline = iline + 1
@@ -445,15 +466,19 @@ def process_CEA(h5,fname):
          # todo: check T3 for sanity since it is listed twice
          d["CEA_T6"] = float(items[0])
          d["CEA_T7"] = float(items[1])
+         d["hf298_T6_offset"] = float(items[-1])
          d["CEA_T6_exp"] = []
+         # we have to slice out the correct region due to the way
+         # the DB often writes numbers with no space between them
+         expslice = line[24:58]
+         items = expslice.split()
+         d["CEA_T6_exp"].append(float(items[0]))
+         d["CEA_T6_exp"].append(float(items[1]))
          d["CEA_T6_exp"].append(float(items[2]))
          d["CEA_T6_exp"].append(float(items[3]))
          d["CEA_T6_exp"].append(float(items[4]))
          d["CEA_T6_exp"].append(float(items[5]))
          d["CEA_T6_exp"].append(float(items[6]))
-         d["CEA_T6_exp"].append(float(items[7]))
-         d["CEA_T6_exp"].append(float(items[8]))
-         d["hf298_T6_offset"] = float(items[-1])
          # read coefficients
          line = lines[iline]
          iline = iline + 1
