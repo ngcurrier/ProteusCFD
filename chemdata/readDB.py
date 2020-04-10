@@ -110,6 +110,7 @@ if __name__ == "__main__":
     h5 = h5py.File(dbfile, 'r')
 
     speciesList = []
+    spdbs = []
     massFractions = []
     MWs = []
     #first line is header
@@ -120,7 +121,7 @@ if __name__ == "__main__":
         # expect the file to be a csv
         tokens = line.replace(' ', '').split(',')
         speciesList.append(tokens[0])
-        retrieveDBSpecies(h5, speciesList[-1], verbose=True)
+        spdbs.append(retrieveDBSpecies(h5, speciesList[-1], verbose=True))
         massFractions.append(float(tokens[1]))
         MWs.append(getSpeciesMW(h5, speciesList[-1]))
   
@@ -146,12 +147,22 @@ if __name__ == "__main__":
         
 
     listSpecies(h5)
-
     fout = open('resultsCP.csv', 'w')
 
+
+    for spdb,isp in zip(spdbs,speciesList):
+        print('\n*************** %s ********************' % isp)
+        print('T(K)\t\t Cp(J/kg.K)')
+        for i in range(0,80):
+            T_K = 250 + i*50.0
+            cp = evaluateCEACp(spdb, T_K)
+            print('%f\t %f' % (T_K, cp))
+            fout.write('%f,%f\n' %(T_K, cp))
+    
+    
     fout.write('T(K),Cp(J/kg.K)\n')
-    print('\nT(K)\t Cp(J/kg.K)')
-    print('--------------------------------------------')
+    print('\n*************** MIXTURE ************************')
+    print('T(K)\t\t Cp(J/kg.K)')
     for i in range(0,80):
         T_K = 250 + i*50.0
         cp = evaluateMixtureCp(h5, speciesList, massFractions, T_K)
