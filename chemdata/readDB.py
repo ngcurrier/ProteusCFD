@@ -29,11 +29,32 @@ def evaluateMixtureCp(h5, speciesList, massFractions, T_K):
         cp += imf*icp
 
     return cp # J/kg.K
+
+def evaluateNASA7Cp(spdb, T_K):
+    T = T_K
+    MW = spdb.get('MW')[()]
+    Rsp = R_UNIV/MW*1000.0
+
+    Cp_R = a + b*T + c*T*T + d*T*T*T + e*T*T*T*T
+    Cp = Cp_R*Rsp
+    
+    return Cp # J/kg.K
+    
+def evaluateNASA7H(spdb, T_K):
+    T = T_K
+    MW = spdb.get('MW')[()]
+    Rsp = R_UNIV/MW*1000.0
+
+    H_RT = a + b*T/2.0 + c*T*T/3.0 + d*T*T*T/4.0 + e*T*T*T*T/5.0 + f/T
+    H = H_RT*T*Rsp
+
+    return H # J/kg
     
 def evaluateCEACp(spdb, T_K):
     # look for interval in which T_K lives
     Tintervals = spdb.get('CEA_Tintervals')[()]
     MW = spdb.get('MW')[()]
+    Rsp = R_UNIV/MW*1000.0
 
     found = False
     for iT in range(0, Tintervals):
@@ -52,7 +73,6 @@ def evaluateCEACp(spdb, T_K):
            + coeff[3]*T_K**exp[3] + coeff[4]*T_K**exp[4] + coeff[5]*T_K**exp[5] \
            + coeff[6]*T_K**exp[6]
 
-    Rsp = R_UNIV/MW*1000.0
     return Cp_R*Rsp # J/kg.K
 
 def retrieveDBSpecies(h5, species, verbose=False):

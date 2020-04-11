@@ -167,7 +167,7 @@ Int Species<Type>::GetDBInfo(std::string database)
   this->MW /= 1000;
   
   //read in hf298
-  variable = "NASA7_coeff15";
+  variable = "NASA7_burcat_coeff15";
   HDF_ReadScalar(file_id, directory, variable, &temp);
   this->hf298 = temp;
   

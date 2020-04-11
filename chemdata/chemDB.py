@@ -214,7 +214,7 @@ def process_CEA(h5,fname):
       items = line.split()
       d["CEA_T1"] = float(items[0])
       d["CEA_T2"] = float(items[1])
-      d["hf298_T1_offset"] = float(items[-1])
+      d["CEA_hf298_T1_offset"] = float(items[-1])
       d["CEA_T1_exp"] = []
       # we have to slice out the correct region due to the way
       # the DB often writes numbers with no space between them
@@ -265,7 +265,7 @@ def process_CEA(h5,fname):
          # todo: check T2 for sanity since it is listed twice
          d["CEA_T2"] = float(items[0])
          d["CEA_T3"] = float(items[1])
-         d["hf298_T2_offset"] = float(items[-1])
+         d["CEA_hf298_T2_offset"] = float(items[-1])
          d["CEA_T2_exp"] = []
          # we have to slice out the correct region due to the way
          # the DB often writes numbers with no space between them
@@ -316,7 +316,7 @@ def process_CEA(h5,fname):
          # todo: check T3 for sanity since it is listed twice
          d["CEA_T3"] = float(items[0])
          d["CEA_T4"] = float(items[1])
-         d["hf298_T3_offset"] = float(items[-1])
+         d["CEA_hf298_T3_offset"] = float(items[-1])
          d["CEA_T3_exp"] = []
          # we have to slice out the correct region due to the way
          # the DB often writes numbers with no space between them
@@ -366,7 +366,7 @@ def process_CEA(h5,fname):
          # todo: check T3 for sanity since it is listed twice
          d["CEA_T4"] = float(items[0])
          d["CEA_T5"] = float(items[1])
-         d["hf298_T4_offset"] = float(items[-1])
+         d["CEA_hf298_T4_offset"] = float(items[-1])
          d["CEA_T4_exp"] = []
          # we have to slice out the correct region due to the way
          # the DB often writes numbers with no space between them
@@ -416,7 +416,7 @@ def process_CEA(h5,fname):
          # todo: check T3 for sanity since it is listed twice
          d["CEA_T5"] = float(items[0])
          d["CEA_T6"] = float(items[1])
-         d["hf298_T5_offset"] = float(items[-1])
+         d["CEA_hf298_T5_offset"] = float(items[-1])
          d["CEA_T5_exp"] = []
          # we have to slice out the correct region due to the way
          # the DB often writes numbers with no space between them
@@ -466,7 +466,7 @@ def process_CEA(h5,fname):
          # todo: check T3 for sanity since it is listed twice
          d["CEA_T6"] = float(items[0])
          d["CEA_T7"] = float(items[1])
-         d["hf298_T6_offset"] = float(items[-1])
+         d["CEA_hf298_T6_offset"] = float(items[-1])
          d["CEA_T6_exp"] = []
          # we have to slice out the correct region due to the way
          # the DB often writes numbers with no space between them
@@ -581,7 +581,8 @@ def process_burcat(h5,fname):
       d["NASA7_burcat_T1"]  = float(record[0][47:55])
       d["NASA7_burcat_T2"]  = 1000.0
       d["NASA7_burcat_T3"]  = float(record[0][56:65])
-    
+      d["burcat_Tintervals"] = 2
+      
       # read the high temperature polynomial coefficients (1000K-T2)
       polyhi = numpy.zeros(7) 
       polyhi[0] = read_coeff(record[1],0)
@@ -606,7 +607,7 @@ def process_burcat(h5,fname):
       d["NASA7_burcat2"] = polyhi
 
       # read the 15th coefficient
-      d["NASA7_coeff15"] = read_coeff(record[3],60)
+      d["NASA7_burcat_coeff15"] = read_coeff(record[3],60)
 
 
       write_species(h5,d)
@@ -660,6 +661,7 @@ def process_grimech_thermo(h5,fname):
       d["NASA7_grimech_T1"] = float(record[0][47:55])
       d["NASA7_grimech_T2"] = 1000.0 
       d["NASA7_grimech_T3"] = float(record[0][56:65])
+      d["grimech_Tintervals"] = 2
       
       # read the high temperature polynomial coefficients (1000K-T2)
       polyhi = numpy.zeros(7) 
