@@ -5564,6 +5564,130 @@ void Mesh<Type>::CGNSreadBCConditions(char *name, int **bc)
 
 #endif //end _HAS_CGNS
 
+// Writes a mesh out in STL (only writes the surfaces)
+// SelectFactag - if negative, all factags are written, if positive only select factag is written
+template <class Type>
+Int Mesh<Type>::WriteSTL_Ascii(std::string casename, Int selectFactag)
+{
+  Int etype, i;    
+  Int tempnodes[8];
+
+  //STL structure is
+  // solid "comment"
+  //   facet normal nx ny nz
+  //     outer loop
+  //       vertex x y z
+  //       vertex x y z
+  //       vertex x y z
+  //     endloop
+  //   endfacet
+  //
+  //   continue for nfacets ... 
+  //
+  //  endsolid "comment"
+  
+  //
+  // table converts from our format --> stl
+  //
+  Int translation[][8] = {
+    {2,1,0}, // Triangle
+    {3,2,1,0}, // Quad
+    {0,1,3,2},  // Tet
+    {0,1,2,3,4},  // Pyramid
+    {0,3,4,1,5,2},  // Prism
+    {0,1,3,2,4,5,7,6}  // Hex
+  };
+
+
+  std::ofstream fout;
+  std::stringstream ss (std::stringstream::in | std::stringstream::out);
+
+  std::string filename = casename + ".stl";
+
+  fout.open(filename.c_str());
+  if(!fout.is_open()){
+    return(-1);
+  }
+  
+  std::cout << "STL ASCII I/O: Writing file --> " << filename << std::endl;
+
+  fout.setf(std::ios::scientific);
+  fout.precision(15);
+
+  fout << "solid Written by ProteusCFD converter" << std::endl;
+  
+  for(typename std::vector<Element<Type>*>::iterator it = elementList.begin(); it != elementList.end(); ++it){
+    Element<Type>& element = **it;
+    etype = element.GetType();
+    if(etype == TRI){
+      Int* nodes = NULL;
+      Int nnodes = element.GetNodes(&nodes);
+      Int factag = element.GetFactag();
+      if (selectFactag >= 0){
+	if (factag != selectFactag){
+	  continue;
+	}
+      }
+      Type n[3];
+      Type pt[3];
+      memcpy(tempnodes, nodes, sizeof(Int)*nnodes);
+      TranslateWinding(tempnodes, translation, nnodes, etype, 1);
+      //compute face normal
+      GetPlaneDefinition(&xyz[tempnodes[0]*3], &xyz[tempnodes[1]*3], &xyz[tempnodes[2]*3], pt, n);
+      //print face normal
+      fout << "\tfacet normal " << n[0] << " " << n[1] << " " << n[2] << std::endl;
+      fout << "\t\touter loop" << std::endl;
+      //print vertices
+      fout << "\t\t\tvertex " << xyz[tempnodes[0]*3 + 0] << " " << xyz[tempnodes[0]*3 + 1] << " " << xyz[tempnodes[0]*3 + 2] << std::endl;
+      fout << "\t\t\tvertex " << xyz[tempnodes[1]*3 + 0] << " " << xyz[tempnodes[1]*3 + 1] << " " << xyz[tempnodes[1]*3 + 2] << std::endl;
+      fout << "\t\t\tvertex " << xyz[tempnodes[2]*3 + 0] << " " << xyz[tempnodes[2]*3 + 1] << " " << xyz[tempnodes[2]*3 + 2] << std::endl;
+      fout << "\t\tendloop" << std::endl;
+      fout << "\tendfacet" << std::endl;
+    }
+    // we split the QUAD into two triangle
+    else if(etype == QUAD){
+      Int* nodes = NULL;
+      Int nnodes = element.GetNodes(&nodes);
+      Int factag = element.GetFactag();
+      if (selectFactag >= 0){
+	if (factag != selectFactag){
+	  continue;
+	}
+      }
+      Type n[3];
+      Type pt[3];
+      memcpy(tempnodes, nodes, sizeof(Int)*nnodes);
+      TranslateWinding(tempnodes, translation, nnodes, etype, 1);
+      //compute face normal
+      GetPlaneDefinition(&xyz[tempnodes[0]*3], &xyz[tempnodes[1]*3], &xyz[tempnodes[2]*3], pt, n);
+      //print face normal 1
+      fout << "\tfacet normal " << n[0] << " " << n[1] << " " << n[2] << std::endl;
+      fout << "\t\touter loop" << std::endl;
+      //print vertices
+      fout << "\t\t\tvertex " << xyz[tempnodes[0]*3 + 0] << " " << xyz[tempnodes[0]*3 + 1] << " " << xyz[tempnodes[0]*3 + 2] << std::endl;
+      fout << "\t\t\tvertex " << xyz[tempnodes[1]*3 + 0] << " " << xyz[tempnodes[1]*3 + 1] << " " << xyz[tempnodes[1]*3 + 2] << std::endl;
+      fout << "\t\t\tvertex " << xyz[tempnodes[2]*3 + 0] << " " << xyz[tempnodes[2]*3 + 1] << " " << xyz[tempnodes[2]*3 + 2] << std::endl;
+      //---------------------------------------------------------
+      //compute face normal
+      GetPlaneDefinition(&xyz[tempnodes[2]*3], &xyz[tempnodes[3]*3], &xyz[tempnodes[0]*3], pt, n);
+      //print face normal 2
+      fout << "\tfacet normal " << n[0] << " " << n[1] << " " << n[2] << std::endl;
+      fout << "\t\touter loop" << std::endl;
+      //print vertices
+      fout << "\t\t\tvertex " << xyz[tempnodes[2]*3 + 0] << " " << xyz[tempnodes[2]*3 + 1] << " " << xyz[tempnodes[2]*3 + 2] << std::endl;
+      fout << "\t\t\tvertex " << xyz[tempnodes[3]*3 + 0] << " " << xyz[tempnodes[3]*3 + 1] << " " << xyz[tempnodes[3]*3 + 2] << std::endl;
+      fout << "\t\t\tvertex " << xyz[tempnodes[0]*3 + 0] << " " << xyz[tempnodes[0]*3 + 1] << " " << xyz[tempnodes[0]*3 + 2] << std::endl;
+      fout << "\t\tendloop" << std::endl;
+      fout << "\tendfacet" << std::endl;
+    }
+  }
+  fout << "endsolid Written by ProteusCFD converter" << std::endl;
+
+  std::cout << "STL ASCII I/O: Write complete" << std::endl;
+
+  return(0);
+}
+
 template <class Type>
 Int Mesh<Type>::WriteCRUNCH_Ascii(std::string casename)
 {

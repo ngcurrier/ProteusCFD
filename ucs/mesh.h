@@ -166,6 +166,7 @@ class Mesh
   void CGNSreadBCConditions(char *name, int **bc);
   int CGNSgetBCIndNum(char *name, int ib);
 #endif
+  Int WriteSTL_Ascii(std::string casename, Int selectFactag);
   Int WriteCRUNCH_Ascii(std::string casename);
   Int WriteVTK_Ascii(std::string casename, std::vector<SolutionField<Type>*>& fields);
   Int WriteVTK_Binary(std::string casename, std::vector<SolutionField<Type>*>& fields);

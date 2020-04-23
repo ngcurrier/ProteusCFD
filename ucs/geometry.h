@@ -296,7 +296,7 @@ theType CalcTetVol(const theType pt1[3], const theType pt2[3], const theType pt3
 //takes three points, returns one point and a normal vector
 //return value is the magnitude of the normal before normalization
 template <class theType>
-theType GetPlaneDefintion(const theType pt1[3], const theType pt2[3], const theType pt3[3], theType rpt[3], theType rn[3])
+theType GetPlaneDefinition(const theType pt1[3], const theType pt2[3], const theType pt3[3], theType rpt[3], theType rn[3])
 {
   theType diff1[3];
   theType diff2[3];

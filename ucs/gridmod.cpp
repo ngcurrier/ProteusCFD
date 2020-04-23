@@ -258,6 +258,16 @@ int main(int argc, char* argv[]){
     std::vector<SolutionField<Real>*> fields;
     m.WriteVTK_Ascii(casename, fields);
   }
+  else if(fileextension == "stl"){
+    std::cout << "\nInput factag to extract (negative extracts all): " << std::endl;
+    std::stringstream ss2;
+    std::string tmp2;
+    std::getline(std::cin, tmp2);
+    ss2.str(tmp2);
+    Int factag;
+    ss2 >> factag;
+    m.WriteSTL_Ascii(casename, factag);
+  }
   else{
     cerr << "File extension " << fileextension << " not recognized for output mesh" << endl;
     return 0;
