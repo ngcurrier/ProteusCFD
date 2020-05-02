@@ -302,10 +302,17 @@ theType GetPlaneDefinition(const theType pt1[3], const theType pt2[3], const the
   theType diff2[3];
   theType mag;
 
+  // use centroid
+  rpt[0] = (pt1[0] + pt2[0] + pt3[0])/3.0;
+  rpt[1] = (pt1[1] + pt2[1] + pt3[1])/3.0;
+  rpt[2] = (pt1[2] + pt2[2] + pt3[2])/3.0;
+  
+  // pt2 - pt1
   diff1[0] = pt2[0] - pt1[0];
   diff1[1] = pt2[1] - pt1[1];
   diff1[2] = pt2[2] - pt1[2];
 
+  // pt3 - pt1
   diff2[0] = pt3[0] - pt1[0];
   diff2[1] = pt3[1] - pt1[1];
   diff2[2] = pt3[2] - pt1[2];

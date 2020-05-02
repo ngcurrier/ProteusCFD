@@ -711,6 +711,7 @@ Int Mesh<Type>::BuildPsp()
   return (0);
 }
 
+// Builds volume element to element list
 template <class Type>
 Int Mesh<Type>::BuildEl2el()
 {
@@ -894,6 +895,7 @@ Int Mesh<Type>::BuildEl2el()
   return (0);
 }
 
+// Builds surface elements to element lists
 template <class Type>
 Int Mesh<Type>::BuildSel2el()
 {
@@ -963,13 +965,17 @@ Int Mesh<Type>::BuildSel2el()
   for(typename std::vector<Element<Type>*>::iterator it = elementList.begin(); it != elementList.end(); ++it){
     Element<Type>& element = **it;
     Int e = element.GetType();
+    // loop over all surface elements (only 2D elements are on the surface)
     if(e == TRI || e == QUAD){
       Int* nodes = NULL;
       Int nnodes = element.GetNodes(&nodes);
+      // loop over all the nodes in the element
       for(Int i = 0; i < nnodes; i++){
 	inode = nodes[i];
+	// get the list of all elements surrounding the node we're iterating
 	indx1 = ielsp[inode];
 	indx2 = ielsp[inode+1];
+	// loop over attached elements to our node
 	for(Int j = indx1; j < indx2; j++){
 	  jelem = elsp[j];
 	  Element<Type>& element2 = *elementList[jelem];
@@ -1312,7 +1318,7 @@ void Mesh<Type>::GetNodeNeighborhoodNormal(Int ptid, std::vector<Int> excludedFa
       }
     }
     if(!include) continue;
-    //all face normals are returned outward pointing, we want inward pointing. Flip them.
+    //all face normals are returned outward pointing, we want inward pointing for BCs. Flip them.
     avg[0] -= inormal[0]; //x
     avg[1] -= inormal[1]; //y
     avg[2] -= inormal[2]; //z
@@ -1366,6 +1372,54 @@ Int Mesh<Type>::EliminateRepeats(Int* array, Int n)
     }
   }
   return (unique);
+}
+
+// gets a list of shared nodes oriented so that a normal constructed points from elem1 to elem2
+// knodes is list of node indices
+// returns 0 if no faces are common between elem1 and elem2
+template <class Type>
+Int Mesh<Type>::GetSharedFaceNodes(Element<Type>& elem1, Element<Type>& elem2, Int* knodes, Int& order)
+{
+  order = 1; // order is elem1 to elem2
+  Int nodes = 0;
+  Int* nodes1 = NULL;
+  Int* nodes2 = NULL;
+  Int nn1 = elem1.GetNodes(&nodes1);
+  Int nn2 = elem2.GetNodes(&nodes2);
+  
+  for(Int i = 0; i < nn1; i++){
+    for(Int j = 0; j < nn2; j++){
+      if(nodes1[i] == nodes2[j]){
+	knodes[nodes] = nodes1[i];
+	nodes++;
+      }
+    }
+  }
+  // we would like to report the nodes back in a sensible order
+  // we choose a right hand rule where the node winding should result in a
+  // vector pointing into the second element, c0 to c1
+  // just check the first 3 nodes, the 4th node is sane for quad faces
+  Type cent1[3];
+  Type n[3];
+  Type pt[3];
+  ElementCentroid(nodes1, xyz, elem1.GetType(), cent1);
+  GetPlaneDefinition(&xyz[nodes1[0]*3], &xyz[nodes1[1]*3], &xyz[nodes1[2]*3], pt, n);
+  Type v2[3]; // vector from face centroid to element centroid
+  v2[0] = cent1[0] - pt[0];
+  v2[1] = cent1[1] - pt[1];
+  v2[2] = cent1[2] - pt[2];
+  Type dot = DotProduct(n, v2);
+  // if dot product is negative, we are order 2, otherwise 1
+  order = 1;
+  if(dot < 0.0){
+    order = 2;
+  }
+  if(nodes >= 3){
+    return (nodes);
+  }
+  else{
+    return (0);
+  }
 }
 
 /********************************************/
@@ -1571,8 +1625,8 @@ Int Mesh<Type>::CalcExtents()
   realExMax[1] = maxY;
   realExMax[2] = maxZ;
   realExMin[0] = minX;
-  realExMax[1] = minY;
-  realExMax[2] = minZ;
+  realExMin[1] = minY;
+  realExMin[2] = minZ;
 
   MPI_Allreduce(MPI_IN_PLACE, realExMax, 3, mpit, MPI_MAX, MPI_COMM_WORLD);
   MPI_Allreduce(MPI_IN_PLACE, realExMin, 3, mpit, MPI_MIN, MPI_COMM_WORLD);
@@ -1595,7 +1649,7 @@ Int Mesh<Type>::CalcExtents()
 template <class Type>
 Int Mesh<Type>::CalcAreasVolumes()
 {
-  std::cout << "MESH UTILITY: Calculating element areas and volumes" << std::endl;
+  std::cout << "MESH UTILITY: CalcAreasVolumes() - calculating element areas and volumes" << std::endl;
   
   Int i, j, k, jj, kk, nn;
   Int indx1, indx2, indx3, indx4;
@@ -2827,7 +2881,7 @@ Int Mesh<Type>::ReadPartedMesh(std::string casename)
   for(i = TRI; i <= HEX; i++){
     localElemCount += nelem[i];
   }
-  bface = nelem[TRI] + nelem[QUAD];
+  nbface = nelem[TRI] + nelem[QUAD];
 
   
   std::cout << "PARTITION HDF I/O: Number of global nodes " << gnnode << std::endl;
@@ -2944,7 +2998,7 @@ Mesh<Type>::Mesh(const Mesh<Type2>& meshToCopy)
   nedge = meshToCopy.GetNumEdges();
   ngedge = meshToCopy.GetNumParallelEdges();
   nbedge = meshToCopy.GetNumBoundaryEdges();
-  bface = meshToCopy.bface;
+  nbface = meshToCopy.nbface;
   nfactags = meshToCopy.nfactags;
   nvnodes = meshToCopy.nvnodes;
   nsnodes = meshToCopy.nsnodes;
@@ -3845,7 +3899,9 @@ Int Mesh<Type>::ReadGMSH2_Ascii(std::string filename)
     std::cerr << "GMSH 2 ASCII I/O: Warning no surface tri/quad elements found. Did you create physical groups on the surface for BCs?\n";
     return -1;
   }
-  
+
+  UpdateElementCounts();
+
   if(totalElems != lnelem){
     std::cerr << "GMSH 2 ASCII I/O: Number of elements expected does not match number read in" << std::endl;
     std::cerr << "GMSH 2 ASCII I/O: This sometimes happen if we ignore lower order elements like linear" << std::endl;
@@ -5174,6 +5230,7 @@ void Mesh<Type>::UpdateElementCounts()
   for(Int e = TRI; e <= HEX; e++){
     lnelem += nelem[e];
   }
+  nbface = nelem[TRI] + nelem[QUAD];
 
 }
 
@@ -5686,6 +5743,388 @@ Int Mesh<Type>::WriteSTL_Ascii(std::string casename, Int selectFactag)
   std::cout << "STL ASCII I/O: Write complete" << std::endl;
 
   return(0);
+}
+
+
+
+// This routine collects a list of interior faces between
+// volume elements and generates a list which is passed
+// by reference, new elements are created and therefore
+// MUST BE FREE'D to avoid a memory leak
+// newlist - list of elements that are interior faces (tris/quads)
+// orientation - vector of dual numbers (i.e. on element 0 -> (23, 4)
+//               would signify a winding from element 23 to 4
+//               these are zero indexed element numberings
+//               winding follows right hand rule for node numberings
+template <class Type>
+void Mesh<Type>::GetInteriorFaces(std::vector<Element<Type>*>& newlist, std::vector<IntInt>& orientation)
+{
+  newlist.clear();
+  orientation.clear();
+  Element<Type>* tempe = NULL;
+  Bool* checked;
+  checked = new Bool[lnelem];
+  for(Int i = 0; i < lnelem; ++i){
+    checked[i] = false;
+  }
+  Int i = 0;
+  Int c1, c2;
+  Int knodes [4];
+  Int facecount = 0;
+  for(typename std::vector<Element<Type>*>::iterator it = elementList.begin(); it != elementList.end(); ++it){
+    Element<Type>& element = **it;
+    // check el2el maps (volume elements)
+    Int indx1 = iel2el[i];
+    Int indx2 = iel2el[i+1];
+    checked[i] = true;
+    for(Int j = indx1; j < indx2; j++){
+      Int connectedElem = el2el[j];
+      if(checked[connectedElem] == true){
+	continue;
+      }
+      else{
+	Element<Type>& element2 = *elementList[connectedElem];
+	//extract the face and write it to the new list
+	Int order;
+	Int sharenodes = GetSharedFaceNodes(element, element2, knodes, order);
+	Int c0,c1;
+	if(order == 1){
+	  c0 = i;
+	  c1 = connectedElem;
+	}
+	else{
+	  c0 = connectedElem;
+	  c1 = i;
+	}
+	IntInt tmporient;
+	tmporient.a = c0;
+	tmporient.b = c1;
+	if(sharenodes == 3){
+	  tempe = new Triangle<Type>;
+	  tempe->Init(knodes);
+	  newlist.push_back(tempe);
+	}
+	else if(sharenodes == 4){
+	  tempe = new Quadrilateral<Type>;
+	  tempe->Init(knodes);
+	  newlist.push_back(tempe);
+	}
+	else{
+	  Abort << "Number of interior face nodes is not 3 or 4";
+	}
+	orientation.push_back(tmporient);
+	facecount++;
+      }
+    }
+    checked[i] = true;
+    ++i;
+  }
+}
+
+// this routine compiles a list of faces on boundaries of tag factag
+// Copies of the elements are not made and therefore should not be freed
+// newList - pointers to boundary faces on faces tag - DO NOT FREE
+// volumeNeighbor - volume element neighbor for the surface face
+// factagTarget - factags to selectively extract
+template <class Type>
+void Mesh<Type>::GetBoundaryFaces(std::vector<Element<Type>*>& newlist, std::vector<Int>& volumeNeighbor,
+				  Int factagTarget)
+{
+  newlist.clear();
+  volumeNeighbor.clear();
+  Int jdx;
+  for(typename std::vector<Element<Type>*>::iterator it = elementList.begin(); it != elementList.end(); ++it){
+    Element<Type>& element = **it;
+    Int factag = element.GetFactag();
+    if(factag == factagTarget){
+      newlist.push_back(*it);
+      // get nodes the surface element is attached to
+      Int* nodes = NULL;
+      Int nnodes = element.GetNodes(&nodes);
+      std::vector<Int> surfaceNodes;
+      for(Int i = 0; i < nnodes; ++i){
+	surfaceNodes.push_back(nodes[i]);
+      }
+      sort(surfaceNodes.begin(), surfaceNodes.end());
+      // loop over all the nodes in the element
+      for(Int i = 0; i < nnodes; i++){
+	Int inode = nodes[i];
+	// get the list of all elements surrounding the node we're iterating
+	Int indx1 = ielsp[inode];
+	Int indx2 = ielsp[inode+1];
+	// loop over attached elements to our node
+	for(Int j = indx1; j < indx2; j++){
+	  Int jelem = elsp[j];
+	  Element<Type>& element2 = *elementList[jelem];
+	  Int etype = element2.GetType();
+	  if(etype == TET || etype == PYRAMID || etype == PRISM || etype == HEX){
+	    // check that all of the nodes from the surface element are present in the
+	    // suspected volume element
+	    Int* vnodes = NULL;
+	    Int nvnodes = element2.GetNodes(&vnodes);
+	    std::vector<Int> volumeNodes;
+	    for(Int k = 0; k < nvnodes; ++k){
+	      volumeNodes.push_back(vnodes[k]);
+	    }
+	    sort(volumeNodes.begin(), volumeNodes.end());
+	    // we're going to use the STL b/c otherwise this is challenging complexity
+	    // initialize a vector to stor common values and an iterator to traverse them
+	    std::vector<Int> common(surfaceNodes.size() + volumeNodes.size());
+	    std::vector<Int>::iterator it, st;
+	    it = set_intersection(surfaceNodes.begin(), surfaceNodes.end(), volumeNodes.begin(),
+				  volumeNodes.end(), common.begin());
+	    Int commonCount = it - common.begin();
+	    // This is left here to diagnose problems, commmon nodes writing loop
+	    // std::cout << "\nCommon elements:\n"; for (st = common.begin(); st != it; ++st) std::cout << *st << ", "; 
+	    if( commonCount == nnodes){
+	      volumeNeighbor.push_back(jelem);
+	      break;
+	    }
+	  }
+	  if(volumeNeighbor.size() == newlist.size()) break;
+	}
+      }
+      // check that we found the volume element, if not abort
+      if(volumeNeighbor.size() != newlist.size()){
+	std::cout << "GetBoundaryFaces() " << volumeNeighbor.size() << " " << newlist.size()
+		  << std::endl;
+	Abort << "GetBoundaryFaces() did not find volume element associated with boundary face";
+      }
+    }
+    jdx++;
+  }
+}
+
+template <class Type>
+Int Mesh<Type>::WriteFluentCase_Ascii(std::string casename)
+{
+  Int etype, i;    
+  Int tempnodes[8];
+
+  // Note comments are written like (0 "comment text")
+  // Fluent annoyingly writes all integers to file in Hex 
+  
+  //
+  // table converts from our format --> Fluent
+  //
+  Int translation[][8] = {
+    {2,1,0}, // Triangle
+    {3,2,1,0}, // Quad
+    {0,1,3,2},  // Tet
+    {0,1,2,3,4},  // Pyramid
+    {0,3,4,1,5,2},  // Prism
+    {0,1,3,2,4,5,7,6}  // Hex
+  };
+
+
+  std::ofstream fout;
+  std::stringstream ss (std::stringstream::in | std::stringstream::out);
+
+  std::string filename = casename + ".cas";
+
+  fout.open(filename.c_str());
+  if(!fout.is_open()){
+    return(-1);
+  }
+  std::cout << "FLUENT CASE ASCII I/O: Writing file --> " << filename << std::endl;
+
+  
+  // write header
+  fout << "(1 \"Exported from ProteusCFD\")" << std::endl;
+  fout << std::endl;
+
+  // write dimensions
+  fout << "(0 \"3 dimensional grid\")" << std::endl;
+  fout << "(" << i2h(2) << " " << i2h(3) << ")" << std::endl;
+  fout << std::endl;
+  
+  // write node header
+  Int zoneid = 0;
+  Int type = 1;
+  Int firstidx = 1; // fluent uses one based indexing
+  Int lastidx = nnode; 
+  fout << "(0 \"Nodes header\")" << std::endl;
+  fout << "(0 \"Number of nodes " << nnode << "\")" << std::endl;
+  fout << "(10 (" << i2h(zoneid) << " " << i2h(firstidx) << " "
+       << i2h(lastidx) << " " << i2h(0) << " " << i2h(3) << "))" << std::endl;
+  fout << std::endl;
+  
+  std::vector<Element<Type>*> interiorFaces;
+  std::vector<IntInt> orientation;
+  GetInteriorFaces(interiorFaces, orientation);
+
+  // get header pointer for faces
+  fout << "(0 \"Faces header\")" << std::endl;
+  lastidx = interiorFaces.size() + nbface;
+  fout << "(0 \"Number of total faces " << lastidx << "\")" << std::endl;
+  fout << "(0 \"Number of boundary faces " << nbface << "\")" << std::endl;
+  fout << "(0 \"Number of interior faces " << interiorFaces.size() << "\")" << std::endl;
+  fout << "(13 (" << i2h(zoneid) << " " << i2h(firstidx) << " "
+       << i2h(lastidx) << " " << i2h(0) << "))" << std::endl;
+  fout << std::endl;
+  
+  // write header pointer for cells
+  fout << "(0 \"Cells header\")" << std::endl;
+  Int ncells = nelem[TET] + nelem[PYRAMID] + nelem[PRISM] + nelem[HEX];
+  lastidx = ncells;
+  fout << "(12 (" << i2h(zoneid) << " " << i2h(firstidx) << " "
+       << i2h(lastidx) << " " << i2h(0) << "))" << std::endl;
+  fout << std::endl;
+  
+  // write nodes
+  zoneid++;
+  lastidx = nnode;
+  fout << "(0 \"Number of nodes " << nnode << "\")" << std::endl;
+  fout << "(10 (" << i2h(zoneid) << " " << i2h(firstidx) << " "
+       << i2h(lastidx) << " " << i2h(type)
+       << " " << i2h(3) << ")(" << std::endl;
+  fout.setf(std::ios::scientific);
+  fout.precision(15);
+  for(i = 0; i < nnode; i++){
+    fout << xyz[i*3 + 0] << " " << xyz[i*3 + 1] << " " << xyz[i*3 + 2] << std::endl;
+  }
+  fout << "))" << std::endl;
+  fout << std::endl;
+
+  // write volume cells only, boundary cells are treated as faces
+  //  ---cell types--
+  // 0 - mixed
+  // 1 - triangle
+  // 2 - tet
+  // 3 - quad
+  // 4 - hex
+  // 5 - pyramid
+  // 6 - wedge
+  // 7 - polyhedral
+  zoneid++;
+  firstidx = 1;
+  lastidx = ncells;
+  fout << "(0 \"Number of cells " << ncells << "\")" << std::endl;
+  fout << "(12 (" << i2h(zoneid) << " " << i2h(firstidx) << " "
+       << i2h(lastidx) << " " << i2h(1)
+       << " " << i2h(0) << ")(" << std::endl;
+  Int count = 0;
+  for(typename std::vector<Element<Type>*>::iterator it = elementList.begin(); it != elementList.end(); ++it){
+    Element<Type>& element = **it;
+    etype = element.GetType();
+    switch (etype) {  
+    case TRI :
+      // nothing
+      continue;
+    case QUAD :
+      // nothing
+      continue;
+    case TET :
+      fout << i2h(2) << " ";
+      count++;
+      break;
+    case PYRAMID :
+      fout << i2h(5) << " ";
+      count++;
+      break;
+    case PRISM :
+      fout << i2h(6) << " ";
+      count++;
+      break;
+    case HEX :
+      fout << i2h(4) << " ";
+      count++;
+      break;
+    default :
+      std::cerr << "Type not defined WriteFluentCase_Ascii() -- type " << etype << std::endl;
+    }
+    if ((count%9) == 0){
+      fout << std::endl;
+    }
+  }
+  fout << "))" << std::endl;
+  fout << std::endl;
+
+  // write all interior faces
+  zoneid++;
+  firstidx = 1;
+  lastidx = interiorFaces.size();
+  fout << "(0 \"Zone " << zoneid << "\")" << std::endl;
+  fout << "(0 \"Interior faces " << firstidx << " to " << lastidx << "\")" << std::endl;
+  fout << "(13 (" << i2h(zoneid) << " " << i2h(firstidx) << " "
+       << i2h(lastidx) << " " << i2h(0) << ")(" << std::endl;
+  // write out the interior faces, NOTE: for element connectivity, internally this tool is zero-based
+  // FLUENT is expecting one-based indices so we have to add one to write out
+  Int faceCount = 0;
+  for(typename std::vector<Element<Type>*>::iterator it = interiorFaces.begin(); it != interiorFaces.end(); ++it){
+    IntInt tmpOrient = orientation[faceCount];
+    Element<Type>& element = **it;
+    etype = element.GetType();
+    Int* nodes;
+    Int nnodes = element.GetNodes(&nodes);
+    Int c0 = tmpOrient.a + 1;
+    Int c1 = tmpOrient.b + 1;
+    if(etype == TRI){
+      fout << i2h(3) << " " << i2h(nodes[0]) << " " << i2h(nodes[1]) << " "
+	   << i2h(nodes[2]) << " " << i2h(c0) << " " << i2h(c1) << std::endl;;
+    }
+    else if(etype == QUAD){
+      fout << i2h(4) << " " << i2h(nodes[0]) << " " << i2h(nodes[1]) << " "
+	   << i2h(nodes[2]) << " " << i2h(nodes[3]) << " " << i2h(c0) << " "
+	   << i2h(c1) << std::endl;;
+    }
+    faceCount++;
+  }
+  
+  fout << "))" << std::endl;
+  fout << std::endl;
+  
+  std::cout << "FLUENT CASE ASCII I/O: Wrote " << interiorFaces.size() << " interior faces" << std::endl;
+  
+  // write boundary faces for each factag
+  // set all to wall (3) for now, (9) is farfield
+  for(i = 0; i <= nfactags; ++i){
+    std::vector<Element<Type>*> bFaces;
+    std::vector<Int> volumeNeighbor;
+    GetBoundaryFaces(bFaces, volumeNeighbor, i);
+    if(bFaces.size() > 0){
+      firstidx = faceCount;
+      lastidx = faceCount + bFaces.size() - 1;
+      zoneid++;
+      fout << "(0 \"Zone " << zoneid << "\")" << std::endl;
+      fout << "(0 \"Faces " << firstidx << " to " << lastidx << "\")" << std::endl;
+      fout << "(13 (" << i2h(zoneid) << " " << i2h(firstidx) << " "
+	   << i2h(lastidx) << " " << i2h(0) << ")(" << std::endl;
+      Int jdx = 0;
+      for(typename std::vector<Element<Type>*>::iterator it = bFaces.begin(); it != bFaces.end(); ++it){
+	Element<Type>& element = **it;
+	etype = element.GetType();
+	Int* nodes;
+	Int nnodes = element.GetNodes(&nodes);
+	if(etype == TRI){
+	  Int c0 = 0; // NOTE: all our normals face outwards by definition, so c0 is always zero
+	  Int c1 = volumeNeighbor[jdx] + 1;
+	  fout << i2h(3) << " " << i2h(nodes[0]) << " " << i2h(nodes[1]) << " "
+	       << i2h(nodes[2]) << " " << i2h(c0) << " " << i2h(c1) << std::endl;
+	}
+	else if(etype == QUAD){
+	  Int c0 = 0; // NOTE: all our normals face outwards by definition, so c0 is always zero
+	  Int c1 = volumeNeighbor[jdx] + 1;
+	  fout << i2h(4) << " " << i2h(nodes[0]) << " " << i2h(nodes[1]) << " "
+	       << i2h(nodes[2]) << " " << i2h(nodes[3]) << " " << i2h(c0) << " "
+	       << i2h(c1) << std::endl;;
+	}
+	faceCount++;
+	jdx++;
+      }
+      fout << "))" << std::endl;
+      fout << std::endl;
+    }
+  }
+
+  // clean up the interior face list since those aren't just references
+  for(typename std::vector<Element<Type>*>::iterator it = interiorFaces.begin(); it != interiorFaces.end(); ++it){
+    delete *it;
+  }
+
+  
+  std::cout << "FLUENT CASE ASCII I/O: Write complete" << std::endl;
+  return 0;
 }
 
 template <class Type>

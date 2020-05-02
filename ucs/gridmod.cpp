@@ -268,6 +268,9 @@ int main(int argc, char* argv[]){
     ss2 >> factag;
     m.WriteSTL_Ascii(casename, factag);
   }
+  else if(fileextension == "cas"){
+    m.WriteFluentCase_Ascii(casename);
+  }
   else{
     cerr << "File extension " << fileextension << " not recognized for output mesh" << endl;
     return 0;

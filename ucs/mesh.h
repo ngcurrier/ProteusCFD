@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 #include <map>
 
 #ifdef _HAS_CGNS
@@ -147,7 +148,10 @@ class Mesh
   const Int* ElspEnd(Int ptid) const;   //returns ending access to elements surrounding a point
   const Int* SelspBegin(Int ptid) const; //returns beginning access to elements surrounding a surface point
   const Int* SelspEnd(Int ptid) const;   //returns ending access to elements surrounding a surface point
-
+  void GetInteriorFaces(std::vector<Element<Type>*>& newlist, std::vector<IntInt>& orientation);
+  void GetBoundaryFaces(std::vector<Element<Type>*>& newlist, std::vector<Int>& volumeNeighbor,
+			Int targetFactag);
+  
   Int ReadPartedMesh(std::string casename);
   Int ReadUGRID_Ascii(std::string filename);
   Int ReadCRUNCH_Ascii(std::string filename);
@@ -167,6 +171,7 @@ class Mesh
   int CGNSgetBCIndNum(char *name, int ib);
 #endif
   Int WriteSTL_Ascii(std::string casename, Int selectFactag);
+  Int WriteFluentCase_Ascii(std::string casename);
   Int WriteCRUNCH_Ascii(std::string casename);
   Int WriteVTK_Ascii(std::string casename, std::vector<SolutionField<Type>*>& fields);
   Int WriteVTK_Binary(std::string casename, std::vector<SolutionField<Type>*>& fields);
@@ -179,7 +184,12 @@ class Mesh
   //this call writes current coords in a timestep-# directory for mesh movement
   Int WriteCurrentCoords(std::string casename, Int timestep);
 
-
+  std::string i2h(Int a){
+    std::stringstream ss;
+    ss << std::hex << a;
+    return ss.str();
+  };
+  
   //*************************************************************************************
   //     MEMBER VARIABLES
   //*************************************************************************************
@@ -209,7 +219,7 @@ class Mesh
   //solution ordering
   Int* ordering;
   
-  Int bface; //number of surface elements (TRI/QUAD)
+  Int nbface;    //number of surface elements (TRI/QUAD)
   Int nfactags;  //number of unique face tags in list factag
 
   Type* xyz;      //coordinates of each vertex time current
@@ -260,6 +270,7 @@ private:
   //Internal Utility Functions
   Int EliminateRepeats(Int* array, Int n);
   Int CheckSharedFace(Element<Type>& elem1, Element<Type>& elem2, Int* knodes);
+  Int GetSharedFaceNodes(Element<Type>& elem1, Element<Type>& elem2, Int* knodes, Int& order);
   Int CheckFaceLocation(Int** fli, Int* fl, Int etype, Int facenum, Int* knodes, Int nodes);
   Int CheckSharedEdge(Element<Type>& elem1, Element<Type>& elem2, Int* knodes);
   Int CheckEdgeLocationSurf(Int** eli, Int* el, Int etype, Int ednum, Int* knodes, Int nodes);
