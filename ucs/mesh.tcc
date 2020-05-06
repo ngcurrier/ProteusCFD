@@ -5789,12 +5789,16 @@ void Mesh<Type>::GetInteriorFaces(std::vector<Element<Type>*>& newlist, std::vec
 	Int sharenodes = GetSharedFaceNodes(element, element2, knodes, order);
 	Int c0,c1;
 	if(order == 1){
-	  c0 = i;
-	  c1 = connectedElem;
-	}
-	else{
+	  // order 1 is face normal pointing to element 1 (i)
+	  // fluent expects right hand rule to point (c0) to 2nd listed element (c1)
 	  c0 = connectedElem;
 	  c1 = i;
+	}
+	else{
+	  // order 2 is face normal pointing to element 2 (connectedElem)
+	  // fluent expects right hand rule to point (c0) to 2nd listed element (c1)
+	  c0 = i;
+	  c1 = connectedElem;
 	}
 	IntInt tmporient;
 	tmporient.a = c0;
@@ -5816,7 +5820,6 @@ void Mesh<Type>::GetInteriorFaces(std::vector<Element<Type>*>& newlist, std::vec
 	facecount++;
       }
     }
-    checked[i] = true;
     ++i;
   }
 }
@@ -5953,6 +5956,24 @@ Int Mesh<Type>::WriteFluentCase_Ascii(std::string casename)
   std::vector<IntInt> orientation;
   GetInteriorFaces(interiorFaces, orientation);
 
+  // ANSYS FLUENT bcTypes are
+  //bc-type	description
+  //2	interior
+  //3	wall
+  //4	pressure-inlet, inlet-vent, intake-fan
+  //5	pressure-outlet, exhaust-fan, outlet-vent
+  //7	symmetry
+  //8	periodic-shadow
+  //9	pressure-far-field
+  //10	velocity-inlet
+  //12	periodic
+  //14	fan, porous-jump, radiator
+  //20	mass-flow-inlet
+  //24	interface
+  //31	parent (hanging node)
+  //36	outflow
+  //37	axis
+  
   // get header pointer for faces
   fout << "(0 \"Faces header\")" << std::endl;
   lastidx = interiorFaces.size() + nbface;
@@ -6044,10 +6065,11 @@ Int Mesh<Type>::WriteFluentCase_Ascii(std::string casename)
   zoneid++;
   firstidx = 1;
   lastidx = interiorFaces.size();
+  Int bcType = 2; //interior
   fout << "(0 \"Zone " << zoneid << "\")" << std::endl;
   fout << "(0 \"Interior faces " << firstidx << " to " << lastidx << "\")" << std::endl;
   fout << "(13 (" << i2h(zoneid) << " " << i2h(firstidx) << " "
-       << i2h(lastidx) << " " << i2h(0) << ")(" << std::endl;
+       << i2h(lastidx) << " " << bcType << " "  << i2h(0) << ")(" << std::endl;
   // write out the interior faces, NOTE: for element connectivity, internally this tool is zero-based
   // FLUENT is expecting one-based indices so we have to add one to write out
   Int faceCount = 0;
@@ -6078,6 +6100,7 @@ Int Mesh<Type>::WriteFluentCase_Ascii(std::string casename)
   
   // write boundary faces for each factag
   // set all to wall (3) for now, (9) is farfield
+  bcType = 3; // wall
   for(i = 0; i <= nfactags; ++i){
     std::vector<Element<Type>*> bFaces;
     std::vector<Int> volumeNeighbor;
@@ -6089,7 +6112,7 @@ Int Mesh<Type>::WriteFluentCase_Ascii(std::string casename)
       fout << "(0 \"Zone " << zoneid << "\")" << std::endl;
       fout << "(0 \"Faces " << firstidx << " to " << lastidx << "\")" << std::endl;
       fout << "(13 (" << i2h(zoneid) << " " << i2h(firstidx) << " "
-	   << i2h(lastidx) << " " << i2h(0) << ")(" << std::endl;
+	   << i2h(lastidx) << " " << bcType << " " << i2h(0) << ")(" << std::endl;
       Int jdx = 0;
       for(typename std::vector<Element<Type>*>::iterator it = bFaces.begin(); it != bFaces.end(); ++it){
 	Element<Type>& element = **it;
@@ -6097,8 +6120,9 @@ Int Mesh<Type>::WriteFluentCase_Ascii(std::string casename)
 	Int* nodes;
 	Int nnodes = element.GetNodes(&nodes);
 	if(etype == TRI){
-	  Int c0 = 0; // NOTE: all our normals face outwards by definition, so c0 is always zero
-	  Int c1 = volumeNeighbor[jdx] + 1;
+	  // NOTE: all our normals face outwards by definition
+	  Int c0 = volumeNeighbor[jdx] + 1;
+	  Int c1 = 0;
 	  fout << i2h(3) << " " << i2h(nodes[0]) << " " << i2h(nodes[1]) << " "
 	       << i2h(nodes[2]) << " " << i2h(c0) << " " << i2h(c1) << std::endl;
 	}
