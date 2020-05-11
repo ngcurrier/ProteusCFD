@@ -1402,14 +1402,17 @@ Int Mesh<Type>::GetSharedFaceNodes(Element<Type>& elem1, Element<Type>& elem2, I
   Type cent1[3];
   Type n[3];
   Type pt[3];
+  // get centroid of elem1
   ElementCentroid(nodes1, xyz, elem1.GetType(), cent1);
-  GetPlaneDefinition(&xyz[nodes1[0]*3], &xyz[nodes1[1]*3], &xyz[nodes1[2]*3], pt, n);
+  // get plane of shared face using new nodes list
+  GetPlaneDefinition(&xyz[knodes[0]*3], &xyz[knodes[1]*3], &xyz[knodes[2]*3], pt, n);
   Type v2[3]; // vector from face centroid to element centroid
   v2[0] = cent1[0] - pt[0];
   v2[1] = cent1[1] - pt[1];
   v2[2] = cent1[2] - pt[2];
   Type dot = DotProduct(n, v2);
-  // if dot product is negative, we are order 2, otherwise 1
+  // if dot product is negative (shared face normal is opposite elem1 direction)
+  // we are order 2, otherwise 1
   order = 1;
   if(dot < 0.0){
     order = 2;
@@ -5773,10 +5776,15 @@ void Mesh<Type>::GetInteriorFaces(std::vector<Element<Type>*>& newlist, std::vec
   Int facecount = 0;
   for(typename std::vector<Element<Type>*>::iterator it = elementList.begin(); it != elementList.end(); ++it){
     Element<Type>& element = **it;
+    checked[i] = true;
+    //we don't want to look at connections to surface elements, skip them
+    if(element.GetType() == TRI || element.GetType() == QUAD){
+      ++i;
+      continue;
+    }
     // check el2el maps (volume elements)
     Int indx1 = iel2el[i];
     Int indx2 = iel2el[i+1];
-    checked[i] = true;
     for(Int j = indx1; j < indx2; j++){
       Int connectedElem = el2el[j];
       if(checked[connectedElem] == true){
@@ -5784,6 +5792,8 @@ void Mesh<Type>::GetInteriorFaces(std::vector<Element<Type>*>& newlist, std::vec
       }
       else{
 	Element<Type>& element2 = *elementList[connectedElem];
+	//we don't want to look at connections to surface elements, skip them
+	if(element2.GetType() == TRI || element2.GetType() == QUAD) continue;
 	//extract the face and write it to the new list
 	Int order;
 	Int sharenodes = GetSharedFaceNodes(element, element2, knodes, order);
@@ -5954,6 +5964,8 @@ Int Mesh<Type>::WriteFluentCase_Ascii(std::string casename)
   
   std::vector<Element<Type>*> interiorFaces;
   std::vector<IntInt> orientation;
+  //TODO: fix this to exclude volume faces that point at a surface element
+  //      we only want truly internal faces in this list
   GetInteriorFaces(interiorFaces, orientation);
 
   // ANSYS FLUENT bcTypes are
@@ -6025,9 +6037,14 @@ Int Mesh<Type>::WriteFluentCase_Ascii(std::string casename)
        << i2h(lastidx) << " " << i2h(1)
        << " " << i2h(0) << ")(" << std::endl;
   Int count = 0;
+  Int idx = 0;
+  //create a number scheme that only counts volume cells, fluent expects this mapping
+  Int* volCellNumber = new Int[elementList.size()];
   for(typename std::vector<Element<Type>*>::iterator it = elementList.begin(); it != elementList.end(); ++it){
     Element<Type>& element = **it;
     etype = element.GetType();
+    volCellNumber[idx] = count;
+    idx++;
     switch (etype) {  
     case TRI :
       // nothing
@@ -6058,7 +6075,7 @@ Int Mesh<Type>::WriteFluentCase_Ascii(std::string casename)
       fout << std::endl;
     }
   }
-  fout << "))" << std::endl;
+  fout << "\n))" << std::endl;
   fout << std::endl;
 
   // write all interior faces
@@ -6079,19 +6096,22 @@ Int Mesh<Type>::WriteFluentCase_Ascii(std::string casename)
     etype = element.GetType();
     Int* nodes;
     Int nnodes = element.GetNodes(&nodes);
-    Int c0 = tmpOrient.a + 1;
-    Int c1 = tmpOrient.b + 1;
+    Int c0 = volCellNumber[tmpOrient.a] + 1;
+    Int c1 = volCellNumber[tmpOrient.b] + 1;
     if(etype == TRI){
-      fout << i2h(3) << " " << i2h(nodes[0]) << " " << i2h(nodes[1]) << " "
-	   << i2h(nodes[2]) << " " << i2h(c0) << " " << i2h(c1) << std::endl;;
+      // nodes are one indexed by fluent, zero internally
+      fout << i2h(3) << " " << i2h(nodes[0]+1) << " " << i2h(nodes[1]+1) << " "
+	   << i2h(nodes[2]+1) << " " << i2h(c0) << " " << i2h(c1) << std::endl;;
     }
     else if(etype == QUAD){
-      fout << i2h(4) << " " << i2h(nodes[0]) << " " << i2h(nodes[1]) << " "
-	   << i2h(nodes[2]) << " " << i2h(nodes[3]) << " " << i2h(c0) << " "
+      // nodes are one indexed by fluent, zero internally
+      fout << i2h(4) << " " << i2h(nodes[0]+1) << " " << i2h(nodes[1]+1) << " "
+	   << i2h(nodes[2]+1) << " " << i2h(nodes[3]+1) << " " << i2h(c0) << " "
 	   << i2h(c1) << std::endl;;
     }
     faceCount++;
   }
+  
   
   fout << "))" << std::endl;
   fout << std::endl;
@@ -6101,9 +6121,12 @@ Int Mesh<Type>::WriteFluentCase_Ascii(std::string casename)
   // write boundary faces for each factag
   // set all to wall (3) for now, (9) is farfield
   bcType = 3; // wall
+  faceCount++;
   for(i = 0; i <= nfactags; ++i){
     std::vector<Element<Type>*> bFaces;
     std::vector<Int> volumeNeighbor;
+    //TODO: fix volume neighbor to only count / indx to volume elements
+    //      currently indexes to total element list that includes surface elements as well
     GetBoundaryFaces(bFaces, volumeNeighbor, i);
     if(bFaces.size() > 0){
       firstidx = faceCount;
@@ -6121,16 +6144,19 @@ Int Mesh<Type>::WriteFluentCase_Ascii(std::string casename)
 	Int nnodes = element.GetNodes(&nodes);
 	if(etype == TRI){
 	  // NOTE: all our normals face outwards by definition
-	  Int c0 = volumeNeighbor[jdx] + 1;
+	  Int c0 = volCellNumber[volumeNeighbor[jdx]] + 1;
 	  Int c1 = 0;
-	  fout << i2h(3) << " " << i2h(nodes[0]) << " " << i2h(nodes[1]) << " "
-	       << i2h(nodes[2]) << " " << i2h(c0) << " " << i2h(c1) << std::endl;
+	  // nodes are one indexed by fluent, zero internally
+	  fout << i2h(3) << " " << i2h(nodes[2]+1) << " " << i2h(nodes[1]+1) << " "
+	       << i2h(nodes[0]+1) << " " << i2h(c0) << " " << i2h(c1) << std::endl;
 	}
 	else if(etype == QUAD){
-	  Int c0 = 0; // NOTE: all our normals face outwards by definition, so c0 is always zero
-	  Int c1 = volumeNeighbor[jdx] + 1;
-	  fout << i2h(4) << " " << i2h(nodes[0]) << " " << i2h(nodes[1]) << " "
-	       << i2h(nodes[2]) << " " << i2h(nodes[3]) << " " << i2h(c0) << " "
+	  // NOTE: all our normals face outwards by definition
+	  Int c0 = volCellNumber[volumeNeighbor[jdx]] + 1;
+	  Int c1 = 0; 
+	  // nodes are one indexed by fluent, zero internally
+	  fout << i2h(4) << " " << i2h(nodes[3]+1) << " " << i2h(nodes[2]+1) << " "
+	       << i2h(nodes[1]+1) << " " << i2h(nodes[0]+1) << " " << i2h(c0) << " "
 	       << i2h(c1) << std::endl;;
 	}
 	faceCount++;
@@ -6145,7 +6171,7 @@ Int Mesh<Type>::WriteFluentCase_Ascii(std::string casename)
   for(typename std::vector<Element<Type>*>::iterator it = interiorFaces.begin(); it != interiorFaces.end(); ++it){
     delete *it;
   }
-
+  delete [] volCellNumber;
   
   std::cout << "FLUENT CASE ASCII I/O: Write complete" << std::endl;
   return 0;
