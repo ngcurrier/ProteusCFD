@@ -269,7 +269,13 @@ int main(int argc, char* argv[]){
     m.WriteSTL_Ascii(casename, factag);
   }
   else if(fileextension == "cas"){
-    m.WriteFluentCase_Ascii(casename);
+    // Read boundary condition file casename.bc
+    bc = new BoundaryConditions<Real>;
+    Int ierr = bc->ReadFile(casename, m.GetMaximumFactag());
+    if(ierr){
+      std::cout << "BC file read failed, will not port BCs to FLUENT case file";
+    }
+    m.WriteFluentCase_Ascii(casename, bc);
   }
   else{
     cerr << "File extension " << fileextension << " not recognized for output mesh" << endl;

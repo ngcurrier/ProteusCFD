@@ -13,6 +13,7 @@
 #include "h5layer.h"
 #include "dataInfo.h"
 #include "solutionField.h"
+#include "bc.h"
 #include <iostream>
 #include <cstdlib>
 #include <string>
@@ -171,7 +172,7 @@ class Mesh
   int CGNSgetBCIndNum(char *name, int ib);
 #endif
   Int WriteSTL_Ascii(std::string casename, Int selectFactag);
-  Int WriteFluentCase_Ascii(std::string casename);
+  Int WriteFluentCase_Ascii(std::string casename, BoundaryConditions<Type>* bc = NULL);
   Int WriteCRUNCH_Ascii(std::string casename);
   Int WriteVTK_Ascii(std::string casename, std::vector<SolutionField<Type>*>& fields);
   Int WriteVTK_Binary(std::string casename, std::vector<SolutionField<Type>*>& fields);

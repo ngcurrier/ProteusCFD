@@ -5908,8 +5908,10 @@ void Mesh<Type>::GetBoundaryFaces(std::vector<Element<Type>*>& newlist, std::vec
   }
 }
 
+// casename - name of file base to write
+// bc - optional, will translate proteus BCs to fluent BCs as available
 template <class Type>
-Int Mesh<Type>::WriteFluentCase_Ascii(std::string casename)
+Int Mesh<Type>::WriteFluentCase_Ascii(std::string casename, BoundaryConditions<Type>* bc)
 {
   Int etype, i;    
   Int tempnodes[8];
@@ -5968,24 +5970,6 @@ Int Mesh<Type>::WriteFluentCase_Ascii(std::string casename)
   //      we only want truly internal faces in this list
   GetInteriorFaces(interiorFaces, orientation);
 
-  // ANSYS FLUENT bcTypes are
-  //bc-type	description
-  //2	interior
-  //3	wall
-  //4	pressure-inlet, inlet-vent, intake-fan
-  //5	pressure-outlet, exhaust-fan, outlet-vent
-  //7	symmetry
-  //8	periodic-shadow
-  //9	pressure-far-field
-  //10	velocity-inlet
-  //12	periodic
-  //14	fan, porous-jump, radiator
-  //20	mass-flow-inlet
-  //24	interface
-  //31	parent (hanging node)
-  //36	outflow
-  //37	axis
-  
   // get header pointer for faces
   fout << "(0 \"Faces header\")" << std::endl;
   lastidx = interiorFaces.size() + nbface;
@@ -6111,31 +6095,58 @@ Int Mesh<Type>::WriteFluentCase_Ascii(std::string casename)
     }
     faceCount++;
   }
-  
-  
   fout << "))" << std::endl;
   fout << std::endl;
   
   std::cout << "FLUENT CASE ASCII I/O: Wrote " << interiorFaces.size() << " interior faces" << std::endl;
   
   // write boundary faces for each factag
-  // set all to wall (3) for now, (9) is farfield
-  bcType = 3; // wall
+  // ANSYS FLUENT bcTypes are
+  //bc-type	description
+  //2	interior
+  //3	wall
+  //4	pressure-inlet, inlet-vent, intake-fan
+  //5	pressure-outlet, exhaust-fan, outlet-vent
+  //7	symmetry
+  //8	periodic-shadow
+  //9	pressure-far-field
+  //10	velocity-inlet
+  //12	periodic
+  //14	fan, porous-jump, radiator
+  //20	mass-flow-inlet
+  //24	interface
+  //31	parent (hanging node)
+  //36	outflow
+  //37	axis
   faceCount++;
   for(i = 0; i <= nfactags; ++i){
+    Int bcFluentType = 3; //wall
     std::vector<Element<Type>*> bFaces;
     std::vector<Int> volumeNeighbor;
     //TODO: fix volume neighbor to only count / indx to volume elements
     //      currently indexes to total element list that includes surface elements as well
     GetBoundaryFaces(bFaces, volumeNeighbor, i);
     if(bFaces.size() > 0){
+      if(bc != NULL){ // if we've been passed a bc object
+	Int bcProteusType = bc->GetBCType(i);
+	if(bcProteusType == Proteus_Symmetry){
+	  bcFluentType = 7;
+	}
+	else if(bcProteusType == Proteus_FarField){
+	  bcFluentType = 9;
+	}
+	else if(bcProteusType == Proteus_Isothermal || bcProteusType == Proteus_HeatFlux ||
+		bcProteusType == Proteus_ImpermeableWall || bcProteusType == Proteus_NoSlip){
+	  bcFluentType = 3;
+	}
+      }
       firstidx = faceCount;
       lastidx = faceCount + bFaces.size() - 1;
       zoneid++;
       fout << "(0 \"Zone " << zoneid << "\")" << std::endl;
       fout << "(0 \"Faces " << firstidx << " to " << lastidx << "\")" << std::endl;
       fout << "(13 (" << i2h(zoneid) << " " << i2h(firstidx) << " "
-	   << i2h(lastidx) << " " << bcType << " " << i2h(0) << ")(" << std::endl;
+	   << i2h(lastidx) << " " << bcFluentType << " " << i2h(0) << ")(" << std::endl;
       Int jdx = 0;
       for(typename std::vector<Element<Type>*>::iterator it = bFaces.begin(); it != bFaces.end(); ++it){
 	Element<Type>& element = **it;
@@ -6164,6 +6175,25 @@ Int Mesh<Type>::WriteFluentCase_Ascii(std::string casename)
       }
       fout << "))" << std::endl;
       fout << std::endl;
+      fout << "(39 (" << i2h(zoneid) << " ";
+      if(bcFluentType == 3){ //wall
+	fout << "wall wall-" << i2h(zoneid) << " 1)(\n";
+	fout << "(q-dot (constant . 0) (profile \"\" \"\"))\n";
+	fout << "(thermal-bc . 1)\n"; // 0 - constant T, 1-constant flux, 2-convection
+	fout << "(t (constant . 300) (profile \"\" \"\"))\n";
+	fout << "(q (constant . 0) (profile \"\" \"\"))\n"; 
+	fout << "(h (constant . 0) (profile \"\" \"\"))\n";
+	fout << ")\n";
+      }
+      else if(bcFluentType == 9){ // farfield
+	fout << "pressure-far-field pressure-far-field-" << i2h(zoneid) << " 1)(\n";
+	fout << "p ( constant . 0) (profile \"\" \"\"))\n";
+	fout << "m ( constant . 7.5) (profile \"\" \"\"))\n";
+	fout << "t ( constant . 300.) (profile \"\" \"\"))\n";
+	fout << ")\n";
+      }
+      fout << std::endl;
+	
     }
   }
 
