@@ -317,9 +317,14 @@ Int Species<Type>::GetDBInfo(std::string database)
   //the value read is actually delta Hf(298)/R
   hf298 *= R;
 
-  //compute href and dhf298
+  //compute dhf298
+  //NOTE that the heat of formation at 298.15K should be equal to the evaluation
+  //of the curvefit at the same 298.15K by defintion, most likely only close
+  //and not exact
   dhf298 = GetH(298.15, false);
-  href = GetH(298.15, false);
+  //href is the difference between the enthalpy at standard state (0K)
+  //and the value of enthalpy at (298.15K). This needs to be read from file.
+  href = 0.0;
   
   //TODO: read in other important coeff. for diffusion, etc.
   
@@ -349,13 +354,24 @@ void Species<Type>::Print()
   std::cout << "===========================================" << std::endl;
   std::cout << "Molecular weight (kg/mol): " << MW << std::endl;
   std::cout << "Specific gas constant - R (J/kg.K): " << R << std::endl;
-  std::cout << "Delta hf(298K): " << dhf298 << std::endl;
-  std::cout << "hf(298K): " << hf298 << std::endl;
-  std::cout << "href(298K): " << href << "\n\n";
+  std::cout << "Computed heat of formation hf[298.15K] (J/kg): " << dhf298 << std::endl;
+  std::cout << "Heat of formation hf[298.15K] (J/kg): " << hf298 << std::endl;
+  // check absolute difference > .01
+  if(fabs((dhf298 - hf298)) > 1.0e-2){
+    // check percent difference > .001 / .1%
+    if(fabs((dhf298 - hf298)/dhf298) > 1.0e-3){
+      std::stringstream ss;
+      ss << "WARNING: computed and read heat of formation do NOT match" << std::endl;
+      ss << "WARNING difference is " << dhf298-hf298 << std::endl;
+      std::cout << "WARNING: computed and read heat of formation do NOT match" << std::endl;
+      Abort << ss.str();
+    }
+  }
+  std::cout << "href[298.15 K] - href[0 K] Offset: " << href << "\n\n";
   std::cout << "T(K)\t\th (J/kg)\tCp (J/kg.K)\tk (W/m.K)\tmu (Pa.s)" << std::endl;
   std::cout << "-----------------------------------------------------------------------------------------" << std::endl;
   std::cout.setf(std::ios::scientific);
-  std::cout << 298.0 << "\t" << std::setw(8) << GetH(298.0) << "\t" << std::setw(8) << GetCp(298.0) << std::endl;
+  std::cout << 298.15 << "\t" << std::setw(8) << GetH(298.15) << "\t" << std::setw(8) << GetCp(298.15) << std::endl;
   if(hasViscousProps){
     for(Int i = 0; i <= 20; i++){
       Type T = 300.0 + i*100.0;
