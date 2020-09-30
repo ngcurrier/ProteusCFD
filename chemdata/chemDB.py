@@ -206,7 +206,7 @@ def process_CEA(h5,fname):
       Tintervals = int(line[0:2])
       d["CEA_Tintervals"] = Tintervals
       d["MW"] = float(line[52:64])
-      d["hf"] = float(line[65:80])
+      d["CEA_hf"] = float(line[65:80])
       # read temperature ranges
       line = lines[iline]
       iline = iline + 1

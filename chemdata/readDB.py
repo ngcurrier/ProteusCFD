@@ -202,7 +202,9 @@ def evaluateCEAH(spdb, T_K):
     #       gives us this value as hf(298.15K)/R
     hf = spdb.get('CEA_hf')[()] # J/mol
     hf_metric = hf/MW*1000.0 # J/kg
-
+    # The evaluation of the curvefit and the hf(298.15K) should give the same value
+    # or very close by definition
+       
     return H_RT*Rsp*T_K  #J/kg
     
 
@@ -364,9 +366,9 @@ if __name__ == "__main__":
     
     Rmix = R_UNIV/MW*1000.0
     
-    fout.write('T(K),Cv(J/kg.K),Cp(J/kg.K),Cp/R,H(J/kg),h/RT,S(J/kg.K),s/R,mu(Pa.s),k(W/m.K)\n')
+    fout.write('T(K),Cv(J/kg.K),Cp(J/kg.K),Cp/R,H(J/kg),H(J/mol),h/RT,S(J/kg.K),s/R,mu(Pa.s),k(W/m.K)\n')
     print('\n*************** MIXTURE ************************')
-    print('T(K)\t\t Cv(J/kg.K) \tCp(J/kg.K)\tCp/R \t\t H(kJ/kg) \t h/RT \t\t S(kJ/kg.K) \t s/R\t\t mu(Pa.s)\t k(W/m.K)')
+    print('T(K)\t\t Cv(J/kg.K) \tCp(J/kg.K)\tCp/R \t\t H(kJ/kg) \t H(kJ/mol) \t h/RT \t\t S(kJ/kg.K) \t s/R\t\t mu(Pa.s)\t k(W/m.K)')
     print('----------------------------------------------------------------------------------------------------------------------------------------')
     for i in range(0,120):
         T_K = 250 + i*50.0
@@ -380,8 +382,8 @@ if __name__ == "__main__":
         cv = cp - Rmix
         mu = 0.0 # todo
         k = 0.0  # todo
-        print('%f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f' % (T_K, cv, cp, cp/Rmix, h/1000.0, h/(Rmix*T_K), s/1000.0, s/Rmix, mu, k))
-        fout.write('%f,%f,%f,%f,%f,%f,%f,%f,%f, %f\n' % (T_K, cv, cp, cp/Rmix, h, h/(Rmix*T_K), s, s/Rmix, mu, k))
+        print('%f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f' % (T_K, cv, cp, cp/Rmix, h/1000.0, h/1000.0*MW/1000.0, h/(Rmix*T_K), s/1000.0, s/Rmix, mu, k))
+        fout.write('%f,%f,%f,%f,%f,%f,%f,%f,%f,%f, %f\n' % (T_K, cv, cp, cp/Rmix, h, h*MW/1000.0, h/(Rmix*T_K), s, s/Rmix, mu, k))
 
     T_K = 298.15
     cp = evaluateMixtureCp(h5, speciesList, massFractions, T_K)
@@ -391,7 +393,7 @@ if __name__ == "__main__":
     mu = 0.0
     k = 0.0
     print()
-    print('%f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t%f' % (T_K, cv, cp, cp/Rmix, h/1000.0, h/(Rmix*T_K), s/1000.0, s/Rmix, mu, k))
+    print('%f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t%f' % (T_K, cv, cp, cp/Rmix, h/1000.0, h/1000.0*MW/1000.0, h/(Rmix*T_K), s/1000.0, s/Rmix, mu, k))
 
     print('\n*** Mixture MW computed (g/mol): %f ***' % mixtureMW)
     print('*** Mixture Rsp (J/kg.K): %f ***' % (R_UNIV/mixtureMW*1000.0))
