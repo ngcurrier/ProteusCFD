@@ -67,6 +67,49 @@ def evaluateMixtureH(h5, speciesList, massFractions, T_K):
     return h # J/kg
 
 
+# evaluates mixture heat of formation at standard state
+# h5 - hdf5 db object
+# speciesList - list of species names (ie. ['H2O', 'H2'])
+# massFractions - massfractions list in order of species, must sum to one
+#                 NOTE: for best results pass largest massfraction species last
+def evaluateMixtureHf(h5, speciesList, massFractions):
+    spdb = []
+    for specie in speciesList:
+        spdb.append(retrieveDBSpecies(h5, specie))
+
+    Hflist = []
+    for specie in spdb:
+        Hflist.append(evaluateCEAHf(specie))
+        
+    #compute mixture
+    hf = 0.0
+    for imf, ih in zip(massFractions, Hflist):
+        hf += imf*ih
+
+    return hf # J/kg
+
+# evaluates mixture heat of formation at standard state
+# h5 - hdf5 db object
+# speciesList - list of species names (ie. ['H2O', 'H2'])
+# massFractions - massfractions list in order of species, must sum to one
+#                 NOTE: for best results pass largest massfraction species last
+def evaluateMixtureDeltaHf(h5, speciesList, massFractions):
+    spdb = []
+    for specie in speciesList:
+        spdb.append(retrieveDBSpecies(h5, specie))
+
+    dHflist = []
+    for specie in spdb:
+        dHflist.append(evaluateCEADeltaHf(specie))
+        
+    #compute mixture
+    dhf = 0.0
+    for imf, ih in zip(massFractions, dHflist):
+        dhf += imf*ih
+
+    return dhf # J/kg
+
+
 # h5 - hdf5 db object
 # speciesList - list of species names (ie. ['H2O', 'H2'])
 # massFractions - massfractions list in order of species, must sum to one
@@ -155,6 +198,36 @@ def evaluateCEAS(spdb, T_K):
 
     return S_R*Rsp # J/kg.K
 
+# evaluates the enthalpy shift from 298.15 to 0K
+def evaluateCEADeltaHf(spdb):
+    # retrieve the heat of formation from CEA database
+    dhf1 = spdb.get('CEA_hf298_T1_offset')[()] # J/mol
+    dhf2 = spdb.get('CEA_hf298_T2_offset')[()] # J/mol
+    # dhf1 and dhf2 are always the same values but we read them to 
+    # have the ability to do a reader check here
+    MW = float(spdb.get('MW')[()])
+
+    # NOTE: that CEA gives this value in J/mol whereas the Burcat data
+    #       gives us this value as hf(298.15K)/R
+    dhf1_metric = dhf1/MW*1000.0 # J/kg
+    dhf2_metric = dhf2/MW*1000.0 # J/kg
+    return dhf1_metric #J/kg
+
+# evaluates the heat of formation from CEA for a single species (j/kg)
+def evaluateCEAHf(spdb):
+    # retrieve the heat of formation from CEA database
+    hf = spdb.get('CEA_hf')[()] # J/mol
+    MW = float(spdb.get('MW')[()])
+
+    # NOTE: that CEA gives this value in J/mol whereas the Burcat data
+    #       gives us this value as hf(298.15K)/R
+    hf_metric = hf/MW*1000.0 # J/kg
+    # The evaluation of the curvefit and the hf(298.15K) should give the same value
+    # or very close by definition
+
+    return hf_metric #J/kg
+
+# evaluates the heat of formation from CEA for a single species (j/kg)
 def evaluateCEAH(spdb, T_K):
     # look for interval in which T_K lives
     Tintervals = spdb.get('CEA_Tintervals')[()]
@@ -395,10 +468,15 @@ if __name__ == "__main__":
     print()
     print('%f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t%f' % (T_K, cv, cp, cp/Rmix, h/1000.0, h/1000.0*MW/1000.0, h/(Rmix*T_K), s/1000.0, s/Rmix, mu, k))
 
+    hf = evaluateMixtureHf(h5, speciesList, massFractions)
+    dhf = evaluateMixtureDeltaHf(h5, speciesList, massFractions)
+
     print('\n*** Mixture MW computed (g/mol): %f ***' % mixtureMW)
     print('*** Mixture Rsp (J/kg.K): %f ***' % (R_UNIV/mixtureMW*1000.0))
     print('*** MW used in non-dimensionalization (g/mol): %f ***' % MW)
     print('*** Rsp used in non-dimensionalization (J/kg.K): %f ***' % Rmix)
+    print('*** Hf(298.15K) computed (J/kg): %f ***' % hf)
+    print('*** Hf(298.15K) - Hf(0K) computed (J/kg): %f ***' % dhf)
         
     fout.close()
     f.close()
