@@ -22,6 +22,12 @@ def getTemperatureRange(spdb):
     return [lowT, hiT]
 
 
+# h - enthalpy (J/kg)
+# s - entropy (J/kg.K)
+# T_K - temperature (K)
+def evaluateGibbsFreeEnergy(h, s, T_K):
+    return h - T_K*s #(J/kg)
+
 # h5 - hdf5 db object
 # speciesList - list of species names (ie. ['H2O', 'H2'])
 # massFractions - massfractions list in order of species, must sum to one
@@ -439,9 +445,9 @@ if __name__ == "__main__":
     
     Rmix = R_UNIV/MW*1000.0
     
-    fout.write('T(K),Cv(J/kg.K),Cp(J/kg.K),Cp/R,H(J/kg),H(J/mol),h/RT,S(J/kg.K),s/R,mu(Pa.s),k(W/m.K)\n')
+    fout.write('T(K),Cv(J/kg.K),Cp(J/kg.K),Cp/R,H(J/kg),H(J/mol),h/RT,S(J/kg.K),s/R,G(J/kg),mu(Pa.s),k(W/m.K)\n')
     print('\n*************** MIXTURE ************************')
-    print('T(K)\t\t Cv(J/kg.K) \tCp(J/kg.K)\tCp/R \t\t H(kJ/kg) \t H(kJ/mol) \t h/RT \t\t S(kJ/kg.K) \t s/R\t\t mu(Pa.s)\t k(W/m.K)')
+    print('T(K)\t\t Cv(J/kg.K) \tCp(J/kg.K)\tCp/R \t\t H(kJ/kg) \t H(kJ/mol) \t h/RT \t\t S(kJ/kg.K) \t s/R\t\t G(kJ/kg)\t mu(Pa.s)\t k(W/m.K)')
     print('----------------------------------------------------------------------------------------------------------------------------------------')
     for i in range(0,120):
         T_K = 250 + i*50.0
@@ -452,21 +458,23 @@ if __name__ == "__main__":
         cp = evaluateMixtureCp(h5, speciesList, massFractions, T_K)
         h = evaluateMixtureH(h5, speciesList, massFractions, T_K)
         s = evaluateMixtureS(h5, speciesList, massFractions, T_K)
+        g = evaluateGibbsFreeEnergy(h, s, T_K)
         cv = cp - Rmix
         mu = 0.0 # todo
         k = 0.0  # todo
-        print('%f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f' % (T_K, cv, cp, cp/Rmix, h/1000.0, h/1000.0*MW/1000.0, h/(Rmix*T_K), s/1000.0, s/Rmix, mu, k))
-        fout.write('%f,%f,%f,%f,%f,%f,%f,%f,%f,%f, %f\n' % (T_K, cv, cp, cp/Rmix, h, h*MW/1000.0, h/(Rmix*T_K), s, s/Rmix, mu, k))
+        print('%f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f' % (T_K, cv, cp, cp/Rmix, h/1000.0, h/1000.0*MW/1000.0, h/(Rmix*T_K), s/1000.0, s/Rmix, g/1000.0, mu, k))
+        fout.write('%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n' % (T_K, cv, cp, cp/Rmix, h, h*MW/1000.0, h/(Rmix*T_K), s, s/Rmix, g, mu, k))
 
     T_K = 298.15
     cp = evaluateMixtureCp(h5, speciesList, massFractions, T_K)
     h = evaluateMixtureH(h5, speciesList, massFractions, T_K)
     s = evaluateMixtureS(h5, speciesList, massFractions, T_K)
+    g = evaluateGibbsFreeEnergy(h, s, T_K)
     cv = cp - Rmix
     mu = 0.0
     k = 0.0
     print()
-    print('%f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t%f' % (T_K, cv, cp, cp/Rmix, h/1000.0, h/1000.0*MW/1000.0, h/(Rmix*T_K), s/1000.0, s/Rmix, mu, k))
+    print('%f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t%f' % (T_K, cv, cp, cp/Rmix, h/1000.0, h/1000.0*MW/1000.0, h/(Rmix*T_K), s/1000.0, s/Rmix, g/1000.0, mu, k))
 
     hf = evaluateMixtureHf(h5, speciesList, massFractions)
     dhf = evaluateMixtureDeltaHf(h5, speciesList, massFractions)
