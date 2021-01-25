@@ -511,11 +511,11 @@ theType DistanceLinePoint(const theType* linePt1, const theType* linePt2, const 
 
   //now find the parametric value of t along the line to get back the point
   Subtract(linePt1, oPt, r1);
-  Subtract(linePt2, linePt2, r2);
+  Subtract(linePt2, linePt1, r2);
   theType dot = DotProduct(r1, r2);
   theType s2 = sMag*sMag;
   //this parameter minimized the distance
-  theType t = dot/s2;
+  theType t = -dot/s2;
 
   //compute the actual point on the line
   theType newPt[3];
